@@ -95,7 +95,11 @@ test.describe('groups', () => {
     await noteByText(page, 'Deux').dragTo(noteByText(page, 'Un'))
     await page.locator('[data-testid^="group-"]').filter({ hasText: '2' }).first().click()
     const inner = page.getByTestId('group-panel').locator('article.note').first()
-    await inner.locator('[data-testid^="note-menu-"]').click()
+    // The panel animates in; retry the menu click until the popover stays open.
+    await expect(async () => {
+      await inner.locator('[data-testid^="note-menu-"]').click()
+      await expect(page.locator('[data-testid^="ungroup-"]')).toBeVisible({ timeout: 1500 })
+    }).toPass({ timeout: 15_000 })
     await page.locator('[data-testid^="ungroup-"]').click()
     await expect(page.getByTestId('group-panel')).toHaveCount(0)
     await expect(column(page, 0).locator('article.note')).toHaveCount(2)

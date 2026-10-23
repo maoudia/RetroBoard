@@ -55,7 +55,7 @@ Browser (Nuxt SPA, generated)                Cloudflare
 
 ## Quick start
 
-Requirements: Node 22+.
+Requirements: Node 22+ (CI and Cloudflare builds use 24).
 
 ```bash
 npm install
