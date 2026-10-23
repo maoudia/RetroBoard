@@ -1,0 +1,13 @@
+node_modules/
+.nuxt/
+.output/
+.wrangler/
+.dev.vars
+.env
+dist/
+test-results/
+playwright-report/
+coverage/
+*.tsbuildinfo
+.DS_Store
+dist-worker

@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    groups:
+      nuxt: { patterns: ["nuxt", "@nuxt/*", "@pinia/*", "pinia", "vue*"] }
+      testing: { patterns: ["vitest*", "@playwright/*", "playwright*"] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

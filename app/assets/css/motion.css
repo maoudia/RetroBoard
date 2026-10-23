@@ -1,0 +1,68 @@
+/*
+ * Motion presets. A theme only picks names via data attributes on <html>:
+ *   data-enter="drop|pop|float|glitch|bloom"   data-leave="poof|melt|fade"
+ * and sets --enter-ms / --ease. Add a preset = add keyframes + one selector.
+ */
+:root { --enter-ms: 520ms; --ease: cubic-bezier(.2,.8,.2,1); --move-ms: 420ms; --enter-anim: note-pop; --leave-anim: note-fade; }
+[data-enter="drop"]   { --enter-anim: note-drop; }
+[data-enter="pop"]    { --enter-anim: note-pop; }
+[data-enter="float"]  { --enter-anim: note-float; }
+[data-enter="glitch"] { --enter-anim: note-glitch; }
+[data-enter="bloom"]  { --enter-anim: note-bloom; }
+[data-leave="poof"] { --leave-anim: note-poof; }
+[data-leave="melt"] { --leave-anim: note-melt; }
+[data-leave="fade"] { --leave-anim: note-fade; }
+
+/* TransitionGroup hooks used by every note list */
+.note-enter-active { animation: var(--enter-anim) var(--enter-ms) var(--ease) both; }
+.note-leave-active { position: absolute; width: var(--note-w, 150px); animation: var(--leave-anim) 320ms ease-in both; z-index: 0; pointer-events: none; }
+.note-move { transition: transform var(--move-ms) var(--ease); }
+.note-enter-active.is-flying { animation: none; }
+
+@keyframes note-pop {
+  0% { opacity: 0; transform: scale(.55) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(1.06) rotate(1.5deg); }
+  100% { transform: scale(1) rotate(var(--tilt, 0deg)); }
+}
+@keyframes note-drop {
+  0% { opacity: 0; transform: translateY(-70px) rotate(10deg) scale(.9); }
+  55% { opacity: 1; transform: translateY(6px) rotate(-2deg) scale(1.02); }
+  75% { transform: translateY(-4px) rotate(1deg); }
+  100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+}
+@keyframes note-float {
+  0% { opacity: 0; transform: translate(-14px, -40px) rotate(-6deg) scale(.92); filter: blur(2px); }
+  50% { opacity: 1; transform: translate(10px, 8px) rotate(3deg); filter: blur(0); }
+  100% { transform: translate(0, 0) rotate(var(--tilt, 0deg)); }
+}
+@keyframes note-glitch {
+  0% { opacity: 0; transform: translateX(-8px) skewX(14deg); clip-path: inset(40% 0 40% 0); }
+  20% { opacity: 1; transform: translateX(6px) skewX(-10deg); clip-path: inset(10% 0 60% 0); filter: hue-rotate(60deg); }
+  40% { transform: translateX(-4px) skewX(6deg); clip-path: inset(55% 0 5% 0); filter: hue-rotate(-40deg); }
+  60% { transform: translateX(3px); clip-path: inset(0 0 0 0); filter: none; }
+  100% { transform: none; clip-path: inset(0 0 0 0); }
+}
+@keyframes note-bloom {
+  0% { opacity: 0; transform: scale(.25) rotate(40deg); filter: blur(6px); }
+  70% { opacity: 1; transform: scale(1.08) rotate(-4deg); filter: blur(0); }
+  100% { transform: scale(1) rotate(var(--tilt, 0deg)); }
+}
+@keyframes note-poof { to { opacity: 0; transform: scale(.6) rotate(12deg); filter: blur(6px) saturate(0); } }
+@keyframes note-melt { to { opacity: 0; transform: translateY(18px) scaleY(.2) scaleX(1.08); filter: blur(3px); } }
+@keyframes note-fade { to { opacity: 0; transform: scale(.94); } }
+
+@keyframes vote-bump { 0% { transform: scale(1); } 35% { transform: scale(1.28); } 100% { transform: scale(1); } }
+@keyframes vote-float { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-34px) scale(1.4); } }
+@keyframes pulse-ring { from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent); } to { box-shadow: 0 0 0 14px transparent; } }
+@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(3px); } 30%, 50%, 70% { transform: translateX(-5px); } 40%, 60% { transform: translateX(5px); } }
+@keyframes settle { 0% { transform: translateY(-10px) scale(1.06); } 60% { transform: translateY(2px) scale(.99); } 100% { transform: none; } }
+@keyframes slide-in-right { from { transform: translateX(24px); opacity: 0; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.9); } }
+
+.vote-bump { animation: vote-bump .45s var(--ease); }
+.settle { animation: settle .45s var(--ease); }
+.shake { animation: shake .6s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}

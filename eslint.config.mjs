@@ -1,0 +1,12 @@
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt(
+  { ignores: ['worker/worker-configuration.d.ts', '.output/**', 'playwright-report/**', 'test-results/**'] },
+  {
+    rules: {
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+)
