@@ -43,6 +43,9 @@ export default defineNuxtConfig({
   },
   // Static hoisting turns constant :style bindings into literal style attributes (innerHTML), which the CSP blocks.
   vue: { compilerOptions: { hoistStatic: false } },
+  // Pure static output. Without this, Nitro detects Cloudflare Workers Builds and emits its own
+  // worker config (.wrangler/deploy/config.json) that overrides ours and breaks `wrangler deploy`.
+  nitro: { preset: 'static' },
   features: { inlineStyles: false },
   typescript: { strict: true },
   vite: { build: { sourcemap: false } },
