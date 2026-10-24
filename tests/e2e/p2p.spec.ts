@@ -56,3 +56,21 @@ test('a relay-only participant still collaborates, through the bridge', async ({
   expect(carol.sent.some((f) => f.startsWith('{"t":"sig"'))).toBe(false)
   await carol.ctx.close()
 })
+
+test('three participants: everyone links to everyone and sees every note', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const url = await shareUrl(page)
+  const bob = await joinRecorded(browser, url, 'Bob')
+  const carol = await joinRecorded(browser, url, 'Carol')
+  await publishNote(carol.page, 0, 'Carol idea')
+  await publishNote(bob.page, 1, 'Bob idea')
+  for (const p of [page, bob.page, carol.page]) {
+    await expect(noteByText(p, 'Carol idea')).toBeVisible()
+    await expect(noteByText(p, 'Bob idea')).toBeVisible()
+  }
+  await carol.page.getByTestId('btn-participants').click()
+  await expect(carol.page.getByTestId('links-state')).toContainText('2')
+  expect(relayPubs(bob.sent) + relayPubs(carol.sent)).toBe(0)
+  await bob.ctx.close()
+  await carol.ctx.close()
+})
