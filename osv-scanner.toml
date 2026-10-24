@@ -1,0 +1,6 @@
+# OSV scanner configuration. Every ignore needs a reason and a review date.
+
+[[IgnoredVulns]]
+id = "GHSA-86w9-cpqp-85rv"
+ignoreUntil = 2027-01-31
+reason = "node-forge is only used by listhen (Nuxt dev server HTTPS). Not shipped in the static site or the Worker. No fixed release exists yet (latest 1.4.0)."

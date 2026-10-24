@@ -7,3 +7,9 @@ onlyBuiltDependencies:
   - esbuild
   - unrs-resolver
   - workerd
+
+# Security overrides (pnpm audit / OSV, 2026-10-24). Remove once upstream ranges include the fixes.
+overrides:
+  '@modelcontextprotocol/server@>=2.0.0 <2.3.0': ^2.3.0
+  'undici@>=7.0.0 <7.30.1': ^7.30.1
+  'qs@<6.16.0': ^6.16.0
