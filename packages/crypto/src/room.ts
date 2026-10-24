@@ -10,3 +10,7 @@ export async function deriveContentKey(roomKey: Uint8Array, roomId: string, pass
   const stretch = passcode ? await pbkdf2(utf8(passcode.normalize('NFKC')), utf8(roomId), iterations) : new Uint8Array()
   return hkdf(roomKey, utf8(roomId), concat(utf8('rb/content/v1'), stretch))
 }
+
+/** Board file key: bound to the content key (so to the passcode too) and to the room. */
+export const deriveFileKey = (contentKey: Uint8Array, roomId: string): Promise<Bytes> =>
+  hkdf(contentKey, utf8(roomId), utf8('rb/file/v1'))

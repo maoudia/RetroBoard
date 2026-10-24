@@ -97,3 +97,19 @@ export const parseClientFrame = parser(ClientFrameSchema)
 export const parseRelayFrame = parser(RelayFrameSchema)
 export const parseSignedEvent = parser(SignedEventSchema)
 export const parsePresence = parser(PresenceSchema)
+
+/**
+ * Board file (.retro): every envelope of a board, encrypted once more with the file key
+ * (HKDF(contentKey, roomId, "rb/file/v1")), aad = "retro/1|<room>". Restoring needs the link
+ * (and the passcode when set); the file alone reveals nothing but the room id.
+ */
+export const BOARD_FILE_FORMAT = 'retro/1'
+export const BoardFileSchema = v.strictObject({
+  format: v.literal(BOARD_FILE_FORMAT),
+  room: v.pipe(v.string(), v.regex(ROOM_ID_RE)),
+  ct: v.pipe(v.string(), v.regex(B64URL_RE)),
+})
+export type BoardFile = v.InferOutput<typeof BoardFileSchema>
+export const parseBoardFile = parser(BoardFileSchema)
+export const parseEnvelopes = parser(v.pipe(v.array(EnvelopeSchema), v.maxLength(20_000)))
+export const boardFileAad = (room: string): string => `${BOARD_FILE_FORMAT}|${room}`

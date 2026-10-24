@@ -6,11 +6,11 @@
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
  * Every peer runs the same fold, so all replicas converge without a server reducer.
  */
-import { EventLog, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
-import { fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
+import { EventLog, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
+import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer } from '@retroboard/domain'
 import { HybridClock } from '@retroboard/sync'
-import { type Envelope, envelopeAad, PROTOCOL_VERSION, parsePresence, parseRelayFrame, parseSignedEvent, type Presence, type RelayFrame } from '@retroboard/protocol'
+import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parsePresence, parseRelayFrame, parseSignedEvent, type Presence, type RelayFrame } from '@retroboard/protocol'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './websocket'
@@ -21,6 +21,8 @@ export interface EncryptedDeps {
   /** Present for the facilitator: signs genesis and privileged events. */
   facilitator: SignerPort | null
   verifier: VerifierPort
+  /** Local encrypted replica: the board opens from it before (or without) the relay. */
+  replica?: ReplicaStorePort
   WS?: typeof WebSocket
   now?: () => number
 }
@@ -71,7 +73,10 @@ export class EncryptedRelayTransport implements BoardTransport {
       this.WS = deps.WS ?? WebSocket
       this.now = deps.now ?? Date.now
       this.hlc = new HybridClock(this.now)
-      if (!this.closed) this.open()
+      this.enqueue(async () => {
+        await this.loadReplica()
+        if (!this.closed) this.open()
+      })
     }, () => this.handlers.onError('invalid'))
   }
 
@@ -90,11 +95,51 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   close(): void {
     this.closed = true
+    // Writes still batched are dropped: the page may be deleting this replica right now.
+    clearTimeout(this.replicaTimer)
+    this.replicaTimer = undefined
+    this.pendingReplica = []
     clearTimeout(this.reconnectTimer)
     clearInterval(this.heartbeat)
     this.ws?.close(1000)
     this.ws = null
     this.handlers.onStatus('closed')
+  }
+
+  async exportBoardFile(): Promise<string | null> {
+    if (!this.deps || this.log.size === 0) return null
+    const envs = await Promise.all(this.log.all().map((e) => this.sealEvent(e)))
+    const key = await deriveFileKey(this.deps.contentKey, this.ring.roomId)
+    const ct = await seal(key, utf8(JSON.stringify(envs)), utf8(boardFileAad(this.ring.roomId)))
+    const file: BoardFile = { format: BOARD_FILE_FORMAT, room: this.ring.roomId, ct: toBase64Url(ct) }
+    return JSON.stringify(file)
+  }
+
+  /**
+   * Restores a board file into this room: events are verified like any other, folded, kept in
+   * the local replica and re-published so the relay and the other participants get them back.
+   */
+  importBoardFile(text: string): Promise<number | null> {
+    return new Promise((resolve) => this.enqueue(async () => {
+      let raw: unknown
+      try { raw = JSON.parse(text) } catch { return resolve(null) }
+      const file = parseBoardFile(raw)
+      if (!this.deps || !file || file.room !== this.ring.roomId) return resolve(null)
+      const key = await deriveFileKey(this.deps.contentKey, this.ring.roomId)
+      const ct = fromBase64Url(file.ct)
+      const pt = ct && await open(key, ct, utf8(boardFileAad(file.room)))
+      if (!pt) return resolve(null)
+      let inner: unknown
+      try { inner = JSON.parse(fromUtf8(pt)) } catch { return resolve(null) }
+      const envs = parseEnvelopes(inner)
+      if (!envs) return resolve(null)
+      const added = await this.ingest(envs)
+      if (added) {
+        this.push(envs.filter((e) => this.log.has(e.id)))
+        this.emit()
+      }
+      resolve(added)
+    }))
   }
 
   /** Signing key used as the actor of this session's content (notes, votes). */
@@ -120,7 +165,9 @@ export class EncryptedRelayTransport implements BoardTransport {
     const event = await signEvent(signer, this.ring.roomId, draft)
     this.log.insert(event)
     this.emit()
-    this.push([await this.sealEvent(event)])
+    const env = await this.sealEvent(event)
+    this.remember([env])
+    this.push([env])
   }
 
   private async sealEvent(e: SignedEvent): Promise<Envelope> {
@@ -137,8 +184,38 @@ export class EncryptedRelayTransport implements BoardTransport {
     try { return JSON.parse(fromUtf8(pt)) as unknown } catch { return null }
   }
 
+  private pendingReplica: Envelope[] = []
+  private replicaTimer: ReturnType<typeof setTimeout> | undefined
+
+  /** Envelopes are already ciphertext: the replica stores them as they are, in small batches. */
+  private remember(envs: readonly Envelope[]): void {
+    const replica = this.deps.replica
+    if (!replica || envs.length === 0) return
+    this.pendingReplica.push(...envs)
+    if (this.replicaTimer) return
+    this.replicaTimer = setTimeout(() => {
+      this.replicaTimer = undefined
+      const batch = this.pendingReplica.splice(0)
+      void replica.append(this.ring.roomId, batch.map((e) => ({ id: e.id, data: JSON.stringify(e) }))).catch(() => { /* best effort */ })
+    }, 250)
+  }
+
+  private async loadReplica(): Promise<void> {
+    const replica = this.deps.replica
+    if (!replica) return
+    let envs: Envelope[]
+    try {
+      envs = (await replica.load(this.ring.roomId)).flatMap((r) => {
+        const env = parseEnvelope((() => { try { return JSON.parse(r.data) as unknown } catch { return null } })())
+        return env ? [env] : []
+      })
+    } catch { return }
+    // Already stored: ingest without re-remembering.
+    if (await this.ingest(envs, false)) this.emit()
+  }
+
   /** Decrypts, validates and verifies inbound events. Anything invalid is dropped silently. */
-  private async ingest(envs: readonly Envelope[]): Promise<number> {
+  private async ingest(envs: readonly Envelope[], remember = true): Promise<number> {
     let added = 0
     for (const env of envs) {
       if (this.log.has(env.id)) continue
@@ -146,7 +223,11 @@ export class EncryptedRelayTransport implements BoardTransport {
       // The envelope header must agree with the signed content (no relabelled replays).
       if (!event || event.id !== env.id || event.at !== env.hlc) continue
       const verified = await verifyEvent(this.deps.verifier, this.ring.roomId, event)
-      if (verified && this.log.insert(event)) { this.hlc.receive(event.at); added++ }
+      if (verified && this.log.insert(event)) {
+        this.hlc.receive(event.at)
+        added++
+        if (remember) this.remember([env])
+      }
     }
     return added
   }
@@ -235,8 +316,9 @@ export class EncryptedRelayTransport implements BoardTransport {
     return list.sort((x, y) => Number(y.me) - Number(x.me) || (x.name ?? '').localeCompare(y.name ?? ''))
   }
 
+  /** Before the relay answers, the board can already show what the local replica holds. */
   private emit(): void {
-    if (!this.synced) return
+    if (!this.synced && this.log.ledger.facilitatorKey === null) return
     this.handlers.onSnapshot(buildSnapshot(this.log.ledger.board, { cid: this.actorKey }, this.peers(), this.now()))
   }
 

@@ -45,6 +45,10 @@ export const useBoardStore = defineStore('board', () => {
   }
 
   function updateIdentity(identity: Identity) { transport?.updateIdentity(identity) }
+  /** Encrypted boards only: export and restore of the board file (.retro). */
+  const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
+  const exportBoardFile = () => transport?.exportBoardFile?.() ?? Promise.resolve(null)
+  const importBoardFile = (text: string) => transport?.importBoardFile?.(text) ?? Promise.resolve(null)
   const commands = createBoardCommands({ channel: () => transport, view: () => snapshot.value })
   /** Subscribe to snapshot transitions (animations need the previous one). */
   function onSnapshot(fn: (prev: Snapshot | null, next: Snapshot) => void) {
@@ -71,7 +75,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, roomId, skew, accessDenied,
-    connect, disconnect, updateIdentity, onSnapshot, commands,
+    connect, disconnect, updateIdentity, onSnapshot, commands, canUseBoardFile, exportBoardFile, importBoardFile,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, noteCount, openActions,
     itemsFor, noteById,
   }

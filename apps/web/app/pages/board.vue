@@ -58,7 +58,17 @@ function unlock(code: string) {
 onMounted(enter)
 useBoardAgentTools()
 watch(() => route.hash, () => { passcode.value = null; enter() })
-onBeforeUnmount(() => board.disconnect())
+// Retention "until I leave": the encrypted copy goes with the tab or the navigation away.
+function forgetIfLeaving() {
+  const inv = invite.value
+  if (settings.s.retentionDays === 0 && inv?.kind === 'encrypted') void $ports.replica?.delete(inv.ring.roomId)
+}
+onMounted(() => window.addEventListener('pagehide', forgetIfLeaving))
+onBeforeUnmount(() => {
+  window.removeEventListener('pagehide', forgetIfLeaving)
+  board.disconnect()
+  forgetIfLeaving()
+})
 
 // A freshly created board gets its theme and template from the creator's setup.
 watch(needsSetup, (need) => {
@@ -85,7 +95,7 @@ watch(effectiveThemeId, (id) => { if (id && id !== theme.themeId) void theme.use
 
 // Remember this board on this device only (title and theme, never content).
 watch(() => [board.settings?.title, board.settings?.initialized] as const, ([title, init]) => {
-  if (init && title && roomId.value && !isLocalRoom(roomId.value)) recents.touch(roomId.value, title, board.settings!.themeId, boardHash(invite.value!, 'facilitator'))
+  if (init && title && roomId.value && !isLocalRoom(roomId.value)) void recents.touch(roomId.value, title, board.settings!.themeId, boardHash(invite.value!, 'facilitator'))
 })
 
 // Drafts of a deleted column have nowhere to live.

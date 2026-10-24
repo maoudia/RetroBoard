@@ -18,6 +18,8 @@ export interface LocalSettings {
   locale: LocalePref
   /** Let AI agents built into the browser use this site's tools (WebMCP). Off by default. */
   browserAgents: boolean
+  /** Days the encrypted copy of a board stays in this browser; 0 = delete it when I leave the board. */
+  retentionDays: 0 | 1 | 7 | 30
 }
 
 const KEY = 'retroboard:settings'
@@ -25,6 +27,7 @@ export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
 const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   themeMode: 'board', myTheme: null, defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
+  retentionDays: 30,
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

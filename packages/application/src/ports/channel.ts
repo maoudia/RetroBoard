@@ -23,6 +23,10 @@ export interface BoardChannel {
   send(command: Command): boolean
   updateIdentity(identity: Identity): void
   close(): void
+  /** Encrypted boards: the board file (.retro) content, or null when there is nothing to export. */
+  exportBoardFile?(): Promise<string | null>
+  /** Encrypted boards: restores events from a board file. Returns how many were new, or null if the file does not belong to this board. */
+  importBoardFile?(text: string): Promise<number | null>
 }
 
 export type ChannelFactory = (roomId: string, handlers: ChannelHandlers) => BoardChannel

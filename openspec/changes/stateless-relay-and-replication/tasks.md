@@ -13,12 +13,12 @@
 
 ## 3. Local replica
 
-- [ ] 3.1 Implement the IndexedDB `ReplicaStorePort` adapter with key wrapping, persistence request and retention cleanup; verify unit tests (fake-indexeddb) and an e2e reload test
-- [ ] 3.2 Add the retention setting to the profile (fr, en); verify e2e that "when I leave" deletes the replica on tab close
+- [x] 3.1 Implement the IndexedDB `ReplicaStorePort` adapter with key wrapping, persistence request and retention cleanup; verify unit tests (fake-indexeddb) and an e2e reload test
+- [x] 3.2 Add the retention setting to the profile (fr, en); verify e2e that "when I leave" deletes the replica on tab close
 
 ## 4. Board file and snapshots
 
-- [ ] 4.1 Implement board file export/import (encrypted) and the restore flow; verify e2e export then restore into a fresh room
+- [x] 4.1 Implement board file export/import (encrypted) and the restore flow; verify e2e export then restore into a fresh room
 - [ ] 4.2 Implement signed snapshots and snapshot-based join; verify unit test with 3,000 events and e2e late joiner
 
 ## 5. Cleanup

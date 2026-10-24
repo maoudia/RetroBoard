@@ -97,3 +97,79 @@ test('passcode: the link alone is not enough; a wrong passcode shows nothing and
   await expect(noteByText(bob, 'Protected idea')).toBeVisible()
   await ctx.close()
 })
+
+test('the board reopens from the encrypted local copy when the relay is unreachable', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Survives offline')
+  await page.waitForTimeout(600) // replica writes are batched (250 ms)
+  // Cut the relay entirely: nothing can come from the server.
+  await page.routeWebSocket(/\/ws2/, (ws) => { ws.close() })
+  await page.reload()
+  await expect(noteByText(page, 'Survives offline')).toBeVisible()
+  await expect(page.getByTestId('offline')).toBeVisible()
+  // The local copy holds ciphertext only.
+  const stored = await page.evaluate(() => new Promise<string>((resolve) => {
+    const open = indexedDB.open('retroboard-replica')
+    open.onsuccess = () => {
+      const all = open.result.transaction('envelopes').objectStore('envelopes').getAll()
+      all.onsuccess = () => resolve(JSON.stringify(all.result))
+    }
+  }))
+  expect(stored.length).toBeGreaterThan(100)
+  expect(stored).not.toContain('Survives offline')
+})
+
+test('"until I leave" deletes the local copy when leaving the board', async ({ page }) => {
+  await page.goto('/')
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('retention-0').click()
+  await page.keyboard.press('Escape')
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Ephemeral')
+  await page.waitForTimeout(600)
+  await page.goto('/')
+  const count = await page.evaluate(() => new Promise<number>((resolve) => {
+    const open = indexedDB.open('retroboard-replica')
+    open.onsuccess = () => { const c = open.result.transaction('envelopes').objectStore('envelopes').count(); c.onsuccess = () => resolve(c.result) }
+  }))
+  expect(count).toBe(0)
+})
+
+test('board file: export, then restore into the same link after the board is gone everywhere', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Kept in the file')
+  const facilitatorLink = page.url()
+  await page.getByTestId('btn-export').click()
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-retro').click()])
+  const fileText = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'))
+  expect(download.suggestedFilename()).toMatch(/\.retro$/)
+  expect(fileText).not.toContain('Kept in the file')
+
+  // A fresh browser (no replica) and a relay that lost everything.
+  const ctx = await browser.newContext()
+  const fresh = await ctx.newPage()
+  const published: string[] = []
+  await fresh.routeWebSocket(/\/ws2/, (ws) => {
+    ws.onMessage((m) => { if (m !== 'ping') published.push(String(m)) })
+    ws.send(JSON.stringify({ t: 'welcome', conn: 'abcdefgh12', peers: ['abcdefgh12'] }))
+    ws.send(JSON.stringify({ t: 'hist', envs: [], done: true }))
+  })
+  await fresh.goto(facilitatorLink)
+  // An empty room for the facilitator: the set-up dialog comes first.
+  await fresh.getByTestId('setup-submit').click()
+  await fresh.getByTestId('name-input').fill('Alice')
+  await fresh.getByTestId('name-save').click()
+  await expect(fresh.getByTestId('board')).toBeVisible()
+  await expect(noteByText(fresh, 'Kept in the file')).toHaveCount(0)
+
+  await fresh.getByTestId('btn-export').click()
+  await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'board.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText) })
+  await expect(noteByText(fresh, 'Kept in the file')).toBeVisible()
+  // Restored events go back to the relay for everyone else.
+  await expect.poll(() => published.filter((m) => m.includes('"t":"pub"')).length).toBeGreaterThan(1)
+
+  // A file for another board is refused.
+  await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'x.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText.replace(/"room":"[^"]+"/, '"room":"Zz3dEfGhIjKlMnOpQrStUv"')) })
+  await expect(fresh.getByText(/does not belong|n'appartient pas/)).toBeVisible()
+  await ctx.close()
+})

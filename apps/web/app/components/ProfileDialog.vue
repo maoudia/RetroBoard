@@ -31,8 +31,12 @@ const set = (patch: Parameters<typeof settings.patch>[0]) => {
     if (id) void theme.use(id, false)
   }
 }
-function wipe() {
+const { $ports } = useNuxtApp()
+async function wipe() {
   try { Object.keys(localStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => localStorage.removeItem(k)) } catch { /* ignore */ }
+  try { Object.keys(sessionStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => sessionStorage.removeItem(k)) } catch { /* ignore */ }
+  // Encrypted local copies of boards too.
+  try { await $ports.replica?.purge(Number.MAX_SAFE_INTEGER) } catch { /* ignore */ }
   push(t('profile.wiped'), 'ok')
   setTimeout(() => window.location.assign('/'), 600)
 }
@@ -114,6 +118,18 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
     </section>
 
     <section class="grp">
+      <h3>{{ t('profile.privacy') }}</h3>
+      <div class="line">
+        <span><strong>{{ t('profile.retention') }}</strong><small class="muted">{{ t('profile.retention.hint') }}</small></span>
+        <span class="seg" role="group" :aria-label="t('profile.retention')">
+          <button v-for="d in ([0, 1, 7, 30] as const)" :key="d" type="button" :class="{ on: settings.s.retentionDays === d }" :aria-pressed="settings.s.retentionDays === d" :data-testid="`retention-${d}`" @click="set({ retentionDays: d })">
+            {{ d === 0 ? t('profile.retention.leave') : t('profile.retention.days', { n: d }) }}
+          </button>
+        </span>
+      </div>
+    </section>
+
+    <section class="grp">
       <h3>{{ t('profile.agents') }}</h3>
       <label class="line">
         <span><strong>{{ t('profile.browserAgents') }}</strong><small class="muted">{{ t('profile.browserAgents.hint') }}</small></span>
@@ -126,7 +142,7 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
       <p v-if="!recents.items.length" class="muted">{{ t('profile.recents.none') }}</p>
       <ul v-else class="recents" data-testid="recents">
         <li v-for="r in recents.items" :key="r.id">
-          <NuxtLink :to="{ path: '/board', hash: r.hash ?? `#${r.id}` }" @click="ui.close()"><strong>{{ r.title }}</strong><small class="muted">{{ when(r.at) }}</small></NuxtLink>
+          <NuxtLink :to="{ path: '/board', hash: r.hash }" @click="ui.close()"><strong>{{ r.title }}</strong><small class="muted">{{ when(r.at) }}</small></NuxtLink>
           <button class="mini-btn" type="button" :aria-label="t('profile.recents.remove')" @click="recents.remove(r.id)"><Icon name="lucide:x" /></button>
         </li>
       </ul>
