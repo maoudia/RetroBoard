@@ -48,7 +48,6 @@ export const en: Record<keyof typeof fr, string> = {
   'ranking.votes': '{n} vote(s)',
   'ranking.cluster': 'cluster of {n}',
   'ranking.toAction': 'Make it an action',
-  'ranking.toAction.label': 'Create an action from {title}',
   'ranking.toAction.done': 'Action created',
   'ranking.actionCreated': 'Action added to the plan.',
   'actions.due': 'Due date',

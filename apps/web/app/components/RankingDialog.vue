@@ -51,7 +51,7 @@ function toAction(item: RankedItem) {
           <span class="n mono">{{ it.votes }}</span>
           <button
             v-if="board.access.canSteer" class="btn btn-sm" type="button" :disabled="done.has(it.id)"
-            :aria-label="t('ranking.toAction.label', { title: it.title })" :data-testid="`to-action-${it.id}`" @click="toAction(it)"
+            :aria-label="`${t(done.has(it.id) ? 'ranking.toAction.done' : 'ranking.toAction')} - ${it.title}`" :data-testid="`to-action-${it.id}`" @click="toAction(it)"
           >
             <Icon :name="done.has(it.id) ? 'lucide:check' : 'lucide:list-plus'" /> {{ t(done.has(it.id) ? 'ranking.toAction.done' : 'ranking.toAction') }}
           </button>

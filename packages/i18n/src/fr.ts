@@ -47,7 +47,6 @@ export const fr = {
   'ranking.votes': '{n} vote(s)',
   'ranking.cluster': 'groupe de {n}',
   'ranking.toAction': 'En faire une action',
-  'ranking.toAction.label': 'Créer une action depuis {title}',
   'ranking.toAction.done': 'Action créée',
   'ranking.actionCreated': 'Action ajoutée au plan.',
   'actions.due': 'Échéance',
