@@ -104,23 +104,9 @@ const _domainMatchesSchema: (c: Command) => Parsed = (c) => c
 void _schemaMatchesDomain
 void _domainMatchesSchema
 
-export const HelloSchema = v.object({
-  t: v.literal('hello'),
-  cid: v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{16,64}$/)),
-  name: v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.displayName)),
-  showName: v.boolean(),
-})
-export type Hello = v.InferOutput<typeof HelloSchema>
-
 export { ROOM_ID_RE } from '@retroboard/domain'
-
-export type ClientMessage = Hello | Command
 
 export function parseCommand(raw: unknown): Command | null {
   const r = v.safeParse(CommandSchema, raw)
-  return r.success ? r.output : null
-}
-export function parseHello(raw: unknown): Hello | null {
-  const r = v.safeParse(HelloSchema, raw)
   return r.success ? r.output : null
 }

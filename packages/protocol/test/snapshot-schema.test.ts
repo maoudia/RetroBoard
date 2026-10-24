@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { alice, bob, harness } from '@retroboard/testkit'
 import { buildSnapshot } from '@retroboard/domain'
-import { parseCommand, parseHello, ROOM_ID_RE } from '@retroboard/protocol'
+import { parseCommand, ROOM_ID_RE } from '@retroboard/protocol'
 
 describe('snapshot privacy', () => {
   const build = () => {
@@ -66,9 +66,7 @@ describe('schemas', () => {
     expect(parseCommand(raw)).toBeNull()
   })
 
-  it('validates hello and room ids', () => {
-    expect(parseHello({ t: 'hello', cid: 'a'.repeat(16), name: ' Bob ', showName: true })?.name).toBe('Bob')
-    expect(parseHello({ t: 'hello', cid: 'short', name: 'x', showName: true })).toBeNull()
+  it('validates room ids', () => {
     expect(ROOM_ID_RE.test('a'.repeat(22))).toBe(true)
     expect(ROOM_ID_RE.test('short')).toBe(false)
     expect(ROOM_ID_RE.test('a/b' + 'c'.repeat(30))).toBe(false)

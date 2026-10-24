@@ -9,7 +9,7 @@
 Real-time, account-free retrospective boards. One link, and the team is in.
 Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 themes (professional and seasonal), English and French.
 
-> A static Nuxt site served by a Cloudflare Worker. Each board is one SQLite-backed Durable Object, erased 24 h after its last activity.
+> A static Nuxt site served by a Cloudflare Worker. Boards are end-to-end encrypted; the relay is a memory-only Durable Object that forwards ciphertext and stores nothing.
 
 ## Roadmap and contributing with agents
 
@@ -38,27 +38,26 @@ Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 th
 ## Architecture
 
 ```
-Browser (Nuxt SPA, generated)                Cloudflare
-+----------------------------+              +--------------------------------+
-| pages / components         |  WebSocket   | Worker (apps/relay)            |
-| Pinia stores               | <==========> |  - serves .output/public       |
-| Transport port             |  JSON cmds   |  - CSP + security headers      |
-|  - WebSocketTransport      |              |  - origin and room id checks   |
-|  - LoopbackTransport (solo)|              +---------------+----------------+
-+-------------+--------------+                              |
-              |                                  idFromName(room)
-              v                                              v
-   packages/domain (pure TypeScript)        +--------------------------------+
-   schemas (valibot) -> reduce() -> snapshot | Durable Object Room             |
-   same code runs in browser and server      |  - reduce(state, command)      |
-                                             |  - personalised snapshots      |
-                                             |  - SQLite storage, alarm (24 h)|
-                                             +--------------------------------+
+Browser (Nuxt SPA, generated)                 Cloudflare
++-----------------------------+              +--------------------------------+
+| pages / components          |  WebSocket   | Worker (apps/relay)            |
+| Pinia stores                | <==========> |  - serves .output/public       |
+| EncryptedRelayTransport     |  encrypted   |  - CSP + security headers      |
+|  - AES-GCM envelopes        |  envelopes   |  - origin and room id checks   |
+|  - signed events (Ed25519)  |              +---------------+----------------+
+|  - IndexedDB replica        |                              | idFromName(room)
+| LoopbackTransport (solo)    |                              v
++-------------+---------------+              +--------------------------------+
+              |                              | Durable Object RelayRoom       |
+              v                              |  - forwards ciphertext only    |
+   packages/domain (pure TypeScript)         |  - memory ring buffer          |
+   ledger fold -> reduce() -> snapshot       |  - never touches ctx.storage   |
+   runs in every browser                     +--------------------------------+
 ```
 
-- **Functional core**: `packages/domain` has no I/O. `reduce(state, command, actor, ctx)` returns the next state or an error. The Durable Object and the solo mode (in the browser) run the very same reducer.
-- **Ports and adapters**: storage (`BoardRepository`) and client transport are interfaces with swappable adapters.
-- **Privacy by construction**: snapshots are built per viewer. Secret votes and voter identities never leave the server.
+- **Functional core**: `packages/domain` has no I/O. Every browser folds the same signed event log with `reduce(state, command, actor, ctx)`; the relay never sees plaintext.
+- **No server-side storage**: the board lives on the participants' devices (encrypted IndexedDB replica, retention setting) and in `.retro` board files. When everyone has left, the relay forgets the room.
+- **Ports and adapters**: replica store, transport, signing and files are interfaces with swappable adapters.
 - Details and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Quick start

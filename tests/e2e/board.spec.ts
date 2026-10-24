@@ -234,6 +234,12 @@ test('invalid links are explained', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Lien invalide' })).toBeVisible()
 })
 
+test('old unencrypted board links explain that they were retired', async ({ page }) => {
+  await page.goto('/board#' + 'a'.repeat(22))
+  await expect(page.getByTestId('retired-link')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ce lien ne fonctionne plus' })).toBeVisible()
+})
+
 test('no CSP violation or console error across the main flows', async ({ page }) => {
   const problems = await collectProblems(page)
   await createBoard(page, { template: 'weather' })

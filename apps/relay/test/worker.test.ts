@@ -1,24 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { createBoard } from '@retroboard/domain'
 import { ROOM_ID_RE } from '@retroboard/protocol'
 import { buildCsp, originTrialToken, withSecurityHeaders } from '../src/headers'
 import { roomHash } from '../src/logger'
 import { isAllowedOrigin } from '../src/origin'
-import { DurableStorageRepository } from '../src/repository'
-import { ids } from '@retroboard/testkit'
-
-class FakeStorage {
-  data = new Map<string, unknown>()
-  batches: number[] = []
-  list() { return Promise.resolve(new Map(this.data)) }
-  put(entries: Record<string, unknown>) { this.batches.push(Object.keys(entries).length); for (const [k, v] of Object.entries(entries)) this.data.set(k, v); return Promise.resolve() }
-  delete(keys: string[]) { this.batches.push(keys.length); for (const k of keys) this.data.delete(k); return Promise.resolve(keys.length) }
-  deleteAll() { this.data.clear(); return Promise.resolve() }
-}
-const repo = (s: FakeStorage) => new DurableStorageRepository(s as unknown as DurableObjectStorage)
-const noDirty = { meta: false, notes: [], groups: [], actions: [], wipe: false }
 
 describe('isAllowedOrigin', () => {
   const url = new URL('https://retroboard.example.workers.dev/ws?room=x')
@@ -66,44 +52,6 @@ describe('security headers', () => {
   })
 })
 
-describe('DurableStorageRepository', () => {
-  it('returns null for an empty room', async () => {
-    expect(await repo(new FakeStorage()).load()).toBeNull()
-  })
-
-  it('round-trips a board and applies incremental changes', async () => {
-    const s = new FakeStorage()
-    const r = repo(s)
-    const state = createBoard({ newId: ids() })
-    await r.persist(state, { ...noDirty, wipe: true })
-    const col = state.columns[0]!.id
-    state.notes.n1 = { id: 'n1', columnId: col, text: 'hello', color: 0, authorCid: 'c', authorName: null, createdAt: 1, groupId: null, votes: [] } as never
-    await r.persist(state, { ...noDirty, notes: ['n1'] })
-    expect(Object.keys((await r.load())!.notes)).toEqual(['n1'])
-    delete state.notes.n1
-    await r.persist(state, { ...noDirty, notes: ['n1'] })
-    expect(Object.keys((await r.load())!.notes)).toEqual([])
-  })
-
-  it('writes in batches within the storage limit', async () => {
-    const s = new FakeStorage()
-    const r = repo(s)
-    const state = createBoard({ newId: ids() })
-    for (let i = 0; i < 300; i++) state.notes[`n${i}`] = { id: `n${i}` } as never
-    await r.persist(state, { ...noDirty, wipe: true })
-    expect(Math.max(...s.batches)).toBeLessThanOrEqual(128)
-    expect(Object.keys((await r.load())!.notes)).toHaveLength(300)
-  })
-
-  it('erases everything', async () => {
-    const s = new FakeStorage()
-    const r = repo(s)
-    await r.persist(createBoard({ newId: ids() }), { ...noDirty, wipe: true })
-    await r.erase()
-    expect(await r.load()).toBeNull()
-  })
-})
-
 describe('origin trial (WebMCP)', () => {
   const tokens = { 'retroboard.maoudia.com': 'TOKEN-PROD', 'retroboard-dev.maoudia.com': 'TOKEN-DEV' }
 
@@ -131,20 +79,5 @@ describe('origin trial (WebMCP)', () => {
       expect(payload).toContain(`"origin":"https://${host}:443"`)
       expect(payload).toContain('"feature":"WebMCP"')
     }
-  })
-})
-
-describe('legacy boards stored by older versions', () => {
-  it('load with defaults for newer settings, cluster voters and action statuses', async () => {
-    const { upgradeAction } = await import('../src/repository')
-    const s = new FakeStorage()
-    s.data.set('meta', { settings: { title: 'Old', voteLimit: 3, secretVoting: false, locked: false, themeId: 'studio', templateId: null, initialized: true }, columns: [], timer: { running: false, endsAt: 0, remaining: 1, length: 1 } })
-    s.data.set('g:g1', { id: 'g1', columnId: 'c', title: null })
-    s.data.set('a:a1', { id: 'a1', text: 'x', owner: '', done: true, createdAt: 5 })
-    const state = (await repo(s).load())!
-    expect([state.settings.maxVotesPerItem, state.settings.votable, state.settings.actionMode, state.agenda]).toEqual([1, 'both', 'checkbox', null])
-    expect(state.groups.g1!.voters).toEqual([])
-    expect(state.actions.a1).toMatchObject({ status: 'done', done: true, history: [{ status: 'done', at: 5 }], due: null, carriedFrom: null })
-    expect(upgradeAction({ id: 'b', text: 'y', owner: '', done: false, createdAt: 1 }).status).toBe('todo')
   })
 })

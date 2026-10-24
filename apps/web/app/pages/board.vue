@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { isLocalRoom } from '~/transport'
-import { boardHash, inviteFromHash, inviteRoomId } from '~/utils/invite'
+import { boardHash, inviteFromHash, inviteRoomId, isRetiredLink } from '~/utils/invite'
 import { errorLabel } from '~/utils/labels'
 const { t, locale } = useT()
 
@@ -17,6 +17,7 @@ const { push } = useToasts()
 const invite = computed(() => inviteFromHash(route.hash))
 const roomId = computed(() => (invite.value ? inviteRoomId(invite.value) : ''))
 const validRoom = computed(() => invite.value !== null)
+const retiredLink = computed(() => !validRoom.value && isRetiredLink(route.hash))
 /** Legacy and solo boards have no roles; encrypted boards are steered by the facilitator key. */
 const canSteer = computed(() => invite.value?.kind === 'legacy' || !!invite.value?.ring.facilitatorSecret)
 const needsSetup = computed(() => board.ready && !board.settings?.initialized && canSteer.value)
@@ -125,10 +126,10 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   <div class="page" :data-locked="board.locked">
     <AmbientLayer />
 
-    <main v-if="!validRoom" class="invalid card">
+    <main v-if="!validRoom" class="invalid card" :data-testid="retiredLink ? 'retired-link' : 'invalid-link'">
       <Icon name="lucide:triangle-alert" class="big" />
-      <h1>{{ t('board.invalid.h') }}</h1>
-      <p class="muted">{{ t('board.invalid.p') }}</p>
+      <h1>{{ t(retiredLink ? 'board.retired.h' : 'board.invalid.h') }}</h1>
+      <p class="muted">{{ t(retiredLink ? 'board.retired.p' : 'board.invalid.p') }}</p>
       <NuxtLink class="btn btn-primary" to="/">{{ t('board.invalid.cta') }}</NuxtLink>
     </main>
 

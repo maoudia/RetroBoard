@@ -19,21 +19,22 @@ Why: the same reducer runs in the Durable Object and in the browser (solo mode),
 Handlers are a map `type -> handler`, so adding a command is: a schema entry, a handler, a test.
 
 ### 2. One Durable Object per board
-`idFromName(roomId)` routes every participant of a board to one object. Two generations coexist:
+`idFromName(roomId)` routes every participant of a board to one object.
 
 - **Protocol v2 (`/ws2`, `RelayRoom`, default for new boards)**: a memory-only forwarder of encrypted
   envelopes. It never calls `ctx.storage` (a unit test fails if the code references it). A bounded
   ring buffer (2,000 envelopes or 4 MB) serves late joiners; after an eviction the relay asks the
   connected peers to re-seed it (`need`). When everyone has left and the object is evicted, the
   board is gone. See section 9.
-- **Protocol v1 (`/ws`, `Room`, legacy links only)**: plaintext commands reduced on the server,
-  SQLite-backed, erased by an alarm 24 h after the last activity. Removed by
-  `stateless-relay-and-replication`.
+- **Protocol v1 (`/ws`, `Room`) was removed** by `stateless-relay-and-replication`: it reduced
+  plaintext commands on the server and stored boards in SQLite. Wrangler migration `v3`
+  (`deleted_classes: ["Room"]`) deletes the class and every stored board. Old bare `#<roomId>`
+  links show a "this link no longer works" page.
 
 Alternatives considered: a shared D1 database (needs cross-request ordering and fan-out machinery), or Pages Functions (no Durable Object WebSocket hibernation in the same unit).
 
 ### 3. Personalised snapshots
-`buildSnapshot(state, viewer)` is the only way data leaves the server. It hides client ids and voter lists, applies secret voting (`votes: null`), reports an expired timer as stopped. Privacy is enforced where the data is, not in the UI.
+`buildSnapshot(state, viewer)` is the only way the board state reaches the UI (it runs in each browser). It hides client ids and voter lists, applies secret voting (`votes: null`), reports an expired timer as stopped. Privacy is enforced where the data is, not in the UI.
 
 ### 4. Static front end, no SSR
 Nuxt generates a SPA. Boards are real-time and per-link, there is nothing to render on the server. This keeps the CSP strict: after `nuxt generate`, `scripts/csp-hashes.mjs` hashes inline scripts into `_csp.json`, which the Worker turns into the CSP header. `vue.compilerOptions.hoistStatic` is off because static hoisting serialises constant `:style` bindings into `style="..."` attributes, which `style-src` blocks.

@@ -11,12 +11,14 @@
     "not_found_handling": "single-page-application"
   },
   "durable_objects": {
-    "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "RELAY", "class_name": "RelayRoom" }]
+    "bindings": [{ "name": "RELAY", "class_name": "RelayRoom" }]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["Room"] },
     // RelayRoom never calls ctx.storage; SQLite-backed classes are the only kind on the free plan.
-    { "tag": "v2", "new_sqlite_classes": ["RelayRoom"] }
+    { "tag": "v2", "new_sqlite_classes": ["RelayRoom"] },
+    // Protocol v1 boards were stored server-side; v3 deletes the class and all of its stored data (irreversible).
+    { "tag": "v3", "deleted_classes": ["Room"] }
   ],
   // Workers Observability. Logs and traces carry event names and short room hashes only (never content).
   // redact_query_string: the WebSocket URL carries the room id in its query string; it must not reach logs.

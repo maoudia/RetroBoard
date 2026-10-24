@@ -13,7 +13,7 @@ import { HybridClock } from '@retroboard/sync'
 import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parsePresence, parseRelayFrame, parseSignedEvent, type Presence, type RelayFrame } from '@retroboard/protocol'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
-import { backoffDelay } from './websocket'
+import { backoffDelay } from './backoff'
 
 export interface EncryptedDeps {
   contentKey: Uint8Array

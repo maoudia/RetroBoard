@@ -23,4 +23,4 @@
 
 ## 5. Cleanup
 
-- [ ] 5.1 Remove the SQLite repository and the server-side reducer path; update docs/ARCHITECTURE.md and the privacy page; verify `pnpm verify` and the full e2e suite
+- [x] 5.1 Remove the SQLite repository and the server-side reducer path; update docs/ARCHITECTURE.md and the privacy page; verify `pnpm verify` and the full e2e suite

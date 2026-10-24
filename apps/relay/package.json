@@ -11,8 +11,5 @@
   "dependencies": {
     "@retroboard/domain": "workspace:*",
     "@retroboard/protocol": "workspace:*"
-  },
-  "devDependencies": {
-    "@retroboard/testkit": "workspace:*"
   }
 }

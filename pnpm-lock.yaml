@@ -64,10 +64,6 @@ importers:
       '@retroboard/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
-    devDependencies:
-      '@retroboard/testkit':
-        specifier: workspace:*
-        version: link:../../packages/testkit
 
   apps/web:
     dependencies:

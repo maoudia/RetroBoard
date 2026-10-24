@@ -3,11 +3,12 @@ import { deriveContentKey, fromBase64Url } from '@retroboard/crypto'
 import type { KeyRing } from '@retroboard/domain'
 import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adapters/replica-idb'
 import { createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
-import { defaultTransportFactory } from '~/transport'
+import { localTransportFactory } from '~/transport'
 import { buildWs2Url, EncryptedRelayTransport } from '~/transport/encrypted'
 import { download } from '~/utils/export'
 
 export interface Ports {
+  /** Solo (local-) boards: in-tab loopback. */
   channelFactory: ChannelFactory
   /** Protocol v2: end-to-end encrypted room for a key ring. */
   encryptedChannelFactory(ring: KeyRing, passcode?: string): ChannelFactory
@@ -30,7 +31,7 @@ export default defineNuxtPlugin(() => {
   if (replica) void replica.purge(settings.s.retentionDays > 0 ? Date.now() - settings.s.retentionDays * 86_400_000 : Number.MAX_SAFE_INTEGER).catch(() => {})
   if (replica) void requestPersistence()
   const ports: Ports = {
-    channelFactory: defaultTransportFactory(config.public.wsUrl as string),
+    channelFactory: localTransportFactory,
     encryptedChannelFactory: (ring, passcode) => (roomId, handlers) => new EncryptedRelayTransport(
       buildWs2Url(config.public.wsUrl as string, roomId, window.location), ring, handlers,
       (async () => ({
