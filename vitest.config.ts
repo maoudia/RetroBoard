@@ -10,7 +10,7 @@ export default defineConfig({
       '~': `${root}apps/web/app`,
       // Resolve workspace packages to sources relative to this config, so mutation testing
       // (which copies the repo to a sandbox) runs the mutated copies, not the originals.
-      ...Object.fromEntries(['domain', 'application', 'protocol', 'exporters', 'i18n', 'themes', 'testkit']
+      ...Object.fromEntries(['domain', 'application', 'protocol', 'exporters', 'crypto', 'i18n', 'themes', 'testkit']
         .map((p) => [`@retroboard/${p}`, `${root}packages/${p}/src/index.ts`])),
     },
   },
@@ -28,6 +28,7 @@ export default defineConfig({
         'packages/application/src/**': { lines: 90 },
         'packages/protocol/src/**': { lines: 90 },
         'packages/exporters/src/**': { lines: 90 },
+        'packages/crypto/src/**': { lines: 95 },
         'packages/i18n/src/**': { lines: 95 },
         'packages/themes/src/**': { lines: 60 },
         'apps/relay/src/**': { lines: 30 },

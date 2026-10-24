@@ -39,6 +39,13 @@ module.exports = {
       to: { pathNot: ['^packages/(i18n|themes|domain)/src', '@fontsource'] },
     },
     {
+      name: 'crypto-is-self-contained',
+      comment: 'Primitives use WebCrypto only; the @noble/curves fallback is the one allowed dependency.',
+      severity: 'error',
+      from: { path: '^packages/crypto/src' },
+      to: { pathNot: ['^packages/crypto/src', '@noble/'] },
+    },
+    {
       name: 'packages-never-import-apps',
       severity: 'error',
       from: { path: '^packages/' },
