@@ -34,6 +34,7 @@ const PLAN = {
   'postit-visual-system': ['P3', 'C', ['theme-policy-and-variants']],
   'profile-avatars-and-team-space': ['P3', 'B', ['restructure-ddd-monorepo']],
   'frictionless-sharing': ['P3', 'A', ['e2e-encrypted-rooms']],
+  'webmcp-browser-agents': ['P3', 'C', ['restructure-ddd-monorepo']],
   'export-hub': ['P4', 'B', ['actions-v2-and-carry-over']],
   'retro-report': ['P4', 'C', ['voting-v2-and-ranking', 'talk-time']],
   'retro-mcp-and-agent-sessions': ['P5', 'A', ['stateless-relay-and-replication', 'facilitation-roles']],

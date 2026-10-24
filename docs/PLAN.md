@@ -56,6 +56,7 @@ Non-negotiables (also in `openspec/config.yaml`, so every agent sees them):
 | ADR-12 | **Local AI only** (Chrome Prompt API, Ollama/LM Studio on localhost, WebLLM) | Hosted LLM | No cost, no data leaves the participant's machine. |
 | ADR-13 | **MCP server as a local npm package** joining a board like a participant | Remote MCP on the Worker | A remote MCP would need the plaintext; a local one holds the room key like any participant. |
 | ADR-14 | Interface languages **FR + EN**, typed dictionaries, community-extensible | Five machine-translated languages | Quality first; a pseudo-locale in CI catches overflow. |
+| ADR-16 | **WebMCP tools** exposed to agents in the user's browser (`document.modelContext`, fallback `navigator.modelContext`), opt-in per participant, facilitator kill switch, human confirmation for shared writes | Ignore until the spec is final | Draft spec with a Chrome origin trial and Edge support behind a flag (July 2026); being ready early costs little because tools reuse the application use cases. |
 | ADR-15 | **Team profile kept locally** by the facilitator (team name, sprint counter, action history), exportable | Server-side team space | N2. |
 
 Sources for the cost and platform facts used above:
@@ -282,6 +283,7 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 - **@retroboard/mcp** (npm, stdio): `npx @retroboard/mcp --board "<link>"`. Tools: `get_board`, `list_ideas`, `add_idea` (published as an agent participant, labelled), `add_feedback` (agent feedback column), `vote` (if the facilitator allows agents to vote), `list_actions`, `propose_action`, `summarise`. Resources: board snapshot, agenda, report.
 - **Agent sessions are time-boxed**: the facilitator creates an agent invitation (scopes, max ideas, expiry, e.g. 15 min). The token is signed by the facilitator key and checked by every peer.
 - **Agent feedback**: a dedicated "Agents" lane or badge, rate-limited, collapsible, excluded from voting unless allowed.
+- **WebMCP (browser agents)**: the board, landing and creation pages register tools (`retro_get_board`, `retro_list_ideas`, `retro_write_draft`, `retro_publish_drafts`, `retro_vote`, `retro_propose_action`, `retro_suggest_format`, `retro_prepare_board`...) for agents built into the browser. Off by default because the browser's agent may send content to its model; writes to the shared board always need a human confirmation. Change: `webmcp-browser-agents`.
 - **Local AI companion** (opt-in, per participant): providers behind `LlmPort` in this order: Chrome Prompt API (`LanguageModel`, desktop Chrome 148+ per Chrome docs <https://developer.chrome.com/docs/ai/prompt-api>), Ollama or LM Studio on `localhost` (OpenAI-compatible endpoint, user configures CORS), WebLLM in the browser. Features: a playful retro companion persona, cluster title suggestions, duplicate detection, SMART action phrasing, end-of-retro summary draft. The facilitator bot (time-box nudges, phase auto-advance, wrap-up report) works without any LLM.
 
 ## 10. Delivery harness (CI/CD, agentic workflows, quality gates)
@@ -364,6 +366,7 @@ Each line is an OpenSpec change in `openspec/changes/<name>/`. Phases are milest
 | P3 | `postit-visual-system` | theme-policy | C |
 | P3 | `profile-avatars-and-team-space` | restructure | B |
 | P3 | `frictionless-sharing` | e2e-encrypted-rooms | A |
+| P3 | `webmcp-browser-agents` | restructure | C |
 | P4 Outputs | `export-hub` | actions-v2 | B |
 | P4 | `retro-report` | voting-v2, talk-time | C |
 | P5 Agents | `retro-mcp-and-agent-sessions` | stateless-relay, facilitation-roles | A |
@@ -493,4 +496,5 @@ Points still to verify during implementation (not blocking the plan): free-plan 
 | Funny companion with local LLMs | `local-ai-companion` |
 | Auto-generated report page with metrics | `retro-report` |
 | DDD, clean architecture, maintainable by agents | `restructure-ddd-monorepo`, `AGENTS.md`, skill `retroboard-stack` |
+| WebMCP support for browser agents | `webmcp-browser-agents` |
 | OpenSpec with Claude Code and OpenCode | `openspec/`, `.claude/`, `.opencode/` |
