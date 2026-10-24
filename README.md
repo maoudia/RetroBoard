@@ -39,7 +39,7 @@ Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 th
 ```
 Browser (Nuxt SPA, generated)                Cloudflare
 +----------------------------+              +--------------------------------+
-| pages / components         |  WebSocket   | Worker (worker/index.ts)       |
+| pages / components         |  WebSocket   | Worker (apps/relay)            |
 | Pinia stores               | <==========> |  - serves .output/public       |
 | Transport port             |  JSON cmds   |  - CSP + security headers      |
 |  - WebSocketTransport      |              |  - origin and room id checks   |
@@ -47,7 +47,7 @@ Browser (Nuxt SPA, generated)                Cloudflare
 +-------------+--------------+                              |
               |                                  idFromName(room)
               v                                              v
-   shared/domain (pure TypeScript)          +--------------------------------+
+   packages/domain (pure TypeScript)        +--------------------------------+
    schemas (valibot) -> reduce() -> snapshot | Durable Object Room             |
    same code runs in browser and server      |  - reduce(state, command)      |
                                              |  - personalised snapshots      |
@@ -55,7 +55,7 @@ Browser (Nuxt SPA, generated)                Cloudflare
                                              +--------------------------------+
 ```
 
-- **Functional core**: `shared/domain` has no I/O. `reduce(state, command, actor, ctx)` returns the next state or an error. The Durable Object and the solo mode (in the browser) run the very same reducer.
+- **Functional core**: `packages/domain` has no I/O. `reduce(state, command, actor, ctx)` returns the next state or an error. The Durable Object and the solo mode (in the browser) run the very same reducer.
 - **Ports and adapters**: storage (`BoardRepository`) and client transport are interfaces with swappable adapters.
 - **Privacy by construction**: snapshots are built per viewer. Secret votes and voter identities never leave the server.
 - Details and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -103,7 +103,7 @@ The Worker is named `retroboard` (`wrangler.jsonc`). Why a Worker and not Pages:
 
 ## Security
 
-- Strict CSP, no `unsafe-inline`: inline script hashes are computed after the build (`scripts/csp-hashes.mjs`) and read by the Worker. `default-src 'none'`, `frame-ancestors 'none'`, `connect-src 'self'`.
+- Strict CSP, no `unsafe-inline`: inline script hashes are computed after the build (`apps/web/scripts/csp-hashes.mjs`) and read by the Worker. `default-src 'none'`, `frame-ancestors 'none'`, `connect-src 'self'`.
 - WebSocket upgrades only from the site's own origin (plus `ALLOWED_ORIGINS`), room ids validated, message size and rate limits, caps on notes, actions and connections.
 - All commands validated with valibot before reaching the reducer. Only the author can edit or delete a note.
 - No cookies, no third-party requests, fonts self-hosted.
@@ -112,28 +112,34 @@ Board links are capability URLs: anyone who has the link can join. Share them ac
 
 ## Add a theme
 
-1. Create `app/themes/<id>.ts` exporting a `ThemeDefinition` (copy `studio.ts`): tokens, 8 note colours, fonts, radius, motion preset (`enter`, `leave`, `ambient`), group `pro` or `fun`.
-2. Register it in `app/themes/index.ts`.
-3. Add its English texts in `app/i18n/themes.en.ts`.
+1. Create `packages/themes/src/<id>.ts` exporting a `ThemeDefinition` (copy `studio.ts`): tokens, 8 note colours, fonts, radius, motion preset (`enter`, `leave`, `ambient`), group `pro` or `fun`.
+2. Register it in `packages/themes/src/index.ts`.
+3. Add its English texts in `packages/themes/src/texts.en.ts`.
 4. `pnpm test`: the contrast test fails if a palette is not readable (WCAG AA).
 
 ## Add a retro format
 
-Add an entry to `shared/domain/templates.ts` (French source, icons must exist in Lucide) and its English text in `shared/domain/templates.en.ts`. Tests check icon names, column counts and translations.
+Add an entry to `packages/domain/src/catalogue/templates.ts` (French source, icons must exist in Lucide) and its English text in `packages/domain/src/catalogue/templates.en.ts`. Tests check icon names, column counts and translations.
 
 ## Add a language
 
-Add `app/i18n/<code>.ts` typed as `Record<keyof typeof fr, string>` (the compiler lists missing keys), register it in `app/i18n/index.ts`, then add template and theme texts.
+Add `packages/i18n/src/<code>.ts` typed as `Record<keyof typeof fr, string>` (the compiler lists missing keys), register it in `packages/i18n/src/index.ts`, then add template and theme texts.
 
 ## Project layout
 
 ```
-app/        Nuxt app: pages, components, stores, transport, themes, i18n
-shared/     Pure domain: types, valibot schemas, reducer, snapshots, templates
-worker/     Cloudflare Worker, Room Durable Object, repository, headers, logger
-scripts/    Build helpers (CSP hashes)
-tests/      unit (Vitest) and e2e (Playwright)
-docs/       Architecture notes
+apps/web/          Nuxt 4 SPA: pages, components, Pinia view models, adapters, composition root
+apps/relay/        Cloudflare Worker + Room Durable Object, security headers, logger
+packages/domain/   Pure domain by bounded context: ideation, voting, action-tracking, facilitation, catalogue
+packages/application/  Use cases, ports, read models
+packages/protocol/ Wire schemas (valibot)
+packages/themes/   Themes, contrast helpers, theme texts
+packages/i18n/     Dictionaries (fr, en), translate
+packages/exporters/    Markdown, CSV, JSON exports
+packages/testkit/  Test harness shared by package tests
+tests/e2e/         Playwright against wrangler dev
+openspec/          Specs and planned changes
+docs/              Plan, architecture, runbooks
 ```
 
 ## License

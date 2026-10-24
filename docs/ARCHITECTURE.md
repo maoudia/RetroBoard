@@ -6,7 +6,7 @@ Maintainable and easy to evolve: new theme, new format, new command or new langu
 ## Decisions
 
 ### 1. Functional core, thin adapters
-`shared/domain` is pure TypeScript. A command goes through `parseCommand` (valibot) then `reduce`:
+`packages/domain` is pure TypeScript, organised by bounded context. A command goes through `parseCommand` (valibot, `packages/protocol`) then `reduce`:
 
 ```ts
 reduce(state, command, actor, { now, newId }) -> { ok: true, state, dirty } | { ok: false, error }
@@ -39,7 +39,7 @@ A theme is data: tokens, note colours, fonts, radius, motion preset, ambient eff
 - `prefers-reduced-motion` and the profile "reduced" setting disable decorative motion.
 
 ### 7. i18n
-A small typed layer (`app/i18n`): French is the source dictionary, English is `Record<keyof typeof fr, string>` so a missing key fails the build. Plurals use `key.one` / `key.other` with `Intl.PluralRules`. No runtime message compiler, so no `unsafe-eval`. Content that is stored on the board (column titles from a template) is created in the language of the creator through the `locale` field of `board.init` and `template.apply`.
+A small typed layer (`packages/i18n`, reactive wrapper in `apps/web/app/i18n`): French is the source dictionary, English is `Record<keyof typeof fr, string>` so a missing key fails the build. Plurals use `key.one` / `key.other` with `Intl.PluralRules`. No runtime message compiler, so no `unsafe-eval`. Content that is stored on the board (column titles from a template) is created in the language of the creator through the `locale` field of `board.init` and `template.apply`.
 
 ### 8. Observability and privacy
 Structured logs with an event name and a short sha256-based room hash. Never text, names, client ids or raw room ids.

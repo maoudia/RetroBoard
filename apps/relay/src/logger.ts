@@ -13,7 +13,6 @@ export const consoleLogger: Logger = {
   warn: (event, fields) => console.warn(JSON.stringify({ level: 'warn', event, ...fields })),
 }
 
-export const silentLogger: Logger = { info() {}, warn() {} }
 
 /** Short, non-reversible tag to correlate logs of one board without exposing its id. */
 export async function roomHash(room: string): Promise<string> {

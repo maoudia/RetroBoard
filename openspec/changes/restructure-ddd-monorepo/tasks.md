@@ -25,10 +25,10 @@
 
 ## 5. Enforcement
 
-- [ ] 5.1 Add dependency-cruiser config with the layer rules from docs/PLAN.md 3.1 and a forbidden-imports rule for `node:`, `vue`, `nuxt`, `cloudflare:` in `domain`; verify a deliberately wrong import fails `pnpm verify`
-- [ ] 5.2 Add `knip` for unused files/exports and fix findings; verify `pnpm knip` exits 0
-- [ ] 5.3 Update README, docs/ARCHITECTURE.md and AGENTS.md with the new layout; verify links resolve (markdown link check in CI)
+- [x] 5.1 Add dependency-cruiser config with the layer rules from docs/PLAN.md 3.1 and a forbidden-imports rule for `node:`, `vue`, `nuxt`, `cloudflare:` in `domain`; verify a deliberately wrong import fails `pnpm verify`
+- [x] 5.2 Add `knip` for unused files/exports and fix findings; verify `pnpm knip` exits 0
+- [x] 5.3 Update README, docs/ARCHITECTURE.md and AGENTS.md with the new layout; verify links resolve (markdown link check in CI)
 
 ## Workflow follow-up
 
-- Switch the Workers Builds build command to `pnpm turbo run build --filter web` after 3.1 is merged.
+- Switch the Workers Builds build command to `pnpm generate` after 3.1 is merged.

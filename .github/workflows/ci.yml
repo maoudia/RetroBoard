@@ -31,6 +31,10 @@ jobs:
           OPENSPEC_TELEMETRY: '0'
       - run: pnpm lint
       - run: pnpm typecheck
+      - name: Architecture rules
+        run: pnpm arch
+      - name: Unused code and dependencies
+        run: pnpm knip
       - run: pnpm test
       - name: Static build (Nuxt generate + CSP hashes)
         run: pnpm generate

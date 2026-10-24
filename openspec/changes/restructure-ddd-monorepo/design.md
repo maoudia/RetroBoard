@@ -12,7 +12,7 @@ Today: `app/` (Nuxt), `shared/domain` (pure reducer, schemas, templates), `worke
 
 ## Decisions
 
-- **pnpm + Turborepo** over npm workspaces: strict node_modules (no phantom deps), fast local cache, filters (`--filter web`). Nx rejected: heavier, more config for a small team.
+- **pnpm workspaces** over npm workspaces (Turborepo was planned, then dropped during implementation: `pnpm -r` is enough for ten packages without a build step; add it if CI exceeds 10 minutes): strict node_modules (no phantom deps), fast local cache, filters (`--filter web`). Nx rejected: heavier, more config for a small team.
 - **Package per layer, folders per bounded context** inside `domain` and `application`: avoids 20 tiny packages while keeping the layer rule enforceable.
 - **dependency-cruiser** rules: `domain` imports nothing outside itself (and no `node:`, `vue`, `nuxt`, `cloudflare:`), `application` imports only `domain`, apps import anything. Rule violations fail CI.
 - **Ports** declared in `packages/application/ports`: `RelayPort`, `ClockPort`, `IdPort`, `ReplicaStorePort` (stub for now), `ClipboardPort`, `FilePort`, `NotifierPort`. Adapters live in apps.

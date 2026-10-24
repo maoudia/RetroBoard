@@ -43,7 +43,7 @@ Target layout (after `restructure-ddd-monorepo`):
 | Worker, Durable Object relay, admission, license redeem | `apps/relay/` | protocol, domain (entitlements) |
 | MCP server | `apps/mcp/` | application, sync, crypto, protocol |
 
-Current layout (before the restructure lands): domain in `shared/domain`, web app in `app/`, worker in `worker/`, tests in `tests/unit` and `tests/e2e`. Put new pure logic in `shared/domain` and keep components thin.
+The repository follows this layout. Package tests live in `packages/<name>/test` and `apps/relay/test`; end-to-end tests in `tests/e2e`. `pnpm arch` checks the import rules.
 
 Bounded contexts: facilitation, ideation, voting, action-tracking, talk-time, presence (ephemeral), access, team-space (local), reporting (read side), companion. Use their ubiquitous language (idea, cluster, phase, agenda, facilitator, carried-over action).
 
@@ -60,7 +60,7 @@ Bounded contexts: facilitation, ideation, voting, action-tracking, talk-time, pr
 
 ## 4. Recipes for common extensions
 
-- **Theme**: add `packages/themes/<id>.ts` (or `app/themes/` today) with light and dark variants, 8 sticky-note colours, fonts (self-hosted @fontsource), motion preset, ambient; register it; add en texts; run the contrast tests.
+- **Theme**: add `packages/themes/src/<id>.ts` with light and dark variants, 8 sticky-note colours, fonts (self-hosted @fontsource), motion preset, ambient; register it; add en texts; run the contrast tests.
 - **Retro format**: add to the template catalogue (French source) with Lucide icon names that exist; add English texts; tests check icons, column counts and translations.
 - **Export destination**: pure exporter in `exporters` returning `{ mime, filename, content }`, snapshot test, panel entry with icon and description, actions-only variant.
 - **Language**: new dictionary typed `Record<keyof typeof fr, string>`; register; add template and theme texts.

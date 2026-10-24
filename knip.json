@@ -1,0 +1,47 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "tests/e2e/**/*.ts",
+        "scripts/**/*.mjs"
+      ]
+    },
+    "apps/web": {
+      "entry": [
+        "app/**/*.{vue,ts}",
+        "scripts/*.mjs"
+      ],
+      "ignoreDependencies": [
+        "@iconify-json/lucide"
+      ]
+    },
+    "apps/relay": {
+      "entry": [
+        "src/index.ts",
+        "test/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "cloudflare"
+      ]
+    },
+    "packages/domain": {
+      "entry": [
+        "test/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@iconify-json/lucide"
+      ]
+    },
+    "packages/*": {
+      "entry": [
+        "test/**/*.ts"
+      ]
+    }
+  },
+  "ignore": [
+    "**/worker-configuration.d.ts",
+    "**/*.d.ts"
+  ],
+  "ignoreExportsUsedInFile": true
+}

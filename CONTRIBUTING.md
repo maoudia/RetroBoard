@@ -13,8 +13,8 @@ pnpm generate && pnpm e2e
 ```
 
 Conventions:
-- Domain logic goes in `shared/domain` (pure, tested), not in components or the Durable Object.
-- Every user-facing string goes through `t()`; add the key to `app/i18n/fr.ts` and `en.ts`.
+- Domain logic goes in `packages/domain` (pure, tested); use cases in `packages/application`; never in components or the Durable Object.
+- Every user-facing string goes through `t()`; add the key to `packages/i18n/src/fr.ts` and `en.ts`.
 - Never log note text, names, client ids or raw room ids.
 - Keep the CSP strict: no inline scripts or styles, no `unsafe-*`.
 

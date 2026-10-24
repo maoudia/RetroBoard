@@ -46,7 +46,7 @@ npx openspec list     # in-flight changes
 npx openspec show <change>
 ```
 
-After `restructure-ddd-monorepo` lands, these become `pnpm verify`, `pnpm --filter web generate`, etc. The skill describes both layouts.
+The repository is a pnpm workspace (apps/*, packages/*); `pnpm arch` checks the layer rules. The skill describes where code goes.
 
 ## Definition of done (per task group)
 

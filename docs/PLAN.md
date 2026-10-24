@@ -49,7 +49,7 @@ Non-negotiables (also in `openspec/config.yaml`, so every agent sees them):
 | ADR-05 | **Facilitator role** with delegation to co-facilitators | Everyone equal | Phases, timers, talk time and vote reveal need one owner. |
 | ADR-06 | **Theme imposed**, light/dark variant per participant | Personal theme override (current behaviour, removed) | Requested by product owner; variants keep accessibility. |
 | ADR-07 | **Integrations in the browser**: structured files, rich clipboard, deep links, user-provided webhooks | OAuth apps through the Worker | No secrets, no tokens, no storage, no app reviews. |
-| ADR-08 | **Monorepo** (pnpm workspaces + Turborepo), packages per layer | Single Nuxt app with folders | Layer boundaries become package boundaries that tools enforce. |
+| ADR-08 | **Monorepo** (pnpm workspaces, `pnpm -r`), packages per layer; Turborepo only if CI gets slow | Single Nuxt app with folders | Layer boundaries become package boundaries that tools enforce. |
 | ADR-09 | **OpenSpec** spec-driven workflow for Claude Code and OpenCode | Free-form issues | Specs are the contract agents implement and reviewers check. |
 | ADR-10 | **License AGPL-3.0-only** + commercial license on request (dual licensing), contributions under a CLA | MIT (allows closed resale); FSL-1.1-ALv2 (not OSI open source); BSL 1.1 and Elastic 2.0 (disliked by the community) | Real open source (OSI) that discourages closed resale: anyone running a modified version as a service must publish its source (AGPL section 13). Commits up to tag `last-mit` stay MIT. |
 | ADR-11 | **Payments through a Merchant of Record (Polar)** + stateless signed entitlement tokens | Own Stripe integration with a customer database | No customer database; the MoR is the system of record and handles sales tax. |
@@ -308,7 +308,7 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 ### 10.2 Release and deploy
 
 - Conventional Commits + release-please for versions and changelog.
-- Main is deployed by Workers Builds (already connected) with build `npm run generate` (becomes `pnpm turbo run build --filter=web`), then smoke tests against production, then `wrangler rollback` if smoke fails.
+- Main is deployed by Workers Builds (already connected) with build `npm run generate` (or `pnpm generate`; was going to be `pnpm turbo run build --filter=web`), then smoke tests against production, then `wrangler rollback` if smoke fails.
 - `@retroboard/mcp` is published on npm with provenance on release tags.
 
 ### 10.3 Agentic workflows
