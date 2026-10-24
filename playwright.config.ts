@@ -23,11 +23,14 @@ export default defineConfig({
   },
   // Locally only Chromium is installed. CI runs the other projects (see .github/workflows/e2e.yml).
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'], ...(process.env.E2E_REDUCED_MOTION ? { contextOptions: { reducedMotion: 'reduce' as const } } : {}) } },
     ...(process.env.CI
       ? [
           { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-          { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+          // WebKit on Linux CI renders in software: continuous effects (ambient canvas, blur,
+          // infinite animations) made every test 4 to 5 times slower. Reduced motion is a
+          // supported mode of the app, and Chromium/Firefox still cover the animated paths.
+          { name: 'webkit', use: { ...devices['Desktop Safari'], contextOptions: { reducedMotion: 'reduce' } } },
           { name: 'phone', use: { ...devices['Pixel 7'] } },
           { name: 'tv', use: { ...devices['Desktop Chrome'], viewport: { width: 2560, height: 1440 } } },
         ]

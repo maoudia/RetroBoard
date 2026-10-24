@@ -73,6 +73,9 @@ export async function collectProblems(page: Page): Promise<string[]> {
     const css = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cssText')!
     Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', { ...css, set(v: string) { remember('style.cssText'); css.set!.call(this, v) } })
     document.addEventListener('securitypolicyviolation', (e) => {
+      // WebKit reports its own empty style attribute on native <select> elements (nothing is
+      // blocked: the attribute is empty). Only that exact case is ignored.
+      if (e.effectiveDirective === 'style-src-attr' && e.target instanceof HTMLSelectElement && (e.target.getAttribute('style') ?? '') === '') return
       const report = (window as unknown as { __reportCsp: (s: string) => void }).__reportCsp
       // The event target is the offending element: name it (tag, classes, test id, style attribute).
       const el = e.target instanceof Element ? e.target : null
