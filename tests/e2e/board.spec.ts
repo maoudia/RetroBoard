@@ -156,7 +156,7 @@ test.describe('retro suggestions', () => {
     await page.goto('/new')
     await page.getByRole('button', { name: /Apaiser les tensions/ }).click()
     await page.getByRole('button', { name: '1', exact: true }).click()
-    await page.getByRole('button', { name: '45 min' }).click()
+    await page.getByTestId('setup-form').getByRole('button', { name: '45 min' }).click()
     const first = page.getByTestId('suggestions').locator('li').first()
     await expect(first).toContainText('Mad / Sad / Glad')
     await expect(first).toContainText('Meilleur choix')

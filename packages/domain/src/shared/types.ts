@@ -1,3 +1,5 @@
+import type { AgendaState } from '../facilitation/agenda'
+
 export interface Column {
   id: string
   title: string
@@ -86,8 +88,6 @@ export interface BoardSettings {
   /** False until the first participant picks a template and theme (board.init). */
   initialized: boolean
 }
-
-import type { AgendaState } from '../facilitation/agenda'
 
 export interface BoardState {
   settings: BoardSettings

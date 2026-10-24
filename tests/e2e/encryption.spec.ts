@@ -180,11 +180,11 @@ test('"until I leave" deletes the local copy when leaving the board', async ({ p
   await publishNote(page, 0, 'Ephemeral')
   await page.waitForTimeout(600)
   await page.goto('/')
-  const count = await page.evaluate(() => new Promise<number>((resolve) => {
+  // The purge runs at start-up; some engines finish it a moment later.
+  await expect.poll(() => page.evaluate(() => new Promise<number>((resolve) => {
     const open = indexedDB.open('retroboard-replica')
     open.onsuccess = () => { const c = open.result.transaction('envelopes').objectStore('envelopes').count(); c.onsuccess = () => resolve(c.result) }
-  }))
-  expect(count).toBe(0)
+  }))).toBe(0)
 })
 
 test('board file: export, then restore into the same link after the board is gone everywhere', async ({ page, browser }) => {

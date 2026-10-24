@@ -46,13 +46,18 @@ jobs:
           retention-days: 30
 
   e2e:
-    name: Playwright (${{ matrix.project }})
+    name: Playwright (${{ matrix.project }}${{ matrix.shard != '1/1' && format(' {0}', matrix.shard) || '' }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, firefox, webkit, phone, tv]
+        project: [chromium, firefox, phone, tv]
+        shard: ['1/1']
+        # WebKit renders in software on Linux runners: about 3x slower, so it runs in 2 shards.
+        include:
+          - { project: webkit, shard: '1/2' }
+          - { project: webkit, shard: '2/2' }
     # Same policy as e2e.yml: only Chromium blocks until responsive-and-i18n-hardening lands.
     continue-on-error: ${{ matrix.project != 'chromium' }}
     steps:
@@ -68,14 +73,14 @@ jobs:
       - name: Install the browser
         run: pnpm exec playwright install --with-deps ${{ matrix.project == 'firefox' && 'firefox' || matrix.project == 'webkit' && 'webkit' || 'chromium' }}
       - run: pnpm generate
-      - run: pnpm e2e --project=${{ matrix.project }}
+      - run: pnpm e2e --project=${{ matrix.project }} --shard=${{ matrix.shard }}
       - name: Slowest tests
         if: always()
         run: node scripts/quality/slow-tests.mjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: playwright-${{ matrix.project }}
+          name: playwright-${{ matrix.project }}${{ matrix.shard != '1/1' && format('-{0}', strategy.job-index) || '' }}
           path: |
             playwright-report
             test-results

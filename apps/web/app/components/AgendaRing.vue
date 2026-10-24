@@ -61,7 +61,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
   <Dropdown width="340px" align="start">
     <template #trigger="{ toggle, open }">
       <button
-        class="ring" type="button" :aria-expanded="open" :aria-label="t('agenda.ring', { phase: caption, time: centre })"
+        class="ring" type="button" :aria-expanded="open"
         :class="{ over: clock.overtime, paused: clock.paused }" data-testid="agenda-ring" @click="toggle"
       >
         <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">
@@ -71,6 +71,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
           </g>
         </svg>
         <span class="txt">
+          <span class="visually-hidden">{{ t('agenda.title') }}: </span>
           <strong class="mono" data-testid="agenda-time">{{ centre }}</strong>
           <small data-testid="agenda-phase">{{ caption }}</small>
         </span>

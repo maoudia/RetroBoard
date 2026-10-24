@@ -74,6 +74,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     ...Object.entries(current.packages).map(([k, v]) => `| ${k} | ${v.score}% | ${v.survived} | ${v.noCoverage} |`)]
   console.log(lines.join('\n'))
   if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n', { flag: 'a' })
+  note('notice', `Mutation ${current.score}%: ${Object.entries(current.packages).map(([k, v]) => `${k} ${v.score}%`).join(', ')}`)
   if (current.score > floor.score + 2) note('notice', `Mutation score ${current.score}% is well above the floor ${floor.score}%: raise ${BASELINE}.`)
   for (const f of failures) note('error', `Mutation regression: ${f}`)
   process.exit(failures.length ? 1 : 0)

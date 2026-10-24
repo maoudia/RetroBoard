@@ -90,7 +90,6 @@ export const fr = {
   'agenda.phase.rank': 'Classement',
   'agenda.phase.actions': 'Actions',
   'agenda.phase.close': 'Clôture',
-  'agenda.ring': 'Déroulé : {phase}, {time}',
   'agenda.now': 'Maintenant : {phase}',
   'agenda.notStarted': 'Pas commencé',
   'agenda.ended': 'Déroulé terminé',

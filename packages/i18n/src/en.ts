@@ -91,7 +91,6 @@ export const en: Record<keyof typeof fr, string> = {
   'agenda.phase.rank': 'Ranking',
   'agenda.phase.actions': 'Actions',
   'agenda.phase.close': 'Close',
-  'agenda.ring': 'Agenda: {phase}, {time}',
   'agenda.now': 'Now: {phase}',
   'agenda.notStarted': 'Not started',
   'agenda.ended': 'Agenda finished',

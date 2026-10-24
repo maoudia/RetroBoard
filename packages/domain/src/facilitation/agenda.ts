@@ -25,7 +25,7 @@ export interface AgendaState {
 
 export const MIN = 60_000
 /** A phase never shrinks below this when time is borrowed from it. */
-export const PHASE_FLOOR_MS = MIN
+export const PHASE_FLOOR_MS = 60_000
 
 /** Minutes per phase for each preset total (sums are exact). */
 export const AGENDA_PRESETS: Record<30 | 45 | 60 | 90, Record<PhaseKind, number>> = {

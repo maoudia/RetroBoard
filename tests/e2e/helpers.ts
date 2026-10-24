@@ -55,7 +55,14 @@ export const noteByText = (page: Page, text: string) => page.locator('article.no
  */
 export async function collectProblems(page: Page): Promise<string[]> {
   const problems: string[] = []
-  page.on('console', (m) => { if (m.type() === 'error') problems.push(m.text()) })
+  const webkit = page.context().browser()?.browserType().name() === 'webkit'
+  page.on('console', (m) => {
+    if (m.type() !== 'error') return
+    // WebKit prints this for stylesheets it never reports through a securitypolicyviolation
+    // event; a real blocked style does fire the event, which is still collected below.
+    if (webkit && m.text().startsWith('Refused to apply a stylesheet because its hash')) return
+    problems.push(m.text())
+  })
   page.on('pageerror', (e) => problems.push(String(e)))
   await page.exposeFunction('__reportCsp', (s: string) => problems.push(s))
   await page.addInitScript(() => {
