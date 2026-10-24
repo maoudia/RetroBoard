@@ -30,7 +30,7 @@ function ideas(s: Snapshot, columnId?: string) {
   const cols = s.columns.filter((c) => !columnId || c.id === columnId)
   return cols.flatMap((col) => buildColumnItems(s, col.id, 'time').map((it) => it.kind === 'note'
     ? { id: it.note.id, kind: 'idea', column: col.title, columnId: col.id, text: it.note.text, author: it.note.author, votes: it.note.votes, votedByMe: it.note.voted }
-    : { id: it.group.id, kind: 'cluster', column: col.title, columnId: col.id, text: it.title, votes: s.settings.secretVoting ? null : it.votes,
+    : { id: it.group.id, kind: 'cluster', column: col.title, columnId: col.id, text: it.title, votes: it.group.votes,
         ideas: it.notes.map((n) => ({ id: n.id, text: n.text, author: n.author, votes: n.votes, votedByMe: n.voted })) }))
 }
 
@@ -49,7 +49,7 @@ export function createBoardAgentTools(deps: BoardToolDeps): AgentTool[] {
       const remainingMs = s.timer.running ? Math.max(0, s.timer.endsAt - (deps.now() + 0)) : s.timer.remaining
       return ok({
         notice: UNTRUSTED_NOTICE, title: s.settings.title, themeId: s.settings.themeId, locked: s.settings.locked,
-        voteLimit: s.settings.voteLimit, votesLeft: s.votesLeft, countsHidden: s.settings.secretVoting,
+        voteLimit: s.settings.voteLimit, votesLeft: s.votesLeft, countsHidden: s.settings.secretVoting && !s.settings.votingClosed, votingClosed: s.settings.votingClosed,
         columns: s.columns.map((c) => ({ id: c.id, title: c.title, subtitle: c.subtitle, ideas: s.notes.filter((n) => n.columnId === c.id).length })),
         participants: s.peers.length, actions: s.actions.length,
         timer: { running: s.timer.running, remainingSeconds: Math.ceil(remainingMs / 1000) },

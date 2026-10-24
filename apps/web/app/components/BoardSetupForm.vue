@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { LIMITS, DEFAULT_TEMPLATE_ID  } from '@retroboard/domain'
+import { LIMITS, DEFAULT_TEMPLATE_ID, type ImportedAction } from '@retroboard/domain'
 
-export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string }
+export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[] }
 
 const { t, locale } = useT()
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { toActionsCsv } from '@retroboard/exporters'
 import { exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
 const { t } = useT()
 
@@ -22,11 +23,12 @@ async function restoreBoardFile(e: Event) {
   else push(t('boardFile.restored', { n: added }), 'ok')
 }
 
-function run(kind: 'md' | 'csv' | 'json' | 'copy') {
+function run(kind: 'md' | 'csv' | 'json' | 'copy' | 'actions') {
   const s = board.snapshot
   if (!s) return
   if (kind === 'md') $ports.file.save(`${slug.value}.md`, toMarkdown(s, { date: new Date(), labels: exportLabels }), 'text/markdown')
   else if (kind === 'csv') $ports.file.save(`${slug.value}.csv`, toCsv(s, exportLabels), 'text/csv')
+  else if (kind === 'actions') $ports.file.save(`${slug.value}-actions.csv`, toActionsCsv(s), 'text/csv')
   else if (kind === 'json') $ports.file.save(`${slug.value}.json`, toJson(s), 'application/json')
   else {
     $ports.clipboard.writeText(toMarkdown(s, { date: new Date(), labels: exportLabels })).then(() => push(t('export.copied'), 'ok'), () => push(t('export.copyFailed'), 'warn'))
@@ -46,6 +48,7 @@ function run(kind: 'md' | 'csv' | 'json' | 'copy') {
       <button class="dd-item" type="button" role="menuitem" @click="run('copy'); close()"><Icon name="lucide:copy" /> {{ t('export.copy') }}</button>
       <button class="dd-item" type="button" role="menuitem" @click="run('csv'); close()"><Icon name="lucide:file-spreadsheet" /> {{ t('export.csv') }}</button>
       <button class="dd-item" type="button" role="menuitem" @click="run('json'); close()"><Icon name="lucide:file-json" /> {{ t('export.json') }}</button>
+      <button class="dd-item" type="button" role="menuitem" data-testid="export-actions" @click="run('actions'); close()"><Icon name="lucide:list-checks" /> {{ t('export.actionsCsv') }}</button>
       <template v-if="board.canUseBoardFile()">
         <hr class="dd-sep" />
         <button class="dd-item" type="button" role="menuitem" data-testid="export-retro" :title="t('boardFile.exportHint')" @click="saveBoardFile(); close()"><Icon name="lucide:file-lock" /> {{ t('boardFile.export') }}</button>

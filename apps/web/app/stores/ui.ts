@@ -1,4 +1,4 @@
-export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | null
+export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | null
 
 /** Purely visual state shared by components. */
 export const useUiStore = defineStore('ui', () => {

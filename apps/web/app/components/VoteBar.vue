@@ -4,6 +4,7 @@ const board = useBoardStore()
 const drafts = useDraftsStore()
 const { publish } = usePublish()
 const limit = computed(() => board.settings?.voteLimit ?? 0)
+const ui = useUiStore()
 </script>
 
 <template>
@@ -11,6 +12,7 @@ const limit = computed(() => board.settings?.voteLimit ?? 0)
     <div class="left">
       <span class="pill"><Icon name="lucide:thumbs-up" /> {{ t('votebar.votes', { n: limit }) }}</span>
       <span v-if="board.locked" class="pill lock"><Icon name="lucide:lock" /> {{ t('votebar.locked') }}</span>
+      <span v-if="board.votingClosed" class="pill closed" data-testid="voting-closed"><Icon name="lucide:flag" /> {{ t('votebar.closed') }}</span>
     </div>
     <div class="mid" aria-live="polite">
       <span class="dots" aria-hidden="true">
@@ -19,6 +21,15 @@ const limit = computed(() => board.settings?.voteLimit ?? 0)
       <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span>
     </div>
     <div class="right">
+      <button v-if="board.access.canSteer && !board.votingClosed" class="btn btn-sm" type="button" data-testid="close-voting" @click="board.commands.closeVoting()">
+        <Icon name="lucide:flag" /> {{ t(board.secretVoting ? 'votebar.closeReveal' : 'votebar.close') }}
+      </button>
+      <button v-if="board.access.canSteer && board.votingClosed" class="btn btn-sm" type="button" data-testid="reopen-voting" @click="board.commands.reopenVoting()">
+        <Icon name="lucide:rotate-ccw" /> {{ t('votebar.reopen') }}
+      </button>
+      <button v-if="board.votingClosed" class="btn btn-sm" type="button" data-testid="open-ranking" @click="ui.open('ranking')">
+        <Icon name="lucide:trophy" /> {{ t('votebar.results') }}
+      </button>
       <button class="btn btn-sm" type="button" :aria-pressed="board.secretVoting" data-testid="secret-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting })">
         <Icon :name="board.secretVoting ? 'lucide:eye-off' : 'lucide:eye'" /> {{ t('votebar.secret', { state: board.secretVoting ? t('votebar.on') : t('votebar.off') }) }}
       </button>
@@ -36,6 +47,7 @@ const limit = computed(() => board.settings?.voteLimit ?? 0)
 .dots { display: inline-flex; gap: 5px; }
 .d { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 60%, transparent); transition: transform .3s var(--ease), background .3s, box-shadow .3s; }
 .d.used { background: var(--border); box-shadow: none; transform: scale(.75); }
+.closed { background: var(--accent-soft); color: var(--accent); }
 .lock { background: color-mix(in oklab, var(--danger) 18%, transparent); color: var(--danger); }
 .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>

@@ -35,6 +35,20 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
             <button class="mini-btn" type="button" :aria-label="t('options.more')" :disabled="s.voteLimit >= LIMITS.maxVotes" @click="set({ voteLimit: s.voteLimit + 1 })"><Icon name="lucide:plus" /></button>
           </span>
         </div>
+        <div class="line">
+          <span><strong>{{ t('options.perItem') }}</strong><small class="muted">{{ t('options.perItem.hint') }}</small></span>
+          <span class="stepper">
+            <button class="mini-btn" type="button" :aria-label="t('options.perItem.less')" :disabled="s.maxVotesPerItem <= 1" @click="set({ maxVotesPerItem: s.maxVotesPerItem - 1 })"><Icon name="lucide:minus" /></button>
+            <output class="mono" data-testid="opt-per-item">{{ s.maxVotesPerItem }}</output>
+            <button class="mini-btn" type="button" :aria-label="t('options.perItem.more')" :disabled="s.maxVotesPerItem >= s.voteLimit" data-testid="opt-per-item-more" @click="set({ maxVotesPerItem: s.maxVotesPerItem + 1 })"><Icon name="lucide:plus" /></button>
+          </span>
+        </div>
+        <div class="line">
+          <span><strong>{{ t('options.votable') }}</strong><small class="muted">{{ t('options.votable.hint') }}</small></span>
+          <span class="seg" role="group" :aria-label="t('options.votable')">
+            <button v-for="v in (['both', 'notes', 'clusters'] as const)" :key="v" type="button" :class="{ on: s.votable === v }" :aria-pressed="s.votable === v" :data-testid="`opt-votable-${v}`" @click="set({ votable: v })">{{ t(`options.votable.${v}`) }}</button>
+          </span>
+        </div>
         <label class="line">
           <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.secretVoting" data-testid="opt-secret" @change="set({ secretVoting: ($event.target as HTMLInputElement).checked })" />
@@ -51,6 +65,16 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('roles.open') }}</strong><small class="muted">{{ t('roles.open.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.openFacilitation" data-testid="opt-open-facilitation" @change="set({ openFacilitation: ($event.target as HTMLInputElement).checked })" />
         </label>
+      </section>
+
+      <section class="grp">
+        <h3>{{ t('actions.title') }}</h3>
+        <div class="line">
+          <span><strong>{{ t('actions.mode') }}</strong><small class="muted">{{ t('actions.mode.hint') }}</small></span>
+          <span class="seg" role="group" :aria-label="t('actions.mode')">
+            <button v-for="m in (['checkbox', 'workflow'] as const)" :key="m" type="button" :class="{ on: s.actionMode === m }" :aria-pressed="s.actionMode === m" :data-testid="`opt-action-${m}`" @click="set({ actionMode: m })">{{ t(`actions.mode.${m}`) }}</button>
+          </span>
+        </div>
       </section>
 
       <section class="grp">
@@ -86,6 +110,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 .steer { display: contents; border: 0; margin: 0; padding: 0; min-width: 0; }
 .steer:disabled :is(.line, .lbl) { opacity: .6; }
 .readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: 10px; background: var(--surface2); font-weight: 600; }
+.seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
+.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: .85rem; }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: 1.05rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

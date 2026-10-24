@@ -2,7 +2,10 @@ import type { Command, Snapshot } from '@retroboard/domain'
 import { describe, expect, it } from 'vitest'
 import { type BoardChannel, createBoardCommands } from '../src'
 
-const view = { settings: { locked: false }, columns: [{ id: 'c1' }, { id: 'c2' }], notes: [], votesLeft: 3 } as unknown as Snapshot
+const view = {
+  settings: { locked: false, votingClosed: false, maxVotesPerItem: 2 }, columns: [{ id: 'c1' }, { id: 'c2' }],
+  notes: [{ id: 'n1', votable: true, myVotes: 0 }], groups: [{ id: 'g1', votable: true, myVotes: 0 }], votesLeft: 3,
+} as unknown as Snapshot
 
 function recorder() {
   const sent: Command[] = []
@@ -20,7 +23,11 @@ describe('every use case sends the matching protocol command', () => {
     ['ungroupNote', (c) => c.ungroupNote('n1'), { t: 'note.ungroup', id: 'n1' }],
     ['renameGroup', (c) => c.renameGroup('g1', 'CI'), { t: 'group.rename', id: 'g1', title: 'CI' }],
     ['dissolveGroup', (c) => c.dissolveGroup('g1'), { t: 'group.dissolve', id: 'g1' }],
-    ['toggleVote', (c) => c.toggleVote('n1'), { t: 'vote.toggle', id: 'n1' }],
+    ['toggleVote', (c) => c.toggleVote('n1'), { t: 'vote.add', kind: 'note', id: 'n1' }],
+    ['addVote', (c) => c.addVote('cluster', 'g1'), { t: 'vote.add', kind: 'cluster', id: 'g1' }],
+    ['removeVote', (c) => c.removeVote('note', 'n1'), { t: 'vote.remove', kind: 'note', id: 'n1' }],
+    ['closeVoting', (c) => c.closeVoting(), { t: 'vote.close' }],
+    ['reopenVoting', (c) => c.reopenVoting(), { t: 'vote.reopen' }],
     ['addColumn', (c) => c.addColumn({ title: 'Q', icon: 'sparkles' }), { t: 'column.add', title: 'Q', icon: 'sparkles' }],
     ['updateColumn', (c) => c.updateColumn('c1', { title: 'R' }), { t: 'column.update', id: 'c1', title: 'R' }],
     ['deleteColumn', (c) => c.deleteColumn('c1'), { t: 'column.delete', id: 'c1' }],

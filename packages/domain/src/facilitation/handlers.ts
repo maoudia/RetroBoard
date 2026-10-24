@@ -35,10 +35,14 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       ...s.settings,
       title: c.title ?? s.settings.title,
       voteLimit: c.voteLimit ?? s.settings.voteLimit,
+      // Per-item cap never above the per-person budget.
+      maxVotesPerItem: Math.min(c.maxVotesPerItem ?? s.settings.maxVotesPerItem, c.voteLimit ?? s.settings.voteLimit),
+      votable: c.votable ?? s.settings.votable,
       secretVoting: c.secretVoting ?? s.settings.secretVoting,
       locked: c.locked ?? s.settings.locked,
       browserAgentsAllowed: c.browserAgentsAllowed ?? s.settings.browserAgentsAllowed,
       openFacilitation: c.openFacilitation ?? s.settings.openFacilitation,
+      actionMode: c.actionMode ?? s.settings.actionMode,
       themeId: c.themeId ?? s.settings.themeId,
     }
     return done({ ...s, settings }, { meta: true })

@@ -68,6 +68,9 @@ export const useBoardStore = defineStore('board', () => {
   const ready = computed(() => snapshot.value !== null)
   const locked = computed(() => snapshot.value?.settings.locked ?? false)
   const secretVoting = computed(() => snapshot.value?.settings.secretVoting ?? false)
+  const votingClosed = computed(() => snapshot.value?.settings.votingClosed ?? false)
+  /** Counts are hidden while secret voting is on and voting is still open. */
+  const countsHidden = computed(() => secretVoting.value && !votingClosed.value)
   const noteCount = computed(() => snapshot.value?.notes.length ?? 0)
   const openActions = computed(() => actions.value.filter((a) => !a.done).length)
 
@@ -79,7 +82,7 @@ export const useBoardStore = defineStore('board', () => {
   return {
     snapshot, status, lastError, roomId, skew, accessDenied,
     connect, disconnect, updateIdentity, onSnapshot, commands, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole,
-    settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, noteCount, openActions,
+    settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,
   }
 })

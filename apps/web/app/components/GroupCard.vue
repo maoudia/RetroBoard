@@ -18,6 +18,7 @@ const open = () => { ui.openGroupId = props.item.group.id }
 </script>
 
 <template>
+  <div class="cluster">
   <button
     type="button" class="stack" :class="{ over }" :data-testid="`group-${item.group.id}`" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
     :style="{ '--c': `var(--note-${top.color})`, '--c2': `var(--note-${item.notes[1]?.color ?? top.color})` }"
@@ -30,13 +31,21 @@ const open = () => { ui.openGroupId = props.item.group.id }
       <span class="text">{{ item.title }}</span>
       <span class="meta">
         <span class="count"><Icon name="lucide:layers" /> {{ item.notes.length }}</span>
-        <span v-if="!secret" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
+        <span v-if="!secret && !item.group.votable" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
       </span>
     </span>
   </button>
+  <!-- Outside the stack button (no nested buttons): a cluster is voted as one idea. -->
+  <VoteControl
+    v-if="item.group.votable" :id="item.group.id" class="gvote" kind="cluster"
+    :votes="item.group.votes" :my-votes="item.group.myVotes" :label="item.title"
+  />
+  </div>
 </template>
 
 <style scoped>
+.cluster { position: relative; min-width: 0; }
+.gvote { position: absolute; right: .55rem; bottom: .45rem; color: var(--note-ink); }
 .stack { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
 .stack:hover { transform: translateY(-3px) scale(1.015); }
 .stack.over { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }

@@ -1,13 +1,13 @@
-import type { Group, Snapshot, SnapshotNote } from '@retroboard/domain'
+import type { Snapshot, SnapshotGroup, SnapshotNote } from '@retroboard/domain'
 
 export type ColumnItem =
   | { kind: 'note'; key: string; note: SnapshotNote; votes: number }
-  | { kind: 'group'; key: string; group: Group; notes: SnapshotNote[]; votes: number; title: string }
+  | { kind: 'group'; key: string; group: SnapshotGroup; notes: SnapshotNote[]; votes: number; title: string }
 
 export type SortMode = 'time' | 'votes'
 
 /** First note's text, used when a group has no title yet (same behaviour as RetroTool). */
-export const groupTitle = (g: Group, notes: SnapshotNote[]): string => g.title ?? notes[0]?.text ?? ''
+export const groupTitle = (g: Pick<SnapshotGroup, 'title'>, notes: SnapshotNote[]): string => g.title ?? notes[0]?.text ?? ''
 
 /**
  * Turns a snapshot into what a column renders: loose notes and stacks.
@@ -30,7 +30,8 @@ export function buildColumnItems(s: Pick<Snapshot, 'notes' | 'groups'>, columnId
   for (const g of s.groups) {
     const notes = byGroup.get(g.id)
     if (!notes?.length) continue
-    const votes = notes.reduce((sum, n) => sum + (n.votes ?? 0), 0)
+    // The cluster score comes from the domain: its own votes plus its notes' votes.
+    const votes = g.votes ?? 0
     items.push({ kind: 'group', key: g.id, group: g, notes, votes, title: groupTitle(g, notes) })
   }
   const pos = (i: ColumnItem) => order.get(i.kind === 'note' ? i.note.id : i.notes[0]!.id) ?? 0

@@ -7,6 +7,10 @@ import type { LIMITS } from './limits'
  */
 export type Locale = 'fr' | 'en'
 export type TimerMinutes = (typeof LIMITS.timerMinutes)[number]
+export type VotableKind = 'note' | 'cluster'
+export type ActionStatusName = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
+/** An action carried over from a previous retro (team profile, board file, JSON or CSV export). */
+export interface ImportedAction { text: string; owner: string; status: ActionStatusName; due?: string; from?: string }
 export interface NewNote { columnId: string; text: string; color?: number }
 
 export type Command =
@@ -21,14 +25,21 @@ export type Command =
   | { t: 'group.rename'; id: string; title: string }
   | { t: 'group.dissolve'; id: string }
   | { t: 'vote.toggle'; id: string }
+  | { t: 'vote.add'; kind: VotableKind; id: string }
+  | { t: 'vote.remove'; kind: VotableKind; id: string }
+  | { t: 'vote.close' }
+  | { t: 'vote.reopen' }
   | { t: 'column.add'; title: string; subtitle?: string; icon?: ColumnIcon }
   | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
   | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale }
   | { t: 'template.apply'; templateId: string; wipe?: boolean; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string }
-  | { t: 'action.add'; text: string; owner: string }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string }
+  | { t: 'action.add'; text: string; owner: string; due?: string }
+  | { t: 'action.update'; id: string; text?: string; owner?: string; due?: string | null }
+  | { t: 'action.status'; id: string; status: ActionStatusName }
+  | { t: 'action.import'; items: ImportedAction[] }
   | { t: 'action.toggle'; id: string; done: boolean }
   | { t: 'action.delete'; id: string }
   | { t: 'timer.start' }

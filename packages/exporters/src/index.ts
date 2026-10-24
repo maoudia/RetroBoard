@@ -12,7 +12,7 @@ const oneLine = (s: string) => s.replace(/\s*\n\s*/g, ' ').trim()
 
 export function toMarkdown(s: Snapshot, meta: ExportMeta): string {
   const t = meta.labels
-  const secret = s.settings.secretVoting
+  const secret = s.settings.secretVoting && !s.settings.votingClosed
   const lines: string[] = [`# ${s.settings.title}`, '', `_${meta.date.toISOString().slice(0, 10)}_`, '']
   for (const col of s.columns) {
     lines.push(`## ${col.title}`, '')
@@ -57,4 +57,14 @@ export function toCsv(s: Snapshot, labels: ExportLabels): string {
 export function toJson(s: Snapshot): string {
   const { settings, columns, notes, groups, actions } = s
   return JSON.stringify({ settings, columns, notes: notes.map(({ mine: _m, voted: _v, ...n }) => n), groups, actions }, null, 2)
+}
+
+/** Jira's default workflow names, so the file imports as-is (Jira > Import issues from CSV). */
+const JIRA_STATUS = { todo: 'To Do', doing: 'In Progress', done: 'Done', blocked: 'Blocked', dropped: "Won't Do" } as const
+
+/** Actions only, with the column names Jira's CSV importer maps by default. */
+export function toActionsCsv(s: Pick<Snapshot, 'actions' | 'settings'>): string {
+  const rows = [['Summary', 'Assignee', 'Status', 'Due Date', 'Labels']]
+  for (const a of s.actions) rows.push([a.text, a.owner, JIRA_STATUS[a.status], a.due ?? '', `retro:${s.settings.title.replace(/\s+/g, '-')}`])
+  return rows.map((r) => r.map(csvCell).join(',')).join('\n') + '\n'
 }

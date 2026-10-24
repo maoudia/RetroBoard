@@ -9,6 +9,12 @@ const Icon = v.picklist(COLUMN_ICONS)
 const ColumnTitle = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.columnTitle))
 const ColumnSubtitle = v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.columnSubtitle))
 
+const ActionText = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.actionText))
+const ActionOwner = v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.actionOwner))
+const ActionStatus = v.picklist(['todo', 'doing', 'done', 'blocked', 'dropped'])
+/** Calendar date, YYYY-MM-DD, and a real one (no 2026-02-31). */
+const DueDate = v.pipe(v.string(), v.regex(/^\d{4}-\d{2}-\d{2}$/), v.check((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) && new Date(`${d}T00:00:00Z`).toISOString().startsWith(d)))
+
 const NewNote = v.object({ columnId: Id, text: Text, color: v.optional(Color) })
 
 export const CommandSchema = v.variant('t', [
@@ -26,6 +32,10 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('group.rename'), id: Id, title: v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.groupTitle)) }),
   v.object({ t: v.literal('group.dissolve'), id: Id }),
   v.object({ t: v.literal('vote.toggle'), id: Id }),
+  v.object({ t: v.literal('vote.add'), kind: v.picklist(['note', 'cluster']), id: Id }),
+  v.object({ t: v.literal('vote.remove'), kind: v.picklist(['note', 'cluster']), id: Id }),
+  v.object({ t: v.literal('vote.close') }),
+  v.object({ t: v.literal('vote.reopen') }),
   v.object({ t: v.literal('column.add'), title: ColumnTitle, subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon) }),
   v.object({ t: v.literal('column.update'), id: Id, title: v.optional(ColumnTitle), subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon) }),
   v.object({ t: v.literal('column.delete'), id: Id }),
@@ -42,16 +52,24 @@ export const CommandSchema = v.variant('t', [
     t: v.literal('settings.update'),
     title: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.boardTitle))),
     voteLimit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(LIMITS.minVotes), v.maxValue(LIMITS.maxVotes))),
+    maxVotesPerItem: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(LIMITS.maxVotes))),
+    votable: v.optional(v.picklist(['notes', 'clusters', 'both'])),
     secretVoting: v.optional(v.boolean()),
     locked: v.optional(v.boolean()),
     browserAgentsAllowed: v.optional(v.boolean()),
     openFacilitation: v.optional(v.boolean()),
+    actionMode: v.optional(v.picklist(['checkbox', 'workflow'])),
     themeId: v.optional(v.pipe(v.string(), v.regex(/^[a-z0-9-]{1,24}$/))),
   }),
+  v.object({ t: v.literal('action.add'), text: ActionText, owner: ActionOwner, due: v.optional(DueDate) }),
+  v.object({ t: v.literal('action.update'), id: Id, text: v.optional(ActionText), owner: v.optional(ActionOwner), due: v.optional(v.nullable(DueDate)) }),
+  v.object({ t: v.literal('action.status'), id: Id, status: ActionStatus }),
   v.object({
-    t: v.literal('action.add'),
-    text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.actionText)),
-    owner: v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.actionOwner)),
+    t: v.literal('action.import'),
+    items: v.pipe(v.array(v.object({
+      text: ActionText, owner: ActionOwner, status: ActionStatus, due: v.optional(DueDate),
+      from: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.boardTitle))),
+    })), v.minLength(1), v.maxLength(LIMITS.maxImport)),
   }),
   v.object({ t: v.literal('action.toggle'), id: Id, done: v.boolean() }),
   v.object({ t: v.literal('action.delete'), id: Id }),

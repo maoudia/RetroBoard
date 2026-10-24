@@ -10,10 +10,12 @@ export const LIMITS = {
   displayName: 24,
   maxNotes: 300,
   maxActions: 100,
+  /** Actions carried over in one import. */
+  maxImport: 50,
   maxColumns: 8,
   maxBatch: 30,
   minVotes: 1,
-  maxVotes: 10,
+  maxVotes: 20,
   maxConnections: 30,
   /** Messages per rate-limit window and per connection. */
   rateMax: 40,

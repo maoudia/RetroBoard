@@ -10,6 +10,8 @@ export interface Group {
   columnId: string
   /** null: the UI falls back to the first note's text, like RetroTool. */
   title: string | null
+  /** Votes cast on the cluster as one idea (a client id per vote; repeats allowed). Never leaves the server. */
+  voters: string[]
 }
 
 export interface NoteRecord {
@@ -28,11 +30,26 @@ export interface NoteRecord {
   createdAt: number
 }
 
+export type ActionStatus = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
+
+export interface ActionStatusChange {
+  status: ActionStatus
+  at: number
+}
+
 export interface ActionItem {
   id: string
   text: string
   owner: string
+  /** Kept equal to status === 'done' for checkbox mode and older clients. */
   done: boolean
+  status: ActionStatus
+  /** Status changes, oldest first (the creation status included). */
+  history: ActionStatusChange[]
+  /** ISO date (YYYY-MM-DD) or null. */
+  due: string | null
+  /** Carried over from a previous retro: its title, else null. */
+  carriedFrom: string | null
   createdAt: number
 }
 
@@ -49,10 +66,19 @@ export interface TimerState {
 export interface BoardSettings {
   title: string
   voteLimit: number
+  /** Votes one person may put on the same item (1 to voteLimit). */
+  maxVotesPerItem: number
+  /** What can be voted on. With clusters votable, notes inside a cluster are not voted separately. */
+  votable: 'notes' | 'clusters' | 'both'
+  /** Counts hidden from everyone but their own votes until voting closes ("hidden counts"). */
   secretVoting: boolean
+  /** Voting phase over: no more votes, hidden counts are revealed to everyone at once. */
+  votingClosed: boolean
   locked: boolean
   /** Facilitator policy: may participants let AI agents in their browser use this board (WebMCP)? */
   browserAgentsAllowed: boolean
+  /** Action status: a checkbox, or the workflow To do, In progress, Done, Blocked, Dropped. */
+  actionMode: 'checkbox' | 'workflow'
   /** Facilitation open to everyone: privileged commands are accepted from any participant (encrypted boards). */
   openFacilitation: boolean
   themeId: string
@@ -93,7 +119,7 @@ export interface Dirty {
 
 export type ErrorCode =
   | 'locked' | 'not-found' | 'forbidden' | 'vote-limit' | 'limit-reached' | 'not-empty'
-  | 'last-column' | 'invalid' | 'same-column-required'
+  | 'last-column' | 'invalid' | 'same-column-required' | 'voting-closed' | 'not-votable' | 'item-limit'
 
 export type Outcome =
   | { ok: true; state: BoardState; dirty: Dirty }
@@ -107,11 +133,26 @@ export interface SnapshotNote {
   color: number
   author: string | null
   groupId: string | null
-  /** null while secret voting hides counts. */
+  /** null while hidden counts hide them. */
   votes: number | null
   voted: boolean
+  /** How many of my votes are on this note. */
+  myVotes: number
+  /** False when the note cannot get votes (inside a votable cluster, or notes not votable). */
+  votable: boolean
   mine: boolean
   createdAt: number
+}
+
+/** A cluster as clients see it: counts only, never voter ids. */
+export interface SnapshotGroup {
+  id: string
+  columnId: string
+  title: string | null
+  /** Cluster score: its own votes plus votes its notes received; null while counts are hidden. */
+  votes: number | null
+  myVotes: number
+  votable: boolean
 }
 
 export interface Peer {
@@ -130,7 +171,7 @@ export interface Snapshot {
   settings: BoardSettings
   columns: Column[]
   notes: SnapshotNote[]
-  groups: Group[]
+  groups: SnapshotGroup[]
   actions: ActionItem[]
   timer: TimerState
   peers: Peer[]

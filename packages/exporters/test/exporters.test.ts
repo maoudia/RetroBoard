@@ -40,3 +40,18 @@ describe('exporters', () => {
     expect(json.notes[0]).not.toHaveProperty('voted')
   })
 })
+
+describe('exports respect hidden counts until voting closes', () => {
+  it('omits counts while hidden, shows them once voting is closed', () => {
+    const h = harness()
+    const col = h.state.columns[0]!.id
+    h.run({ t: 'note.add', columnId: col, text: 'Idea' })
+    h.run({ t: 'settings.update', secretVoting: true })
+    h.run({ t: 'vote.add', kind: 'note', id: Object.keys(h.state.notes)[0]! })
+    const hidden = toMarkdown(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), { date: new Date(0), labels })
+    expect(hidden).toContain('- Idea - Alice\n')
+    h.run({ t: 'vote.close' })
+    const shown = toMarkdown(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), { date: new Date(0), labels })
+    expect(shown).toContain('- Idea (export.votes:1) - Alice')
+  })
+})

@@ -29,7 +29,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
           id="gtitle" v-model="title" class="gtitle" :maxlength="LIMITS.groupTitle" :placeholder="item.notes[0]?.text" data-testid="group-title"
           @blur="saveTitle" @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
         />
-        <span v-if="!board.secretVoting" class="pill mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
+        <span v-if="!board.countsHidden" class="pill mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
         <button class="mini-btn" type="button" :aria-label="t('group.closeLabel')" data-testid="group-close" @click="close"><Icon name="lucide:x" /></button>
       </header>
       <TransitionGroup name="note" tag="div" class="grid">

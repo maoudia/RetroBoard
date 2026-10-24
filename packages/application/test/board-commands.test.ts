@@ -72,3 +72,31 @@ describe('board use cases', () => {
     expect(sent).toHaveLength(0)
   })
 })
+
+describe('vote use cases check what the participant can know', () => {
+  const base = {
+    settings: { locked: false, votingClosed: false, maxVotesPerItem: 1 },
+    notes: [{ id: 'n1', votable: true, myVotes: 1 }, { id: 'inner', votable: false, myVotes: 0 }],
+    groups: [{ id: 'g1', votable: true, myVotes: 0 }], votesLeft: 2,
+  }
+  const make = (patch: Record<string, unknown> = {}) => {
+    const sent: unknown[] = []
+    const view = { ...base, ...patch, settings: { ...base.settings, ...(patch.settings as object) } }
+    const commands = createBoardCommands({ channel: () => ({ connect() {}, updateIdentity() {}, close() {}, send: (c) => (sent.push(c), true) }), view: () => view as never })
+    return { sent, commands }
+  }
+
+  it('refuses unknown, unvotable, capped items and closed or locked boards before sending', () => {
+    const { sent, commands } = make()
+    expect(commands.addVote('note', 'ghost')).toEqual({ ok: false, error: 'not-found' })
+    expect(commands.addVote('note', 'inner')).toEqual({ ok: false, error: 'not-votable' })
+    expect(commands.addVote('note', 'n1')).toEqual({ ok: false, error: 'item-limit' })
+    expect(make({ votesLeft: 0 }).commands.addVote('cluster', 'g1')).toEqual({ ok: false, error: 'vote-limit' })
+    expect(make({ settings: { votingClosed: true } }).commands.addVote('cluster', 'g1')).toEqual({ ok: false, error: 'voting-closed' })
+    expect(make({ settings: { votingClosed: true } }).commands.removeVote('note', 'n1')).toEqual({ ok: false, error: 'voting-closed' })
+    expect(make({ settings: { locked: true } }).commands.removeVote('note', 'n1')).toEqual({ ok: false, error: 'locked' })
+    expect(sent).toEqual([])
+    expect(commands.toggleVote('n1')).toEqual({ ok: true })
+    expect(sent).toEqual([{ t: 'vote.remove', kind: 'note', id: 'n1' }])
+  })
+})

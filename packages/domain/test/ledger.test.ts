@@ -164,3 +164,13 @@ describe('facilitation roles', () => {
     expect(roleOf(emptyLedger(roomId), ALICE)).toBe('facilitator')
   })
 })
+
+describe('voting phase is privileged', () => {
+  it('only facilitators close or reopen voting', () => {
+    const l = started()
+    expect(foldEvent(l, cmd(ALICE, { t: 'vote.close' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    const closed = foldAll(l, [cmd(FAC, { t: 'vote.close' })])
+    expect(closed.board.settings.votingClosed).toBe(true)
+    expect(foldEvent(closed, cmd(ALICE, { t: 'vote.reopen' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+  })
+})

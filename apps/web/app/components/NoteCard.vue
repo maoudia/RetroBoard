@@ -7,14 +7,11 @@ const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()
 const board = useBoardStore()
 const ui = useUiStore()
 const flights = useFlights()
-const { push } = useToasts()
 
 const el = ref<HTMLElement | null>(null)
 const editing = ref(false)
 const draft = ref('')
 const over = ref(false)
-const bumped = ref(false)
-const plus = ref(0)
 
 // Set before first render so the enter animation is replaced by the flight.
 const flightFrom = props.note.mine ? flights.consume(props.note.columnId, props.note.text) : null
@@ -23,17 +20,6 @@ function hashId(s: string) { let h = 0; for (let i = 0; i < s.length; i++) h = (
 
 onMounted(() => { if (flightFrom && el.value) flights.fly(el.value, flightFrom) })
 
-const canVote = computed(() => !board.locked && (props.note.voted || board.votesLeft > 0))
-function vote() {
-  if (!canVote.value) return push(board.locked ? t('error.locked') : t('error.vote-limit'), 'warn')
-  board.commands.toggleVote(props.note.id)
-}
-// Votes changed (by anyone): bump the counter, and float a +1 for new votes.
-watch(() => props.note.votes, (n, o) => {
-  if (n === null || o === null || n === o) return
-  bumped.value = false
-  nextTick(() => { bumped.value = true; if (n > o) plus.value++ })
-})
 
 function startEdit() { draft.value = props.note.text; editing.value = true }
 function saveEdit() {
@@ -73,14 +59,8 @@ function onDrop() {
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <span class="grow" />
-      <button
-        class="vote" type="button" :aria-pressed="note.voted" :aria-label="`${note.voted ? t('note.unvote') : t('note.vote')}${note.votes !== null ? ` ${note.votes}` : ''}`" :class="{ voted: note.voted, off: !canVote && !note.voted }"
-        :data-testid="`vote-${note.id}`" @click="vote"
-      >
-        <span class="thumb" :class="{ 'vote-bump': bumped }" @animationend="bumped = false"><Icon name="lucide:thumbs-up" /></span>
-        <span v-if="note.votes !== null" class="n mono" :class="{ 'vote-bump': bumped }">{{ note.votes }}</span>
-        <span v-for="k in plus" :key="k" class="plus" aria-hidden="true" @animationend="plus = 0">+1</span>
-      </button>
+      <!-- Notes inside a votable cluster are voted through the cluster. -->
+      <VoteControl v-if="note.votable" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />
       <NoteMenu :note="note" :in-group="inGroup" @edit="startEdit" />
     </footer>
   </article>

@@ -83,7 +83,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     let gid = b.groupId
     if (!gid) {
       gid = ctx.newId()
-      groups[gid] = { id: gid, columnId: b.columnId, title: null }
+      groups[gid] = { id: gid, columnId: b.columnId, title: null, voters: [] }
       notes[b.id] = { ...b, groupId: gid }
       dirty.notes.push(b.id)
       dirty.groups.push(gid)

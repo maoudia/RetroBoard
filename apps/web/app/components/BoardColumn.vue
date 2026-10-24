@@ -10,7 +10,7 @@ const theme = useThemeStore()
 const sort = ref<SortMode>('time')
 const { over, bind } = useColumnDrop(() => props.column.id)
 
-const items = computed(() => board.itemsFor(props.column.id, board.secretVoting ? 'time' : sort.value))
+const items = computed(() => board.itemsFor(props.column.id, board.countsHidden ? 'time' : sort.value))
 const noteCount = computed(() => board.snapshot?.notes.filter((n) => n.columnId === props.column.id).length ?? 0)
 const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupId) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
 const colorIndex = computed(() => props.index % 8)
@@ -26,7 +26,7 @@ const colorIndex = computed(() => props.index % 8)
       </div>
       <span class="count mono" :title="t('column.count', { n: noteCount })">{{ noteCount }}</span>
       <button
-        class="mini-btn" type="button" :aria-pressed="sort === 'votes'" :disabled="board.secretVoting" :title="board.secretVoting ? t('column.sortUnavailable') : t('column.sortVotes')"
+        class="mini-btn" type="button" :aria-pressed="sort === 'votes'" :disabled="board.countsHidden" :title="board.countsHidden ? t('column.sortUnavailable') : t('column.sortVotes')"
         :aria-label="sort === 'votes' ? t('column.sortTime') : t('column.sortVotes')" :class="{ on: sort === 'votes' }" @click="sort = sort === 'votes' ? 'time' : 'votes'"
       >
         <Icon name="lucide:arrow-up-down" />
@@ -38,7 +38,7 @@ const colorIndex = computed(() => props.index % 8)
       <TransitionGroup name="note" tag="div" class="grid">
         <template v-for="it in items" :key="it.key">
           <NoteCard v-if="it.kind === 'note'" :note="it.note" />
-          <GroupCard v-else :item="it" :secret="board.secretVoting" />
+          <GroupCard v-else :item="it" :secret="board.countsHidden" />
         </template>
       </TransitionGroup>
       <p v-if="!items.length" class="empty muted">{{ themeText(theme.theme).emptyColumn }}</p>

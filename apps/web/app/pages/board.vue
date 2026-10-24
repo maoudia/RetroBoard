@@ -84,6 +84,8 @@ watch(needsSetup, (need) => {
 })
 function sendSetup(s: SetupResult) {
   board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value })
+  // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
+  if (s.importActions?.length) board.commands.importActions(s.importActions)
   setupOpen.value = false
 }
 
@@ -136,6 +138,8 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
       <ActionsDrawer />
       <ShareDialog />
+      <RankingDialog />
+      <ActionsReviewDialog />
       <OptionsDialog />
       <NameDialog />
       <TemplateDialog />

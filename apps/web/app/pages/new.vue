@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ImportedAction } from '@retroboard/domain'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { suggestThemeForDate } from '@retroboard/domain'
 import { LOCAL_ROOM_PREFIX } from '~/transport'
@@ -14,7 +15,10 @@ useHead({ title: computed(() => t('new.pageTitle')) })
 
 onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false) })
 
-function create({ passcode, ...setup }: SetupResult) {
+/** Previous actions to carry over into the new board (team profile or a file). */
+const carry = ref<ImportedAction[]>([])
+function create({ passcode, ...form }: SetupResult) {
+  const setup: SetupResult = { ...form, ...(carry.value.length ? { importActions: carry.value } : {}) }
   const ring = { ...newKeyRing(), ...(passcode ? { passcode: true } : {}) }
   try {
     sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
@@ -42,6 +46,9 @@ function solo() {
       <p class="lede">{{ themeText(theme.theme).hero }}</p>
       <section class="card panel">
         <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @submit="create" />
+      </section>
+      <section class="card panel">
+        <CarryOverPicker v-model="carry" />
       </section>
       <p class="foot muted">
         {{ t('new.foot') }}

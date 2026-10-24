@@ -1,18 +1,19 @@
-import type { Group, SnapshotNote } from '@retroboard/domain'
+import type { SnapshotGroup, SnapshotNote } from '@retroboard/domain'
 import { describe, expect, it } from 'vitest'
 import { buildColumnItems, groupTitle } from '../src'
 
 const note = (id: string, votes: number | null, extra: Partial<SnapshotNote> = {}): SnapshotNote => ({
-  id, columnId: 'c1', text: `text ${id}`, color: 0, author: null, groupId: null, votes, voted: false, mine: false, createdAt: 0, ...extra,
+  id, columnId: 'c1', text: `text ${id}`, color: 0, author: null, groupId: null, votes, voted: false, myVotes: 0, votable: true, mine: false, createdAt: 0, ...extra,
 })
 
 describe('column items read model', () => {
-  const groups: Group[] = [{ id: 'g1', columnId: 'c1', title: null }, { id: 'empty', columnId: 'c1', title: 'x' }]
+  const group = (id: string, title: string | null, votes: number | null): SnapshotGroup => ({ id, columnId: 'c1', title, votes, myVotes: 0, votable: true })
+  const groups: SnapshotGroup[] = [group('g1', null, 4), group('empty', 'x', 0)]
   const notes = [
     note('a', 1), note('b', 0, { groupId: 'g1' }), note('c', 4, { groupId: 'g1' }), note('d', 2), note('other', 9, { columnId: 'c2' }),
   ]
 
-  it('stacks grouped notes, sums their votes and keeps creation order in time mode', () => {
+  it('stacks grouped notes, uses the cluster score and keeps creation order in time mode', () => {
     const items = buildColumnItems({ notes, groups }, 'c1', 'time')
     expect(items.map((i) => i.key)).toEqual(['a', 'g1', 'd'])
     const g = items[1]!
@@ -29,7 +30,7 @@ describe('column items read model', () => {
   })
 
   it('uses the group title, else the first note text', () => {
-    expect(groupTitle({ id: 'g', columnId: 'c1', title: 'Named' }, [])).toBe('Named')
-    expect(groupTitle({ id: 'g', columnId: 'c1', title: null }, [])).toBe('')
+    expect(groupTitle({ title: 'Named' }, [])).toBe('Named')
+    expect(groupTitle({ title: null }, [])).toBe('')
   })
 })

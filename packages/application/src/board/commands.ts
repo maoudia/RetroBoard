@@ -1,4 +1,4 @@
-import { type Command, type ErrorCode, LIMITS, type NewNote, type Snapshot, type TimerMinutes } from '@retroboard/domain'
+import { type ActionStatusName, type Command, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
 
@@ -13,7 +13,7 @@ export interface BoardCommandDeps {
   view(): Snapshot | null
 }
 
-export interface SettingsPatch { title?: string; voteLimit?: number; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string }
+export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string }
 export interface ColumnInput { title: string; subtitle?: string; icon?: Extract<Command, { t: 'column.add' }>['icon'] }
 
 /**
@@ -45,13 +45,32 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     renameGroup: (id: string, title: string) => send({ t: 'group.rename', id, title }),
     dissolveGroup: (id: string) => whenOpen({ t: 'group.dissolve', id }),
 
-    toggleVote(noteId: string): BoardResult {
+    /** Adds one vote, checking locally what the participant can already know (budget, cap, phase). */
+    addVote(kind: VotableKind, id: string): BoardResult {
       const view = deps.view()
       if (locked()) return err('locked')
-      const note = view?.notes.find((n) => n.id === noteId)
-      if (view && note && !note.voted && view.votesLeft <= 0) return err('vote-limit')
-      return send({ t: 'vote.toggle', id: noteId })
+      if (view?.settings.votingClosed) return err('voting-closed')
+      const item = kind === 'note' ? view?.notes.find((n) => n.id === id) : view?.groups.find((g) => g.id === id)
+      if (view && !item) return err('not-found')
+      if (item && !item.votable) return err('not-votable')
+      if (view && view.votesLeft <= 0) return err('vote-limit')
+      if (view && item && item.myVotes >= view.settings.maxVotesPerItem) return err('item-limit')
+      return send({ t: 'vote.add', kind, id })
     },
+    /** Takes back one of my votes (undo) while voting is open. */
+    removeVote(kind: VotableKind, id: string): BoardResult {
+      const view = deps.view()
+      if (locked()) return err('locked')
+      if (view?.settings.votingClosed) return err('voting-closed')
+      return send({ t: 'vote.remove', kind, id })
+    },
+    /** One vote on a note, on or off (agents and the simple one-vote-per-item mode). */
+    toggleVote(noteId: string): BoardResult {
+      const note = deps.view()?.notes.find((n) => n.id === noteId)
+      return note && note.myVotes > 0 ? this.removeVote('note', noteId) : this.addVote('note', noteId)
+    },
+    closeVoting: () => send({ t: 'vote.close' }),
+    reopenVoting: () => send({ t: 'vote.reopen' }),
 
     addColumn: (c: ColumnInput) => ((deps.view()?.columns.length ?? 0) >= LIMITS.maxColumns ? err('limit-reached') : send({ t: 'column.add', ...c })),
     updateColumn: (id: string, c: Partial<ColumnInput>) => send({ t: 'column.update', id, ...c }),
@@ -63,7 +82,10 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     updateSettings: (patch: SettingsPatch) => send({ t: 'settings.update', ...patch }),
     resetBoard: () => send({ t: 'board.reset' }),
 
-    addAction: (text: string, owner: string) => send({ t: 'action.add', text, owner }),
+    addAction: (text: string, owner: string, due?: string) => send({ t: 'action.add', text, owner, ...(due ? { due } : {}) }),
+    updateAction: (id: string, patch: { text?: string; owner?: string; due?: string | null }) => send({ t: 'action.update', id, ...patch }),
+    setActionStatus: (id: string, status: ActionStatusName) => send({ t: 'action.status', id, status }),
+    importActions: (items: ImportedAction[]) => (items.length ? send({ t: 'action.import', items: items.slice(0, LIMITS.maxImport) }) : ok()),
     setActionDone: (id: string, done: boolean) => send({ t: 'action.toggle', id, done }),
     deleteAction: (id: string) => send({ t: 'action.delete', id }),
 
