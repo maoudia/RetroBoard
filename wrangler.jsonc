@@ -14,10 +14,26 @@
     "bindings": [{ "name": "ROOM", "class_name": "Room" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
-  // Workers Observability: structured logs (event names only, never board content) and traces.
+  // Workers Observability. Logs and traces carry event names and short room hashes only (never content).
+  // redact_query_string: the WebSocket URL carries the room id in its query string; it must not reach logs.
   "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "redact_query_string": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "issue_detection": {
+      "enabled": true
+    }
   },
   "vars": {
     // Comma separated extra origins allowed to open the WebSocket. Used by `nuxt dev` on :3000.
