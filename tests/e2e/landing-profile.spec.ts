@@ -143,3 +143,23 @@ test('security.txt is published with a future expiry (RFC 9116)', async ({ reque
   const expires = body.match(/^Expires: (.+)$/m)?.[1]
   expect(expires && Date.parse(expires)).toBeGreaterThan(Date.now())
 })
+
+test('legal notice, privacy and terms are linked from every page, in both languages', async ({ page }) => {
+  await page.goto('/')
+  await page.getByTestId('link-privacy').click()
+  await expect(page.getByTestId('page-privacy')).toBeVisible()
+  // The privacy page lists exactly what the service can observe.
+  for (const m of [1, 2, 3, 4, 5, 6]) await expect(page.getByTestId(`privacy-2-${m}`)).toBeVisible()
+  await expect(page.getByTestId('privacy-2-2')).toContainText('adresse IP')
+  await expect(page.getByTestId('page-privacy')).toContainText('chiffrés dans ton navigateur')
+
+  await page.getByTestId('link-legal').click()
+  await expect(page.getByTestId('page-legal')).toContainText('Cloudflare, Inc., 101 Townsend Street')
+  await page.getByTestId('link-terms').click()
+  await expect(page.getByTestId('page-terms')).toContainText('droit français')
+
+  await page.goto('/new')
+  await expect(page.getByTestId('link-legal')).toBeVisible()
+  await page.goto('/check')
+  await expect(page.getByTestId('link-privacy')).toBeVisible()
+})

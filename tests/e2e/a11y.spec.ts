@@ -21,6 +21,14 @@ test.describe('accessibility (axe)', () => {
     expect(await audit(page)).toEqual([])
   })
 
+  test('legal, privacy and terms pages', async ({ page }) => {
+    for (const path of ['/legal', '/privacy', '/terms']) {
+      await page.goto(path)
+      await expect(page.locator('h1')).toBeVisible()
+      expect(await audit(page)).toEqual([])
+    }
+  })
+
   test('board creation page', async ({ page }) => {
     await page.goto('/new')
     await expect(page.getByTestId('setup-form')).toBeVisible()

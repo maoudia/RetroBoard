@@ -65,6 +65,7 @@ function solo() {
         {{ t('new.foot') }}
         <button class="link" type="button" data-testid="solo-new" @click="solo">{{ t('new.solo') }}</button>
       </p>
+      <LegalLinks class="legal" />
     </main>
   </div>
 </template>

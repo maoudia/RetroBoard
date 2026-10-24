@@ -34,6 +34,7 @@ onMounted(async () => {
       </li>
     </ul>
     <p v-if="done" class="verdict" role="status">{{ t(ready ? 'check.ready' : 'check.notReady') }}</p>
+    <LegalLinks />
   </main>
 </template>
 
