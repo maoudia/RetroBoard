@@ -6,11 +6,11 @@
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
  * Every peer runs the same fold, so all replicas converge without a server reducer.
  */
-import { EventLog, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
+import { EventLog, type OwnCursor, type OwnFocus, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
 import { HybridClock } from '@retroboard/sync'
-import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parsePresence, parseRelayFrame, parseSignedEvent, type Presence, type RelayFrame } from '@retroboard/protocol'
+import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parseRelayFrame, parseSignedEvent, type Live, type Presence, type RelayFrame } from '@retroboard/protocol'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
@@ -250,11 +250,32 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   private async announce(): Promise<void> {
-    if (!this.conn || !this.identity || this.ws?.readyState !== 1) return
+    if (!this.conn || !this.identity) return
     const p: Presence = { t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, key: this.deps.session.publicKey, ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}) }
+    await this.sendEph(p)
+  }
+
+  /** Ephemeral frames are fanned out by the relay, never buffered, and never reach the log or the replica. */
+  private async sendEph(live: Live): Promise<void> {
+    if (this.ws?.readyState !== 1) return
     const head = { v: PROTOCOL_VERSION, room: this.ring.roomId, id: ulid(), hlc: this.now() } as const
-    const ct = await seal(this.deps.contentKey, utf8(JSON.stringify(p)), utf8(envelopeAad(head)))
-    this.ws.send(JSON.stringify({ t: 'eph', env: { ...head, ct: toBase64Url(ct) } }))
+    const ct = await seal(this.deps.contentKey, utf8(JSON.stringify(live)), utf8(envelopeAad(head)))
+    if (this.ws?.readyState === 1) this.ws.send(JSON.stringify({ t: 'eph', env: { ...head, ct: toBase64Url(ct) } }))
+  }
+
+  sendCursor(cursor: OwnCursor): void {
+    if (this.conn && this.synced) void this.sendEph({ t: 'cursor', conn: this.conn, ...cursor }).catch(() => {})
+  }
+
+  sendFocus(focus: OwnFocus): void {
+    if (this.conn && this.synced) void this.sendEph({ t: 'focus', conn: this.conn, ...focus }).catch(() => {})
+  }
+
+  /** Label of a peer, unless the facilitator hid them. undefined: do not show this peer at all. */
+  private liveName(conn: string): string | null | undefined {
+    const p = this.presence.get(conn)
+    if (p?.key && this.log.ledger.hidden.includes(p.key)) return undefined
+    return p?.showName ? p.name : null
   }
 
   private async onFrame(frame: RelayFrame, historyIds: Set<string>): Promise<void> {
@@ -269,6 +290,7 @@ export class EncryptedRelayTransport implements BoardTransport {
         const known = new Set(this.conns)
         this.conns = frame.peers
         for (const c of [...this.presence.keys()]) if (!frame.peers.includes(c)) this.presence.delete(c)
+        for (const c of known) if (!frame.peers.includes(c)) this.handlers.onPeerLeft?.(c)
         if (frame.peers.some((c) => !known.has(c) && c !== this.conn)) await this.announce()
         this.emit()
         return
@@ -282,8 +304,13 @@ export class EncryptedRelayTransport implements BoardTransport {
         if (await this.ingest(frame.envs)) this.emit()
         return
       case 'eph': {
-        const p = parsePresence(await this.openEnvelope(frame.env))
-        if (p && this.conns.includes(p.conn)) { this.presence.set(p.conn, p); this.emit() }
+        const live = parseLive(await this.openEnvelope(frame.env))
+        if (!live || !this.conns.includes(live.conn) || live.conn === this.conn) return
+        if (live.t === 'presence') { this.presence.set(live.conn, live); this.emit(); return }
+        const name = this.liveName(live.conn)
+        if (name === undefined) return
+        if (live.t === 'cursor') this.handlers.onCursor?.({ conn: live.conn, anchor: live.anchor, x: live.x, y: live.y, drag: live.drag }, name)
+        else this.handlers.onFocus?.({ conn: live.conn, column: live.column, note: live.note, typing: live.typing }, name)
         return
       }
       case 'need':

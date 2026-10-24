@@ -6,6 +6,7 @@ const { t } = useT()
 const props = defineProps<{ column: Column; index: number; total: number }>()
 const board = useBoardStore()
 const ui = useUiStore()
+const live = useLiveStore()
 const theme = useThemeStore()
 const sort = ref<SortMode>('time')
 const { over, bind } = useColumnDrop(() => props.column.id)
@@ -19,13 +20,14 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>
 
 <template>
-  <section class="col" :class="{ over }" :style="{ '--col': `var(--note-${colorIndex})` }" :data-testid="`column-${column.id}`" :aria-label="column.title" v-bind="bind">
+  <section class="col" :class="{ over }" :style="{ '--col': `var(--note-${colorIndex})` }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" v-bind="bind">
     <header>
       <span class="badge-ico"><Icon :name="`lucide:${column.icon}`" /></span>
       <div class="titles">
         <h2 :title="column.title" data-testid="column-title">{{ column.title }}</h2>
         <p v-if="column.subtitle" class="muted">{{ column.subtitle }}</p>
       </div>
+      <LiveMarkers :peers="live.inColumn.get(column.id)" :testid="`live-column-${column.id}`" />
       <span class="count mono" :title="t('column.count', { n: noteCount })">{{ noteCount }}</span>
       <button
         class="mini-btn" type="button" :aria-pressed="sort === 'votes'" :disabled="board.countsHidden" :title="board.countsHidden ? t('column.sortUnavailable') : t('column.sortVotes')"

@@ -13,7 +13,11 @@ Requires `stateless-relay-and-replication` (relay carries encrypted signalling e
 
 - **Mesh topology** up to 12 peers; above, each peer keeps 6 connections chosen by a deterministic hash ring and gossips presence (cursors only to direct peers + relay fallback for the rest at 1 Hz).
 - **Unreliable, unordered data channel** (`ordered:false, maxRetransmits:0`) for cursors; reliable channel for presence.
-- **Encoding**: 8-byte binary frames (x, y as uint16 normalised to the board, flags), encrypted with an HKDF-derived `presence` key; no JSON.
+- **Anchored positions, not pixels**: layouts differ between participants (window size, density, a phone shows one column at a time), so a cursor is `{anchor, x, y}` where `anchor` is the column or note under the pointer and `x, y` are 0..1 fractions of that element's box (uint16 on the wire). Each receiver places the cursor in its own layout and hides it when the anchor is not rendered.
+- **Encoding**: on the data channel, binary frames (anchor index, x, y as uint16, flags) encrypted with an HKDF-derived `presence` key. On the relay fallback, the same fields inside an `eph` envelope (already encrypted with the content key).
+- **Touch devices (`pointer: coarse`)**: a finger only exists while it touches the screen, so phones do not stream a cursor. They send *focus* instead (column in view, note being edited or dragged, typing) and a cursor only during a drag. As receivers they do not draw floating cursors (too small a screen); they show avatar dots on the column tabs and on notes others are editing or dragging, and presence states in the participants menu.
+- **Relay budget**: `eph` frames have their own per-connection window at the relay and excess frames are dropped silently (never a socket close), so cursors can never cost a participant their connection.
+- **Delivery order**: the relay path (2.x, 3.x) ships first because it works everywhere today; the WebRTC mesh (1.x) then takes cursors off the relay without changing the UI.
 - **Interpolation** with a 100 ms buffer and `requestAnimationFrame`.
 - STUN `stun.cloudflare.com:3478` (free per Cloudflare docs); TURN credentials only with an entitlement.
 - Where it lives: `Cursor`, `PresenceState` value objects in `domain/presence` (no events); `PresencePort` in application; WebRTC adapter in `apps/web`; signalling relay already in `apps/relay`.

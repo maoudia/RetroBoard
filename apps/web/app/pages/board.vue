@@ -17,6 +17,8 @@ const { push } = useToasts()
 const invite = computed(() => inviteFromHash(route.hash))
 const roomId = computed(() => (invite.value ? inviteRoomId(invite.value) : ''))
 const validRoom = computed(() => invite.value !== null)
+const boardEl = ref<HTMLElement | null>(null)
+useLiveShare(boardEl)
 const retiredLink = computed(() => !validRoom.value && isRetiredLink(route.hash))
 /** Legacy and solo boards have no roles; encrypted boards are steered by the facilitator key. */
 const canSteer = computed(() => invite.value?.kind === 'legacy' || !!invite.value?.ring.facilitatorSecret)
@@ -135,12 +137,13 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
     <template v-else>
       <AppToolbar v-if="board.ready" />
+      <CursorLayer v-if="board.ready" />
       <VoteBar v-if="board.ready" />
       <div v-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
 
       <div v-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 
-      <main v-else-if="board.ready" class="board" data-testid="board">
+      <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board">
         <BoardColumn v-for="(c, i) in board.columns" :key="c.id" :column="c" :index="i" :total="board.columns.length" />
         <button v-if="board.columns.length < 8" class="add-col" type="button" data-testid="add-column" @click="ui.editColumn(null)">
           <Icon name="lucide:plus" /> {{ t('board.addColumn') }}

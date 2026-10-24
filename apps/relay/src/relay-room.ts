@@ -3,14 +3,12 @@ import { LIMITS } from '@retroboard/domain'
 import { MAX_FRAME_BYTES, parseClientFrame, type RelayFrame } from '@retroboard/protocol'
 import type { Env } from './env'
 import { consoleLogger, type Logger } from './logger'
-import { allow, EnvelopeBuffer, type RateWindow } from './relay-core'
+import { admit, type Budgets, EnvelopeBuffer } from './relay-core'
 
 /** Survives hibernation in the WebSocket attachment (max 2 KB). No board data here. */
-interface Attachment extends RateWindow { rh: string; room: string; conn: string }
+interface Attachment extends Budgets { rh: string; room: string; conn: string }
 
 const connId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
-/** v2 frames are batched, so the per-socket budget is in frames, not commands. */
-const RATE_MAX = LIMITS.rateMax * 2
 
 /**
  * Protocol v2 room: a memory-only forwarder of encrypted envelopes.
@@ -56,17 +54,18 @@ export class RelayRoom extends DurableObject<Env> {
       this.log.warn('msg.too-large', { rh: att.rh })
       return ws.close(1009, 'Message too large')
     }
-    const ok = allow(att, Date.now(), RATE_MAX, LIMITS.rateWindowMs)
+    let raw: unknown
+    try { raw = JSON.parse(message) } catch { raw = null }
+    const frame = parseClientFrame(raw)
+
+    const verdict = admit(att, frame?.t === 'eph', Date.now(), LIMITS.rateWindowMs)
     ws.serializeAttachment(att)
-    if (!ok) {
+    if (verdict === 'drop') return
+    if (verdict === 'close') {
       this.log.warn('rate.limited', { rh: att.rh })
       return ws.close(1008, 'Rate limit')
     }
-    let raw: unknown
-    try { raw = JSON.parse(message) } catch { return this.send(ws, { t: 'err', code: 'invalid' }) }
-    const frame = parseClientFrame(raw)
     if (!frame) return this.send(ws, { t: 'err', code: 'invalid' })
-
     if (frame.t === 'eph') {
       if (frame.env.room !== att.room) return this.send(ws, { t: 'err', code: 'wrong-room' })
       return this.fanOut({ t: 'eph', env: frame.env }, ws)

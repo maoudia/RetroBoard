@@ -7,7 +7,7 @@
  * Relay messages carry envelopes and connection ids, never board content.
  */
 import * as v from 'valibot'
-import { KEY_RE, LIMITS, ROOM_ID_RE } from '@retroboard/domain'
+import { CURSOR_SCALE, KEY_RE, LIMITS, ROOM_ID_RE } from '@retroboard/domain'
 import { CommandSchema } from './v1'
 
 export const PROTOCOL_VERSION = 2
@@ -91,6 +91,33 @@ export const PresenceSchema = v.strictObject({
 })
 export type Presence = v.InferOutput<typeof PresenceSchema>
 
+const AnchorId = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
+const Fraction = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(CURSOR_SCALE))
+
+/** Plaintext inside an `eph` envelope: a pointer anchored to a column or note (never stored). */
+export const CursorSchema = v.strictObject({
+  t: v.literal('cursor'),
+  conn: ConnId,
+  anchor: v.nullable(AnchorId),
+  x: Fraction,
+  y: Fraction,
+  drag: v.boolean(),
+})
+export type Cursor = v.InferOutput<typeof CursorSchema>
+
+/** Plaintext inside an `eph` envelope: what a participant is looking at or working on. */
+export const FocusSchema = v.strictObject({
+  t: v.literal('focus'),
+  conn: ConnId,
+  column: v.nullable(AnchorId),
+  note: v.nullable(AnchorId),
+  typing: v.boolean(),
+})
+export type Focus = v.InferOutput<typeof FocusSchema>
+
+export const LiveSchema = v.variant('t', [PresenceSchema, CursorSchema, FocusSchema])
+export type Live = v.InferOutput<typeof LiveSchema>
+
 const parser = <S extends v.GenericSchema>(schema: S) => (input: unknown): v.InferOutput<S> | null => {
   const r = v.safeParse(schema, input)
   return r.success ? r.output : null
@@ -100,6 +127,7 @@ export const parseClientFrame = parser(ClientFrameSchema)
 export const parseRelayFrame = parser(RelayFrameSchema)
 export const parseSignedEvent = parser(SignedEventSchema)
 export const parsePresence = parser(PresenceSchema)
+export const parseLive = parser(LiveSchema)
 
 /**
  * Board file (.retro): every envelope of a board, encrypted once more with the file key

@@ -1,6 +1,6 @@
 import { allowedInPhase, type CommandType, type ErrorCode, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
-import { buildColumnItems, createBoardCommands, type SortMode } from '@retroboard/application'
+import { buildColumnItems, createBoardCommands, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
 /**
  * View model of a board: holds the latest snapshot and exposes the board use cases.
@@ -16,6 +16,7 @@ export const useBoardStore = defineStore('board', () => {
   /** serverNow - clientNow, to show a timer that agrees with the server. */
   const skew = ref(0)
   let transport: BoardTransport | null = null
+  const live = useLiveStore()
   const listeners = new Set<(prev: Snapshot | null, next: Snapshot) => void>()
 
   function connect(room: string, identity: Identity, factory: TransportFactory) {
@@ -32,11 +33,15 @@ export const useBoardStore = defineStore('board', () => {
       onError: (code) => { lastError.value = { code, at: Date.now() } },
       onStatus: (s) => { status.value = s },
       onAccessDenied: () => { accessDenied.value = true },
+      onCursor: (c, name) => live.setCursor(c, name),
+      onFocus: (f, name) => live.setFocus(f, name),
+      onPeerLeft: (conn) => live.drop(conn),
     })
     transport.connect(identity)
   }
 
   function disconnect() {
+    live.reset()
     transport?.close()
     transport = null
     snapshot.value = null
@@ -51,6 +56,8 @@ export const useBoardStore = defineStore('board', () => {
   const allowed = (command: CommandType) => access.value.canSteer || allowedInPhase(snapshot.value?.agenda ?? null, command)
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
+  const sendCursor = (c: OwnCursor) => transport?.sendCursor?.(c)
+  const sendFocus = (f: OwnFocus) => transport?.sendFocus?.(f)
   const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
   const exportBoardFile = () => transport?.exportBoardFile?.() ?? Promise.resolve(null)
   const importBoardFile = (text: string) => transport?.importBoardFile?.(text) ?? Promise.resolve(null)
@@ -83,7 +90,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, roomId, skew, accessDenied,
-    connect, disconnect, updateIdentity, onSnapshot, commands, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
+    connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,
   }

@@ -110,6 +110,14 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
           </button>
         </span>
       </div>
+      <label class="line">
+        <span><strong>{{ t('profile.shareCursor') }}</strong><small class="muted">{{ t('profile.shareCursor.hint') }}</small></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.shareCursor" data-testid="set-share-cursor" @change="set({ shareCursor: ($event.target as HTMLInputElement).checked })" />
+      </label>
+      <label class="line">
+        <span><strong>{{ t('profile.showCursors') }}</strong></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.showCursors" data-testid="set-show-cursors" @change="set({ showCursors: ($event.target as HTMLInputElement).checked })" />
+      </label>
     </section>
 
     <section class="grp">

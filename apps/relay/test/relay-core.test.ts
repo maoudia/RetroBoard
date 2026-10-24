@@ -53,3 +53,19 @@ describe('no server-side storage (docs/PLAN.md 5.3)', () => {
     }
   })
 })
+
+describe('admit (per-socket budgets)', () => {
+  it('closes on board-frame abuse but only drops excess live frames', async () => {
+    const { admit, EPH_MAX, FRAME_MAX } = await import('../src/relay-core')
+    const b = { windowStart: 0, count: 0 }
+    const live = Array.from({ length: EPH_MAX + 5 }, () => admit(b, true, 1_000, 10_000))
+    expect(live.filter((v) => v === 'ok')).toHaveLength(EPH_MAX)
+    expect(live.at(-1)).toBe('drop')
+    // Live traffic does not eat the board budget.
+    const frames = Array.from({ length: FRAME_MAX + 1 }, () => admit(b, false, 1_000, 10_000))
+    expect(frames.filter((v) => v === 'ok')).toHaveLength(FRAME_MAX)
+    expect(frames.at(-1)).toBe('close')
+    // A new window resets both.
+    expect([admit(b, true, 12_000, 10_000), admit(b, false, 12_000, 10_000)]).toEqual(['ok', 'ok'])
+  })
+})

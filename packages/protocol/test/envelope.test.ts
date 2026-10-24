@@ -81,3 +81,22 @@ describe('board file and v2 payload details', () => {
     expect([MAX_FRAME_BYTES, RELAY_BUFFER, RELAY_BUFFER_BYTES]).toEqual([256 * 1024, 2_000, 4 * 1024 * 1024])
   })
 })
+
+describe('live frames (cursors and focus, never stored)', () => {
+  it('accepts anchored cursors and focus, rejects out-of-range or unknown shapes', async () => {
+    const { parseLive } = await import('../src')
+    const cursor = { t: 'cursor', conn: 'abcd1234', anchor: 'note-1', x: 0, y: 65_535, drag: false }
+    expect(parseLive(cursor)).toEqual(cursor)
+    expect(parseLive({ ...cursor, anchor: null })).not.toBeNull()
+    expect(parseLive({ ...cursor, x: 65_536 })).toBeNull()
+    expect(parseLive({ ...cursor, y: -1 })).toBeNull()
+    expect(parseLive({ ...cursor, x: 0.5 })).toBeNull()
+    expect(parseLive({ ...cursor, anchor: '../x' })).toBeNull()
+    expect(parseLive({ ...cursor, extra: 1 })).toBeNull()
+    const focus = { t: 'focus', conn: 'abcd1234', column: 'col-1', note: null, typing: true }
+    expect(parseLive(focus)).toEqual(focus)
+    expect(parseLive({ ...focus, typing: 'yes' })).toBeNull()
+    expect(parseLive({ t: 'presence', conn: 'abcd1234', name: null, showName: false })).not.toBeNull()
+    expect(parseLive({ t: 'nope', conn: 'abcd1234' })).toBeNull()
+  })
+})

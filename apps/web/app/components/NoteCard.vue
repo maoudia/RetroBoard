@@ -6,6 +6,7 @@ const { t } = useT()
 const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()
 const board = useBoardStore()
 const ui = useUiStore()
+const live = useLiveStore()
 const flights = useFlights()
 
 const el = ref<HTMLElement | null>(null)
@@ -21,7 +22,9 @@ function hashId(s: string) { let h = 0; for (let i = 0; i < s.length; i++) h = (
 onMounted(() => { if (flightFrom && el.value) flights.fly(el.value, flightFrom) })
 
 
-function startEdit() { draft.value = props.note.text; editing.value = true }
+const editor = ref<HTMLTextAreaElement | null>(null)
+// autofocus only works on page load: focus the editor when it appears.
+function startEdit() { draft.value = props.note.text; editing.value = true; void nextTick(() => editor.value?.focus()) }
 function saveEdit() {
   const t = draft.value.trim()
   if (t && t !== props.note.text) board.commands.editNote(props.note.id, t)
@@ -43,7 +46,7 @@ function onDrop() {
 
 <template>
   <article
-    ref="el" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine }" :data-testid="`note-${note.id}`"
+    ref="el" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine }" :data-testid="`note-${note.id}`" :data-anchor="note.id" data-anchor-kind="note"
     :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
@@ -52,13 +55,14 @@ function onDrop() {
       <p class="text" data-testid="note-text">{{ note.text }}</p>
     </template>
     <div v-else class="edit">
-      <textarea v-model="draft" :maxlength="LIMITS.noteText" rows="3" autofocus @keydown.enter.exact.prevent="saveEdit" @keydown.esc="editing = false" />
+      <textarea ref="editor" v-model="draft" :maxlength="LIMITS.noteText" rows="3" @keydown.enter.exact.prevent="saveEdit" @keydown.esc="editing = false" />
       <button class="mini-btn" type="button" :aria-label="t('note.save')" @click="saveEdit"><Icon name="lucide:check" /></button>
     </div>
 
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <span class="grow" />
+      <LiveMarkers :peers="live.onNote.get(note.id)" :testid="`live-note-${note.id}`" />
       <!-- Notes inside a votable cluster are voted through the cluster. -->
       <VoteControl v-if="note.votable" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />
       <NoteMenu :note="note" :in-group="inGroup" @edit="startEdit" />

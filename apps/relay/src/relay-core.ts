@@ -1,3 +1,4 @@
+import { LIMITS } from '@retroboard/domain'
 /**
  * Protocol v2 relay logic, free of Cloudflare APIs so it is unit tested in Node.
  * Holds ciphertext envelopes in memory only (docs/PLAN.md 5.3): never storage.
@@ -58,4 +59,23 @@ export interface RateWindow { windowStart: number; count: number }
 export function allow(w: RateWindow, now: number, max: number, windowMs: number): boolean {
   if (now - w.windowStart > windowMs) { w.windowStart = now; w.count = 0 }
   return ++w.count <= max
+}
+
+/** Per-socket budgets: board frames, and live frames (presence, cursors, focus) on their own. */
+export interface Budgets extends RateWindow { eph?: RateWindow }
+/** v2 frames are batched, so the budget is in frames, not commands. */
+export const FRAME_MAX = LIMITS.rateMax * 2
+/** Cursors at 4 Hz plus focus and presence fit; excess live frames are dropped, never fatal. */
+export const EPH_MAX = 60
+
+/**
+ * Whether a frame goes through. Board frames over budget close the socket (abuse);
+ * live frames over budget are dropped silently so cursors can never cost a connection.
+ */
+export function admit(b: Budgets, live: boolean, now: number, windowMs: number): 'ok' | 'drop' | 'close' {
+  if (live) {
+    b.eph ??= { windowStart: now, count: 0 }
+    return allow(b.eph, now, EPH_MAX, windowMs) ? 'ok' : 'drop'
+  }
+  return allow(b, now, FRAME_MAX, windowMs) ? 'ok' : 'close'
 }
