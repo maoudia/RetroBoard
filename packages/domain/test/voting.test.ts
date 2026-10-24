@@ -128,3 +128,35 @@ describe('hidden counts and closing', () => {
     expect(h.run({ t: 'vote.remove', kind: 'note', id: a }).ok).toBe(true)
   })
 })
+
+describe('merging clusters', () => {
+  it('moves notes and votes into the target, which keeps its title; same column only', () => {
+    const { h, a, b, c } = board()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'd' })
+    const d = Object.values(h.state.notes).find((n) => n.text === 'd')!.id
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    h.run({ t: 'note.group', id: c, ontoId: d })
+    const g1 = h.state.notes[a]!.groupId!
+    const g2 = h.state.notes[c]!.groupId!
+    h.run({ t: 'group.rename', id: g2, title: 'Target' })
+    h.run({ t: 'vote.add', kind: 'cluster', id: g1 })
+    expect(h.run({ t: 'group.merge', id: g1, ontoId: g2 }).ok).toBe(true)
+    expect(h.state.groups[g1]).toBeUndefined()
+    expect(Object.values(h.state.notes).filter((n) => n.groupId === g2)).toHaveLength(4)
+    expect([h.state.groups[g2]!.title, h.state.groups[g2]!.voters]).toEqual(['Target', [alice.cid]])
+    expect(h.run({ t: 'group.merge', id: g2, ontoId: g2 }).ok).toBe(true)
+    expect(h.run({ t: 'group.merge', id: 'ghost-gr', ontoId: g2 })).toEqual({ ok: false, error: 'not-found' })
+  })
+
+  it('refuses clusters of different columns and locked boards', () => {
+    const { h, a, b } = board()
+    h.run({ t: 'note.add', columnId: h.col(1), text: 'x' })
+    h.run({ t: 'note.add', columnId: h.col(1), text: 'y' })
+    const [x, y] = Object.values(h.state.notes).filter((n) => n.columnId === h.col(1)).map((n) => n.id) as [string, string]
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    h.run({ t: 'note.group', id: x, ontoId: y })
+    expect(h.run({ t: 'group.merge', id: h.state.notes[a]!.groupId!, ontoId: h.state.notes[x]!.groupId! })).toEqual({ ok: false, error: 'same-column-required' })
+    h.run({ t: 'settings.update', locked: true })
+    expect(h.run({ t: 'group.merge', id: h.state.notes[a]!.groupId!, ontoId: h.state.notes[x]!.groupId! })).toEqual({ ok: false, error: 'locked' })
+  })
+})

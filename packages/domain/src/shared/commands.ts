@@ -25,6 +25,7 @@ export type Command =
   | { t: 'note.ungroup'; id: string }
   | { t: 'group.rename'; id: string; title: string }
   | { t: 'group.dissolve'; id: string }
+  | { t: 'group.merge'; id: string; ontoId: string }
   | { t: 'vote.toggle'; id: string }
   | { t: 'vote.add'; kind: VotableKind; id: string }
   | { t: 'vote.remove'; kind: VotableKind; id: string }

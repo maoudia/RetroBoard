@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LIMITS } from '@retroboard/domain'
-import type { ColumnItem } from '@retroboard/application'
+import { type ColumnItem, suggestClusterTitles } from '@retroboard/application'
 const { t } = useT()
 
 const props = defineProps<{ item: Extract<ColumnItem, { kind: 'group' }> }>()
@@ -13,6 +13,12 @@ const close = () => { ui.openGroupId = null }
 function saveTitle() {
   if (title.value.trim() !== (props.item.group.title ?? '')) board.commands.renameGroup(props.item.group.id, title.value)
 }
+/** Title ideas from the cluster's notes (computed locally). */
+const suggestions = computed(() => suggestClusterTitles(props.item.notes.map((n) => n.text)).filter((s) => s !== (props.item.group.title ?? '')))
+function useSuggestion(s: string) { title.value = s; board.commands.renameGroup(props.item.group.id, s) }
+/** Touch-friendly alternative to dropping a cluster on another: other clusters of the same column. */
+const others = computed(() => board.itemsFor(props.item.group.columnId, 'time').filter((i) => i.kind === 'group' && i.group.id !== props.item.group.id) as Extract<ColumnItem, { kind: 'group' }>[])
+function mergeInto(target: string) { board.commands.mergeGroups(props.item.group.id, target); ui.openGroupId = target }
 function dissolve() { board.commands.dissolveGroup(props.item.group.id); close() }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
 onMounted(() => document.addEventListener('keydown', onKey))
@@ -32,10 +38,20 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         <span v-if="!board.countsHidden" class="pill mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
         <button class="mini-btn" type="button" :aria-label="t('group.closeLabel')" data-testid="group-close" @click="close"><Icon name="lucide:x" /></button>
       </header>
+      <div v-if="suggestions.length" class="sugg" role="group" :aria-label="t('cluster.suggestions')" data-testid="cluster-suggestions">
+        <span class="muted small">{{ t('cluster.suggestions') }}</span>
+        <button v-for="s in suggestions" :key="s" type="button" class="chip" data-testid="cluster-suggestion" @click="useSuggestion(s)">{{ s }}</button>
+      </div>
       <TransitionGroup name="note" tag="div" class="grid">
         <NoteCard v-for="n in item.notes" :key="n.id" :note="n" in-group />
       </TransitionGroup>
       <footer>
+        <details v-if="others.length" class="merge">
+          <summary class="btn btn-sm btn-ghost" data-testid="cluster-merge"><Icon name="lucide:combine" /> {{ t('cluster.mergeInto') }}</summary>
+          <div class="merge-list" role="group" :aria-label="t('cluster.mergeInto')">
+            <button v-for="o in others" :key="o.group.id" class="dd-item" type="button" :data-testid="`merge-into-${o.group.id}`" @click="mergeInto(o.group.id)">{{ o.title }} ({{ o.notes.length }})</button>
+          </div>
+        </details>
         <button class="btn btn-sm btn-ghost" type="button" data-testid="group-dissolve" @click="dissolve"><Icon name="lucide:ungroup" /> {{ t('group.dissolve') }}</button>
       </footer>
     </section>
@@ -50,5 +66,12 @@ header { display: flex; align-items: center; gap: .5rem; }
 .gtitle { flex: 1; min-width: 0; padding: .3rem .4rem; border: 1px solid transparent; border-radius: 8px; background: transparent; font-family: var(--f-display); font-size: 1.15rem; font-weight: 600; color: var(--text); text-overflow: ellipsis; }
 .gtitle:hover, .gtitle:focus { border-color: var(--border); background: var(--surface2); outline: none; }
 .grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .75rem; }
-footer { display: flex; justify-content: flex-end; }
+footer { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.sugg { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+.small { font-size: .8rem; }
+.merge summary { list-style: none; cursor: pointer; }
+.merge summary::-webkit-details-marker { display: none; }
+.merge-list { display: grid; gap: 2px; margin-top: .35rem; }
+.chip { padding: .2rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); cursor: pointer; font: inherit; font-size: .85rem; }
+.chip:hover { border-color: var(--accent); }
 </style>

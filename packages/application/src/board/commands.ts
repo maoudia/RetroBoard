@@ -44,6 +44,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     ungroupNote: (id: string) => whenOpen({ t: 'note.ungroup', id }),
     renameGroup: (id: string, title: string) => send({ t: 'group.rename', id, title }),
     dissolveGroup: (id: string) => whenOpen({ t: 'group.dissolve', id }),
+    mergeGroups: (id: string, ontoId: string) => (id === ontoId ? ok() : whenOpen({ t: 'group.merge', id, ontoId })),
 
     /** Adds one vote, checking locally what the participant can already know (budget, cap, phase). */
     addVote(kind: VotableKind, id: string): BoardResult {

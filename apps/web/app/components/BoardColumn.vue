@@ -14,6 +14,8 @@ const items = computed(() => board.itemsFor(props.column.id, board.countsHidden 
 const noteCount = computed(() => board.snapshot?.notes.filter((n) => n.columnId === props.column.id).length ?? 0)
 const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupId) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
 const colorIndex = computed(() => props.index % 8)
+const hasClusters = computed(() => items.value.some((i) => i.kind === 'group'))
+const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>
 
 <template>
@@ -31,6 +33,12 @@ const colorIndex = computed(() => props.index % 8)
       >
         <Icon name="lucide:arrow-up-down" />
       </button>
+ <button
+        v-if="hasClusters" class="mini-btn" type="button" :aria-pressed="expanded" :data-testid="`expand-${column.id}`"
+        :aria-label="expanded ? t('cluster.collapseAll') : t('cluster.expandAll')" :title="expanded ? t('cluster.collapseAll') : t('cluster.expandAll')" @click="ui.toggleExpanded(column.id)"
+      >
+        <Icon :name="expanded ? 'lucide:fold-vertical' : 'lucide:unfold-vertical'" />
+      </button>
       <ColumnMenu :column="column" :index="index" :count="total" :note-count="noteCount" />
     </header>
 
@@ -38,7 +46,7 @@ const colorIndex = computed(() => props.index % 8)
       <TransitionGroup name="note" tag="div" class="grid">
         <template v-for="it in items" :key="it.key">
           <NoteCard v-if="it.kind === 'note'" :note="it.note" />
-          <GroupCard v-else :item="it" :secret="board.countsHidden" />
+          <GroupCard v-else :item="it" :secret="board.countsHidden" :expanded="expanded" />
         </template>
       </TransitionGroup>
       <p v-if="!items.length" class="empty muted">{{ themeText(theme.theme).emptyColumn }}</p>

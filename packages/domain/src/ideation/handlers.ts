@@ -4,7 +4,7 @@ import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome
 import { makeNote, normalizeGroups } from './notes'
 
 type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.move' | 'note.color'
-  | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve'
+  | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge'
   | 'column.add' | 'column.update' | 'column.delete' | 'column.move'
 
 /** Ideation context: notes, groups (clusters) and columns. */
@@ -106,6 +106,26 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     dirty.notes.push(n.id)
     normalizeGroups([n.groupId], notes, groups, dirty)
     return done({ ...s, notes, groups }, dirty)
+  },
+
+  /** Merges cluster `id` into `ontoId` (same column): notes and votes move, the target keeps its title. */
+  'group.merge': (s, c) => {
+    if (s.settings.locked) return fail('locked')
+    const from = s.groups[c.id]
+    const onto = s.groups[c.ontoId]
+    if (!from || !onto) return fail('not-found')
+    if (from.id === onto.id) return done(s, {})
+    if (from.columnId !== onto.columnId) return fail('same-column-required')
+    const notes = { ...s.notes }
+    const moved: string[] = []
+    for (const n of Object.values(notes)) {
+      if (n.groupId !== from.id) continue
+      notes[n.id] = { ...n, groupId: onto.id }
+      moved.push(n.id)
+    }
+    const groups = { ...s.groups, [onto.id]: { ...onto, voters: [...onto.voters, ...from.voters] } }
+    Reflect.deleteProperty(groups, from.id)
+    return done({ ...s, notes, groups }, { notes: moved, groups: [onto.id, from.id] })
   },
 
   'group.rename': (s, c) => {
