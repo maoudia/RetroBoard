@@ -100,8 +100,10 @@ const shareOnReady = ref(false)
 // Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
 watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })
 function onPresenterKey(e: KeyboardEvent) { if (e.key === 'Escape' && ui.presenter && ui.dialog === null) ui.presenter = false }
-onMounted(() => document.addEventListener('keydown', onPresenterKey))
-onBeforeUnmount(() => { document.removeEventListener('keydown', onPresenterKey); ui.presenter = false })
+// Leave guard: unpublished drafts would stay in this browser only; the browser asks first.
+function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
+onMounted(() => { document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
+onBeforeUnmount(() => { document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
 const shareAfterReview = ref(false)
 watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog === null && (!shareAfterReview.value || ui.reviewDone), (go) => {
   if (!go) return

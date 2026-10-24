@@ -506,6 +506,9 @@ export const fr = {
   'private.newIn': 'Nouveau post-it privé dans {title}',
   'private.locked': 'Board verrouillé',
   'private.placeholder': 'Écris ici. Entrée pour enregistrer.',
+  'publish.done': '{n} idée(s) publiée(s)',
+  'publish.undo': 'Annuler',
+  'private.keys': 'Ctrl+Entrée publie directement, Maj+Entrée va à la ligne.',
   'publish.locked': 'Le board est verrouillé.',
   'publish.offline': 'Hors ligne: tes brouillons sont gardés.',
 

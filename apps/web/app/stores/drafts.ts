@@ -23,6 +23,12 @@ export const useDraftsStore = defineStore('drafts', () => {
     persist()
     return d
   }
+  /** Back to drafts (undo publish), keeping column, text and colour. */
+  function restore(items: { columnId: string; text: string; color: number }[]) {
+    if (!items.length) return
+    drafts.value = [...drafts.value, ...items.map((i) => ({ id: randomId(6), ...i }))]
+    persist()
+  }
   function remove(id: string) { drafts.value = drafts.value.filter((d) => d.id !== id); persist() }
   function removeMany(ids: string[]) { const s = new Set(ids); drafts.value = drafts.value.filter((d) => !s.has(d.id)); persist() }
   function prune(columnIds: string[]) {
@@ -33,5 +39,5 @@ export const useDraftsStore = defineStore('drafts', () => {
   const forColumn = (columnId: string) => drafts.value.filter((d) => d.columnId === columnId)
   const count = computed(() => drafts.value.length)
 
-  return { drafts, load, add, remove, removeMany, prune, forColumn, count }
+  return { drafts, load, add, restore, remove, removeMany, prune, forColumn, count }
 })

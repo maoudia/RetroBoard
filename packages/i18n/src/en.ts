@@ -507,6 +507,9 @@ export const en: Record<keyof typeof fr, string> = {
   'private.newIn': 'New private note in {title}',
   'private.locked': 'Board locked',
   'private.placeholder': 'Write here. Enter to save.',
+  'publish.done': '{n} idea(s) published',
+  'publish.undo': 'Undo',
+  'private.keys': 'Ctrl+Enter publishes right away, Shift+Enter adds a line.',
   'publish.locked': 'The board is locked.',
   'publish.offline': 'Offline: your drafts are kept.',
 

@@ -1,4 +1,4 @@
-import type { BoardResult } from '@retroboard/application'
+import { type BoardResult, type PublishedItem, publishedNotes, UNDO_WINDOW_MS } from '@retroboard/application'
 import { LIMITS } from '@retroboard/domain'
 import { t } from '~/i18n'
 
@@ -16,6 +16,8 @@ export function usePublish() {
       push(t('error.phase'), 'warn')
       return { ok: false, error: 'phase' }
     }
+    const since = Date.now() - 1
+    const items: PublishedItem[] = []
     // Send in protocol-sized slices so each published slice leaves the drafts at once.
     for (let i = 0; i < list.length; i += LIMITS.maxBatch) {
       const slice = list.slice(i, i + LIMITS.maxBatch)
@@ -26,8 +28,17 @@ export function usePublish() {
         return sent
       }
       drafts.removeMany(slice.map((d) => d.id))
+      items.push(...slice.map((d) => ({ columnId: d.columnId, text: d.text, color: d.color })))
     }
+    push(t('publish.done', { n: items.length }), 'ok', UNDO_WINDOW_MS, { label: t('publish.undo'), testid: 'undo-publish', run: () => undo(items, since) })
     return { ok: true }
+  }
+
+  /** Takes a publication back: the notes leave the board for everyone and return to my drafts. */
+  function undo(items: PublishedItem[], since: number) {
+    const notes = publishedNotes(board.snapshot?.notes ?? [], items, since)
+    for (const n of notes) board.commands.deleteNote(n.id)
+    drafts.restore(notes.map((n) => ({ columnId: n.columnId, text: n.text, color: n.color })))
   }
   return { publish }
 }

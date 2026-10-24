@@ -14,8 +14,21 @@ const mine = computed(() => drafts.forColumn(props.column.id))
 function add() {
   if (drafts.add(props.column.id, text.value)) text.value = ''
 }
+/** Enter: draft. Shift+Enter: new line. Ctrl/Cmd+Enter: publish now. Escape: clear. */
 function onKey(e: KeyboardEvent) {
-  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); add() }
+  if (e.isComposing) return
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault()
+    const d = drafts.add(props.column.id, text.value)
+    if (d) { text.value = ''; publish([d.id]) }
+  } else if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    add()
+  } else if (e.key === 'Escape' && text.value) {
+    e.preventDefault()
+    e.stopPropagation()
+    text.value = ''
+  }
 }
 </script>
 
@@ -45,7 +58,7 @@ function onKey(e: KeyboardEvent) {
         :placeholder="board.locked ? t('private.locked') : t('private.placeholder')"
         @keydown="onKey"
       />
-      <small>{{ themeText(theme.theme).privateHint }}</small>
+      <small>{{ themeText(theme.theme).privateHint }} {{ t('private.keys') }}</small>
     </label>
   </section>
 </template>

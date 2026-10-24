@@ -2,8 +2,8 @@
 
 ## 1. Behaviour
 
-- [ ] 1.1 `UndoPublish` use case (10 s window, author only) and event; verify unit tests
-- [ ] 1.2 Keyboard handling and leave guard; verify e2e
+- [x] 1.1 `UndoPublish` use case (10 s window, author only) and event; verify unit tests
+- [x] 1.2 Keyboard handling and leave guard; verify e2e
 
 ## 2. UI
 

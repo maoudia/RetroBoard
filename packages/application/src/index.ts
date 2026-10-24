@@ -1,6 +1,7 @@
 export * from './result'
 export * from './ports'
 export * from './board/commands'
+export * from './board/undo-publish'
 export * from './read-models/column-items'
 export * from './agents/board-tools'
 export * from './agents/setup-tools'
