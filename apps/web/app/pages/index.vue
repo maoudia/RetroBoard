@@ -168,7 +168,8 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 [data-reveal] { opacity: 0; transform: translateY(26px) scale(.985); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), filter .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms); }
 [data-reveal].in { opacity: 1; transform: none; filter: none; }
 
-.nav { position: sticky; top: 0; z-index: 50; transition: background .3s, box-shadow .3s; }
+/* Always backed: links keep AA contrast whatever section scrolls under the sticky nav. */
+.nav { position: sticky; top: 0; z-index: 50; background: rgb(251 251 253 / .94); transition: background .3s, box-shadow .3s; }
 .nav.scrolled { background: rgb(251 251 253 / .94); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); box-shadow: 0 1px 0 rgb(0 0 0 / .08); }
 .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; max-width: 1120px; height: 56px; margin: 0 auto; padding: 0 1.25rem; }
 .brand { display: inline-flex; align-items: center; gap: .55rem; color: var(--ink); font-weight: 700; font-size: 1.05rem; letter-spacing: -.02em; text-decoration: none; }

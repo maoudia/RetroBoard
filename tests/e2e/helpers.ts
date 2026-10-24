@@ -59,9 +59,22 @@ export async function collectProblems(page: Page): Promise<string[]> {
   page.on('pageerror', (e) => problems.push(String(e)))
   await page.exposeFunction('__reportCsp', (s: string) => problems.push(s))
   await page.addInitScript(() => {
+    // Some engines (WebKit) report attribute violations without a sample: remember who wrote
+    // inline styles recently so the report points at the call site.
+    const writes: string[] = []
+    const remember = (what: string) => { writes.push(`${what} @ ${(new Error().stack ?? '').split('\n').slice(2, 5).join(' < ')}`); if (writes.length > 5) writes.shift() }
+    const setAttr = Element.prototype.setAttribute
+    Element.prototype.setAttribute = function (name: string, value: string) {
+      if (name.toLowerCase() === 'style') remember(`setAttribute(style) on <${this.tagName.toLowerCase()}>`)
+      return setAttr.call(this, name, value)
+    }
+    const html = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML')!
+    Object.defineProperty(Element.prototype, 'innerHTML', { ...html, set(v: string) { if (/style\s*=/.test(String(v))) remember(`innerHTML with style= on <${(this as Element).tagName.toLowerCase()}>`); html.set!.call(this, v) } })
+    const css = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cssText')!
+    Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', { ...css, set(v: string) { remember('style.cssText'); css.set!.call(this, v) } })
     document.addEventListener('securitypolicyviolation', (e) => {
       const report = (window as unknown as { __reportCsp: (s: string) => void }).__reportCsp
-      report(`CSP ${e.effectiveDirective} blocked=${e.blockedURI} source=${e.sourceFile}:${e.lineNumber} sample=${e.sample}`)
+      report(`CSP ${e.effectiveDirective} blocked=${e.blockedURI} source=${e.sourceFile}:${e.lineNumber}:${e.columnNumber} sample=${e.sample} recent inline style writes: ${writes.join(' | ') || 'none'}`)
     })
   })
   return problems
