@@ -21,6 +21,11 @@ Handlers are a map `type -> handler`, so adding a command is: a schema entry, a 
 ### 2. One Durable Object per board
 `idFromName(roomId)` routes every participant of a board to one object.
 
+- **Peer to peer first (2026-10-24)**: board events, cursors and focus travel on a WebRTC mesh
+  between the participants (`apps/web/app/transport/mesh.ts`, topology in `packages/sync/src/mesh.ts`).
+  The relay below only introduces peers (participant list, encrypted offer/answer, presence) and
+  carries the board for participants who cannot open any direct link (bridge peer). STUN only,
+  no TURN, no paid service. See `openspec/changes/p2p-presence-and-cursors/design.md`.
 - **Protocol v2 (`/ws2`, `RelayRoom`, default for new boards)**: a memory-only forwarder of encrypted
   envelopes. It never calls `ctx.storage` (a unit test fails if the code references it). A bounded
   ring buffer (2,000 envelopes or 4 MB) serves late joiners; after an eviction the relay asks the

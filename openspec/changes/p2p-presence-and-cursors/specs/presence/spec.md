@@ -32,12 +32,19 @@ Cursor positions and presence states MUST NOT be part of the board event log and
 - **WHEN** a board is exported after participants moved their cursors
 - **THEN** the export contains no cursor or presence data
 
+### Requirement: Peer-to-peer board
+The system SHALL carry board events and cursors directly between participants (WebRTC), the relay only introducing them to each other (participant list, encrypted signalling, presence).
+
+#### Scenario: Two participants with direct links
+- **WHEN** B joins A's board and both can open a direct link
+- **THEN** B receives the board from A's browser and sends its events to A without any `pub` frame to the relay
+
 ### Requirement: Relay fallback
-The system SHALL fall back to the relay for cursors when a peer-to-peer connection cannot be established, sending at most 4 updates per second per participant and only while the pointer moves.
+The system SHALL let a participant who cannot open any direct link, or who turned direct links off, collaborate through the relay, with one peer of the mesh bridging the board to and from them; such participants share no cursors.
 
 #### Scenario: Strict NAT
-- **WHEN** WebRTC fails between A and B
-- **THEN** B still sees A's cursor, updated at most 4 times per second
+- **WHEN** WebRTC fails for C
+- **THEN** C still sees and edits the board through the relay, and the others see C's notes
 
 ### Requirement: Cursor privacy controls
 The system SHALL let each participant hide their own cursor from others and hide others' cursors from their view, and SHALL hide all cursors in presenter mode.

@@ -12,8 +12,10 @@ const connId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
 
 /**
  * Protocol v2 room: a memory-only forwarder of encrypted envelopes.
- * It cannot read, validate or reduce board content. It never touches ctx.storage:
- * when the object is evicted the buffer is gone and connected peers re-seed it ('need').
+ * It cannot read, validate or reduce board content. It never touches ctx.storage.
+ * Since the peer-to-peer mesh, its job is the strict minimum: who is in the room, WebRTC
+ * signalling (encrypted, point to point) and presence. Board events go through it only for
+ * participants who cannot open any direct link (fallback), buffered in memory for them.
  */
 export class RelayRoom extends DurableObject<Env> {
   private readonly buffer = new EnvelopeBuffer()
@@ -44,11 +46,9 @@ export class RelayRoom extends DurableObject<Env> {
     const att: Attachment = { rh, room, conn: connId(), windowStart: Date.now(), count: 0 }
     server.serializeAttachment(att)
 
-    const others = this.sockets().filter((s) => s.ws !== server)
     this.send(server, { t: 'welcome', conn: att.conn, peers: this.conns() })
     for (const frame of this.buffer.history()) this.send(server, frame)
-    // Evicted and woken up with peers still connected: ask them to re-seed the buffer.
-    if (this.buffer.size === 0 && others.length > 0) for (const o of others) this.send(o.ws, { t: 'need' })
+    // Board events travel peer to peer: the relay no longer asks peers to re-seed its buffer.
     this.broadcastPeers()
     this.log.info('ws.open', { rh, v: 2 })
     return new Response(null, { status: 101, webSocket: client })
@@ -64,7 +64,7 @@ export class RelayRoom extends DurableObject<Env> {
     try { raw = JSON.parse(message) } catch { raw = null }
     const frame = parseClientFrame(raw)
 
-    const verdict = admit(att, frame?.t === 'eph', Date.now(), LIMITS.rateWindowMs)
+    const verdict = admit(att, frame?.t === 'eph' ? 'live' : frame?.t === 'sig' ? 'sig' : 'board', Date.now(), LIMITS.rateWindowMs)
     ws.serializeAttachment(att)
     if (verdict === 'drop') return
     if (verdict === 'close') {
@@ -75,6 +75,13 @@ export class RelayRoom extends DurableObject<Env> {
     if (frame.t === 'eph') {
       if (frame.env.room !== att.room) return this.send(ws, { t: 'err', code: 'wrong-room' })
       return this.fanOut({ t: 'eph', env: frame.env }, ws)
+    }
+    if (frame.t === 'sig') {
+      if (frame.env.room !== att.room) return this.send(ws, { t: 'err', code: 'wrong-room' })
+      // WebRTC set-up, encrypted: to one connection of this room only, never buffered.
+      const to = this.sockets(ws).find((s) => s.att?.conn === frame.to)
+      if (to) this.send(to.ws, { t: 'sig', from: att.conn, env: frame.env })
+      return
     }
     if (frame.envs.some((e) => e.room !== att.room)) return this.send(ws, { t: 'err', code: 'wrong-room' })
     const fresh = this.buffer.add(frame.envs)

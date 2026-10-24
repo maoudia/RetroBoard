@@ -100,3 +100,38 @@ describe('live frames (cursors and focus, never stored)', () => {
     expect(parseLive({ t: 'nope', conn: 'abcd1234' })).toBeNull()
   })
 })
+
+describe('peer-to-peer frames', () => {
+  const env = { v: 2, room: 'Ab3dEfGhIjKlMnOpQrStUv', id: '01J00000000000000000000001', hlc: 1, ct: 'AAAA' }
+  it('relay carries signalling to one connection', async () => {
+    const { parseClientFrame, parseRelayFrame } = await import('../src')
+    expect(parseClientFrame({ t: 'sig', to: 'abcd1234', env })).not.toBeNull()
+    expect(parseClientFrame({ t: 'sig', to: 'no', env })).toBeNull()
+    expect(parseRelayFrame({ t: 'sig', from: 'abcd1234', env })).not.toBeNull()
+  })
+
+  it('signals are offers or answers with a bounded SDP', async () => {
+    const { parseSignal } = await import('../src')
+    const s = { t: 'sig', from: 'abcd1234', to: 'efgh5678', kind: 'offer', sdp: 'v=0' }
+    expect(parseSignal(s)).toEqual(s)
+    expect(parseSignal({ ...s, kind: 'candidate' })).toBeNull()
+    expect(parseSignal({ ...s, sdp: 'x'.repeat(12_001) })).toBeNull()
+  })
+
+  it('data channel frames: have lists, envelopes, synced, eph with hops', async () => {
+    const { HAVE_CHUNK, parsePeerFrame, PEER_ENV_CHUNK } = await import('../src')
+    expect(parsePeerFrame({ t: 'have', ids: [env.id], done: true })).not.toBeNull()
+    expect(parsePeerFrame({ t: 'have', ids: Array(HAVE_CHUNK + 1).fill(env.id), done: false })).toBeNull()
+    expect(parsePeerFrame({ t: 'have', ids: ['../x'], done: true })).toBeNull()
+    expect(parsePeerFrame({ t: 'env', envs: [env] })).not.toBeNull()
+    expect(parsePeerFrame({ t: 'env', envs: Array(PEER_ENV_CHUNK + 1).fill(env) })).toBeNull()
+    expect(parsePeerFrame({ t: 'synced' })).toEqual({ t: 'synced' })
+    expect(parsePeerFrame({ t: 'eph', env, hop: 3 })).not.toBeNull()
+    expect(parsePeerFrame({ t: 'eph', env, hop: 4 })).toBeNull()
+  })
+
+  it('presence can say the participant is relay-only', async () => {
+    const { parsePresence } = await import('../src')
+    expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: null, showName: false, relayOnly: true })?.relayOnly).toBe(true)
+  })
+})

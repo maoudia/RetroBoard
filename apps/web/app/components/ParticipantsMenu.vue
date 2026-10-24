@@ -55,6 +55,10 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'parti
         </span>
       </li>
     </ul>
+    <p v-if="board.links" class="note muted links" :data-p2p="board.links.p2p" data-testid="links-state">
+      <Icon :name="board.links.p2p ? 'lucide:waypoints' : 'lucide:server'" />
+      {{ board.links.p2p ? t('links.p2p', { n: board.links.peers }) : t('links.relay') }}
+    </p>
     <p v-if="board.snapshot?.access" class="note muted">{{ t('roles.e2eNote') }}</p>
   </Dropdown>
   <ConfirmDialog

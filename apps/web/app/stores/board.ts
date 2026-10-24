@@ -15,6 +15,8 @@ export const useBoardStore = defineStore('board', () => {
   const accessDenied = ref(false)
   /** The board is at its participant cap; the channel retries until a seat frees up. */
   const roomFull = ref(false)
+  /** Peer-to-peer state of this tab: direct links, or the relay fallback. */
+  const links = ref<{ p2p: boolean; peers: number } | null>(null)
   /** serverNow - clientNow, to show a timer that agrees with the server. */
   const skew = ref(0)
   let transport: BoardTransport | null = null
@@ -25,6 +27,7 @@ export const useBoardStore = defineStore('board', () => {
     disconnect()
     accessDenied.value = false
     roomFull.value = false
+    links.value = null
     roomId.value = room
     transport = factory(room, {
       onSnapshot(next) {
@@ -40,6 +43,7 @@ export const useBoardStore = defineStore('board', () => {
       onFocus: (f, name) => live.setFocus(f, name),
       onPeerLeft: (conn) => live.drop(conn),
       onRoomFull: (full) => { roomFull.value = full },
+      onLinks: (s) => { links.value = s },
     })
     transport.connect(identity)
   }
@@ -95,7 +99,7 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode,
+    snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode, links,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,

@@ -115,6 +115,10 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.shareCursor" data-testid="set-share-cursor" @change="set({ shareCursor: ($event.target as HTMLInputElement).checked })" />
       </label>
       <label class="line">
+        <span><strong>{{ t('profile.p2p') }}</strong><small class="muted">{{ t('profile.p2p.hint') }}</small></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.p2p" data-testid="set-p2p" @change="set({ p2p: ($event.target as HTMLInputElement).checked })" />
+      </label>
+      <label class="line">
         <span><strong>{{ t('profile.showCursors') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.showCursors" data-testid="set-show-cursors" @change="set({ showCursors: ($event.target as HTMLInputElement).checked })" />
       </label>

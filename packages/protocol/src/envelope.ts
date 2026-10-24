@@ -40,10 +40,15 @@ export const envelopeAad = (e: Pick<Envelope, 'v' | 'room' | 'id' | 'hlc'>): str
 
 const Envelopes = v.pipe(v.array(EnvelopeSchema), v.maxLength(MAX_ENVELOPES_PER_MESSAGE))
 
-/** Client -> relay. `pub` is buffered for late joiners; `eph` (presence) is only fanned out. */
+/**
+ * Client -> relay. With the peer-to-peer mesh, the relay mostly carries `sig` (WebRTC set-up,
+ * encrypted, to one connection) and `eph` presence. `pub` is the fallback for participants
+ * who cannot open any direct link, and is buffered in memory for them.
+ */
 export const ClientFrameSchema = v.variant('t', [
   v.strictObject({ t: v.literal('pub'), envs: v.pipe(Envelopes, v.minLength(1)) }),
   v.strictObject({ t: v.literal('eph'), env: EnvelopeSchema }),
+  v.strictObject({ t: v.literal('sig'), to: ConnId, env: EnvelopeSchema }),
 ])
 export type ClientFrame = v.InferOutput<typeof ClientFrameSchema>
 
@@ -54,6 +59,7 @@ export const RelayFrameSchema = v.variant('t', [
   v.strictObject({ t: v.literal('hist'), envs: Envelopes, done: v.boolean() }),
   v.strictObject({ t: v.literal('env'), envs: Envelopes }),
   v.strictObject({ t: v.literal('eph'), env: EnvelopeSchema }),
+  v.strictObject({ t: v.literal('sig'), from: ConnId, env: EnvelopeSchema }),
   /** The relay lost its buffer (eviction): peers republish what they hold. */
   v.strictObject({ t: v.literal('need') }),
   v.strictObject({ t: v.literal('err'), code: v.picklist(['invalid', 'too-large', 'rate', 'full', 'wrong-room']) }),
@@ -88,6 +94,8 @@ export const PresenceSchema = v.strictObject({
   key: v.optional(Key),
   /** Facilitator public key when this browser holds the facilitator link (public: it is in the genesis). */
   fkey: v.optional(Key),
+  /** No direct link (network or setting): this participant's board events go through the relay. */
+  relayOnly: v.optional(v.boolean()),
 })
 export type Presence = v.InferOutput<typeof PresenceSchema>
 
@@ -116,6 +124,34 @@ export const FocusSchema = v.strictObject({
 export type Focus = v.InferOutput<typeof FocusSchema>
 
 export const LiveSchema = v.variant('t', [PresenceSchema, CursorSchema, FocusSchema])
+
+/** WebRTC set-up, inside an encrypted `sig` envelope: the relay never sees SDP or IP addresses. */
+export const SignalSchema = v.strictObject({
+  t: v.literal('sig'),
+  from: ConnId,
+  to: ConnId,
+  kind: v.picklist(['offer', 'answer']),
+  sdp: v.pipe(v.string(), v.maxLength(12_000)),
+})
+export type Signal = v.InferOutput<typeof SignalSchema>
+
+/** Ids per `have` message on a data channel. */
+export const HAVE_CHUNK = 400
+/** Envelopes per `env` message on a data channel. */
+export const PEER_ENV_CHUNK = 50
+
+/**
+ * Peer -> peer, on WebRTC data channels. The reliable channel carries the sync (`have` lists,
+ * then the envelopes the other side lacks, then `synced`) and new board events; the unreliable
+ * one carries `eph` (cursors, focus) with a hop count for forwarding in partial meshes.
+ */
+export const PeerFrameSchema = v.variant('t', [
+  v.strictObject({ t: v.literal('have'), ids: v.pipe(v.array(v.pipe(v.string(), v.regex(EVENT_ID_RE))), v.maxLength(HAVE_CHUNK)), done: v.boolean() }),
+  v.strictObject({ t: v.literal('env'), envs: v.pipe(Envelopes, v.maxLength(PEER_ENV_CHUNK)) }),
+  v.strictObject({ t: v.literal('synced') }),
+  v.strictObject({ t: v.literal('eph'), env: EnvelopeSchema, hop: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(3)) }),
+])
+export type PeerFrame = v.InferOutput<typeof PeerFrameSchema>
 export type Live = v.InferOutput<typeof LiveSchema>
 
 const parser = <S extends v.GenericSchema>(schema: S) => (input: unknown): v.InferOutput<S> | null => {
@@ -128,6 +164,8 @@ export const parseRelayFrame = parser(RelayFrameSchema)
 export const parseSignedEvent = parser(SignedEventSchema)
 export const parsePresence = parser(PresenceSchema)
 export const parseLive = parser(LiveSchema)
+export const parseSignal = parser(SignalSchema)
+export const parsePeerFrame = parser(PeerFrameSchema)
 
 /**
  * Board file (.retro): every envelope of a board, encrypted once more with the file key

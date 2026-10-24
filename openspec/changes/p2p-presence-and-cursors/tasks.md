@@ -2,8 +2,8 @@
 
 ## 1. Signalling and mesh
 
-- [ ] 1.1 Add encrypted `signal` envelopes to the protocol and relay forwarding; verify unit tests and that signalling payloads are ciphertext in an e2e frame inspection
-- [ ] 1.2 Implement the WebRTC mesh adapter (offer/answer/ICE, reconnect, partial mesh above 12) behind `PresencePort`; verify an e2e with 3 browser contexts establishing channels
+- [x] 1.1 Add encrypted `signal` envelopes to the protocol and relay forwarding; verify unit tests and that signalling payloads are ciphertext in an e2e frame inspection
+- [x] 1.2 Implement the WebRTC mesh (offer/answer/ICE, retries, partial mesh above 12) carrying board events and cursors; verify e2e (2 contexts, no `pub` to the relay) and unit tests of the topology
 
 ## 2. Cursors
 
@@ -15,4 +15,9 @@
 ## 3. Presence and settings
 
 - [x] 3.1 Add presence states (online, idle, typing in column; speaking comes with talk-time) to the participants menu; verify e2e
-- [ ] 3.2 Add profile settings "Share my cursor", "Show others' cursors", "Relay-only (hide my IP from peers)" with fr/en strings and privacy page text; verify e2e for each toggle
+- [x] 3.2 Add profile settings "Share my cursor", "Show others' cursors", "Relay-only (hide my IP from peers)" with fr/en strings and privacy page text; verify e2e for each toggle
+
+## 4. Peer-to-peer board (owner decision 2026-10-24)
+
+- [x] 4.1 Relay-only fallback with a bridge peer; verify e2e with one participant forced relay-only
+- [ ] 4.2 Production check of link success rates behind corporate networks (manual, documented in docs/capacity.md)

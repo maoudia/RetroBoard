@@ -19,6 +19,8 @@ export interface ChannelHandlers {
   onFocus?(focus: FocusFrame, name: string | null): void
   /** The room is at its participant cap: the channel keeps retrying slowly until a seat frees up. */
   onRoomFull?(full: boolean): void
+  /** Peer-to-peer state: direct links (p2p) or relay fallback, and how many peers are linked. */
+  onLinks?(state: { p2p: boolean; peers: number }): void
   /** A peer left: drop its cursor and focus. */
   onPeerLeft?(conn: string): void
 }

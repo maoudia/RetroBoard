@@ -219,8 +219,9 @@ test('board file: export, then restore into the same link after the board is gon
   await fresh.getByTestId('btn-export').click()
   await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'board.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText) })
   await expect(noteByText(fresh, 'Kept in the file')).toBeVisible()
-  // Restored events go back to the relay for everyone else.
-  await expect.poll(() => published.filter((m) => m.includes('"t":"pub"')).length).toBeGreaterThan(1)
+  // Restored events go to the other participants peer to peer (p2p.spec.ts): none to the relay.
+  await fresh.waitForTimeout(500)
+  expect(published.filter((m) => m.includes('"t":"pub"'))).toHaveLength(0)
 
   // A file for another board is refused.
   await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'x.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText.replace(/"room":"[^"]+"/, '"room":"Zz3dEfGhIjKlMnOpQrStUv"')) })

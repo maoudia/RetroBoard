@@ -40,6 +40,8 @@ export default defineNuxtPlugin(() => {
         facilitator: ring.facilitatorSecret ? await signerFor(ring.facilitatorSecret) : null,
         verifier: ed25519Verifier,
         replica: replica ?? undefined,
+        p2p: settings.s.p2p,
+        iceServers: String(config.public.iceServers ?? '').split(',').map((s) => s.trim()).filter(Boolean).map((urls) => ({ urls })),
       }))(),
     ),
     clipboard: {

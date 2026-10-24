@@ -14,10 +14,15 @@ Measured on 2026-10-24 with `pnpm load:relay` (scripts/load/relay-load.mjs) agai
 | Events kept by the relay for late joiners | 2,000 envelopes or 4 MB, then peers re-seed | `RELAY_BUFFER`, `RELAY_BUFFER_BYTES` |
 | Cursor rate per participant | 4 Hz up to 10 people, 2 Hz up to 20, 1 Hz above | `cursorInterval()` |
 
+With the mesh, up to 12 people every browser links to every other; above, each links to
+7 or 8 peers (ring neighbours and the opposite peer) and events are forwarded hop by hop.
+
 A 31st participant sees "this board is full" and gets in automatically when a seat frees up
 (retry every 15 s, not a tight loop).
 
-### Load test results (local relay, one generator process)
+### Load test results (relay path, local relay, one generator process)
+
+These measure the relay as it was before the mesh, which is now the fallback path only.
 
 Each simulated participant sends cursor frames at 4 Hz while "moving" (50% of the time unless
 stated), a focus heartbeat every 15 s and ~6 board events per minute; payloads have realistic
@@ -53,20 +58,38 @@ From the Durable Objects pricing page (checked 2026-10-24):
 100,000 requests per day, 13,000 GB-s of duration per day, incoming WebSocket messages billed
 at 20:1, outgoing messages free, no duration billed while hibernated.
 
-Estimate for a one-hour retro of 10 people (pointer moving ~20% of the time):
+### Since the peer-to-peer mesh (owner decision: no paid service, no lock-in)
 
-- Messages: ~3,200 per person per hour, so ~32,000 incoming, about **1,700 billed requests**.
-- Duration: cursors keep the board's object awake for the whole hour. Every object is billed
-  for 128 MB of memory whatever it uses, so
-  13,000 GB-s is about **28 object-hours per day**.
+Board events, cursors and focus travel between browsers (WebRTC). The relay only sees, per
+participant and per session: one connection, one encrypted offer or answer per direct link
+(at most 29), and a presence frame when someone joins. Keep-alive pings are answered by
+Cloudflare's auto-response and cost nothing.
 
-So the free plan carries roughly **25 one-hour retros per day in total** (any size up to 30),
-and duration, not requests, is the limit. Ways to raise it, in order of effort:
+Estimate for a one-hour retro of 10 people:
 
-1. Peer-to-peer cursors (WebRTC, `p2p-presence-and-cursors` 1.x): the relay only carries board
-   events, the object hibernates between them, duration drops by an order of magnitude.
-2. Workers Paid plan (minimum USD 5 per month): 1 million requests and 400,000 GB-s included per
-   month, about 870 object-hours, so roughly 30 one-hour retros per day, then pay per use.
+- Messages: about 60 incoming per person, so ~600, about **30 billed requests** (and 10 connections).
+- Duration: the object is awake for a few seconds at each join, then hibernates (no messages);
+  say a few minutes per retro instead of the full hour.
+
+So the free plan is no longer the limit for a team or a company: requests allow thousands of
+participant sessions per day, and duration hundreds of retros (to be verified in production: the
+hibernation delay after the last message is set by Cloudflare). Nothing requires the paid plan.
+
+Participants who cannot open any direct link (strict corporate network, or the "Direct links"
+setting off) use the relay fallback: their board events go through it, buffered in memory, and
+they share no cursors. Each of them costs about what a relay-only participant cost before (a few
+hundred messages per hour), still far below the free limits.
+
+What it costs in privacy: with direct links, participants see each other's IP address (as in a
+video call) and the STUN server (default `stun.cloudflare.com`, free, replaceable with a
+self-hosted one through `NUXT_PUBLIC_ICE_SERVERS`) sees it too. There is no TURN server:
+nothing to pay, nothing to host.
+
+### Before the mesh (relay carried everything)
+
+For the record: ~1,700 billed requests per 10-person retro-hour, and cursors kept the object
+awake the whole hour, so about **25 one-hour retros per day** on the free plan (duration was
+the limit).
 
 ## Sources
 

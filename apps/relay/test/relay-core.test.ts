@@ -58,14 +58,23 @@ describe('admit (per-socket budgets)', () => {
   it('closes on board-frame abuse but only drops excess live frames', async () => {
     const { admit, EPH_MAX, FRAME_MAX } = await import('../src/relay-core')
     const b = { windowStart: 0, count: 0 }
-    const live = Array.from({ length: EPH_MAX + 5 }, () => admit(b, true, 1_000, 10_000))
+    const live = Array.from({ length: EPH_MAX + 5 }, () => admit(b, 'live', 1_000, 10_000))
     expect(live.filter((v) => v === 'ok')).toHaveLength(EPH_MAX)
     expect(live.at(-1)).toBe('drop')
     // Live traffic does not eat the board budget.
-    const frames = Array.from({ length: FRAME_MAX + 1 }, () => admit(b, false, 1_000, 10_000))
+    const frames = Array.from({ length: FRAME_MAX + 1 }, () => admit(b, 'board', 1_000, 10_000))
     expect(frames.filter((v) => v === 'ok')).toHaveLength(FRAME_MAX)
     expect(frames.at(-1)).toBe('close')
     // A new window resets both.
-    expect([admit(b, true, 12_000, 10_000), admit(b, false, 12_000, 10_000)]).toEqual(['ok', 'ok'])
+    expect([admit(b, 'live', 12_000, 10_000), admit(b, 'board', 12_000, 10_000)]).toEqual(['ok', 'ok'])
+  })
+
+  it('signalling has its own budget and is dropped, never fatal', async () => {
+    const { admit, SIG_MAX } = await import('../src/relay-core')
+    const b = { windowStart: 0, count: 0 }
+    const sig = Array.from({ length: SIG_MAX + 1 }, () => admit(b, 'sig', 1_000, 10_000))
+    expect(sig.filter((v) => v === 'ok')).toHaveLength(SIG_MAX)
+    expect(sig.at(-1)).toBe('drop')
+    expect(admit(b, 'board', 1_000, 10_000)).toBe('ok')
   })
 })

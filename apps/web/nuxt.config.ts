@@ -46,7 +46,12 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     // Empty: same origin. Set NUXT_PUBLIC_WS_URL=ws://localhost:8787 for `nuxt dev` with `wrangler dev`.
-    public: { wsUrl: '' },
+    public: {
+      wsUrl: '',
+      // STUN only (no TURN, no paid service): lets two browsers find a direct path. Comma separated,
+      // override with NUXT_PUBLIC_ICE_SERVERS (a self-hosted coturn, for example).
+      iceServers: 'stun:stun.cloudflare.com:3478',
+    },
   },
   // Static hoisting turns constant :style bindings into literal style attributes (innerHTML), which the CSP blocks.
   vue: { compilerOptions: { hoistStatic: false } },
