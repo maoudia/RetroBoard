@@ -58,8 +58,7 @@ jobs:
         include:
           - { project: webkit, shard: '1/2' }
           - { project: webkit, shard: '2/2' }
-    # Same policy as e2e.yml: only Chromium blocks until responsive-and-i18n-hardening lands.
-    continue-on-error: ${{ matrix.project != 'chromium' }}
+    # Every browser and viewport blocks: all of them are green since the WebKit fixes.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
