@@ -236,6 +236,7 @@ export const fr = {
   'live.idle': 'inactif',
   'live.typingIn': 'écrit dans {column}',
   'live.here': '{names} ici',
+  'board.full': 'Ce board est complet ({n} participants max). Tu rejoindras dès qu\'une place se libère.',
   'board.retired.h': 'Ce lien ne fonctionne plus',
   'board.retired.p': 'Il pointe vers un ancien board non chiffré. Ces boards étaient stockés sur le serveur, et ce stockage a été supprimé. Crée un nouveau board : il est chiffré de bout en bout.',
   'board.connecting': 'Connexion en cours...',

@@ -26,7 +26,8 @@
     "test:coverage": "vitest run --coverage",
     "size": "node scripts/check-bundle-size.mjs",
     "licenses:check": "node scripts/check-licenses.mjs",
-    "mutation": "stryker run"
+    "mutation": "stryker run",
+    "load:relay": "node scripts/load/relay-load.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

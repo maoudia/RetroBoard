@@ -227,3 +227,29 @@ test('board file: export, then restore into the same link after the board is gon
   await expect(fresh.getByText(/does not belong|n'appartient pas/)).toBeVisible()
   await ctx.close()
 })
+
+test('a full board says so and lets the participant in when a seat frees up', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-share').click()
+  const link = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+
+  const ctx = await browser.newContext()
+  const bob = await ctx.newPage()
+  let attempts = 0
+  // The first attempt meets a full room (what the relay sends at its cap), the next one gets in.
+  await bob.routeWebSocket(/\/ws2/, (ws) => {
+    if (attempts++ === 0) {
+      ws.send(JSON.stringify({ t: 'err', code: 'full' }))
+      void ws.close({ code: 4008, reason: 'Board is full' })
+      return
+    }
+    ws.connectToServer()
+  })
+  await bob.goto(link)
+  await expect(bob.getByTestId('room-full')).toContainText('30 participants max')
+  // Retried after 15 s, not in a tight loop.
+  await expect(bob.getByTestId('room-full')).toHaveCount(0, { timeout: 25_000 })
+  expect(attempts).toBe(2)
+  await ctx.close()
+})

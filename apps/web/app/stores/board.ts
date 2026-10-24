@@ -13,6 +13,8 @@ export const useBoardStore = defineStore('board', () => {
   const roomId = ref<string | null>(null)
   /** Encrypted board that does not open with the keys we have (wrong passcode). */
   const accessDenied = ref(false)
+  /** The board is at its participant cap; the channel retries until a seat frees up. */
+  const roomFull = ref(false)
   /** serverNow - clientNow, to show a timer that agrees with the server. */
   const skew = ref(0)
   let transport: BoardTransport | null = null
@@ -22,6 +24,7 @@ export const useBoardStore = defineStore('board', () => {
   function connect(room: string, identity: Identity, factory: TransportFactory) {
     disconnect()
     accessDenied.value = false
+    roomFull.value = false
     roomId.value = room
     transport = factory(room, {
       onSnapshot(next) {
@@ -36,6 +39,7 @@ export const useBoardStore = defineStore('board', () => {
       onCursor: (c, name) => live.setCursor(c, name),
       onFocus: (f, name) => live.setFocus(f, name),
       onPeerLeft: (conn) => live.drop(conn),
+      onRoomFull: (full) => { roomFull.value = full },
     })
     transport.connect(identity)
   }
@@ -89,7 +93,7 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, roomId, skew, accessDenied,
+    snapshot, status, lastError, roomId, skew, accessDenied, roomFull,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,

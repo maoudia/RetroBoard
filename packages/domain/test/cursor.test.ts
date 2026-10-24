@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  anchorPoint, canSendCursor, CURSOR_SCALE, CURSOR_STALE_MS, dequantise, IDLE_AFTER_MS, lerp, MAX_VISIBLE_CURSORS,
+  anchorPoint, canSendCursor, cursorInterval, CURSOR_SCALE, CURSOR_STALE_MS, dequantise, IDLE_AFTER_MS, lerp, MAX_VISIBLE_CURSORS,
   placePoint, presenceStatus, quantise, type TimedCursor, visibleCursors,
 } from '../src/presence/cursor'
 
@@ -42,6 +42,10 @@ describe('anchored cursors', () => {
 
   it('breaks ties by connection id so every render is stable', () => {
     expect(visibleCursors([cursor('b', 5), cursor('a', 5)], 10).map((c) => c.conn)).toEqual(['a', 'b'])
+  })
+
+  it('slows cursors down on big boards to bound the fan-out', () => {
+    expect([1, 10, 11, 20, 21, 30].map(cursorInterval)).toEqual([250, 250, 500, 500, 1000, 1000])
   })
 
   it('throttles cursor frames to 4 per second', () => {

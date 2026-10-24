@@ -58,7 +58,7 @@ Browser (Nuxt SPA, generated)                 Cloudflare
 - **Functional core**: `packages/domain` has no I/O. Every browser folds the same signed event log with `reduce(state, command, actor, ctx)`; the relay never sees plaintext.
 - **No server-side storage**: the board lives on the participants' devices (encrypted IndexedDB replica, retention setting) and in `.retro` board files. When everyone has left, the relay forgets the room.
 - **Ports and adapters**: replica store, transport, signing and files are interfaces with swappable adapters.
-- Details and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- Details and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Capacity and load tests: [docs/capacity.md](docs/capacity.md).
 
 ## Quick start
 

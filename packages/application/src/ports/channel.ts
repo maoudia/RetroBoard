@@ -17,6 +17,8 @@ export interface ChannelHandlers {
   /** Live presence (never stored): a peer's cursor or focus, with the label they chose to show. */
   onCursor?(cursor: CursorFrame, name: string | null): void
   onFocus?(focus: FocusFrame, name: string | null): void
+  /** The room is at its participant cap: the channel keeps retrying slowly until a seat frees up. */
+  onRoomFull?(full: boolean): void
   /** A peer left: drop its cursor and focus. */
   onPeerLeft?(conn: string): void
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
+import { LIMITS } from '@retroboard/domain'
 import { isLocalRoom } from '~/transport'
 import { boardHash, inviteFromHash, inviteRoomId, isRetiredLink } from '~/utils/invite'
 import { errorLabel } from '~/utils/labels'
@@ -155,7 +156,8 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <VoteBar v-if="board.ready" />
-      <div v-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
+      <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
+      <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
 
       <div v-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 

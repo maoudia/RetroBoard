@@ -30,7 +30,13 @@ export class RelayRoom extends DurableObject<Env> {
     const room = new URL(request.url).searchParams.get('room') ?? ''
     if (this.ctx.getWebSockets().length >= LIMITS.maxConnections) {
       this.log.warn('ws.full', { rh })
-      return new Response('Board is full', { status: 503 })
+      // Browsers cannot read the status of a refused upgrade: accept, say why, close.
+      // Not hibernatable and not counted: this socket only carries the refusal.
+      const pair = new WebSocketPair()
+      pair[1].accept()
+      pair[1].send(JSON.stringify({ t: 'err', code: 'full' } satisfies RelayFrame))
+      pair[1].close(4008, 'Board is full')
+      return new Response(null, { status: 101, webSocket: pair[0] })
     }
     const pair = new WebSocketPair()
     const [client, server] = [pair[0], pair[1]]
@@ -98,8 +104,13 @@ export class RelayRoom extends DurableObject<Env> {
     for (const s of this.sockets(except)) this.send(s.ws, { t: 'peers', peers })
   }
 
+  /** Serialised once, sent to every other socket: fan-out is the relay's hot path (cursors). */
   private fanOut(frame: RelayFrame, from: WebSocket): void {
-    for (const s of this.sockets(from)) this.send(s.ws, frame)
+    const text = JSON.stringify(frame)
+    for (const ws of this.ctx.getWebSockets()) {
+      if (ws === from) continue
+      try { ws.send(text) } catch { /* socket gone */ }
+    }
   }
 
   private send(ws: WebSocket, frame: RelayFrame): void {

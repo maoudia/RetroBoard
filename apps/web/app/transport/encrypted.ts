@@ -15,6 +15,9 @@ import type { BoardTransport, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
 
+/** Retry delay when the board is at its participant cap. */
+export const FULL_RETRY_MS = 15_000
+
 export interface EncryptedDeps {
   contentKey: Uint8Array
   session: SignerPort
@@ -44,6 +47,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private conn: string | null = null
   private conns: string[] = []
   private readonly presence = new Map<string, Presence>()
+  private full = false
   private synced = false
   private queue: Promise<void> = Promise.resolve()
   private attempts = 0
@@ -281,6 +285,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private async onFrame(frame: RelayFrame, historyIds: Set<string>): Promise<void> {
     switch (frame.t) {
       case 'welcome':
+        if (this.full) { this.full = false; this.handlers.onRoomFull?.(false) }
         this.conn = frame.conn
         this.conns = frame.peers
         this.synced = false
@@ -317,6 +322,7 @@ export class EncryptedRelayTransport implements BoardTransport {
         await this.republishAll()
         return
       case 'err':
+        if (frame.code === 'full') { this.full = true; this.handlers.onRoomFull?.(true); return }
         this.handlers.onError('invalid')
     }
   }
@@ -397,7 +403,8 @@ export class EncryptedRelayTransport implements BoardTransport {
       if (this.closed || this.ws !== ws) return
       this.synced = false
       this.handlers.onStatus('reconnecting')
-      this.reconnectTimer = setTimeout(() => { this.attempts++; this.open() }, backoffDelay(this.attempts))
+      // Full room: no point hammering it, a seat frees up when someone leaves.
+      this.reconnectTimer = setTimeout(() => { this.attempts++; this.open() }, this.full ? FULL_RETRY_MS : backoffDelay(this.attempts))
     }
     ws.onerror = () => { /* onclose follows */ }
   }

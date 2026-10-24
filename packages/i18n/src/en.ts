@@ -237,6 +237,7 @@ export const en: Record<keyof typeof fr, string> = {
   'live.idle': 'idle',
   'live.typingIn': 'typing in {column}',
   'live.here': '{names} here',
+  'board.full': 'This board is full ({n} participants max). You will join as soon as someone leaves.',
   'board.retired.h': 'This link no longer works',
   'board.retired.p': 'It points to an old unencrypted board. Those boards were stored on the server, and that storage has been removed. Create a new board: it is end-to-end encrypted.',
   'board.connecting': 'Connecting...',

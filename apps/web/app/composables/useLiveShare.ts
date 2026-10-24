@@ -1,4 +1,4 @@
-import { anchorPoint, canSendCursor, CURSOR_INTERVAL_MS } from '@retroboard/domain'
+import { anchorPoint, canSendCursor, cursorInterval } from '@retroboard/domain'
 import type { OwnCursor, OwnFocus } from '@retroboard/application'
 
 const IDLE_FOCUS = JSON.stringify({ column: null, note: null, typing: false })
@@ -36,8 +36,9 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   function queue(c: OwnCursor) {
     pending = c
     const now = Date.now()
-    if (canSendCursor(lastSent, now)) flush()
-    else trailing ??= setTimeout(flush, CURSOR_INTERVAL_MS - (now - (lastSent ?? now)))
+    const interval = cursorInterval(board.peers.length)
+    if (canSendCursor(lastSent, now, interval)) flush()
+    else trailing ??= setTimeout(flush, interval - (now - (lastSent ?? now)))
   }
 
   function point(target: EventTarget | null, x: number, y: number, drag: boolean) {

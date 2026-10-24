@@ -76,6 +76,16 @@ export function visibleCursors(cursors: Iterable<TimedCursor>, now: number, max 
 export const canSendCursor = (lastSentAt: number | null, now: number, interval = CURSOR_INTERVAL_MS): boolean =>
   lastSentAt === null || now - lastSentAt >= interval
 
+/**
+ * Cursor frame interval for a board size. Fan-out grows with n * (n - 1): big boards send fewer
+ * frames per person (4 Hz up to 10 people, 2 Hz up to 20, 1 Hz above) so the relay and every
+ * browser receive at most about 40 frames per second, and the eased cursors still glide.
+ */
+export function cursorInterval(participants: number): number {
+  if (participants <= 10) return CURSOR_INTERVAL_MS
+  return participants <= 20 ? CURSOR_INTERVAL_MS * 2 : CURSOR_INTERVAL_MS * 4
+}
+
 /** Presence status shown in the participants menu. */
 export function presenceStatus(focus: FocusFrame | undefined, lastActiveAt: number, now: number): PresenceStatus {
   if (focus?.typing) return 'typing'
