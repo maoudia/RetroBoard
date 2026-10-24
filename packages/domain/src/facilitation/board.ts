@@ -38,5 +38,6 @@ export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
     groups: {},
     actions: {},
     timer: { running: false, endsAt: 0, remaining: DEFAULT_TIMER_MS, length: DEFAULT_TIMER_MS },
+    agenda: null,
   }
 }

@@ -1,4 +1,4 @@
-import type { ErrorCode, Snapshot } from '@retroboard/domain'
+import { allowedInPhase, type CommandType, type ErrorCode, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { buildColumnItems, createBoardCommands, type SortMode } from '@retroboard/application'
 
@@ -47,6 +47,8 @@ export const useBoardStore = defineStore('board', () => {
   function updateIdentity(identity: Identity) { transport?.updateIdentity(identity) }
   /** Encrypted boards: my access. Legacy boards have no roles: everybody may steer. */
   const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, canManageRoles: false })
+  /** Phase rules: may I do this now? Facilitators always may. */
+  const allowed = (command: CommandType) => access.value.canSteer || allowedInPhase(snapshot.value?.agenda ?? null, command)
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
   const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
@@ -81,7 +83,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, roomId, skew, accessDenied,
-    connect, disconnect, updateIdentity, onSnapshot, commands, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole,
+    connect, disconnect, updateIdentity, onSnapshot, commands, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,
   }

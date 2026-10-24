@@ -13,6 +13,7 @@
 import { createBoard } from '../facilitation/board'
 import { reduce } from '../reducer'
 import type { Command, CommandType } from '../shared/commands'
+import { allowedInPhase } from '../facilitation/agenda'
 import { LIMITS } from '../shared/limits'
 import type { BoardState, ErrorCode } from '../shared/types'
 import { KEY_RE, ROOM_ID_RE } from './keyring'
@@ -70,6 +71,7 @@ export type FoldResult =
 export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType>([
   'settings.update', 'board.init', 'template.apply', 'board.reset', 'timer.start', 'timer.pause', 'timer.reset',
   'vote.close', 'vote.reopen', 'action.import',
+  'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.extend', 'agenda.end',
 ])
 
 /** Genesis and role changes are always privileged; commands depend on their type. */
@@ -131,6 +133,9 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
   } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
     return ignore(ledger, 'not-facilitator')
+  } else if (body.t === 'cmd' && !canSteer(ledger, author) && !allowedInPhase(ledger.board.agenda, body.cmd.t)) {
+    // Phase rules: participants only do what the current phase is about.
+    return ignore(ledger, 'phase')
   }
 
   const without = (list: readonly string[], key: string) => list.filter((k) => k !== key)

@@ -8,6 +8,7 @@ import type { LIMITS } from './limits'
 export type Locale = 'fr' | 'en'
 export type TimerMinutes = (typeof LIMITS.timerMinutes)[number]
 export type VotableKind = 'note' | 'cluster'
+export type PhaseKindName = 'checkin' | 'review' | 'write' | 'group' | 'vote' | 'rank' | 'actions' | 'close'
 export type ActionStatusName = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
 /** An action carried over from a previous retro (team profile, board file, JSON or CSV export). */
 export interface ImportedAction { text: string; owner: string; status: ActionStatusName; due?: string; from?: string }
@@ -46,5 +47,13 @@ export type Command =
   | { t: 'timer.pause' }
   | { t: 'timer.reset'; minutes?: TimerMinutes }
   | { t: 'board.reset' }
+  | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number }[]; rules?: boolean; autoPublish?: boolean }
+  | { t: 'agenda.options'; rules?: boolean; autoPublish?: boolean }
+  | { t: 'agenda.clear' }
+  | { t: 'agenda.start' }
+  | { t: 'agenda.pause' }
+  | { t: 'agenda.next' }
+  | { t: 'agenda.extend'; minutes: number; borrow: boolean }
+  | { t: 'agenda.end' }
 
 export type CommandType = Command['t']

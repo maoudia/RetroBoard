@@ -15,7 +15,9 @@ const theme = useThemeStore()
       </button>
     </div>
 
-    <TimerWidget class="timer-slot" />
+    <!-- With an agenda, the phase ring is the shared countdown; otherwise the plain timer. -->
+    <AgendaRing v-if="board.snapshot?.agenda" class="timer-slot" />
+    <TimerWidget v-else class="timer-slot" />
 
     <nav class="tools" :aria-label="t('toolbar.tools')">
       <ParticipantsMenu />

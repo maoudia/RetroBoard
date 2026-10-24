@@ -77,6 +77,22 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('timer.pause') }),
   v.object({ t: v.literal('timer.reset'), minutes: v.optional(v.picklist(LIMITS.timerMinutes)) }),
   v.object({ t: v.literal('board.reset') }),
+  v.object({
+    t: v.literal('agenda.set'),
+    phases: v.pipe(v.array(v.object({
+      kind: v.picklist(['checkin', 'review', 'write', 'group', 'vote', 'rank', 'actions', 'close']),
+      minutes: v.pipe(v.number(), v.minValue(1), v.maxValue(LIMITS.maxPhaseMinutes)),
+    })), v.minLength(1), v.maxLength(LIMITS.maxPhases)),
+    rules: v.optional(v.boolean()),
+    autoPublish: v.optional(v.boolean()),
+  }),
+  v.object({ t: v.literal('agenda.options'), rules: v.optional(v.boolean()), autoPublish: v.optional(v.boolean()) }),
+  v.object({ t: v.literal('agenda.clear') }),
+  v.object({ t: v.literal('agenda.start') }),
+  v.object({ t: v.literal('agenda.pause') }),
+  v.object({ t: v.literal('agenda.next') }),
+  v.object({ t: v.literal('agenda.extend'), minutes: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(30)), borrow: v.boolean() }),
+  v.object({ t: v.literal('agenda.end') }),
 ])
 export type { Command }
 

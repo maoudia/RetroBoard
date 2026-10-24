@@ -133,3 +133,18 @@ describe('origin trial (WebMCP)', () => {
     }
   })
 })
+
+describe('legacy boards stored by older versions', () => {
+  it('load with defaults for newer settings, cluster voters and action statuses', async () => {
+    const { upgradeAction } = await import('../src/repository')
+    const s = new FakeStorage()
+    s.data.set('meta', { settings: { title: 'Old', voteLimit: 3, secretVoting: false, locked: false, themeId: 'studio', templateId: null, initialized: true }, columns: [], timer: { running: false, endsAt: 0, remaining: 1, length: 1 } })
+    s.data.set('g:g1', { id: 'g1', columnId: 'c', title: null })
+    s.data.set('a:a1', { id: 'a1', text: 'x', owner: '', done: true, createdAt: 5 })
+    const state = (await repo(s).load())!
+    expect([state.settings.maxVotesPerItem, state.settings.votable, state.settings.actionMode, state.agenda]).toEqual([1, 'both', 'checkbox', null])
+    expect(state.groups.g1!.voters).toEqual([])
+    expect(state.actions.a1).toMatchObject({ status: 'done', done: true, history: [{ status: 'done', at: 5 }], due: null, carriedFrom: null })
+    expect(upgradeAction({ id: 'b', text: 'y', owner: '', done: false, createdAt: 1 }).status).toBe('todo')
+  })
+})

@@ -30,6 +30,9 @@ export const LIMITS = {
   /** A board is erased after this much inactivity. */
   ttlMs: 24 * 60 * 60 * 1000,
   timerMinutes: [3, 5, 10, 15, 20, 30] as const,
+  /** Agenda: phases per board and minutes per phase. */
+  maxPhases: 12,
+  maxPhaseMinutes: 120,
 } as const
 
 export const NOTE_COLOR_COUNT = 8

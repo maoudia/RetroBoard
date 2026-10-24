@@ -35,7 +35,7 @@ watch(() => props.votes, (n, o) => {
 </script>
 
 <template>
-  <span class="vc" :data-testid="`votes-${id}`">
+  <span v-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
     <button
       v-if="!single && voted && !closed" class="vote undo" type="button"
       :aria-label="t('vote.undo', { label })" :data-testid="`unvote-${id}`" @click="remove"

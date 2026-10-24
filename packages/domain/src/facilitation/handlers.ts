@@ -1,9 +1,11 @@
+import { agendaRunning, extendPhase, MIN, newAgenda } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate } from './board'
 
 type FacilitationCommand = 'board.init' | 'template.apply' | 'settings.update'
   | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset'
+  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.extend' | 'agenda.end'
 
 /** Facilitation context: board setup, settings and the shared timer. */
 export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
@@ -68,5 +70,45 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   'board.reset': (s) => done({
     ...s, notes: {}, groups: {}, actions: {},
     timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
+    // A reset board starts its agenda over.
+    agenda: s.agenda ? { ...s.agenda, current: -1, startedAt: 0, pausedAt: null } : null,
   }, { meta: true, wipe: true }),
+
+  // Agenda (time boxes). Phases can be replaced only before the start or after the end.
+  'agenda.set': (s, c, _a, ctx) => {
+    if (agendaRunning(s.agenda)) return fail('invalid')
+    return done({ ...s, agenda: newAgenda(c.phases, ctx.newId, { rules: c.rules, autoPublish: c.autoPublish }) }, { meta: true })
+  },
+  'agenda.options': (s, c) => {
+    if (!s.agenda) return fail('not-found')
+    return done({ ...s, agenda: { ...s.agenda, rules: c.rules ?? s.agenda.rules, autoPublish: c.autoPublish ?? s.agenda.autoPublish } }, { meta: true })
+  },
+  'agenda.clear': (s) => done({ ...s, agenda: null }, { meta: true }),
+  'agenda.start': (s, _c, _a, ctx) => {
+    const a = s.agenda
+    if (!a || a.current >= a.phases.length) return fail('invalid')
+    if (a.current < 0) return done({ ...s, agenda: { ...a, current: 0, startedAt: ctx.now, pausedAt: null } }, { meta: true })
+    if (a.pausedAt === null) return done(s, {})
+    // Resume: the pause does not count as elapsed time.
+    return done({ ...s, agenda: { ...a, startedAt: a.startedAt + (ctx.now - a.pausedAt), pausedAt: null } }, { meta: true })
+  },
+  'agenda.pause': (s, _c, _a, ctx) => {
+    const a = s.agenda
+    if (!agendaRunning(a)) return fail('invalid')
+    if (a.pausedAt !== null) return done(s, {})
+    return done({ ...s, agenda: { ...a, pausedAt: ctx.now } }, { meta: true })
+  },
+  'agenda.next': (s, _c, _a, ctx) => {
+    const a = s.agenda
+    if (!a || a.current >= a.phases.length) return fail('invalid')
+    return done({ ...s, agenda: { ...a, current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
+  },
+  'agenda.extend': (s, c) => {
+    if (!agendaRunning(s.agenda)) return fail('invalid')
+    return done({ ...s, agenda: extendPhase(s.agenda, c.minutes * MIN, c.borrow) }, { meta: true })
+  },
+  'agenda.end': (s) => {
+    if (!s.agenda) return fail('not-found')
+    return done({ ...s, agenda: { ...s.agenda, current: s.agenda.phases.length, pausedAt: null } }, { meta: true })
+  },
 }

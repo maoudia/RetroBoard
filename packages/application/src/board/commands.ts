@@ -1,4 +1,4 @@
-import { type ActionStatusName, type Command, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
+import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
 
@@ -88,6 +88,16 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     importActions: (items: ImportedAction[]) => (items.length ? send({ t: 'action.import', items: items.slice(0, LIMITS.maxImport) }) : ok()),
     setActionDone: (id: string, done: boolean) => send({ t: 'action.toggle', id, done }),
     deleteAction: (id: string) => send({ t: 'action.delete', id }),
+
+    setAgenda: (phases: { kind: PhaseKindName; minutes: number }[], opts: { rules?: boolean; autoPublish?: boolean } = {}) =>
+      send({ t: 'agenda.set', phases: phases.slice(0, LIMITS.maxPhases), ...opts }),
+    agendaOptions: (opts: { rules?: boolean; autoPublish?: boolean }) => send({ t: 'agenda.options', ...opts }),
+    clearAgenda: () => send({ t: 'agenda.clear' }),
+    startAgenda: () => send({ t: 'agenda.start' }),
+    pauseAgenda: () => send({ t: 'agenda.pause' }),
+    nextPhase: () => send({ t: 'agenda.next' }),
+    extendPhase: (minutes: number, borrow: boolean) => send({ t: 'agenda.extend', minutes, borrow }),
+    endAgenda: () => send({ t: 'agenda.end' }),
 
     startTimer: () => send({ t: 'timer.start' }),
     pauseTimer: () => send({ t: 'timer.pause' }),

@@ -174,3 +174,18 @@ describe('voting phase is privileged', () => {
     expect(foldEvent(closed, cmd(ALICE, { t: 'vote.reopen' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
   })
 })
+
+describe('phase rules in the fold', () => {
+  it('participants follow the phase, facilitators do not', () => {
+    let l = foldAll(started(), [cmd(FAC, { t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }, { kind: 'vote', minutes: 5 }] }), cmd(FAC, { t: 'agenda.start' })])
+    const col = l.board.columns[0]!.id
+    l = foldAll(l, [cmd(ALICE, { t: 'note.add', columnId: col, text: 'idea' })])
+    const id = Object.keys(l.board.notes)[0]!
+    expect(foldEvent(l, cmd(ALICE, { t: 'vote.add', kind: 'note', id }))).toMatchObject({ ok: false, reason: 'phase' })
+    expect(foldEvent(l, cmd(ALICE, { t: 'agenda.next' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, cmd(FAC, { t: 'vote.add', kind: 'note', id })).ok).toBe(true)
+    l = foldAll(l, [cmd(FAC, { t: 'agenda.next' })])
+    expect(foldEvent(l, cmd(ALICE, { t: 'vote.add', kind: 'note', id })).ok).toBe(true)
+    expect(foldEvent(l, cmd(ALICE, { t: 'note.add', columnId: col, text: 'late' }))).toMatchObject({ ok: false, reason: 'phase' })
+  })
+})

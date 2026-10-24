@@ -52,7 +52,10 @@ test('roles: participants are read-only; the facilitator promotes, hands over an
   await page.keyboard.press('Escape')
 
   // Bob is a participant: facilitation controls are read-only, with a hint.
-  await expect(bob.page.getByTestId('timer-toggle')).toBeDisabled()
+  await bob.page.getByTestId('agenda-ring').click()
+  await expect(bob.page.getByTestId('agenda-panel')).toBeVisible()
+  await expect(bob.page.getByTestId('agenda-start')).toHaveCount(0)
+  await bob.page.keyboard.press('Escape')
   await bob.page.getByTestId('btn-options').click()
   await expect(bob.page.getByTestId('opt-readonly')).toBeVisible()
   await expect(bob.page.getByTestId('opt-lock')).toBeDisabled()
@@ -69,7 +72,9 @@ test('roles: participants are read-only; the facilitator promotes, hands over an
   await bobRow.getByTestId('role-promote').click()
   await expect(bobRow).toHaveAttribute('data-role', 'co-facilitator')
   await page.keyboard.press('Escape')
-  await expect(bob.page.getByTestId('timer-toggle')).toBeEnabled()
+  await bob.page.getByTestId('agenda-ring').click()
+  await expect(bob.page.getByTestId('agenda-start')).toBeVisible()
+  await bob.page.keyboard.press('Escape')
   await bob.page.getByTestId('btn-options').click()
   await bob.page.getByTestId('opt-lock').check()
   await expect(page.locator('.page')).toHaveAttribute('data-locked', 'true')

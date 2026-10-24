@@ -1,4 +1,10 @@
-import type { BoardState, Dirty } from '@retroboard/domain'
+import { type ActionItem, type BoardState, createBoard, type Dirty } from '@retroboard/domain'
+
+/** Actions stored before the status workflow existed. */
+export function upgradeAction(a: Partial<ActionItem> & Pick<ActionItem, 'id' | 'text' | 'owner' | 'done' | 'createdAt'>): ActionItem {
+  const status = a.status ?? (a.done ? 'done' : 'todo')
+  return { ...a, status, done: status === 'done', history: a.history ?? [{ status, at: a.createdAt }], due: a.due ?? null, carriedFrom: a.carriedFrom ?? null }
+}
 
 /** Port: where a board lives. The Durable Object does not care how. */
 export interface BoardRepository {
@@ -15,7 +21,7 @@ function chunks<T>(items: T[]): T[][] {
   return out
 }
 
-type Meta = Pick<BoardState, 'settings' | 'columns' | 'timer'>
+type Meta = Pick<BoardState, 'settings' | 'columns' | 'timer'> & { agenda?: BoardState['agenda'] }
 
 /** Adapter over Durable Object (SQLite-backed) storage. One key per entity. */
 export class DurableStorageRepository implements BoardRepository {
@@ -25,12 +31,14 @@ export class DurableStorageRepository implements BoardRepository {
     const all = await this.storage.list()
     const meta = all.get('meta') as Meta | undefined
     if (!meta) return null
-    const state: BoardState = { ...meta, notes: {}, groups: {}, actions: {} }
+    // Boards stored by older versions lack newer fields: fill them with the defaults.
+    const defaults = createBoard({ newId: () => 'x' })
+    const state: BoardState = { ...meta, settings: { ...defaults.settings, ...meta.settings }, agenda: meta.agenda ?? null, notes: {}, groups: {}, actions: {} }
     for (const [key, value] of all) {
       const id = key.slice(2)
       if (key.startsWith('n:')) state.notes[id] = value as BoardState['notes'][string]
-      else if (key.startsWith('g:')) state.groups[id] = value as BoardState['groups'][string]
-      else if (key.startsWith('a:')) state.actions[id] = value as BoardState['actions'][string]
+      else if (key.startsWith('g:')) { const g = value as Omit<BoardState['groups'][string], 'voters'> & { voters?: string[] }; state.groups[id] = { ...g, voters: g.voters ?? [] } }
+      else if (key.startsWith('a:')) state.actions[id] = upgradeAction(value as Partial<ActionItem> & Pick<ActionItem, 'id' | 'text' | 'owner' | 'done' | 'createdAt'>)
     }
     return state
   }
@@ -61,7 +69,7 @@ export class DurableStorageRepository implements BoardRepository {
   }
 
   private meta(s: BoardState): Meta {
-    return { settings: s.settings, columns: s.columns, timer: s.timer }
+    return { settings: s.settings, columns: s.columns, timer: s.timer, agenda: s.agenda }
   }
 
   private everything(s: BoardState): [string, unknown][] {

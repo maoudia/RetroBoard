@@ -87,6 +87,8 @@ export interface BoardSettings {
   initialized: boolean
 }
 
+import type { AgendaState } from '../facilitation/agenda'
+
 export interface BoardState {
   settings: BoardSettings
   columns: Column[]
@@ -94,6 +96,8 @@ export interface BoardState {
   groups: Record<string, Group>
   actions: Record<string, ActionItem>
   timer: TimerState
+  /** Time-boxed agenda, or null for a free-form retro (the plain timer). */
+  agenda: AgendaState | null
 }
 
 export interface Actor {
@@ -119,7 +123,7 @@ export interface Dirty {
 
 export type ErrorCode =
   | 'locked' | 'not-found' | 'forbidden' | 'vote-limit' | 'limit-reached' | 'not-empty'
-  | 'last-column' | 'invalid' | 'same-column-required' | 'voting-closed' | 'not-votable' | 'item-limit'
+  | 'last-column' | 'invalid' | 'same-column-required' | 'voting-closed' | 'not-votable' | 'item-limit' | 'phase'
 
 export type Outcome =
   | { ok: true; state: BoardState; dirty: Dirty }
@@ -174,6 +178,7 @@ export interface Snapshot {
   groups: SnapshotGroup[]
   actions: ActionItem[]
   timer: TimerState
+  agenda: AgendaState | null
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */

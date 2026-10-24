@@ -86,6 +86,7 @@ function sendSetup(s: SetupResult) {
   board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value })
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
   if (s.importActions?.length) board.commands.importActions(s.importActions)
+  if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish })
   setupOpen.value = false
 }
 
@@ -107,6 +108,14 @@ watch(() => board.columns.map((c) => c.id).join(), () => { if (board.columns.len
 watch(() => board.snapshot?.groups, (g) => { if (ui.openGroupId && !g?.some((x) => x.id === ui.openGroupId)) ui.openGroupId = null })
 
 watch(() => board.lastError, (e) => { if (e) push(errorLabel(e.code), 'warn') })
+
+// Auto-publish: when the Write phase ends, everyone's drafts are published (if the agenda says so).
+const { publish: publishDrafts } = usePublish()
+watch(() => board.snapshot?.agenda?.current, (cur, prev) => {
+  const a = board.snapshot?.agenda
+  if (!a || cur === undefined || prev === undefined || cur <= prev) return
+  if (a.autoPublish && a.phases[prev]?.kind === 'write' && drafts.count > 0) publishDrafts()
+})
 
 const offline = computed(() => board.status === 'reconnecting' || board.status === 'connecting')
 </script>

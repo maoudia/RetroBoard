@@ -12,6 +12,10 @@ export function usePublish() {
   function publish(ids?: string[]): BoardResult {
     const list = ids ? drafts.drafts.filter((d) => ids.includes(d.id)) : drafts.drafts
     if (!list.length) return { ok: true }
+    if (!board.allowed('note.addMany')) {
+      push(t('error.phase'), 'warn')
+      return { ok: false, error: 'phase' }
+    }
     // Send in protocol-sized slices so each published slice leaves the drafts at once.
     for (let i = 0; i < list.length; i += LIMITS.maxBatch) {
       const slice = list.slice(i, i + LIMITS.maxBatch)
