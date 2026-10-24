@@ -7,7 +7,20 @@ import type { CommandType } from '../shared/commands'
 export const PHASE_KINDS = ['checkin', 'review', 'write', 'group', 'vote', 'rank', 'actions', 'close'] as const
 export type PhaseKind = (typeof PHASE_KINDS)[number]
 
-export interface Phase { id: string; kind: PhaseKind; plannedMs: number }
+export interface Phase {
+  id: string
+  kind: PhaseKind
+  plannedMs: number
+  /** Time actually spent, pauses excluded; set when the phase is left (for the retro report). */
+  actualMs?: number
+}
+
+/** The running phase with its actual time recorded (left by next or end). */
+export function closePhase(a: AgendaState, now: number): Phase[] {
+  if (a.current < 0 || a.current >= a.phases.length) return a.phases
+  const spent = Math.max(0, (a.pausedAt ?? now) - a.startedAt)
+  return a.phases.map((p, i) => (i === a.current ? { ...p, actualMs: spent } : p))
+}
 
 export interface AgendaState {
   phases: Phase[]

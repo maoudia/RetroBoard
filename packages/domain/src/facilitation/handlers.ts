@@ -1,4 +1,4 @@
-import { agendaRunning, extendPhase, MIN, newAgenda } from './agenda'
+import { agendaRunning, closePhase, extendPhase, MIN, newAgenda } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate } from './board'
@@ -101,14 +101,14 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   'agenda.next': (s, _c, _a, ctx) => {
     const a = s.agenda
     if (!a || a.current >= a.phases.length) return fail('invalid')
-    return done({ ...s, agenda: { ...a, current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
+    return done({ ...s, agenda: { ...a, phases: closePhase(a, ctx.now), current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
   },
   'agenda.extend': (s, c) => {
     if (!agendaRunning(s.agenda)) return fail('invalid')
     return done({ ...s, agenda: extendPhase(s.agenda, c.minutes * MIN, c.borrow) }, { meta: true })
   },
-  'agenda.end': (s) => {
+  'agenda.end': (s, _c, _a, ctx) => {
     if (!s.agenda) return fail('not-found')
-    return done({ ...s, agenda: { ...s.agenda, current: s.agenda.phases.length, pausedAt: null } }, { meta: true })
+    return done({ ...s, agenda: { ...s.agenda, phases: closePhase(s.agenda, ctx.now), current: s.agenda.phases.length, pausedAt: null } }, { meta: true })
   },
 }

@@ -43,7 +43,8 @@ function onBackdrop(e: MouseEvent) {
           <Icon name="lucide:x" />
         </button>
       </header>
-      <div class="dlg-body"><slot /></div>
+      <!-- Focusable: long content scrolls with the keyboard (axe scrollable-region-focusable). -->
+      <div class="dlg-body" tabindex="0"><slot /></div>
       <footer v-if="$slots.footer" class="dlg-foot"><slot name="footer" /></footer>
     </template>
   </dialog>

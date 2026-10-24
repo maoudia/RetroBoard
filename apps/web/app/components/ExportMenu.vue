@@ -4,6 +4,7 @@ import { exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
 const { t } = useT()
 
 const board = useBoardStore()
+const ui = useUiStore()
 const { $ports } = useNuxtApp()
 const { push } = useToasts()
 const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'retro')
@@ -44,6 +45,8 @@ function run(kind: 'md' | 'csv' | 'json' | 'copy' | 'actions') {
       </button>
     </template>
     <template #default="{ close }">
+      <button class="dd-item" type="button" role="menuitem" data-testid="export-report" @click="ui.open('report'); close()"><Icon name="lucide:file-chart-column" /> {{ t('report.open') }}</button>
+      <hr class="dd-sep" />
       <button class="dd-item" type="button" role="menuitem" data-testid="export-md" @click="run('md'); close()"><Icon name="lucide:file-text" /> {{ t('export.md') }}</button>
       <button class="dd-item" type="button" role="menuitem" @click="run('copy'); close()"><Icon name="lucide:copy" /> {{ t('export.copy') }}</button>
       <button class="dd-item" type="button" role="menuitem" @click="run('csv'); close()"><Icon name="lucide:file-spreadsheet" /> {{ t('export.csv') }}</button>

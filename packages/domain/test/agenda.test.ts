@@ -83,8 +83,12 @@ describe('agenda commands', () => {
     expect(h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 1 }] })).toEqual({ ok: false, error: 'invalid' })
     h.run({ t: 'agenda.next' })
     expect(phaseClock(h.state.agenda!, h.now)).toMatchObject({ elapsedMs: 0, phase: { kind: 'vote' } })
+    // The report needs the time actually spent: pauses excluded.
+    expect(h.state.agenda!.phases[0]!.actualMs).toBe(2 * MIN)
+    h.tick(4 * MIN); h.run({ t: 'agenda.pause' }); h.tick(MIN)
     h.run({ t: 'agenda.end' })
     expect(h.state.agenda!.current).toBe(2)
+    expect(h.state.agenda!.phases[1]!.actualMs).toBe(4 * MIN)
     expect(h.run({ t: 'agenda.next' })).toEqual({ ok: false, error: 'invalid' })
     expect(h.run({ t: 'agenda.pause' })).toEqual({ ok: false, error: 'invalid' })
   })

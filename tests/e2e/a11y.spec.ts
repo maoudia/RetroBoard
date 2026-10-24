@@ -29,6 +29,15 @@ test.describe('accessibility (axe)', () => {
     }
   })
 
+  test('retro report dialog', async ({ page }) => {
+    await createBoard(page, { theme: 'studio', template: 'start-stop-continue' })
+    await publishNote(page, 0, 'Report me')
+    await page.getByTestId('btn-export').click()
+    await page.getByTestId('export-report').click()
+    await expect(page.getByTestId('report')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+  })
+
   test('board creation page', async ({ page }) => {
     await page.goto('/new')
     await expect(page.getByTestId('setup-form')).toBeVisible()

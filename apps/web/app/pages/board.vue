@@ -179,6 +179,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <ActionsDrawer />
       <ShareDialog :passcode="passcode" />
       <RankingDialog />
+      <ReportDialog />
       <ActionsReviewDialog />
       <OptionsDialog />
       <NameDialog />

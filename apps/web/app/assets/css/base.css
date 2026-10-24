@@ -124,3 +124,10 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 /* "Similar idea" link: the existing note blinks once. */
 .note.flash { animation: flash 1.2s var(--ease) 1; }
 @keyframes flash { 30% { box-shadow: 0 0 0 4px var(--accent); } }
+
+/* Report printing: only the report copy is printed (ReportDialog). */
+.report-print { display: none; }
+@media print {
+  :root[data-print="report"] body > :not(.report-print) { display: none !important; }
+  :root[data-print="report"] .report-print { display: block; padding: 0 1rem; color: #000; background: #fff; }
+}

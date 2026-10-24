@@ -68,3 +68,4 @@ export function toActionsCsv(s: Pick<Snapshot, 'actions' | 'settings'>): string 
   for (const a of s.actions) rows.push([a.text, a.owner, JIRA_STATUS[a.status], a.due ?? '', `retro:${s.settings.title.replace(/\s+/g, '-')}`])
   return rows.map((r) => r.map(csvCell).join(',')).join('\n') + '\n'
 }
+export * from './report-html'
