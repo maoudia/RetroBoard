@@ -8,7 +8,7 @@
  */
 import { EventLog, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
-import { buildSnapshot, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer } from '@retroboard/domain'
+import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
 import { HybridClock } from '@retroboard/sync'
 import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parsePresence, parseRelayFrame, parseSignedEvent, type Presence, type RelayFrame } from '@retroboard/protocol'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
@@ -29,6 +29,7 @@ export interface EncryptedDeps {
 
 const toError = (reason: IgnoreReason): ErrorCode =>
   reason === 'rate-limited' ? 'limit-reached'
+    : reason === 'hidden' ? 'forbidden'
     : reason === 'not-facilitator' || reason === 'no-genesis' || reason === 'bad-genesis' || reason === 'duplicate-genesis' ? 'forbidden' : reason
 
 export function buildWs2Url(base: string, roomId: string, loc: Pick<Location, 'protocol' | 'host'>): string {
@@ -84,6 +85,12 @@ export class EncryptedRelayTransport implements BoardTransport {
     if (this.ws?.readyState !== 1 || !this.synced || !this.identity) return false
     const body: EventBody = { t: 'cmd', cmd: command, name: this.identity.name || null, showName: this.identity.showName }
     this.enqueue(() => this.publishLocal(body))
+    return true
+  }
+
+  sendRole(change: RoleBody['t'], key: string): boolean {
+    if (this.ws?.readyState !== 1 || !this.synced) return false
+    this.enqueue(() => this.publishLocal({ t: change, key }))
     return true
   }
 
@@ -244,7 +251,7 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   private async announce(): Promise<void> {
     if (!this.conn || !this.identity || this.ws?.readyState !== 1) return
-    const p: Presence = { t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName }
+    const p: Presence = { t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, key: this.deps.session.publicKey, ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}) }
     const head = { v: PROTOCOL_VERSION, room: this.ring.roomId, id: ulid(), hlc: this.now() } as const
     const ct = await seal(this.deps.contentKey, utf8(JSON.stringify(p)), utf8(envelopeAad(head)))
     this.ws.send(JSON.stringify({ t: 'eph', env: { ...head, ct: toBase64Url(ct) } }))
@@ -310,16 +317,35 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.emit()
   }
 
+  /** My best role: as this tab's session key, or through the facilitator key of my link. */
+  private myRole(): Role {
+    const ledger = this.log.ledger
+    const roles = [roleOf(ledger, this.deps.session.publicKey), ...(this.deps.facilitator ? [roleOf(ledger, this.deps.facilitator.publicKey)] : [])]
+    return roles.includes('facilitator') ? 'facilitator' : roles.includes('co-facilitator') ? 'co-facilitator' : 'participant'
+  }
+
   private peers(): Peer[] {
-    const list = this.conns.map((c) => ({ name: this.presence.get(c)?.showName ? this.presence.get(c)!.name : (c === this.conn && this.identity?.showName ? this.identity.name || null : null), me: c === this.conn }))
-    if (!list.some((p) => p.me)) list.unshift({ name: this.identity?.showName ? this.identity.name || null : null, me: true })
+    const ledger = this.log.ledger
+    const rank: Record<Role, number> = { facilitator: 2, 'co-facilitator': 1, participant: 0 }
+    const best = (keys: (string | undefined)[]): Role => keys.filter((k): k is string => !!k).map((k) => roleOf(ledger, k)).sort((a, b) => rank[b] - rank[a])[0] ?? 'participant'
+    const describe = (key: string | undefined, fkey?: string) => (key ? { key, role: best([key, fkey]), hidden: ledger.hidden.includes(key) } : {})
+    const list: Peer[] = this.conns.map((c) => {
+      if (c === this.conn) return { name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole() }
+      const p = this.presence.get(c)
+      return { name: p?.showName ? p.name : null, me: false, ...describe(p?.key, p?.fkey) }
+    })
+    if (!list.some((p) => p.me)) list.unshift({ name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole() })
     return list.sort((x, y) => Number(y.me) - Number(x.me) || (x.name ?? '').localeCompare(y.name ?? ''))
   }
 
   /** Before the relay answers, the board can already show what the local replica holds. */
   private emit(): void {
     if (!this.synced && this.log.ledger.facilitatorKey === null) return
-    this.handlers.onSnapshot(buildSnapshot(this.log.ledger.board, { cid: this.actorKey }, this.peers(), this.now()))
+    const ledger = this.log.ledger
+    const role = this.myRole()
+    const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
+    const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), canManageRoles: lead }
+    this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now()), access })
   }
 
   private open(): void {

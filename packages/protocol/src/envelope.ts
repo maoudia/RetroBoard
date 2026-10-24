@@ -66,8 +66,7 @@ const Name = v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.displayN
 const EventBodySchema = v.variant('t', [
   v.strictObject({ t: v.literal('genesis'), roomId: v.pipe(v.string(), v.regex(ROOM_ID_RE)), facilitatorKey: Key }),
   v.strictObject({ t: v.literal('cmd'), cmd: CommandSchema, name: Name, showName: v.boolean() }),
-  v.strictObject({ t: v.literal('role.delegate'), key: Key }),
-  v.strictObject({ t: v.literal('role.revoke'), key: Key }),
+  v.strictObject({ t: v.picklist(['role.delegate', 'role.revoke', 'role.handover', 'participant.hide', 'participant.unhide']), key: Key }),
 ])
 
 /** Plaintext inside a `pub` envelope. */
@@ -85,6 +84,10 @@ export const PresenceSchema = v.strictObject({
   conn: ConnId,
   name: Name,
   showName: v.boolean(),
+  /** Session signing key, so peers can show roles. A hint only: rights come from the signed log. */
+  key: v.optional(Key),
+  /** Facilitator public key when this browser holds the facilitator link (public: it is in the genesis). */
+  fkey: v.optional(Key),
 })
 export type Presence = v.InferOutput<typeof PresenceSchema>
 

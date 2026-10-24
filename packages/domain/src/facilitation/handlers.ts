@@ -38,6 +38,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       secretVoting: c.secretVoting ?? s.settings.secretVoting,
       locked: c.locked ?? s.settings.locked,
       browserAgentsAllowed: c.browserAgentsAllowed ?? s.settings.browserAgentsAllowed,
+      openFacilitation: c.openFacilitation ?? s.settings.openFacilitation,
       themeId: c.themeId ?? s.settings.themeId,
     }
     return done({ ...s, settings }, { meta: true })

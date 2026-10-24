@@ -53,6 +53,8 @@ export interface BoardSettings {
   locked: boolean
   /** Facilitator policy: may participants let AI agents in their browser use this board (WebMCP)? */
   browserAgentsAllowed: boolean
+  /** Facilitation open to everyone: privileged commands are accepted from any participant (encrypted boards). */
+  openFacilitation: boolean
   themeId: string
   templateId: string | null
   /** False until the first participant picks a template and theme (board.init). */
@@ -115,6 +117,10 @@ export interface SnapshotNote {
 export interface Peer {
   name: string | null
   me: boolean
+  /** Encrypted boards: role and session key of this participant (absent on legacy boards). */
+  role?: 'facilitator' | 'co-facilitator' | 'participant'
+  key?: string
+  hidden?: boolean
 }
 
 export interface Snapshot {
@@ -129,6 +135,8 @@ export interface Snapshot {
   timer: TimerState
   peers: Peer[]
   votesLeft: number
+  /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */
+  access?: { role: 'facilitator' | 'co-facilitator' | 'participant'; canSteer: boolean; canManageRoles: boolean }
 }
 
 export interface ServerError {

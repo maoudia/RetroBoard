@@ -19,7 +19,7 @@ const limit = computed(() => board.settings?.voteLimit ?? 0)
       <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span>
     </div>
     <div class="right">
-      <button class="btn btn-sm" type="button" :aria-pressed="board.secretVoting" data-testid="secret-toggle" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting })">
+      <button class="btn btn-sm" type="button" :aria-pressed="board.secretVoting" data-testid="secret-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting })">
         <Icon :name="board.secretVoting ? 'lucide:eye-off' : 'lucide:eye'" /> {{ t('votebar.secret', { state: board.secretVoting ? t('votebar.on') : t('votebar.off') }) }}
       </button>
       <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked" data-testid="publish-all" @click="publish()">

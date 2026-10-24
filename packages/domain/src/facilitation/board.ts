@@ -24,6 +24,7 @@ export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
       secretVoting: false,
       locked: false,
       browserAgentsAllowed: true,
+      openFacilitation: false,
       themeId: DEFAULT_THEME_ID,
       templateId: template.id,
       initialized: false,

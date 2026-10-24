@@ -18,6 +18,9 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 <template>
   <BaseDialog v-model:open="open" :title="t('options.title')" width="640px">
     <template v-if="board.settings">
+      <p v-if="!board.access.canSteer" class="readonly" role="note" data-testid="opt-readonly"><Icon name="lucide:lock" /> {{ t('roles.readonly') }}</p>
+      <!-- Facilitation settings: read-only for participants (native disabled fieldset). -->
+      <fieldset class="steer" :disabled="!board.access.canSteer">
       <label class="lbl">{{ t('options.name') }}
         <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="opt-title" @blur="saveTitle" @keydown.enter.prevent="saveTitle" />
       </label>
@@ -44,6 +47,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.browserAgents') }}</strong><small class="muted">{{ t('options.browserAgents.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @change="set({ browserAgentsAllowed: ($event.target as HTMLInputElement).checked })" />
         </label>
+        <label v-if="board.access.canManageRoles" class="line">
+          <span><strong>{{ t('roles.open') }}</strong><small class="muted">{{ t('roles.open.hint') }}</small></span>
+          <input type="checkbox" role="switch" class="switch" :checked="s.openFacilitation" data-testid="opt-open-facilitation" @change="set({ openFacilitation: ($event.target as HTMLInputElement).checked })" />
+        </label>
       </section>
 
       <section class="grp">
@@ -57,7 +64,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.columns') }}</strong><small class="muted">{{ t('options.columns.hint') }}</small></span>
           <span class="btns">
             <button class="btn btn-sm" type="button" data-testid="opt-add-column" @click="ui.editColumn(null)"><Icon name="lucide:plus" /> {{ t('options.column') }}</button>
-            <button class="btn btn-sm" type="button" data-testid="opt-template" @click="ui.open('template')"><Icon name="lucide:wand-sparkles" /> {{ t('options.changeFormat') }}</button>
+            <button class="btn btn-sm" type="button" data-testid="opt-template" :disabled="!board.access.canSteer" @click="ui.open('template')"><Icon name="lucide:wand-sparkles" /> {{ t('options.changeFormat') }}</button>
           </span>
         </div>
       </section>
@@ -69,12 +76,16 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <button class="btn btn-danger btn-sm" type="button" data-testid="opt-reset" @click="resetAsk = true"><Icon name="lucide:trash" /> {{ t('options.resetBtn') }}</button>
         </div>
       </section>
+      </fieldset>
     </template>
     <ConfirmDialog v-model:open="resetAsk" danger :title="t('options.resetConfirm.title')" :confirm-label="t('options.resetConfirm.ok')" :message="t('options.resetConfirm.msg')" @confirm="board.commands.resetBoard(); ui.close()" />
   </BaseDialog>
 </template>
 
 <style scoped>
+.steer { display: contents; border: 0; margin: 0; padding: 0; min-width: 0; }
+.steer:disabled :is(.line, .lbl) { opacity: .6; }
+.readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: 10px; background: var(--surface2); font-weight: 600; }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: 1.05rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

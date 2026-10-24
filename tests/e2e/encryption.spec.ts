@@ -45,21 +45,68 @@ test('the relay only sees ciphertext; the key never leaves the fragment', async 
   await bob.ctx.close()
 })
 
-test('a participant cannot steer the board', async ({ page, browser }) => {
+test('roles: participants are read-only; the facilitator promotes, hands over and hides', async ({ page, browser }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await page.getByTestId('btn-share').click()
   const bob = await join(browser, await page.getByTestId('share-url').inputValue(), 'Bob')
   await page.keyboard.press('Escape')
-  // Bob tries to lock the board: his forged settings event is ignored by every replica.
+
+  // Bob is a participant: facilitation controls are read-only, with a hint.
+  await expect(bob.page.getByTestId('timer-toggle')).toBeDisabled()
+  await bob.page.getByTestId('btn-options').click()
+  await expect(bob.page.getByTestId('opt-readonly')).toBeVisible()
+  await expect(bob.page.getByTestId('opt-lock')).toBeDisabled()
+  await bob.page.keyboard.press('Escape')
+
+  // Everyone sees who facilitates.
+  await bob.page.getByTestId('btn-participants').click()
+  await expect(bob.page.getByTestId('peers').locator('[data-role="facilitator"]')).toContainText('Alice')
+  await bob.page.keyboard.press('Escape')
+
+  // Alice promotes Bob: he can now lock the board for everyone.
+  await page.getByTestId('btn-participants').click()
+  const bobRow = page.getByTestId('peers').locator('li', { hasText: 'Bob' })
+  await bobRow.getByTestId('role-promote').click()
+  await expect(bobRow).toHaveAttribute('data-role', 'co-facilitator')
+  await page.keyboard.press('Escape')
+  await expect(bob.page.getByTestId('timer-toggle')).toBeEnabled()
   await bob.page.getByTestId('btn-options').click()
   await bob.page.getByTestId('opt-lock').check()
-  await bob.page.waitForTimeout(500)
-  await expect(page.locator('.page')).toHaveAttribute('data-locked', 'false')
-  await expect(bob.page.locator('.page')).toHaveAttribute('data-locked', 'false')
-  // The facilitator can.
-  await page.getByTestId('btn-options').click()
-  await page.getByTestId('opt-lock').check()
-  await expect(bob.page.locator('.page')).toHaveAttribute('data-locked', 'true')
+  await expect(page.locator('.page')).toHaveAttribute('data-locked', 'true')
+  await bob.page.getByTestId('opt-lock').uncheck()
+  await bob.page.keyboard.press('Escape')
+
+  // Hand-over: Bob becomes facilitator, Alice stays co-facilitator.
+  await page.getByTestId('btn-participants').click()
+  await bobRow.getByTestId('role-handover').click()
+  await page.getByTestId('confirm').click()
+  if (!(await page.getByTestId('peers').isVisible())) await page.getByTestId('btn-participants').click()
+  await expect(page.getByTestId('peers').locator('li', { hasText: 'Bob' })).toHaveAttribute('data-role', 'facilitator')
+  await expect(page.getByTestId('peers').locator('li', { hasText: 'Alice' })).toHaveAttribute('data-role', 'co-facilitator')
+  await page.keyboard.press('Escape')
+  await bob.ctx.close()
+})
+
+test('roles: hiding a participant hides their new notes for everyone', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-share').click()
+  const bob = await join(browser, await page.getByTestId('share-url').inputValue(), 'Bob')
+  await page.keyboard.press('Escape')
+  await publishNote(bob.page, 0, 'Before hiding')
+  await expect(noteByText(page, 'Before hiding')).toBeVisible()
+
+  await page.getByTestId('btn-participants').click()
+  await page.getByTestId('peers').locator('li', { hasText: 'Bob' }).getByTestId('role-hide').click()
+  await expect(page.getByText(/move to a new board|passe sur un nouveau board/)).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  const col = bob.page.locator('section[data-testid^="column-"]').nth(0)
+  await col.locator('textarea').fill('After hiding')
+  await col.locator('textarea').press('Enter')
+  await col.locator('[data-testid^="publish-"]').click()
+  await page.waitForTimeout(800)
+  await expect(noteByText(page, 'After hiding')).toHaveCount(0)
+  await expect(noteByText(page, 'Before hiding')).toBeVisible()
   await bob.ctx.close()
 })
 

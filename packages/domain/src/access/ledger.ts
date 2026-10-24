@@ -19,8 +19,17 @@ import { KEY_RE, ROOM_ID_RE } from './keyring'
 
 export interface GenesisBody { readonly t: 'genesis'; readonly roomId: string; readonly facilitatorKey: string }
 export interface CommandBody { readonly t: 'cmd'; readonly cmd: Command; readonly name: string | null; readonly showName: boolean }
-export interface DelegateBody { readonly t: 'role.delegate' | 'role.revoke'; readonly key: string }
-export type EventBody = GenesisBody | CommandBody | DelegateBody
+/**
+ * Role events, by session public key: delegate (co-facilitator), revoke, hand over (the key
+ * becomes the facilitator, the previous one stays co-facilitator), hide/unhide a participant.
+ */
+export interface RoleBody {
+  readonly t: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide'
+  readonly key: string
+}
+/** @deprecated name kept for readers of earlier code: same as RoleBody. */
+export type DelegateBody = RoleBody
+export type EventBody = GenesisBody | CommandBody | RoleBody
 
 export interface VerifiedEvent {
   /** Globally unique, sortable (ULID). Seeds deterministic ids created by this event. */
@@ -34,17 +43,21 @@ export interface VerifiedEvent {
 
 export interface Ledger {
   readonly roomId: string
-  /** null until a valid genesis is folded. */
+  /** Genesis key (root of trust, the creator's facilitator link). null until a valid genesis. */
   readonly facilitatorKey: string | null
-  /** Facilitator plus delegated co-facilitators. */
+  /** Current facilitator: the genesis key, or whoever it was handed over to. */
+  readonly lead: string | null
+  /** Facilitator, root and co-facilitators: may steer the board. */
   readonly facilitators: readonly string[]
+  /** Participants whose events are ignored from now on (their earlier content stays). */
+  readonly hidden: readonly string[]
   readonly board: BoardState
   readonly applied: number
   /** Clocks of each author's recent accepted events (rate limit window). */
   readonly recent: Readonly<Record<string, readonly number[]>>
 }
 
-export type IgnoreReason = 'no-genesis' | 'bad-genesis' | 'duplicate-genesis' | 'not-facilitator' | 'rate-limited' | ErrorCode
+export type IgnoreReason = 'no-genesis' | 'bad-genesis' | 'duplicate-genesis' | 'not-facilitator' | 'rate-limited' | 'hidden' | ErrorCode
 
 export type FoldResult =
   | { readonly ok: true; readonly ledger: Ledger }
@@ -61,6 +74,22 @@ export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType
 /** Genesis and role changes are always privileged; commands depend on their type. */
 export const isPrivileged = (body: EventBody): boolean => (body.t === 'cmd' ? PRIVILEGED_COMMANDS.has(body.cmd.t) : true)
 
+/** Role changes: only the current facilitator or the genesis key, never a co-facilitator. */
+const isRoleChange = (body: EventBody): body is RoleBody => body.t !== 'cmd' && body.t !== 'genesis'
+
+export type Role = 'facilitator' | 'co-facilitator' | 'participant'
+
+/** Role of a signing key in this ledger. Legacy (no genesis) boards have no roles: everyone steers. */
+export function roleOf(ledger: Ledger, key: string): Role {
+  if (ledger.facilitatorKey === null) return 'facilitator'
+  if (key === ledger.lead) return 'facilitator'
+  return ledger.facilitators.includes(key) ? 'co-facilitator' : 'participant'
+}
+
+/** May this key run privileged commands right now? */
+export const canSteer = (ledger: Ledger, key: string): boolean =>
+  roleOf(ledger, key) !== 'participant' || ledger.board.settings.openFacilitation
+
 /** Ids derived from the event id, identical on every replica. */
 const idsFrom = (eventId: string) => {
   let n = 0
@@ -68,7 +97,7 @@ const idsFrom = (eventId: string) => {
 }
 
 export function emptyLedger(roomId: string): Ledger {
-  return { roomId, facilitatorKey: null, facilitators: [], board: createBoard({ newId: idsFrom(`genesis-${roomId}`) }), applied: 0, recent: {} }
+  return { roomId, facilitatorKey: null, lead: null, facilitators: [], hidden: [], board: createBoard({ newId: idsFrom(`genesis-${roomId}`) }), applied: 0, recent: {} }
 }
 
 const ignore = (ledger: Ledger, reason: IgnoreReason): FoldResult => ({ ok: false, ledger, reason })
@@ -92,20 +121,34 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (ledger.facilitatorKey !== null) return ignore(ledger, 'duplicate-genesis')
     const valid = body.roomId === ledger.roomId && ROOM_ID_RE.test(body.roomId) && KEY_RE.test(body.facilitatorKey) && author === body.facilitatorKey
     if (!valid) return ignore(ledger, 'bad-genesis')
-    return applied(ledger, { facilitatorKey: author, facilitators: [author] })
+    return applied(ledger, { facilitatorKey: author, lead: author, facilitators: [author] })
   }
   if (ledger.facilitatorKey === null) return ignore(ledger, 'no-genesis')
-  if (isPrivileged(body) && !ledger.facilitators.includes(author)) return ignore(ledger, 'not-facilitator')
+  if (ledger.hidden.includes(author)) return ignore(ledger, 'hidden')
+  if (isRoleChange(body)) {
+    if (author !== ledger.lead && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
+    if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
+  } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
+    return ignore(ledger, 'not-facilitator')
+  }
 
+  const without = (list: readonly string[], key: string) => list.filter((k) => k !== key)
   switch (body.t) {
     case 'role.delegate':
-      if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
       if (ledger.facilitators.includes(body.key)) return applied(ledger, {})
       return applied(ledger, { facilitators: [...ledger.facilitators, body.key] })
     case 'role.revoke':
-      // The genesis key is the root of trust and cannot be revoked.
-      if (body.key === ledger.facilitatorKey) return ignore(ledger, 'forbidden')
-      return applied(ledger, { facilitators: ledger.facilitators.filter((k) => k !== body.key) })
+      // The genesis key is the root of trust, and the facilitator must hand over first.
+      if (body.key === ledger.facilitatorKey || body.key === ledger.lead) return ignore(ledger, 'forbidden')
+      return applied(ledger, { facilitators: without(ledger.facilitators, body.key) })
+    case 'role.handover':
+      if (ledger.hidden.includes(body.key)) return ignore(ledger, 'forbidden')
+      return applied(ledger, { lead: body.key, facilitators: ledger.facilitators.includes(body.key) ? ledger.facilitators : [...ledger.facilitators, body.key] })
+    case 'participant.hide':
+      if (ledger.facilitators.includes(body.key)) return ignore(ledger, 'forbidden')
+      return applied(ledger, { hidden: ledger.hidden.includes(body.key) ? ledger.hidden : [...ledger.hidden, body.key] })
+    case 'participant.unhide':
+      return applied(ledger, { hidden: without(ledger.hidden, body.key) })
     case 'cmd': {
       const out = reduce(ledger.board, body.cmd, { cid: author, name: body.name, showName: body.showName }, { now: event.at, newId: idsFrom(event.id) })
       return out.ok ? applied(ledger, { board: out.state }) : ignore(ledger, out.error)

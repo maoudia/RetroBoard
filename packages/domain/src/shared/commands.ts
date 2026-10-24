@@ -27,7 +27,7 @@ export type Command =
   | { t: 'column.move'; id: string; toIndex: number }
   | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale }
   | { t: 'template.apply'; templateId: string; wipe?: boolean; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; themeId?: string }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string }
   | { t: 'action.add'; text: string; owner: string }
   | { t: 'action.toggle'; id: string; done: boolean }
   | { t: 'action.delete'; id: string }

@@ -13,7 +13,7 @@ export interface BoardCommandDeps {
   view(): Snapshot | null
 }
 
-export interface SettingsPatch { title?: string; voteLimit?: number; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; themeId?: string }
+export interface SettingsPatch { title?: string; voteLimit?: number; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string }
 export interface ColumnInput { title: string; subtitle?: string; icon?: Extract<Command, { t: 'column.add' }>['icon'] }
 
 /**
