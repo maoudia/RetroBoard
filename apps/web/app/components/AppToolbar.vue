@@ -46,5 +46,6 @@ const theme = useThemeStore()
   .timer-slot { grid-column: 2; grid-row: 1; }
   .tools { grid-column: 1 / -1; justify-content: space-between; }
 }
-@media (max-width: 720px) { .icon-btn span:not(.badge) { display: none; } .icon-btn { min-width: 44px; } }
+/* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
+@media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } }
 </style>

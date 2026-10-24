@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, publishNote } from './helpers'
+import { collectProblems, createBoard, publishNote } from './helpers'
 
 /**
  * A fake WebMCP model context (document.modelContext), shaped like the July 2026 draft.
@@ -98,9 +98,7 @@ test.describe('WebMCP browser agents', () => {
 })
 
 test('without native WebMCP, opting in loads the polyfill with no CSP or console error', async ({ page }) => {
-  const errors: string[] = []
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
-  page.on('pageerror', (e) => errors.push(String(e)))
+  const errors = await collectProblems(page)
   await createBoard(page, { template: 'start-stop-continue' })
   expect(await page.evaluate(() => 'modelContext' in document || 'modelContext' in navigator)).toBe(false)
   await enableAgents(page)

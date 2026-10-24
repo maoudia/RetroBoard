@@ -10,6 +10,9 @@ import { exportLabels, toMarkdown } from '~/utils/export'
  */
 let polyfill: Promise<void> | null = null
 function loadPolyfill(): Promise<void> {
+  // Zod (inside the polyfill) probes `new Function` unless jitless; strict CSPs report that probe as a violation.
+  const g = globalThis as { __zod_globalConfig?: { jitless?: boolean } }
+  g.__zod_globalConfig = { ...g.__zod_globalConfig, jitless: true }
   polyfill ??= import('@mcp-b/global')
     .then((m) => { if (!findModelContext()) m.initializeWebModelContext() })
     .catch(() => { polyfill = null })

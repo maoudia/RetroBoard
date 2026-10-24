@@ -48,3 +48,21 @@ export async function publishNote(page: Page, colIndex: number, text: string) {
 }
 
 export const noteByText = (page: Page, text: string) => page.locator('article.note', { hasText: text })
+
+/**
+ * Collects console errors, page errors and CSP violations with their details
+ * (browsers word CSP console messages differently and some omit the blocked resource).
+ */
+export async function collectProblems(page: Page): Promise<string[]> {
+  const problems: string[] = []
+  page.on('console', (m) => { if (m.type() === 'error') problems.push(m.text()) })
+  page.on('pageerror', (e) => problems.push(String(e)))
+  await page.exposeFunction('__reportCsp', (s: string) => problems.push(s))
+  await page.addInitScript(() => {
+    document.addEventListener('securitypolicyviolation', (e) => {
+      const report = (window as unknown as { __reportCsp: (s: string) => void }).__reportCsp
+      report(`CSP ${e.effectiveDirective} blocked=${e.blockedURI} source=${e.sourceFile}:${e.lineNumber} sample=${e.sample}`)
+    })
+  })
+  return problems
+}

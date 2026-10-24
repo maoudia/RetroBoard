@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard, join, noteByText, publishNote } from './helpers'
+import { collectProblems, column, createBoard, join, noteByText, publishNote } from './helpers'
 
 test.describe('board lifecycle', () => {
   test('creates a themed board from a template', async ({ page }) => {
@@ -136,10 +136,16 @@ test.describe('columns', () => {
     await expect(noteByText(bob, 'Pourquoi ?')).toHaveCount(0)
   })
 
-  test('moving a note between columns by drag and drop', async ({ page }) => {
+  test('moving a note between columns (drag and drop, or the note menu on touch screens)', async ({ page }, info) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await publishNote(page, 0, 'Déplaçable')
-    await noteByText(page, 'Déplaçable').dragTo(column(page, 2))
+    if (info.project.use.hasTouch) {
+      // HTML drag and drop needs a mouse; touch users move notes from the note menu.
+      await noteByText(page, 'Déplaçable').locator('[data-testid^="note-menu-"]').click()
+      await page.getByRole('menuitem', { name: 'Continue' }).click()
+    } else {
+      await noteByText(page, 'Déplaçable').dragTo(column(page, 2))
+    }
     await expect(column(page, 2).locator('article.note', { hasText: 'Déplaçable' })).toBeVisible()
     await expect(column(page, 0).locator('article.note')).toHaveCount(0)
   })
@@ -229,9 +235,7 @@ test('invalid links are explained', async ({ page }) => {
 })
 
 test('no CSP violation or console error across the main flows', async ({ page }) => {
-  const problems: string[] = []
-  page.on('console', (m) => { if (m.type() === 'error') problems.push(m.text()) })
-  page.on('pageerror', (e) => problems.push(e.message))
+  const problems = await collectProblems(page)
   await createBoard(page, { template: 'weather' })
   await publishNote(page, 0, 'CSP')
   await page.getByTestId('btn-options').click()

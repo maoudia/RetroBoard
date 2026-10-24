@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { collectProblems, createBoard } from './helpers'
 
 test.describe('landing', () => {
   test('presents the product in a light, theme-independent design', async ({ page }) => {
@@ -89,9 +89,7 @@ test.describe('i18n', () => {
 
 test.describe('no console errors', () => {
   test('landing, setup, board and profile are clean (CSP included)', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
-    page.on('pageerror', (e) => errors.push(String(e)))
+    const errors = await collectProblems(page)
     await page.goto('/')
     await page.mouse.wheel(0, 4000)
     await page.getByTestId('lp-tab-fun').click()

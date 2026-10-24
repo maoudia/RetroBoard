@@ -222,7 +222,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 @keyframes pickme { 0%, 30%, 100% { background: var(--fill); color: var(--ink); transform: none; } 8%, 24% { background: var(--blue); color: #fff; transform: scale(1.06); } }
 
 .tabs { display: inline-flex; gap: 4px; margin-top: 1.6rem; padding: 4px; border-radius: 999px; background: #e8e8ed; }
-.tabs button { padding: .5rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--ink2); font: inherit; font-weight: 600; cursor: pointer; transition: background .25s, color .25s, box-shadow .25s; }
+.tabs button { padding: .5rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: #48484c; font: inherit; font-weight: 600; cursor: pointer; transition: background .25s, color .25s, box-shadow .25s; }
 .tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgb(0 0 0 / .12); }
 .theme-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.6rem; margin-top: 2.4rem; text-align: left; }
 .tc-enter-active { transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1); } .tc-enter-from { opacity: 0; transform: translateY(20px) scale(.96); }

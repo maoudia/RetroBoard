@@ -30,6 +30,13 @@ export default defineNuxtConfig({
       ],
     },
   },
+  hooks: {
+    // No <link rel="prefetch">: Firefox checks prefetch against default-src 'none' (there is no
+    // prefetch-src), so every hint was a CSP violation. Modulepreload of the entry stays.
+    'build:manifest'(manifest) {
+      for (const entry of Object.values(manifest)) entry.prefetch = false
+    },
+  },
   icon: {
     mode: 'svg',
     provider: 'none', // never call the Iconify API at runtime: bundle what we use

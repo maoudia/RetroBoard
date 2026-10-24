@@ -33,7 +33,7 @@ const rows = cols.map((c) => ({ ...c, items: c.notes.map((key) => ({ key, d: del
       </section>
     </div>
     <span class="cursor a"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#0071e3" /></svg><em>Alice</em></span>
-    <span class="cursor b"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#34c759" /></svg><em>Bob</em></span>
+    <span class="cursor b"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#1b7f3b" /></svg><em>Bob</em></span>
   </div>
 </template>
 
@@ -64,7 +64,7 @@ h4 i { width: 10px; height: 10px; border-radius: 3px; }
 @keyframes spin { to { rotate: 360deg; } }
 .cursor { position: absolute; display: inline-flex; align-items: flex-start; gap: 2px; pointer-events: none; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .2)); }
 .cursor em { margin-top: 12px; padding: 2px 8px; border-radius: 999px; color: #fff; font-size: 11px; font-style: normal; font-weight: 600; }
-.cursor.a em { background: #0071e3; } .cursor.b em { background: #34c759; }
+.cursor.a em { background: #0071e3; } .cursor.b em { background: #1b7f3b; }
 .cursor.a { animation: wander-a 11s ease-in-out infinite; } .cursor.b { animation: wander-b 13s ease-in-out infinite; }
 @keyframes wander-a { 0%, 100% { left: 18%; top: 38%; } 30% { left: 46%; top: 62%; } 60% { left: 70%; top: 46%; } 80% { left: 30%; top: 74%; } }
 @keyframes wander-b { 0%, 100% { left: 78%; top: 70%; } 25% { left: 52%; top: 44%; } 55% { left: 24%; top: 58%; } 80% { left: 64%; top: 34%; } }

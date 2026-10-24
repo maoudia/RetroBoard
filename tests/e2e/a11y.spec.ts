@@ -11,6 +11,9 @@ async function audit(page: Page) {
 }
 
 test.describe('accessibility (axe)', () => {
+  // Contrast is measured on settled frames: mid-animation opacity is transient, not a violation.
+  test.beforeEach(async ({ page }) => { await page.emulateMedia({ reducedMotion: 'reduce' }) })
+
   test('landing page', async ({ page }) => {
     await page.goto('/')
     await page.mouse.wheel(0, 6000)

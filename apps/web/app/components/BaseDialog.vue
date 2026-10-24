@@ -5,12 +5,23 @@ const props = withDefaults(defineProps<{ open: boolean; title: string; width?: s
 })
 const emit = defineEmits<{ 'update:open': [value: boolean] }>()
 const el = ref<HTMLDialogElement | null>(null)
+/** Set when the parent closed the dialog: its 'close' event must not be reported back as a user close. */
+let closingFromProp = false
 
 function sync() {
   const d = el.value
   if (!d) return
   if (props.open && !d.open) d.showModal()
-  else if (!props.open && d.open) d.close()
+  else if (!props.open && d.open) { closingFromProp = true; d.close() }
+}
+
+/**
+ * The 'close' event is dispatched asynchronously. If the parent closed then reopened the dialog
+ * in between (a second confirmation right after the first), reporting it would cancel the new one.
+ */
+function onClose() {
+  if (closingFromProp) { closingFromProp = false; sync(); return }
+  emit('update:open', false)
 }
 watch(() => props.open, sync, { flush: 'post' })
 onMounted(sync)
@@ -23,7 +34,7 @@ function onBackdrop(e: MouseEvent) {
 <template>
   <dialog
     ref="el" class="dlg" :style="{ '--dlg-w': width }" :aria-label="title"
-    @close="emit('update:open', false)" @cancel="(e) => { if (!closable) e.preventDefault() }" @click="onBackdrop"
+    @close="onClose" @cancel="(e) => { if (!closable) e.preventDefault() }" @click="onBackdrop"
   >
     <template v-if="open">
       <header class="dlg-head">

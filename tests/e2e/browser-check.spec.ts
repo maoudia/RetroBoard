@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { collectProblems } from './helpers'
 
 // Runs in every project of the matrix (Chromium, Firefox, WebKit, phone, TV when CI is set).
 test('browser check page runs the crypto self-test and reports ready', async ({ page }) => {
-  const errors: string[] = []
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
-  page.on('pageerror', (e) => errors.push(String(e)))
+  const errors = await collectProblems(page)
   await page.goto('/')
   await page.getByTestId('link-check').click()
   await expect(page).toHaveURL(/\/check$/)
