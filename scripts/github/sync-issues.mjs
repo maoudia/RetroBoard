@@ -62,9 +62,16 @@ const gh = (method, path, body) => {
   const out = execFileSync('gh', body ? [...a, '--input', '-'] : a, { input: body ? JSON.stringify(body) : undefined, encoding: 'utf8' })
   return out ? JSON.parse(out) : null
 }
+// Manual pagination: following Link headers may hit numeric-id URLs that some proxies refuse.
 const ghAll = (path) => {
-  const out = execFileSync('gh', ['api', '--paginate', path, '--jq', '.[]'], { encoding: 'utf8' })
-  return out.trim() ? out.trim().split('\n').map((l) => JSON.parse(l)) : []
+  const all = []
+  for (let page = 1; ; page++) {
+    const sep = path.includes('?') ? '&' : '?'
+    const out = execFileSync('gh', ['api', `${path}${sep}page=${page}`], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+    const items = JSON.parse(out)
+    all.push(...items)
+    if (items.length < 100) return all
+  }
 }
 
 function readChange(name) {
