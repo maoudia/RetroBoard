@@ -18,7 +18,7 @@ context: |
   - Strict CSP (no unsafe-inline, no unsafe-eval), no cookies, no third-party trackers.
   - Integrations (Jira, Confluence, Google, Slack) run in the browser: files, rich clipboard, deep links,
     user-provided webhooks. No OAuth secrets and no tokens stored by us.
-  - Code license: FSL-1.1-ALv2 (self-host for own use allowed, no competing resale).
+  - Code license: pending owner decision (AGPL-3.0 or FSL-1.1-ALv2, see docs/PLAN.md ADR-10); do not change LICENSE.
   Specs are written in English. Requirements use SHALL/MUST and every requirement has scenarios.
 
 rules:

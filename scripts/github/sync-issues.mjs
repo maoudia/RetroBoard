@@ -54,7 +54,9 @@ const LABELS = [
   ...['A', 'B', 'C'].map((l) => [`lane:${l}`, 'fef2c0', `Parallel lane ${l}`]),
 ]
 
+const pause = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
 const gh = (method, path, body) => {
+  if (method !== 'GET') pause(1200) // stay under GitHub secondary rate limits for content creation
   const a = ['api', '-X', method, path, '-H', 'Accept: application/vnd.github+json']
   const out = execFileSync('gh', body ? [...a, '--input', '-'] : a, { input: body ? JSON.stringify(body) : undefined, encoding: 'utf8' })
   return out ? JSON.parse(out) : null
