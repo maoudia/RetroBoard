@@ -311,4 +311,13 @@ export const en: Record<keyof typeof fr, string> = {
   'profile.wipe.title': 'Erase local data?',
   'profile.wipe.msg': 'Your name, settings, unpublished drafts and the recent boards list will be removed from this browser.',
   'profile.wiped': 'Local data erased',
+  'agent.confirm.title': 'Action requested by an AI agent',
+  'agent.confirm.hint': 'An AI agent in your browser asks to change the shared board. Nothing changes if you decline.',
+  'agent.confirm.approve': 'Allow',
+  'agent.confirm.decline': 'Decline',
+  'profile.agents': 'Browser AI agents',
+  'profile.browserAgents': 'Allow AI agents in my browser',
+  'profile.browserAgents.hint': 'Exposes WebMCP tools (read the board, prepare drafts, propose actions). Your browser\'s agent may send board content to its AI service. Every shared change asks you first.',
+  'options.browserAgents': 'Browser AI agents',
+  'options.browserAgents.hint': 'Lets participants who enabled it allow the AI agent in their browser to use this board.',
 }

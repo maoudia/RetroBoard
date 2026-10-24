@@ -224,3 +224,14 @@ describe('actions', () => {
     expect(h.state.actions[id]).toBeUndefined()
   })
 })
+
+describe('browser agents policy', () => {
+  it('is allowed by default and can be turned off and on', () => {
+    const h = harness()
+    expect(h.state.settings.browserAgentsAllowed).toBe(true)
+    expect(h.run({ t: 'settings.update', browserAgentsAllowed: false }).ok).toBe(true)
+    expect(h.state.settings.browserAgentsAllowed).toBe(false)
+    h.run({ t: 'settings.update', title: 'Other' })
+    expect(h.state.settings.browserAgentsAllowed).toBe(false)
+  })
+})

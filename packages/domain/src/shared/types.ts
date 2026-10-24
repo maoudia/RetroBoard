@@ -51,6 +51,8 @@ export interface BoardSettings {
   voteLimit: number
   secretVoting: boolean
   locked: boolean
+  /** Facilitator policy: may participants let AI agents in their browser use this board (WebMCP)? */
+  browserAgentsAllowed: boolean
   themeId: string
   templateId: string | null
   /** False until the first participant picks a template and theme (board.init). */

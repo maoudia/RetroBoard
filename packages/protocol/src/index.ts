@@ -44,6 +44,7 @@ export const CommandSchema = v.variant('t', [
     voteLimit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(LIMITS.minVotes), v.maxValue(LIMITS.maxVotes))),
     secretVoting: v.optional(v.boolean()),
     locked: v.optional(v.boolean()),
+    browserAgentsAllowed: v.optional(v.boolean()),
     themeId: v.optional(v.pipe(v.string(), v.regex(/^[a-z0-9-]{1,24}$/))),
   }),
   v.object({

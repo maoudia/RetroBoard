@@ -114,6 +114,14 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
     </section>
 
     <section class="grp">
+      <h3>{{ t('profile.agents') }}</h3>
+      <label class="line">
+        <span><strong>{{ t('profile.browserAgents') }}</strong><small class="muted">{{ t('profile.browserAgents.hint') }}</small></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.browserAgents" data-testid="set-browser-agents" @change="set({ browserAgents: ($event.target as HTMLInputElement).checked })" />
+      </label>
+    </section>
+
+    <section class="grp">
       <h3>{{ t('profile.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h3>
       <p v-if="!recents.items.length" class="muted">{{ t('profile.recents.none') }}</p>
       <ul v-else class="recents" data-testid="recents">

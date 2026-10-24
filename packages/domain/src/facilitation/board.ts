@@ -23,6 +23,7 @@ export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
       voteLimit: DEFAULT_VOTE_LIMIT,
       secretVoting: false,
       locked: false,
+      browserAgentsAllowed: true,
       themeId: DEFAULT_THEME_ID,
       templateId: template.id,
       initialized: false,

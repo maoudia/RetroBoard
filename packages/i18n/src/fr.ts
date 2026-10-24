@@ -310,4 +310,13 @@ export const fr = {
   'profile.wipe.title': 'Effacer les données locales ?',
   'profile.wipe.msg': 'Ton nom, tes réglages, tes brouillons non publiés et la liste des boards récents seront supprimés de ce navigateur.',
   'profile.wiped': 'Données locales effacées',
+  'agent.confirm.title': 'Action demandée par un agent IA',
+  'agent.confirm.hint': 'Un agent IA de votre navigateur demande à modifier le board partagé. Rien ne change si vous refusez.',
+  'agent.confirm.approve': 'Autoriser',
+  'agent.confirm.decline': 'Refuser',
+  'profile.agents': 'Agents IA du navigateur',
+  'profile.browserAgents': 'Autoriser les agents IA de mon navigateur',
+  'profile.browserAgents.hint': 'Expose des outils WebMCP (lire le board, préparer des brouillons, proposer des actions). L\'agent de votre navigateur peut envoyer le contenu du board à son service d\'IA. Toute modification partagée vous est demandée.',
+  'options.browserAgents': 'Agents IA des navigateurs',
+  'options.browserAgents.hint': 'Permet aux participants qui l\'ont activé de laisser l\'agent IA de leur navigateur utiliser ce board.',
 } as const

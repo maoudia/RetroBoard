@@ -40,6 +40,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.lock') }}</strong><small class="muted">{{ t('options.lock.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.locked" data-testid="opt-lock" @change="set({ locked: ($event.target as HTMLInputElement).checked })" />
         </label>
+        <label class="line">
+          <span><strong>{{ t('options.browserAgents') }}</strong><small class="muted">{{ t('options.browserAgents.hint') }}</small></span>
+          <input type="checkbox" role="switch" class="switch" :checked="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @change="set({ browserAgentsAllowed: ($event.target as HTMLInputElement).checked })" />
+        </label>
       </section>
 
       <section class="grp">

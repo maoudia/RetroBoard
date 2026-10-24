@@ -2,20 +2,20 @@
 
 ## 1. Port, shim and polyfill
 
-- [ ] 1.1 Define `BrowserAgentPort` and the tool definition type in `packages/application`; verify unit tests with a fake port
-- [ ] 1.2 Implement the WebMCP adapter shim (document/navigator detection, register/unregister variants, confirmation fallbacks); verify unit tests against fake model contexts shaped like each known draft
+- [x] 1.1 Define `BrowserAgentPort` and the tool definition type in `packages/application`; verify unit tests with a fake port
+- [x] 1.2 Implement the WebMCP adapter shim (document/navigator detection, register/unregister variants, confirmation fallbacks); verify unit tests against fake model contexts shaped like each known draft
 - [ ] 1.3 Evaluate `@mcp-b/global` (license, size, network, CSP) and lazy-load it behind the setting; verify bundle budget and the CSP e2e guard with the polyfill on
 
 ## 2. Consent and policy
 
-- [ ] 2.1 Participant setting "Allow AI agents in my browser" with the privacy explanation (fr/en), default off; verify e2e that no tool registers when off
-- [ ] 2.2 Facilitator board policy "browser agents allowed" (signed event) and live unregistration; verify unit test and e2e with two contexts
+- [x] 2.1 Participant setting "Allow AI agents in my browser" with the privacy explanation (fr/en), default off; verify e2e that no tool registers when off
+- [x] 2.2 Facilitator board policy "browser agents allowed" (signed event) and live unregistration; verify unit test and e2e with two contexts
 
 ## 3. Tools
 
-- [ ] 3.1 Read tools (board summary, ideas and clusters, actions, agenda) with untrusted-content wrapping and hidden-count rules; verify unit tests per tool
-- [ ] 3.2 Write tools (write draft, publish drafts, vote, propose action, export Markdown) through application use cases with confirmations; verify unit tests (limits, roles, declined confirmation) and an e2e with a fake model context injected by Playwright
-- [ ] 3.3 Setup tools on landing and /new (list formats, suggest format, prepare board); verify e2e that creation needs the human click
+- [x] 3.1 Read tools (board summary, ideas and clusters, actions, agenda) with untrusted-content wrapping and hidden-count rules; verify unit tests per tool
+- [x] 3.2 Write tools (write draft, publish drafts, vote, propose action, export Markdown) through application use cases with confirmations; verify unit tests (limits, roles, declined confirmation) and an e2e with a fake model context injected by Playwright
+- [x] 3.3 Setup tools on landing and /new (list formats, suggest format, prepare board); verify e2e that creation needs the human click
 
 ## 4. Rollout
 

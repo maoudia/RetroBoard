@@ -31,6 +31,7 @@ function enter() {
 }
 
 onMounted(enter)
+useBoardAgentTools()
 watch(roomId, enter)
 onBeforeUnmount(() => board.disconnect())
 

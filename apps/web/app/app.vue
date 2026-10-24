@@ -2,4 +2,5 @@
   <NuxtPage />
   <ProfileDialog />
   <ToastHost />
+  <AgentConfirmDialog />
 </template>

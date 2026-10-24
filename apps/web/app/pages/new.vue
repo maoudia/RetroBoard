@@ -6,6 +6,7 @@ import { randomId } from '~/utils/storage'
 const { t, locale } = useT()
 
 const theme = useThemeStore()
+useSetupAgentTools()
 const settings = useSettingsStore()
 const router = useRouter()
 useHead({ title: computed(() => t('new.pageTitle')) })

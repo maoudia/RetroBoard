@@ -10,6 +10,16 @@ const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: Setu
 const d = new Date()
 const title = ref(t('setup.defaultTitle', { date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }))
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
+
+// A browser agent (WebMCP) may prepare the form; the human still reviews it and clicks Create.
+const agent = useAgentStore()
+watch(() => agent.setupDraft, (draft) => {
+  if (!draft) return
+  templateId.value = draft.templateId
+  if (draft.title) title.value = draft.title
+  if (draft.themeId) emit('update:themeId', draft.themeId)
+  agent.setupDraft = null
+}, { immediate: true })
 </script>
 
 <template>
