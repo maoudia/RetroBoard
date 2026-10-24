@@ -184,6 +184,12 @@ export const fr = {
   'share.copyFailed': 'Copie impossible: sélectionne le lien',
   'share.note.erase': 'Le board est effacé 24 h après la dernière activité.',
   'share.note.drafts': 'Les brouillons restent dans ton navigateur tant que tu ne les publies pas.',
+  'share.note.e2e': 'Chiffré de bout en bout : la clé est dans le lien après #, elle n\'atteint jamais notre serveur.',
+  'share.note.public': 'Toute personne qui a ce lien peut lire le board. Ne le publie pas dans un canal public.',
+  'share.note.passcode': 'Protégé par un code : envoie-le séparément, jamais dans le même message que le lien.',
+  'share.note.memory': 'Rien n\'est stocké sur le serveur : le board vit dans les navigateurs des participants et disparaît quand tout le monde est parti.',
+  'share.facilitator': 'Lien animateur',
+  'share.facilitator.hint': 'Il contient aussi la clé d\'animation (réglages, minuteur, remise à zéro). Garde-le pour toi ou donne-le seulement à un co-animateur.',
   'share.nativeTitle': 'Rétro',
 
   'name.title': 'Ton nom pour ce board',

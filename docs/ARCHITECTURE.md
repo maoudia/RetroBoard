@@ -19,7 +19,16 @@ Why: the same reducer runs in the Durable Object and in the browser (solo mode),
 Handlers are a map `type -> handler`, so adding a command is: a schema entry, a handler, a test.
 
 ### 2. One Durable Object per board
-`idFromName(roomId)` gives strong single-writer consistency per board without a database. Storage is SQLite-backed. WebSocket hibernation keeps idle boards free. An alarm erases the board 24 h after the last activity.
+`idFromName(roomId)` routes every participant of a board to one object. Two generations coexist:
+
+- **Protocol v2 (`/ws2`, `RelayRoom`, default for new boards)**: a memory-only forwarder of encrypted
+  envelopes. It never calls `ctx.storage` (a unit test fails if the code references it). A bounded
+  ring buffer (2,000 envelopes or 4 MB) serves late joiners; after an eviction the relay asks the
+  connected peers to re-seed it (`need`). When everyone has left and the object is evicted, the
+  board is gone. See section 9.
+- **Protocol v1 (`/ws`, `Room`, legacy links only)**: plaintext commands reduced on the server,
+  SQLite-backed, erased by an alarm 24 h after the last activity. Removed by
+  `stateless-relay-and-replication`.
 
 Alternatives considered: a shared D1 database (needs cross-request ordering and fan-out machinery), or Pages Functions (no Durable Object WebSocket hibernation in the same unit).
 
@@ -44,6 +53,41 @@ A small typed layer (`packages/i18n`, reactive wrapper in `apps/web/app/i18n`): 
 ### 8. Observability and privacy
 Structured logs with an event name and a short sha256-based room hash. Never text, names, client ids or raw room ids.
 
+### 9. End-to-end encrypted boards (change `e2e-encrypted-rooms`)
+
+Links (`packages/domain/src/access/keyring.ts`), everything after `#` stays in the browser:
+
+| Link | Fragment | Who gets it |
+|---|---|---|
+| Participant | `#r=<roomId>&k=<roomKey>` | everyone invited (share dialog) |
+| Facilitator | `#r=<roomId>&k=<roomKey>&f=<facilitatorSeed>` | the creator; a co-facilitator on purpose |
+| Passcode flag | `&p=1` appended | the passcode itself is never in a link |
+
+Keys (`packages/crypto`, WebCrypto, `@noble/curves` only when the browser lacks Ed25519/X25519):
+
+- `contentKey = HKDF-SHA-256(ikm = roomKey, salt = roomId, info = "rb/content/v1" || PBKDF2(passcode, roomId, 600k))`.
+- Facilitator key: Ed25519 from the 32-byte seed in `f`. Session key: Ed25519 per browser tab.
+
+Events (`packages/protocol/src/envelope.ts`):
+
+```
+Envelope (relay sees)  { v: 2, room, id (ULID), hlc, ct }
+ct                     AES-256-GCM(contentKey, JSON(SignedEvent), aad = "2|room|id|hlc")
+SignedEvent            { id, at, author (Ed25519 public key), body, sig }
+body                   genesis | cmd | role.delegate | role.revoke
+```
+
+Every browser verifies, then folds events in `(at, id)` order through the domain
+(`access/ledger.ts`, `application/sync/event-log.ts`): the first event must be a genesis signed by
+the facilitator key it announces; settings, set-up, reset and timer commands and role changes count
+only from the facilitator or a co-facilitator; the actor of a command is its signing key, so only
+the author edits or deletes a note. Invalid events are ignored identically by every peer, so all
+replicas converge. Presence (names) travels in encrypted ephemeral envelopes that are not buffered.
+
+What the relay still sees: room ids, connection ids, IP addresses, timing, envelope count and sizes.
+What it never sees: note text, names, votes, the room key, the passcode, the facilitator key.
+
 ## Testing strategy
 - Unit (Vitest): reducer invariants, snapshot privacy, schemas, templates and suggestions, theme contrast, i18n parity, Worker helpers and storage adapter.
-- E2E (Playwright): runs against `wrangler dev` (real Worker and Durable Object): multi-user sync, drag and drop, groups, columns, secret voting, export, profile, i18n, and "no console or CSP error".
+- E2E (Playwright): runs against `wrangler dev` (real Worker and Durable Object): multi-user sync, drag and drop, groups, columns, secret voting, export, profile, i18n, and "no console or CSP error". `encryption.spec.ts` inspects every WebSocket frame and HTTP request: no note text in any encoding, no key, no secret.
+- Mutation (Stryker) on the pure packages, with a ratchet on every commit to main; reports on GitHub Pages ([docs/quality.md](quality.md)).

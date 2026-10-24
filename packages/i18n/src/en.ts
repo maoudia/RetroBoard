@@ -185,6 +185,12 @@ export const en: Record<keyof typeof fr, string> = {
   'share.copyFailed': 'Copy failed: select the link',
   'share.note.erase': 'The board is erased 24 h after the last activity.',
   'share.note.drafts': 'Drafts stay in your browser until you publish them.',
+  'share.note.e2e': 'End-to-end encrypted: the key is in the link after #, it never reaches our server.',
+  'share.note.public': 'Anyone with this link can read the board. Do not post it in public channels.',
+  'share.note.passcode': 'Protected by a passcode: send it separately, never in the same message as the link.',
+  'share.note.memory': 'Nothing is stored on the server: the board lives in the participants\' browsers and disappears when everyone has left.',
+  'share.facilitator': 'Facilitator link',
+  'share.facilitator.hint': 'It also holds the facilitator key (settings, timer, reset). Keep it for yourself or give it to a co-facilitator only.',
   'share.nativeTitle': 'Retro',
 
   'name.title': 'Your name for this board',

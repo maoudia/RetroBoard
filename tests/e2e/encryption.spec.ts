@@ -30,6 +30,10 @@ test('the relay only sees ciphertext; the key never leaves the fragment', async 
   const shared = await page.getByTestId('share-url').inputValue()
   expect(shared).not.toContain(secret!)
   expect(shared).toContain(`k=${key}`)
+  await expect(page.getByTestId('share-warn')).toBeVisible()
+  await expect(page.getByTestId('share-facilitator-url')).toHaveCount(0)
+  await page.getByTestId('share-facilitator-toggle').click()
+  await expect(page.getByTestId('share-facilitator-url')).toHaveValue(new RegExp(`&f=${secret}`))
   const bob = await join(browser, shared, 'Bob')
   await expect(noteByText(bob.page, TEXT)).toBeVisible()
 
@@ -72,6 +76,7 @@ test('passcode: the link alone is not enough; a wrong passcode shows nothing and
   const link = await page.getByTestId('share-url').inputValue()
   expect(link).toMatch(/&p=1$/)
   expect(link).not.toContain('blue-otter-42')
+  await expect(page.getByTestId('share-passcode')).toBeVisible()
 
   const ctx = await browser.newContext()
   const bob = await ctx.newPage()

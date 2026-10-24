@@ -74,7 +74,10 @@ export async function collectProblems(page: Page): Promise<string[]> {
     Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', { ...css, set(v: string) { remember('style.cssText'); css.set!.call(this, v) } })
     document.addEventListener('securitypolicyviolation', (e) => {
       const report = (window as unknown as { __reportCsp: (s: string) => void }).__reportCsp
-      report(`CSP ${e.effectiveDirective} blocked=${e.blockedURI} source=${e.sourceFile}:${e.lineNumber}:${e.columnNumber} sample=${e.sample} recent inline style writes: ${writes.join(' | ') || 'none'}`)
+      // The event target is the offending element: name it (tag, classes, test id, style attribute).
+      const el = e.target instanceof Element ? e.target : null
+      const who = el ? `<${el.tagName.toLowerCase()} class="${el.getAttribute('class') ?? ''}" data-testid="${el.getAttribute('data-testid') ?? ''}" style="${el.getAttribute('style') ?? ''}"> in <${el.parentElement?.tagName.toLowerCase() ?? '?'} class="${el.parentElement?.getAttribute('class') ?? ''}">` : String(e.target)
+      report(`CSP ${e.effectiveDirective} blocked=${e.blockedURI} source=${e.sourceFile}:${e.lineNumber}:${e.columnNumber} sample=${e.sample} element=${who} recent inline style writes: ${writes.join(' | ') || 'none'}`)
     })
   })
   return problems

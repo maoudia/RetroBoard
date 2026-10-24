@@ -37,6 +37,9 @@ jobs:
         run: pnpm exec playwright install --with-deps ${{ matrix.project == 'firefox' && 'firefox' || matrix.project == 'webkit' && 'webkit' || 'chromium' }}
       - run: pnpm generate
       - run: pnpm e2e --project=${{ matrix.project }}
+      - name: Slowest tests
+        if: always()
+        run: node scripts/quality/slow-tests.mjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

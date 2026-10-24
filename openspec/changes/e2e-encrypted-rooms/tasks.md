@@ -19,4 +19,4 @@
 ## 4. Passcode and UX
 
 - [x] 4.1 Add optional passcode at creation and the passcode prompt on join (fr, en); verify e2e: wrong passcode shows nothing, right passcode shows the board
-- [ ] 4.2 Update share dialog and docs (privacy page, docs/ARCHITECTURE.md) with the new link format and warnings; verify e2e for copy link and docs link check
+- [x] 4.2 Update share dialog and docs (privacy page, docs/ARCHITECTURE.md) with the new link format and warnings; verify e2e for copy link and docs link check
