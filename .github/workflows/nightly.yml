@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   mutation:
-    name: Mutation testing (domain)
+    name: Mutation testing (full run, no incremental cache)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -23,7 +23,11 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm mutation
+      # --force ignores the incremental file: a full run catches anything the cache could hide.
+      - run: pnpm mutation --force
+      - run: node scripts/quality/mutation-score.mjs
+        env:
+          PAGES_URL: https://maoudia.github.io/RetroBoard
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

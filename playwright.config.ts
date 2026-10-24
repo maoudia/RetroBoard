@@ -9,12 +9,16 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  // CI keeps everything for the quality site (GitHub Pages) and the run artifacts.
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never' }], ['json', { outputFile: 'playwright-report/results.json' }], ['junit', { outputFile: 'playwright-report/junit.xml' }]]
+    : 'list',
   use: {
     locale: 'fr-FR',
     baseURL: `http://127.0.0.1:${port}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    video: process.env.CI ? 'retain-on-failure' : 'off',
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {},
   },
   // Locally only Chromium is installed. CI runs the other projects (see .github/workflows/e2e.yml).

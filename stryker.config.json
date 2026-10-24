@@ -7,17 +7,23 @@
   },
   "mutate": [
     "packages/domain/src/**/*.ts",
-    "!packages/domain/src/**/*.d.ts",
+    "packages/application/src/**/*.ts",
+    "packages/protocol/src/**/*.ts",
+    "packages/crypto/src/**/*.ts",
+    "packages/exporters/src/**/*.ts",
+    "!packages/*/src/**/*.d.ts",
     "!packages/domain/src/catalogue/templates.ts",
-    "!packages/domain/src/catalogue/templates.en.ts"
+    "!packages/domain/src/catalogue/templates.en.ts",
+    "!packages/application/src/ports/**"
   ],
   "reporters": [
     "clear-text",
     "progress",
-    "html"
+    "html",
+    "json"
   ],
   "htmlReporter": {
-    "fileName": "reports/mutation/domain.html"
+    "fileName": "reports/mutation/index.html"
   },
   "thresholds": {
     "high": 80,
@@ -28,7 +34,6 @@
   "tempDirName": ".stryker-tmp",
   "ignorePatterns": [
     "**/dist",
-    "**/.nuxt",
     "**/.output",
     ".wrangler",
     "test-results",
@@ -38,9 +43,15 @@
     ".claude",
     ".opencode",
     "openspec",
-    "docs"
+    "docs",
+    "!apps/web/.nuxt/**"
   ],
   "plugins": [
     "@stryker-mutator/vitest-runner"
-  ]
+  ],
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "incremental": true,
+  "incrementalFile": "reports/stryker-incremental.json"
 }
