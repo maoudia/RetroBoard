@@ -1,11 +1,12 @@
 {
   "comment": "Mutation score floors (percent). Raise them as scores improve; never lower them to pass a build.",
-  "score": 67.5,
+  "score": 69.5,
   "packages": {
-    "application": 66,
+    "application": 67,
     "crypto": 79.5,
-    "domain": 66,
+    "domain": 68.5,
     "exporters": 49,
-    "protocol": 76
+    "protocol": 80.5,
+    "sync": 75.5
   }
 }
