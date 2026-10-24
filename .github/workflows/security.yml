@@ -44,11 +44,20 @@ jobs:
 
   osv:
     name: OSV scanner
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
-    with:
-      scan-args: |-
-        --lockfile=pnpm-lock.yaml
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Direct scanner action (same pinned release as the reusable workflow) so findings
+      # surface as check annotations instead of a SARIF artifact only.
+      - uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --lockfile=pnpm-lock.yaml
+            --format=json
+            --output=osv-results.json
+      - name: Report OSV findings
+        run: node scripts/osv-report.mjs osv-results.json
