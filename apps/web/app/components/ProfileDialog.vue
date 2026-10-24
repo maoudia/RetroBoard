@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LIMITS } from '@retroboard/domain'
-import { THEMES, THEME_GROUPS } from '~/themes'
+import { THEMES, THEME_GROUPS } from '@retroboard/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
 const { t, locale } = useT()

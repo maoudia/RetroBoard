@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { prefersReducedMotion } from '~/utils/fx'
-import type { AmbientKind } from '~/themes/types'
+import type { AmbientKind } from '@retroboard/themes'
 
 /** Background atmosphere drawn on a canvas: bats, snow, code rain, petals. Off for reduced motion. */
 const theme = useThemeStore()

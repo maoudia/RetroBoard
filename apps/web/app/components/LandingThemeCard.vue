@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ThemeDefinition } from '~/themes/types'
+import type { ThemeDefinition } from '@retroboard/themes'
 
 defineProps<{ theme: ThemeDefinition }>()
 </script>

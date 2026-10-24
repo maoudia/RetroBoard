@@ -14,12 +14,6 @@ importers:
       '@playwright/test':
         specifier: ^1.64.1
         version: 1.64.1
-      '@retroboard/domain':
-        specifier: workspace:*
-        version: link:packages/domain
-      '@retroboard/protocol':
-        specifier: workspace:*
-        version: link:packages/protocol
       '@retroboard/testkit':
         specifier: workspace:*
         version: link:packages/testkit
@@ -63,36 +57,9 @@ importers:
 
   apps/web:
     dependencies:
-      '@fontsource-variable/fraunces':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@fontsource-variable/inter':
         specifier: ^5.3.0
         version: 5.3.0
-      '@fontsource-variable/nunito':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource-variable/quicksand':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource-variable/space-grotesk':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/alegreya-sans':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/jetbrains-mono':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/mountains-of-christmas':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/pirata-one':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/zen-maru-gothic':
-        specifier: ^5.3.1
-        version: 5.3.1
       '@iconify-json/lucide':
         specifier: ^1.2.147
         version: 1.2.147
@@ -105,9 +72,15 @@ importers:
       '@retroboard/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@retroboard/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@retroboard/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      '@retroboard/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       nuxt:
         specifier: ^4.6.2
         version: 4.6.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.155.0)(@types/node@24.19.2)(@vue/compiler-sfc@3.5.44)(acorn@8.19.0)(confbox@0.3.1)(db0@0.3.4)(dotenv@17.4.2)(esbuild@0.28.2)(eslint@10.13.0(jiti@2.7.0))(giget@3.3.1)(ioredis@5.11.1)(lightningcss@1.33.0)(mlly@1.8.2)(optionator@0.9.4)(pinia@4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.44(typescript@6.0.3)))(rolldown@1.2.15)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.15)(rollup@4.65.0))(rollup@4.65.0)(srvx@1.0.7)(terser@5.51.2)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))(vue-tsc@3.3.13(typescript@6.0.3))(yaml@2.9.1)
@@ -143,6 +116,18 @@ importers:
         specifier: workspace:*
         version: link:../testkit
 
+  packages/i18n:
+    devDependencies:
+      '@retroboard/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@retroboard/testkit':
+        specifier: workspace:*
+        version: link:../testkit
+      '@retroboard/themes':
+        specifier: workspace:*
+        version: link:../themes
+
   packages/protocol:
     dependencies:
       '@retroboard/domain':
@@ -164,6 +149,46 @@ importers:
       '@retroboard/protocol':
         specifier: workspace:*
         version: link:../protocol
+
+  packages/themes:
+    dependencies:
+      '@fontsource-variable/fraunces':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/inter':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/nunito':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/quicksand':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource-variable/space-grotesk':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/alegreya-sans':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/jetbrains-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/mountains-of-christmas':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/pirata-one':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/zen-maru-gothic':
+        specifier: ^5.3.1
+        version: 5.3.1
+      '@retroboard/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@retroboard/testkit':
+        specifier: workspace:*
+        version: link:../testkit
 
 packages:
 

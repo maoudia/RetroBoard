@@ -33,7 +33,7 @@ export const useSettingsStore = defineStore('settings', () => {
     const root = document.documentElement
     root.dataset.motion = s.motion
     root.dataset.density = s.density
-    currentLocale.value = detectLocale(s.locale)
+    currentLocale.value = detectLocale(s.locale, navigator.languages ?? [])
   }
   function patch(next: Partial<LocalSettings>) {
     Object.assign(s, next)

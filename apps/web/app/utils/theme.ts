@@ -1,5 +1,5 @@
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
-import type { ThemeDefinition } from '~/themes/types'
+import type { ThemeDefinition } from '@retroboard/themes'
 
 /** Writes a theme as CSS custom properties and data attributes. Pure DOM, no framework. */
 export function applyTheme(theme: ThemeDefinition, root: HTMLElement = document.documentElement): void {

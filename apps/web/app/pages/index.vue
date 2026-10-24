@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import '@fontsource-variable/inter/index.css'
-import { THEMES } from '~/themes'
+import { THEMES } from '@retroboard/themes'
 import { LOCAL_ROOM_PREFIX } from '~/transport'
 import { randomId } from '~/utils/storage'
 const { t, locale } = useT()

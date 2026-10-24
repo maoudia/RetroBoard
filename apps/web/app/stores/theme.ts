@@ -1,4 +1,4 @@
-import { DEFAULT_THEME_ID, getTheme } from '~/themes'
+import { DEFAULT_THEME_ID, getTheme } from '@retroboard/themes'
 import { applyTheme } from '~/utils/theme'
 
 export const useThemeStore = defineStore('theme', () => {

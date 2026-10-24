@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['tests/unit/**/*.test.ts', 'apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
+    include: ['apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
     environment: 'node',
     environmentMatchGlobs: undefined,
     coverage: { provider: 'v8', include: ['apps/web/app/**', 'apps/relay/src/**', 'packages/*/src/**'] },

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { THEMES, getTheme } from '../../apps/web/app/themes'
-import { contrast } from '../../apps/web/app/utils/color'
+import { THEMES, contrast, getTheme } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {

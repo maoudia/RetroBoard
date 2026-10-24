@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- global *.css declaration for every consumer of this package
+/// <reference path="./css.d.ts" />
 import { corporate } from './corporate'
 import { cyber } from './cyber'
 import { halloween } from './halloween'
@@ -7,11 +9,12 @@ import { paper } from './paper'
 import { sakura } from './sakura'
 import { studio } from './studio'
 import { slate } from './slate'
+import { THEMES_EN as THEMES_EN_LOOKUP } from './texts.en'
 import type { ThemeDefinition } from './types'
 
 /**
- * To add a theme: create `app/themes/<id>.ts` exporting a ThemeDefinition and add it here.
- * The contrast test (tests/unit/themes.test.ts) tells you if the palette is readable.
+ * To add a theme: create `packages/themes/src/<id>.ts` exporting a ThemeDefinition and add it here.
+ * The contrast test (packages/themes/test/themes.test.ts) tells you if the palette is readable.
  */
 export const THEMES: readonly ThemeDefinition[] = [studio, corporate, slate, paper, minimal, halloween, noel, cyber, sakura]
 export const DEFAULT_THEME_ID = 'studio'
@@ -25,4 +28,13 @@ export function getTheme(id: string | null | undefined): ThemeDefinition {
   return THEMES.find((t) => t.id === id) ?? THEMES.find((t) => t.id === DEFAULT_THEME_ID)!
 }
 
-export type { ThemeDefinition } from './types'
+export type * from './types'
+export { contrast, luminance } from './color'
+export { THEMES_EN, type ThemeText } from './texts.en'
+
+/** Theme texts in a language. French is defined on the theme itself. */
+export function themeText(theme: ThemeDefinition, locale: 'fr' | 'en'): import('./texts.en').ThemeText {
+  const en = THEMES_EN_LOOKUP[theme.id]
+  if (locale === 'en' && en) return en
+  return { tagline: theme.tagline, ...theme.copy }
+}

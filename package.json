@@ -33,9 +33,7 @@
     "wrangler": "^4.152.0",
     "ws": "^8.18.0",
     "turbo": "^2.5.0",
-    "@retroboard/testkit": "workspace:*",
-    "@retroboard/domain": "workspace:*",
-    "@retroboard/protocol": "workspace:*"
+    "@retroboard/testkit": "workspace:*"
   },
   "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.28.0"

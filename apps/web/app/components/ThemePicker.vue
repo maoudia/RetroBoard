@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { THEMES, THEME_GROUPS } from '~/themes'
+import { THEMES, THEME_GROUPS } from '@retroboard/themes'
 import { suggestThemeForDate } from '@retroboard/domain'
 import { themeReasonLabel } from '~/utils/labels'
 const { t } = useT()

@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { en } from '../../apps/web/app/i18n/en'
-import { fr } from '../../apps/web/app/i18n/fr'
-import { THEMES_EN } from '../../apps/web/app/i18n/themes.en'
-import { detectLocale, translate } from '../../apps/web/app/i18n'
-import { THEMES } from '../../apps/web/app/themes'
+import { THEMES, THEMES_EN } from '@retroboard/themes'
+import { detectLocale, en, fr, translate } from '../src'
 import { TEMPLATES, localizeTemplate } from '@retroboard/domain'
 import { harness } from '@retroboard/testkit'
 

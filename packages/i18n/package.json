@@ -1,0 +1,20 @@
+{
+  "name": "@retroboard/i18n",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "Typed dictionaries (fr source, en) and pure translation helpers.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@retroboard/domain": "workspace:*",
+    "@retroboard/testkit": "workspace:*",
+    "@retroboard/themes": "workspace:*"
+  }
+}
