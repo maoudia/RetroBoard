@@ -16,10 +16,12 @@ export const useUiStore = defineStore('ui', () => {
   /** Column being edited in the column dialog; null with dialog='column' means "add". */
   const editingColumnId = ref<string | null>(null)
   const dragNoteId = ref<string | null>(null)
+  /** The carried-over actions review was closed (the invite panel waits for it on new boards). */
+  const reviewDone = ref(false)
 
   const open = (name: Exclude<DialogName, null>) => { dialog.value = name }
   const close = () => { dialog.value = null }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, reviewDone, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
 })

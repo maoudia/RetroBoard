@@ -6,7 +6,7 @@ export async function enterName(page: Page, name: string, show = true) {
   await page.getByTestId('name-save').click()
 }
 
-export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string } = {}) {
+export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean } = {}) {
   await page.goto('/new')
   if (opts.title) await page.getByTestId('setup-title').fill(opts.title)
   await page.getByTestId(`theme-${opts.theme ?? 'studio'}`).click()
@@ -15,6 +15,14 @@ export async function createBoard(page: Page, opts: { theme?: string; template?:
   await page.getByTestId('setup-submit').click()
   await enterName(page, opts.name ?? 'Alice')
   await expect(page.getByTestId('board')).toBeVisible()
+  if (!opts.keepShare) await closeShare(page)
+}
+
+/** A new board opens the invite panel: close it so tests start from the board. */
+export async function closeShare(page: Page) {
+  await expect(page.getByTestId('share-url')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('share-url')).toBeHidden()
 }
 
 export async function join(browser: Browser, url: string, name: string) {

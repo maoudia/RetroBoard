@@ -21,6 +21,7 @@ const open = computed({
 })
 function dismiss() {
   dismissed.value = true
+  ui.reviewDone = true
   try { sessionStorage.setItem(key.value, '1') } catch { /* memory only */ }
 }
 const QUICK: ActionStatus[] = ['done', 'doing', 'blocked', 'dropped']

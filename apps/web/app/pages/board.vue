@@ -91,7 +91,17 @@ function sendSetup(s: SetupResult) {
   if (s.importActions?.length) board.commands.importActions(s.importActions)
   if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish })
   setupOpen.value = false
+  // A new shared board: the next thing the facilitator does is invite the team.
+  // With carried-over actions, the review comes first and the invite panel after it.
+  if (!isLocalRoom(roomId.value)) { shareOnReady.value = true; shareAfterReview.value = !!s.importActions?.length }
 }
+const shareOnReady = ref(false)
+const shareAfterReview = ref(false)
+watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog === null && (!shareAfterReview.value || ui.reviewDone), (go) => {
+  if (!go) return
+  shareOnReady.value = false
+  ui.open('share')
+})
 
 // The board's theme is shared: everybody sees the same ambiance.
 const settings = useSettingsStore()
@@ -151,7 +161,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       </main>
 
       <ActionsDrawer />
-      <ShareDialog />
+      <ShareDialog :passcode="passcode" />
       <RankingDialog />
       <ActionsReviewDialog />
       <OptionsDialog />

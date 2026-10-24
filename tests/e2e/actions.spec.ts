@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join } from './helpers'
+import { closeShare, createBoard, join } from './helpers'
 
 const openActions = (page: Page) => page.getByTestId('btn-actions').click()
 async function addAction(page: Page, text: string, owner?: string, due?: string) {
@@ -83,6 +83,7 @@ test.describe('actions v2', () => {
     await review.getByTestId('review-done').click()
     await expect(review.locator('li').first()).toHaveAttribute('data-status', 'done')
     await page.getByTestId('review-close').click()
+    await closeShare(page)
     await openActions(page)
     await expect(page.getByTestId('actions-carried')).toContainText('Sprint 42')
   })

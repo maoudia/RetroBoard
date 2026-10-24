@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { closeShare, createBoard, join, noteByText, publishNote } from './helpers'
 
 const TEXT = 'Deploy on Fridays'
 const variants = (s: string) => {
@@ -122,6 +122,7 @@ test('passcode: the link alone is not enough; a wrong passcode shows nothing and
   await page.getByTestId('name-input').fill('Alice')
   await page.getByTestId('name-save').click()
   await expect(page.getByTestId('board')).toBeVisible()
+  await closeShare(page)
   await publishNote(page, 0, 'Protected idea')
 
   await page.getByTestId('btn-share').click()
@@ -212,6 +213,7 @@ test('board file: export, then restore into the same link after the board is gon
   await fresh.getByTestId('name-input').fill('Alice')
   await fresh.getByTestId('name-save').click()
   await expect(fresh.getByTestId('board')).toBeVisible()
+  await closeShare(fresh)
   await expect(noteByText(fresh, 'Kept in the file')).toHaveCount(0)
 
   await fresh.getByTestId('btn-export').click()
