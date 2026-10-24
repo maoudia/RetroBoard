@@ -24,19 +24,40 @@ const setupOpen = ref(false)
 
 useHead({ title: computed(() => `${board.settings?.title ?? t('board.defaultTitle')} - RetroBoard`) })
 
+/** Passcode of a protected board: memory only (the creator's tab hands it over once). */
+const passcode = ref<string | null>(null)
+const needsPasscode = computed(() => invite.value?.kind === 'encrypted' && !!invite.value.ring.passcode && (passcode.value === null || board.accessDenied))
+
+function takeHandoff(id: string): string | null {
+  try {
+    const v = sessionStorage.getItem(`retroboard:pass:${id}`)
+    sessionStorage.removeItem(`retroboard:pass:${id}`)
+    return v
+  } catch { return null }
+}
+
 function enter() {
   board.disconnect()
   if (!validRoom.value) return
   identity.load()
   drafts.load(roomId.value)
-  if (!identity.named) ui.open('name')
   const inv = invite.value!
-  board.connect(roomId.value, identity.identity, inv.kind === 'encrypted' ? $ports.encryptedChannelFactory(inv.ring) : $ports.channelFactory)
+  if (inv.kind === 'encrypted' && inv.ring.passcode) {
+    passcode.value ??= takeHandoff(inv.ring.roomId)
+    if (passcode.value === null) return
+  }
+  if (!identity.named) ui.open('name')
+  board.connect(roomId.value, identity.identity, inv.kind === 'encrypted' ? $ports.encryptedChannelFactory(inv.ring, passcode.value ?? undefined) : $ports.channelFactory)
+}
+
+function unlock(code: string) {
+  passcode.value = code
+  enter()
 }
 
 onMounted(enter)
 useBoardAgentTools()
-watch(() => route.hash, enter)
+watch(() => route.hash, () => { passcode.value = null; enter() })
 onBeforeUnmount(() => board.disconnect())
 
 // A freshly created board gets its theme and template from the creator's setup.
@@ -94,9 +115,9 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <VoteBar v-if="board.ready" />
       <div v-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
 
-      <div v-if="!board.ready" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
+      <div v-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 
-      <main v-else class="board" data-testid="board">
+      <main v-else-if="board.ready" class="board" data-testid="board">
         <BoardColumn v-for="(c, i) in board.columns" :key="c.id" :column="c" :index="i" :total="board.columns.length" />
         <button v-if="board.columns.length < 8" class="add-col" type="button" data-testid="add-column" @click="ui.editColumn(null)">
           <Icon name="lucide:plus" /> {{ t('board.addColumn') }}
@@ -110,6 +131,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <TemplateDialog />
       <ColumnEditorDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />
+      <PasscodeDialog :open="needsPasscode" :wrong="board.accessDenied" @submit="unlock" />
     </template>
   </div>
 </template>

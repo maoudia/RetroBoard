@@ -12,6 +12,8 @@ export interface ChannelHandlers {
   onSnapshot(snapshot: Snapshot): void
   onError(error: ErrorCode): void
   onStatus(status: ConnectionStatus): void
+  /** Encrypted rooms: the board exists but nothing decrypts with these keys (wrong passcode). */
+  onAccessDenied?(): void
 }
 
 /** Port to the room: the relay over WebSocket, or a local loopback in solo mode. */

@@ -9,7 +9,7 @@ import { download } from '~/utils/export'
 export interface Ports {
   channelFactory: ChannelFactory
   /** Protocol v2: end-to-end encrypted room for a key ring. */
-  encryptedChannelFactory(ring: KeyRing): ChannelFactory
+  encryptedChannelFactory(ring: KeyRing, passcode?: string): ChannelFactory
   clipboard: ClipboardPort
   file: FilePort
   notifier: NotifierPort
@@ -21,10 +21,10 @@ export default defineNuxtPlugin(() => {
   const { push } = useToasts()
   const ports: Ports = {
     channelFactory: defaultTransportFactory(config.public.wsUrl as string),
-    encryptedChannelFactory: (ring) => (roomId, handlers) => new EncryptedRelayTransport(
+    encryptedChannelFactory: (ring, passcode) => (roomId, handlers) => new EncryptedRelayTransport(
       buildWs2Url(config.public.wsUrl as string, roomId, window.location), ring, handlers,
       (async () => ({
-        contentKey: await deriveContentKey(fromBase64Url(ring.roomKey)!, ring.roomId),
+        contentKey: await deriveContentKey(fromBase64Url(ring.roomKey)!, ring.roomId, ring.passcode ? passcode : undefined),
         session: await createSessionSigner(),
         facilitator: ring.facilitatorSecret ? await signerFor(ring.facilitatorSecret) : null,
         verifier: ed25519Verifier,

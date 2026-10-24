@@ -14,9 +14,13 @@ useHead({ title: computed(() => t('new.pageTitle')) })
 
 onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false) })
 
-function create(setup: SetupResult) {
-  const ring = newKeyRing()
-  try { sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup)) } catch { /* the setup dialog will ask again */ }
+function create({ passcode, ...setup }: SetupResult) {
+  const ring = { ...newKeyRing(), ...(passcode ? { passcode: true } : {}) }
+  try {
+    sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
+    // Hand-off to the board page of this tab only; read once and removed there.
+    if (passcode) sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode)
+  } catch { /* the board page will ask for the passcode */ }
   void router.push({ path: '/board', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
 }
 function solo() {
@@ -37,7 +41,7 @@ function solo() {
       <h1 data-testid="new-title">{{ t('new.title') }}</h1>
       <p class="lede">{{ themeText(theme.theme).hero }}</p>
       <section class="card panel">
-        <BoardSetupForm :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @submit="create" />
+        <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @submit="create" />
       </section>
       <p class="foot muted">
         {{ t('new.foot') }}

@@ -40,6 +40,14 @@ describe('invite links', () => {
     expect(parseInvite(fragment)).toBeNull()
   })
 
+  it('flags a passcode in the link without carrying it', () => {
+    const ring: KeyRing = { ...full, passcode: true }
+    expect(formatInvite(ring)).toBe(`r=${roomId}&k=${roomKey}&p=1`)
+    expect(parseInvite(formatInvite(ring, 'facilitator'))).toEqual({ kind: 'encrypted', ring })
+    expect(participantRing(ring)).toEqual({ roomId, roomKey, passcode: true })
+    expect(parseInvite(`r=${roomId}&k=${roomKey}&p=0`)).toBeNull()
+  })
+
   it('refuses to format invalid rings', () => {
     expect(() => formatInvite({ roomId: 'x', roomKey })).toThrow()
     expect(() => formatInvite({ roomId, roomKey: 'x' })).toThrow()

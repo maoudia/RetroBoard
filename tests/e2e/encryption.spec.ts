@@ -58,3 +58,37 @@ test('a participant cannot steer the board', async ({ page, browser }) => {
   await expect(bob.page.locator('.page')).toHaveAttribute('data-locked', 'true')
   await bob.ctx.close()
 })
+
+test('passcode: the link alone is not enough; a wrong passcode shows nothing and can be retried', async ({ page, browser }) => {
+  await page.goto('/new')
+  await page.getByTestId('setup-passcode').fill('blue-otter-42')
+  await page.getByTestId('setup-submit').click()
+  await page.getByTestId('name-input').fill('Alice')
+  await page.getByTestId('name-save').click()
+  await expect(page.getByTestId('board')).toBeVisible()
+  await publishNote(page, 0, 'Protected idea')
+
+  await page.getByTestId('btn-share').click()
+  const link = await page.getByTestId('share-url').inputValue()
+  expect(link).toMatch(/&p=1$/)
+  expect(link).not.toContain('blue-otter-42')
+
+  const ctx = await browser.newContext()
+  const bob = await ctx.newPage()
+  await bob.goto(link)
+  await expect(bob.getByTestId('passcode-input')).toBeVisible()
+  await expect(bob.getByTestId('board')).toHaveCount(0)
+
+  await bob.getByTestId('passcode-input').fill('wrong')
+  await bob.getByTestId('passcode-submit').click()
+  await expect(bob.getByTestId('passcode-wrong')).toBeVisible()
+  await expect(bob.getByTestId('board')).toHaveCount(0)
+  await expect(bob.getByText('Protected idea')).toHaveCount(0)
+
+  await bob.getByTestId('passcode-input').fill('blue-otter-42')
+  await bob.getByTestId('passcode-submit').click()
+  await bob.getByTestId('name-input').fill('Bob')
+  await bob.getByTestId('name-save').click()
+  await expect(noteByText(bob, 'Protected idea')).toBeVisible()
+  await ctx.close()
+})

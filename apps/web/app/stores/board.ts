@@ -11,6 +11,8 @@ export const useBoardStore = defineStore('board', () => {
   const status = ref<ConnectionStatus>('closed')
   const lastError = ref<{ code: ErrorCode; at: number } | null>(null)
   const roomId = ref<string | null>(null)
+  /** Encrypted board that does not open with the keys we have (wrong passcode). */
+  const accessDenied = ref(false)
   /** serverNow - clientNow, to show a timer that agrees with the server. */
   const skew = ref(0)
   let transport: BoardTransport | null = null
@@ -18,6 +20,7 @@ export const useBoardStore = defineStore('board', () => {
 
   function connect(room: string, identity: Identity, factory: TransportFactory) {
     disconnect()
+    accessDenied.value = false
     roomId.value = room
     transport = factory(room, {
       onSnapshot(next) {
@@ -28,6 +31,7 @@ export const useBoardStore = defineStore('board', () => {
       },
       onError: (code) => { lastError.value = { code, at: Date.now() } },
       onStatus: (s) => { status.value = s },
+      onAccessDenied: () => { accessDenied.value = true },
     })
     transport.connect(identity)
   }
@@ -66,7 +70,7 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, roomId, skew,
+    snapshot, status, lastError, roomId, skew, accessDenied,
     connect, disconnect, updateIdentity, onSnapshot, commands,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, noteCount, openActions,
     itemsFor, noteById,

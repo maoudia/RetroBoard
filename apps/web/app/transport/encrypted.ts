@@ -205,6 +205,17 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   private async onSynced(historyIds: Set<string>): Promise<void> {
+    // The board exists but not one event opened: wrong passcode (or a corrupted link).
+    // Stop here: publishing anything, a genesis above all, would fork the board.
+    if (historyIds.size > 0 && this.log.size === 0) {
+      this.closed = true
+      clearInterval(this.heartbeat)
+      this.ws?.close(1000)
+      this.ws = null
+      this.handlers.onStatus('closed')
+      this.handlers.onAccessDenied?.()
+      return
+    }
     this.synced = true
     // Events we hold that the relay lost (eviction, reconnect): re-seed them.
     const missing = this.log.all().filter((e) => !historyIds.has(e.id))
