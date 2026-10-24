@@ -4,6 +4,7 @@
  * and the formats stay portable across browsers and the Worker.
  */
 import { type Bytes, concat } from './bytes'
+import { curves } from './curves'
 
 const subtle = (): SubtleCrypto => {
   const s = globalThis.crypto?.subtle
@@ -63,59 +64,42 @@ export async function open(key: Uint8Array, sealed: Uint8Array, aad: Uint8Array)
   }
 }
 
-// PKCS#8 wrappers for a 32-byte private seed (RFC 8410): SEQUENCE { 0, AlgorithmIdentifier, OCTET STRING { OCTET STRING seed } }.
-const PKCS8_PREFIX = { Ed25519: '302e020100300506032b657004220420', X25519: '302e020100300506032b656e04220420' } as const
-type Curve = keyof typeof PKCS8_PREFIX
-
-const pkcs8 = (curve: Curve, seed: Uint8Array): Bytes => {
-  if (seed.length !== KEY_BYTES) throw new Error(`${curve} private key must be 32 bytes`)
-  return concat(Uint8Array.from(PKCS8_PREFIX[curve].match(/../g)!, (h) => parseInt(h, 16)), seed)
-}
-
-const importPrivate = (curve: Curve, seed: Uint8Array, usages: KeyUsage[]) =>
-  subtle().importKey('pkcs8', pkcs8(curve, seed), { name: curve }, true, usages)
-
-async function publicFromPrivate(key: CryptoKey): Promise<Bytes> {
-  const jwk = await subtle().exportKey('jwk', key)
-  if (!jwk.x) throw new Error('missing public key')
-  return Uint8Array.from(atob(jwk.x.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))
-}
-
 export type KeyPair = { readonly publicKey: Bytes; readonly privateKey: Bytes }
 
-async function keyPairFromSeed(curve: Curve, seed: Uint8Array): Promise<KeyPair> {
-  const usages: KeyUsage[] = curve === 'Ed25519' ? ['sign'] : ['deriveBits']
-  return { publicKey: await publicFromPrivate(await importPrivate(curve, seed, usages)), privateKey: new Uint8Array(seed) }
+const exact = (bytes: Uint8Array, what: string): Bytes => {
+  if (bytes.length !== KEY_BYTES) throw new Error(`${what} must be 32 bytes`)
+  return new Uint8Array(bytes) as Bytes
 }
 
 /** Ed25519 key pair; the private key is the 32-byte RFC 8032 seed. */
-export const signingKeyPair = (seed: Uint8Array = randomKey()) => keyPairFromSeed('Ed25519', seed)
+export async function signingKeyPair(seed: Uint8Array = randomKey()): Promise<KeyPair> {
+  const privateKey = exact(seed, 'Ed25519 private key')
+  return { publicKey: await (await curves()).edPublicKey(privateKey), privateKey }
+}
 
 export async function sign(privateKey: Uint8Array, message: Uint8Array): Promise<Bytes> {
-  const key = await importPrivate('Ed25519', privateKey, ['sign'])
-  return new Uint8Array(await subtle().sign('Ed25519', key, message as Bytes))
+  return (await curves()).edSign(exact(privateKey, 'Ed25519 private key'), message as Bytes)
 }
 
 /** Returns false for a bad signature, a malformed key or a malformed signature. */
 export async function verify(publicKey: Uint8Array, signature: Uint8Array, message: Uint8Array): Promise<boolean> {
   if (publicKey.length !== KEY_BYTES || signature.length !== 64) return false
   try {
-    const key = await subtle().importKey('raw', publicKey as Bytes, 'Ed25519', false, ['verify'])
-    return await subtle().verify('Ed25519', key, signature as Bytes, message as Bytes)
+    return await (await curves()).edVerify(publicKey as Bytes, signature as Bytes, message as Bytes)
   } catch {
     return false
   }
 }
 
 /** X25519 key pair (RFC 7748); the private key is the 32-byte scalar. */
-export const agreementKeyPair = (seed: Uint8Array = randomKey()) => keyPairFromSeed('X25519', seed)
+export async function agreementKeyPair(seed: Uint8Array = randomKey()): Promise<KeyPair> {
+  const privateKey = exact(seed, 'X25519 private key')
+  return { publicKey: await (await curves()).xPublicKey(privateKey), privateKey }
+}
 
 /** Raw X25519 shared secret. Rejects all-zero output (low-order public keys). */
 export async function x25519(privateKey: Uint8Array, publicKey: Uint8Array): Promise<Bytes> {
-  if (publicKey.length !== KEY_BYTES) throw new Error('X25519 public key must be 32 bytes')
-  const priv = await importPrivate('X25519', privateKey, ['deriveBits'])
-  const pub = await subtle().importKey('raw', publicKey as Bytes, 'X25519', false, [])
-  const shared = new Uint8Array(await subtle().deriveBits({ name: 'X25519', public: pub }, priv, 256))
+  const shared = await (await curves()).xShared(exact(privateKey, 'X25519 private key'), exact(publicKey, 'X25519 public key'))
   if (shared.every((b) => b === 0)) throw new Error('X25519 produced a zero shared secret')
   return shared
 }

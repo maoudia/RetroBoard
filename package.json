@@ -25,7 +25,7 @@
     "knip": "knip",
     "test:coverage": "vitest run --coverage",
     "size": "node scripts/check-bundle-size.mjs",
-    "licenses": "node scripts/check-licenses.mjs",
+    "licenses:check": "node scripts/check-licenses.mjs",
     "mutation": "stryker run"
   },
   "devDependencies": {

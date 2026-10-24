@@ -151,6 +151,7 @@ onMounted(() => {
 
     <footer class="foot">
       <span>{{ t('landing.footer') }}</span>
+      <NuxtLink to="/check" data-testid="link-check">{{ t('landing.check') }}</NuxtLink>
       <a href="https://github.com/maoudia/retroboard" rel="noopener" target="_blank">GitHub</a>
     </footer>
   </div>

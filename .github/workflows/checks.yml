@@ -40,7 +40,7 @@ jobs:
       - name: Unit tests with coverage ratchets
         run: pnpm test:coverage
       - name: Production licenses
-        run: pnpm licenses
+        run: pnpm run licenses:check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

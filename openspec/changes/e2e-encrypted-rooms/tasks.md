@@ -3,7 +3,7 @@
 ## 1. Crypto primitives
 
 - [x] 1.1 Implement `packages/crypto` (random keys, HKDF, PBKDF2, AES-GCM seal/open with AAD, Ed25519 sign/verify, X25519 seal) with test vectors; verify unit tests including tamper and wrong-AAD cases
-- [ ] 1.2 Add a browser support check and `@noble/curves` fallback for Ed25519/X25519; verify the e2e matrix (Chromium, Firefox, WebKit) runs the crypto self-test page
+- [x] 1.2 Add a browser support check and `@noble/curves` fallback for Ed25519/X25519; verify the e2e matrix (Chromium, Firefox, WebKit) runs the crypto self-test page
 
 ## 2. Keys, links, genesis
 

@@ -18,6 +18,7 @@
     "@nuxt/icon": "^2.5.1",
     "@pinia/nuxt": "^1.0.3",
     "@retroboard/application": "workspace:*",
+    "@retroboard/crypto": "workspace:*",
     "@retroboard/domain": "workspace:*",
     "@retroboard/exporters": "workspace:*",
     "@retroboard/i18n": "workspace:*",
