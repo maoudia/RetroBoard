@@ -8,8 +8,8 @@
 ## 2. Keys, links, genesis
 
 - [x] 2.1 Add `KeyRing` and link codec (`#k=`, `&f=`) in domain/application; verify unit tests for parse/format and that the facilitator secret is never in the participant link
-- [ ] 2.2 Implement signed genesis event and facilitator capability checks in the domain fold; verify unit tests where forged privileged events are ignored
-- [ ] 2.3 Implement per-session signing keys and authorship checks; verify unit tests where edits from another key are ignored
+- [x] 2.2 Implement signed genesis event and facilitator capability checks in the domain fold; verify unit tests where forged privileged events are ignored
+- [x] 2.3 Implement per-session signing keys and authorship checks; verify unit tests where edits from another key are ignored
 
 ## 3. Protocol and relay
 
