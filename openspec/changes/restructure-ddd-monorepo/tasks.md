@@ -13,7 +13,7 @@
 
 ## 3. Web app and data packages
 
-- [ ] 3.1 Move `app/` to `apps/web` (Nuxt 4), keep static generation and CSP hash script; verify `pnpm --filter web generate` output matches today's routes and the e2e suite passes
+- [x] 3.1 Move `app/` to `apps/web` (Nuxt 4), keep static generation and CSP hash script; verify `pnpm --filter web generate` output matches today's routes and the e2e suite passes
 - [ ] 3.2 Extract `packages/themes` (definitions, contrast test) and `packages/i18n` (dictionaries, translate, detect); verify their unit tests pass and the web app builds
 - [ ] 3.3 Extract `packages/exporters` (Markdown, CSV, JSON) as pure functions over a read model; verify export unit tests (including CSV formula neutralisation) pass
 

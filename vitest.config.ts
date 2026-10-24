@@ -6,15 +6,14 @@ const root = fileURLToPath(new URL('.', import.meta.url))
 export default defineConfig({
   resolve: {
     alias: {
-      '~~': root,
-      '~': `${root}app`,
-      '#shared': `${root}shared`,
+      '~~': `${root}apps/web`,
+      '~': `${root}apps/web/app`,
     },
   },
   test: {
-    include: ['tests/unit/**/*.test.ts', 'app/**/*.test.ts', 'shared/**/*.test.ts', 'apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
+    include: ['tests/unit/**/*.test.ts', 'apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
     environment: 'node',
     environmentMatchGlobs: undefined,
-    coverage: { provider: 'v8', include: ['shared/**', 'app/**', 'apps/relay/src/**', 'packages/*/src/**'] },
+    coverage: { provider: 'v8', include: ['apps/web/app/**', 'apps/relay/src/**', 'packages/*/src/**'] },
   },
 })

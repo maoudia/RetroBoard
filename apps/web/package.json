@@ -1,0 +1,41 @@
+{
+  "name": "@retroboard/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "RetroBoard web app (Nuxt 4 static SPA): presentation, view models, adapters.",
+  "scripts": {
+    "dev": "nuxt dev",
+    "prepare": "nuxt prepare",
+    "generate": "nuxt generate && node scripts/csp-hashes.mjs",
+    "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource-variable/quicksand": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@fontsource/alegreya-sans": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/mountains-of-christmas": "^5.3.0",
+    "@fontsource/pirata-one": "^5.3.0",
+    "@fontsource/zen-maru-gothic": "^5.3.1",
+    "@iconify-json/lucide": "^1.2.147",
+    "@nuxt/icon": "^2.5.1",
+    "@pinia/nuxt": "^1.0.3",
+    "nuxt": "^4.6.2",
+    "pinia": "^4.1.0",
+    "valibot": "^1.5.0",
+    "vue": "^3.5.44",
+    "@retroboard/domain": "workspace:*",
+    "@retroboard/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.17.0",
+    "@vue/test-utils": "^2.5.1",
+    "happy-dom": "^21.0.4",
+    "vue-tsc": "^3.0.0"
+  }
+}

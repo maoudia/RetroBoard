@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
   },
   "devDependencies": {
-    "@retroboard/testkit": "workspace:*"
+    "@retroboard/testkit": "workspace:*",
+    "@iconify-json/lucide": "^1.2.147"
   }
 }

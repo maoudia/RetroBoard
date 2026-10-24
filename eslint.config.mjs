@@ -1,4 +1,4 @@
-import withNuxt from './.nuxt/eslint.config.mjs'
+import withNuxt from './apps/web/.nuxt/eslint.config.mjs'
 
 export default withNuxt(
   { ignores: ['apps/relay/worker-configuration.d.ts', '**/.nuxt/**', '**/.output/**', '.output/**', 'playwright-report/**', 'test-results/**'] },

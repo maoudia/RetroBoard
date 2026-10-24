@@ -5,7 +5,7 @@
   "compatibility_date": "2025-09-01",
   "workers_dev": true,
   "assets": {
-    "directory": ".output/public",
+    "directory": "apps/web/.output/public",
     "binding": "ASSETS",
     "run_worker_first": true,
     "not_found_handling": "single-page-application"
