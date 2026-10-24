@@ -4,7 +4,7 @@
 
 - [x] 1.1 Define `BrowserAgentPort` and the tool definition type in `packages/application`; verify unit tests with a fake port
 - [x] 1.2 Implement the WebMCP adapter shim (document/navigator detection, register/unregister variants, confirmation fallbacks); verify unit tests against fake model contexts shaped like each known draft
-- [ ] 1.3 Evaluate `@mcp-b/global` (license, size, network, CSP) and lazy-load it behind the setting; verify bundle budget and the CSP e2e guard with the polyfill on
+- [x] 1.3 Evaluate `@mcp-b/global` (license, size, network, CSP) and lazy-load it behind the setting; verify bundle budget and the CSP e2e guard with the polyfill on
 
 ## 2. Consent and policy
 

@@ -1,15 +1,34 @@
 import { type AgentTool, createBoardAgentTools, createSetupAgentTools } from '@retroboard/application'
 import { THEMES } from '@retroboard/themes'
-import { createWebMcpAdapter } from '~/adapters/webmcp'
+import { createWebMcpAdapter, findModelContext } from '~/adapters/webmcp'
 import { currentLocale } from '~/i18n'
 import { exportLabels, toMarkdown } from '~/utils/export'
+
+/**
+ * Loads the MCP-B WebMCP polyfill (MIT, about 75 kB gzip, no network access) only when the
+ * participant opted in and the browser has no native model context.
+ */
+let polyfill: Promise<void> | null = null
+function loadPolyfill(): Promise<void> {
+  polyfill ??= import('@mcp-b/global')
+    .then((m) => { if (!findModelContext()) m.initializeWebModelContext() })
+    .catch(() => { polyfill = null })
+  return polyfill
+}
 
 /** Registers tools while `enabled` is true and unregisters them otherwise or on unmount. */
 function useRegistration(enabled: Ref<boolean>, build: () => AgentTool[]) {
   const agent = useAgentStore()
   const port = createWebMcpAdapter(agent.ask)
+  const ready = ref(port.available())
   let dispose: (() => void) | null = null
-  watch(() => enabled.value && port.available(), (on) => {
+  watch(enabled, async (on) => {
+    if (on && !ready.value) {
+      await loadPolyfill()
+      ready.value = port.available()
+    }
+  }, { immediate: true })
+  watch(() => enabled.value && ready.value, (on) => {
     dispose?.()
     dispose = on ? port.register(build()) : null
   }, { immediate: true })

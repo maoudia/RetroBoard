@@ -96,3 +96,15 @@ test.describe('WebMCP browser agents', () => {
     await expect(page.getByTestId('template-daki')).toHaveAttribute('aria-pressed', 'true')
   })
 })
+
+test('without native WebMCP, opting in loads the polyfill with no CSP or console error', async ({ page }) => {
+  const errors: string[] = []
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await createBoard(page, { template: 'start-stop-continue' })
+  expect(await page.evaluate(() => 'modelContext' in document || 'modelContext' in navigator)).toBe(false)
+  await enableAgents(page)
+  await expect.poll(() => page.evaluate(() => typeof (document as unknown as { modelContext?: unknown }).modelContext)).toBe('object')
+  await page.waitForTimeout(300)
+  expect(errors).toEqual([])
+})
