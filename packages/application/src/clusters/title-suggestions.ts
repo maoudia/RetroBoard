@@ -2,6 +2,7 @@
  * Cluster title suggestions, computed locally from the cluster's ideas (no AI, no network):
  * the words several ideas share, then the most frequent meaningful words, then the shortest idea.
  */
+// Stryker disable StringLiteral: word list data; the tests check behaviour on real sentences.
 const STOP = new Set([
   // fr
   'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'a', 'au', 'aux', 'en', 'dans', 'sur', 'pour', 'par', 'avec', 'sans',
@@ -11,6 +12,7 @@ const STOP = new Set([
   'the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'on', 'for', 'with', 'without', 'is', 'are', 'be', 'was', 'were', 'not', 'no', 'too', 'very',
   'we', 'you', 'it', 'they', 'this', 'that', 'these', 'those', 'our', 'my', 'your', 'their', 'at', 'by', 'from', 'as', 'do', 'does', 'did', 'have', 'has', 'more',
 ])
+// Stryker restore StringLiteral
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 const words = (text: string) => (text.match(/[\p{L}\p{N}][\p{L}\p{N}'-]*/gu) ?? []).filter((w) => w.length > 2 && !STOP.has(fold(w)))
@@ -32,7 +34,7 @@ export function suggestClusterTitles(texts: readonly string[], max = 3): string[
   // Ties keep the order in which words first appear (reads naturally: "Tests lents", not "Lents tests").
   const ranked = [...docFreq.values()].sort((a, b) => b.n - a.n || b.count - a.count || a.pos - b.pos)
   const out: string[] = []
-  const add = (s: string) => { const v = s.trim().slice(0, 60); if (v && !out.some((o) => fold(o) === fold(v))) out.push(v) }
+  const add = (s: string) => { const v = s.slice(0, 60); if (v && !out.some((o) => fold(o) === fold(v))) out.push(v) }
   const shared = ranked.filter((e) => e.n >= 2).map((e) => e.form)
   if (shared.length >= 2) add(cap(`${shared[0]} ${shared[1]}`))
   for (const e of ranked) { if (out.length >= max - 1) break; add(cap(e.form)) }

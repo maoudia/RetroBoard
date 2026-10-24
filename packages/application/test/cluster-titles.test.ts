@@ -21,4 +21,29 @@ describe('cluster title suggestions', () => {
     expect(suggestClusterTitles(['Pairing', 'pairing'], 3)).toEqual(['Pairing'])
     expect(suggestClusterTitles(['a b c', 'x'.repeat(100)], 2).every((x) => x.length <= 60)).toBe(true)
   })
+
+  it('ranks by how many ideas share a word, then by count, then by first appearance', () => {
+    // beta is in two ideas, alpha is repeated in one: sharing wins.
+    expect(suggestClusterTitles(['alpha alpha alpha', 'beta xyz', 'beta qrs'])).toEqual(['Beta', 'Alpha', 'beta xyz'])
+    // Same spread: the repeated word wins over the earlier one.
+    expect(suggestClusterTitles(['delta gamma gamma', 'zeta'])).toEqual(['Gamma', 'Delta', 'zeta'])
+    // Full tie: reading order.
+    expect(suggestClusterTitles(['one two three'])).toEqual(['One', 'Two', 'one two three'])
+    // Words seen in only one idea never form the "shared" pair.
+    expect(suggestClusterTitles(['alpha beta', 'gamma'])).toEqual(['Alpha', 'Beta', 'gamma'])
+  })
+
+  it('merges accented and plain spellings of a word', () => {
+    expect(suggestClusterTitles(['alpha déploiement', 'deploiement beta'])[0]).toBe('Déploiement')
+  })
+
+  it('ignores blank ideas and trims the shortest one; never invents words', () => {
+    expect(suggestClusterTitles(['   ', 'Tests lents ici'])).toEqual(['Tests', 'Lents', 'Tests lents ici'])
+    expect(suggestClusterTitles([' Pipeline KO '])).toEqual(['Pipeline', 'Pipeline KO'])
+    expect(suggestClusterTitles(['!!!'])).toEqual(['!!!'])
+  })
+
+  it('never returns more than asked', () => {
+    expect(suggestClusterTitles(['alpha beta one', 'beta alpha two'], 1)).toEqual(['Alpha beta'])
+  })
 })
