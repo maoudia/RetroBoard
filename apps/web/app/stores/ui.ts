@@ -1,3 +1,4 @@
+import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
 export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | null
 
 /** Purely visual state shared by components. */
@@ -20,10 +21,14 @@ export const useUiStore = defineStore('ui', () => {
   const reviewDone = ref(false)
   /** Presenter mode (screen sharing, room screen): larger type, no drafts, no pointers, QR to join. */
   const presenter = ref(false)
+  /** My view filter (text, colours, author, has votes). Never shared. */
+  const filter = ref<NoteFilter>({ ...EMPTY_FILTER })
+  const filterOpen = ref(false)
+  const resetFilter = () => { filter.value = { ...EMPTY_FILTER } }
 
   const open = (name: Exclude<DialogName, null>) => { dialog.value = name }
   const close = () => { dialog.value = null }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, reviewDone, presenter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
 })

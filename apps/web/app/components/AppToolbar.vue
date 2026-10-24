@@ -27,6 +27,7 @@ const settings = useSettingsStore()
         <span v-if="board.openActions" class="badge" data-testid="actions-count">{{ board.openActions }}</span>
       </button>
       <ExportMenu />
+      <button class="icon-btn" type="button" data-testid="btn-filter" :aria-pressed="ui.filterOpen" @click="ui.filterOpen ? (ui.resetFilter(), ui.filterOpen = false) : (ui.filterOpen = true)"><Icon name="lucide:search" class="ico" /><span>{{ t('toolbar.filter') }}</span></button>
       <button class="icon-btn" type="button" data-testid="btn-presenter" :aria-pressed="ui.presenter" @click="ui.presenter = !ui.presenter"><Icon name="lucide:presentation" class="ico" /><span>{{ t('toolbar.presenter') }}</span></button>
       <button class="icon-btn" type="button" data-testid="btn-share" @click="ui.open('share')"><Icon name="lucide:share-2" class="ico" /><span>{{ t('toolbar.share') }}</span></button>
       <button class="icon-btn" type="button" data-testid="btn-options" @click="ui.open('options')"><Icon name="lucide:settings" class="ico" /><span>{{ t('toolbar.options') }}</span></button>

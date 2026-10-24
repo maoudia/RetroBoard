@@ -99,7 +99,12 @@ function sendSetup(s: SetupResult) {
 const shareOnReady = ref(false)
 // Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
 watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })
-function onPresenterKey(e: KeyboardEvent) { if (e.key === 'Escape' && ui.presenter && ui.dialog === null) ui.presenter = false }
+function onPresenterKey(e: KeyboardEvent) {
+  if (e.key === 'Escape' && ui.presenter && ui.dialog === null) ui.presenter = false
+  // "/" opens the filter, unless typing somewhere.
+  const target = e.target as HTMLElement | null
+  if (e.key === '/' && ui.dialog === null && !(target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)))) { e.preventDefault(); ui.filterOpen = true }
+}
 // Leave guard: unpublished drafts would stay in this browser only; the browser asks first.
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
 onMounted(() => { document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
@@ -158,6 +163,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <VoteBar v-if="board.ready" />
+      <BoardFilter v-if="board.ready && ui.filterOpen" />
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
       <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { similarIdeas } from '@retroboard/application'
 import { LIMITS } from '@retroboard/domain'
 import type { Column } from '@retroboard/domain'
 const { t } = useT()
@@ -10,6 +11,16 @@ const theme = useThemeStore()
 const { publish } = usePublish()
 const text = ref('')
 const mine = computed(() => drafts.forColumn(props.column.id))
+/** Look-alike ideas already published in this column, computed on this device while I type. */
+const similar = computed(() => (text.value.trim().length >= 4 ? similarIdeas(text.value, board.snapshot?.notes ?? [], props.column.id, 1)[0] ?? null : null))
+function showSimilar(id: string) {
+  const el = document.querySelector<HTMLElement>(`[data-anchor="${id}"]`)
+  if (!el) return
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  el.classList.remove('flash')
+  void el.offsetWidth
+  el.classList.add('flash')
+}
 
 function add() {
   if (drafts.add(props.column.id, text.value)) text.value = ''
@@ -58,8 +69,12 @@ function onKey(e: KeyboardEvent) {
         :placeholder="board.locked ? t('private.locked') : t('private.placeholder')"
         @keydown="onKey"
       />
-      <small>{{ themeText(theme.theme).privateHint }} {{ t('private.keys') }}</small>
+      <small>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></small>
     </label>
+    <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
+      <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
+      <button class="link" type="button" @click="showSimilar(similar.id)">« {{ similar.text }} »</button>
+    </p>
   </section>
 </template>
 
@@ -67,6 +82,10 @@ function onKey(e: KeyboardEvent) {
 .priv { display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); border-radius: 0 0 var(--r-card) var(--r-card); }
 header { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
 .title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+/* Keyboard shortcuts mean nothing on touch screens. */
+@media (pointer: coarse) { .keys { display: none; } }
+.similar { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font-size: .85rem; color: var(--muted); }
+.similar .link { overflow-wrap: anywhere; text-align: left; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
 .draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: 8px; animation: pop-in .25s var(--ease); }
 .draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: .92rem; }

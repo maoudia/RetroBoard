@@ -120,3 +120,7 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 :root[data-presenter] .col h2 { font-size: 1.5rem; }
 :root[data-density="compact"] .note { min-height: 80px; padding: .5rem .6rem .35rem; font-size: .92rem; }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+
+/* "Similar idea" link: the existing note blinks once. */
+.note.flash { animation: flash 1.2s var(--ease) 1; }
+@keyframes flash { 30% { box-shadow: 0 0 0 4px var(--accent); } }

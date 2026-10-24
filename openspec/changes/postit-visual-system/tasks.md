@@ -8,8 +8,8 @@
 
 ## 2. Discovery
 
-- [ ] 2.1 Per-participant search and filters; verify e2e
-- [ ] 2.2 Similar-idea hint (normalised token similarity, fr/en stop words) in `packages/domain` or `application`; verify unit tests
+- [x] 2.1 Per-participant search and filters; verify e2e
+- [x] 2.2 Similar-idea hint (normalised token similarity, fr/en stop words) in `packages/domain` or `application`; verify unit tests
 
 ## 3. Motion
 
