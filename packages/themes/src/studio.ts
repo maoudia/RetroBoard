@@ -4,7 +4,6 @@ import type { ThemeDefinition } from './types'
 export const studio: ThemeDefinition = {
   id: 'studio',
   name: 'Studio',
-  emoji: '\u{1F90D}',
   tagline: 'Blanc et gris, épuré',
   group: 'pro',
   scheme: 'light',

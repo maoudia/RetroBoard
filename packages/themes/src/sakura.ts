@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const sakura: ThemeDefinition = {
   id: 'sakura',
   name: 'Sakura',
-  emoji: '\u{1F338}',
   tagline: 'Cerisiers en fleurs, doux et lumineux',
   group: 'fun',
   scheme: 'light',

@@ -33,7 +33,6 @@ export interface ThemeMotion {
 export interface ThemeDefinition {
   id: string
   name: string
-  emoji: string
   tagline: string
   /** 'pro' themes are sober and work-ready, 'fun' ones are seasonal and playful. */
   group: 'pro' | 'fun'

@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const noel: ThemeDefinition = {
   id: 'noel',
   name: 'Noël',
-  emoji: '\u{1F384}',
   tagline: 'Sapin, neige et guirlandes',
   group: 'fun',
   scheme: 'dark',

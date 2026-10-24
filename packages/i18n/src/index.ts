@@ -6,9 +6,10 @@ export type Locale = 'fr' | 'en'
 export { en } from './en'
 export { fr } from './fr'
 
+/** Display order everywhere: English first, then French, then future languages. */
 export const LOCALES: readonly { id: Locale; label: string }[] = [
-  { id: 'fr', label: 'Français' },
   { id: 'en', label: 'English' },
+  { id: 'fr', label: 'Français' },
 ]
 export type LocalePref = Locale | 'auto'
 

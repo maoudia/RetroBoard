@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const slate: ThemeDefinition = {
   id: 'slate',
   name: 'Slate',
-  emoji: '\u{1F311}',
   tagline: 'Sombre, sobre, concentré',
   group: 'pro',
   scheme: 'dark',

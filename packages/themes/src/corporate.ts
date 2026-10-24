@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const corporate: ThemeDefinition = {
   id: 'corporate',
   name: 'Corporate',
-  emoji: '\u{1F3E2}',
   tagline: 'Clair, bleu, prêt pour un comité',
   group: 'pro',
   scheme: 'light',

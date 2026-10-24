@@ -63,8 +63,8 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
       <div class="line">
         <span><strong>{{ t('profile.language') }}</strong><small class="muted">{{ t('profile.language.hint') }}</small></span>
         <span class="seg">
-          <button type="button" :class="{ on: settings.s.locale === 'auto' }" data-testid="lang-auto" @click="set({ locale: 'auto' })">{{ t('profile.language.auto') }}</button>
           <button v-for="l in LOCALES" :key="l.id" type="button" :class="{ on: settings.s.locale === l.id }" :lang="l.id" :data-testid="`pref-lang-${l.id}`" @click="set({ locale: l.id })">{{ l.label }}</button>
+          <button type="button" :class="{ on: settings.s.locale === 'auto' }" data-testid="lang-auto" @click="set({ locale: 'auto' })">{{ t('profile.language.auto') }}</button>
         </span>
       </div>
       <div class="line">
@@ -78,7 +78,7 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         <template v-for="g in THEME_GROUPS" :key="g.id">
           <span class="lbl-sm muted">{{ t(g.id === 'pro' ? 'theme.pro' : 'theme.fun') }}</span>
           <div class="chips">
-            <button v-for="th in THEMES.filter((x) => x.group === g.id)" :key="th.id" type="button" class="chip" :class="{ on: settings.s.myTheme === th.id }" :data-testid="`mine-${th.id}`" @click="set({ myTheme: th.id })">{{ th.emoji }} {{ th.name }}</button>
+            <button v-for="th in THEMES.filter((x) => x.group === g.id)" :key="th.id" type="button" class="chip" :class="{ on: settings.s.myTheme === th.id }" :data-testid="`mine-${th.id}`" @click="set({ myTheme: th.id })">{{ th.name }}</button>
           </div>
         </template>
       </div>
@@ -86,7 +86,7 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         <span><strong>{{ t('profile.defaultTheme') }}</strong></span>
         <select class="field sel" :value="settings.s.defaultTheme ?? ''" :aria-label="t('profile.defaultTheme.aria')" @change="set({ defaultTheme: ($event.target as HTMLSelectElement).value || null })">
           <option value="">{{ t('profile.defaultTheme.season') }}</option>
-          <option v-for="th in THEMES" :key="th.id" :value="th.id">{{ th.emoji }} {{ th.name }}</option>
+          <option v-for="th in THEMES" :key="th.id" :value="th.id">{{ th.name }}</option>
         </select>
       </div>
       <label class="line">

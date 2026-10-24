@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const paper: ThemeDefinition = {
   id: 'paper',
   name: 'Paper',
-  emoji: '\u{1F4C4}',
   tagline: 'Éditorial, papier chaud, serif',
   group: 'pro',
   scheme: 'light',

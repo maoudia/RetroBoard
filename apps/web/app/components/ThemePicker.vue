@@ -23,7 +23,7 @@ const suggestion = suggestThemeForDate(new Date())
             <span class="dot" :style="{ background: th.tokens.accent }" />
           </span>
           <span class="meta">
-            <strong>{{ th.emoji }} {{ th.name }}</strong>
+            <strong>{{ th.name }}</strong>
             <small>{{ themeText(th).tagline }}</small>
           </span>
           <span v-if="suggestion.themeId === th.id" class="tip" :title="themeReasonLabel(suggestion.reason)">{{ t('theme.suggested') }}</span>

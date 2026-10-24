@@ -16,7 +16,7 @@ defineProps<{ theme: ThemeDefinition }>()
       </div>
     </div>
     <figcaption>
-      <strong>{{ theme.emoji }} {{ theme.name }}</strong>
+      <strong>{{ theme.name }}</strong>
       <small>{{ themeText(theme).tagline }}</small>
     </figcaption>
   </figure>

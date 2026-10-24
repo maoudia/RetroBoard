@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const halloween: ThemeDefinition = {
   id: 'halloween',
   name: 'Halloween',
-  emoji: '\u{1F383}',
   tagline: 'Crypte, chauves-souris et citrouilles',
   group: 'fun',
   scheme: 'dark',

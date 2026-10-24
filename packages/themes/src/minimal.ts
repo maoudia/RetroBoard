@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const minimal: ThemeDefinition = {
   id: 'minimal',
   name: 'Minimal',
-  emoji: '\u{2728}',
   tagline: 'Sobre, clair, sans distraction',
   group: 'pro',
   scheme: 'light',

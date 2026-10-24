@@ -3,7 +3,6 @@ import type { ThemeDefinition } from './types'
 export const cyber: ThemeDefinition = {
   id: 'cyber',
   name: 'Cyber',
-  emoji: '\u{1F916}',
   tagline: 'Néons, grille et terminal',
   group: 'fun',
   scheme: 'dark',

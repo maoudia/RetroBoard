@@ -11,7 +11,7 @@ const theme = useThemeStore()
       <NuxtLink to="/" class="logo" :aria-label="t('toolbar.home')"><Icon name="lucide:sparkles" /></NuxtLink>
       <button class="title" type="button" :title="t('toolbar.rename')" data-testid="board-title" @click="ui.open('options')">
         <strong>{{ board.settings?.title }}</strong>
-        <small class="muted">{{ theme.theme.emoji }} {{ theme.theme.name }}</small>
+        <small class="muted">{{ theme.theme.name }}</small>
       </button>
     </div>
 
