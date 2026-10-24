@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "nuxt dev",
     "prepare": "nuxt prepare",
-    "generate": "nuxt generate && node scripts/csp-hashes.mjs",
+    "generate": "nuxt generate && node scripts/csp-hashes.mjs && node scripts/security-txt.mjs",
     "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

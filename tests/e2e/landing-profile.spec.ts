@@ -104,3 +104,12 @@ test.describe('no console errors', () => {
     expect(errors).toEqual([])
   })
 })
+
+test('security.txt is published with a future expiry (RFC 9116)', async ({ request }) => {
+  const res = await request.get('/.well-known/security.txt')
+  expect(res.ok()).toBe(true)
+  const body = await res.text()
+  expect(body).toMatch(/^Contact: https:\/\//m)
+  const expires = body.match(/^Expires: (.+)$/m)?.[1]
+  expect(expires && Date.parse(expires)).toBeGreaterThan(Date.now())
+})

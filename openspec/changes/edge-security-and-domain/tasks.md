@@ -7,6 +7,6 @@
 
 ## 2. Pages and files
 
-- [ ] 2.1 Generate `/.well-known/security.txt` at build with Expires one year ahead; verify a unit test parses it and an e2e request returns it
+- [x] 2.1 Generate `/.well-known/security.txt` at build with Expires one year ahead; verify a unit test parses it and an e2e request returns it
 - [ ] 2.2 Add legal notice, privacy and terms pages (fr, en) linked in every footer; verify e2e navigation and that the privacy page lists the observable data
 - [ ] 2.3 Add an HSTS header check and an HTTP->HTTPS redirect check to the production smoke tests; verify they pass after deploy
