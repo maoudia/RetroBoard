@@ -19,6 +19,12 @@ export const LIMITS = {
   rateMax: 40,
   rateWindowMs: 10_000,
   maxMessageBytes: 16_384,
+  /**
+   * Replicated fold (encrypted boards): events per author beyond this, within the window of
+   * event clocks, are ignored by every peer alike. Bounds a flooding participant.
+   */
+  foldRateMax: 60,
+  foldRateWindowMs: 10_000,
   /** A board is erased after this much inactivity. */
   ttlMs: 24 * 60 * 60 * 1000,
   timerMinutes: [3, 5, 10, 15, 20, 30] as const,

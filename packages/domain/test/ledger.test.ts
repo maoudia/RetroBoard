@@ -102,3 +102,20 @@ describe('determinism', () => {
     expect(foldAll(base, events).applied).toBe(4)
   })
 })
+
+describe('rate limit in the fold', () => {
+  it('ignores an author beyond the window budget, identically on every replica, and recovers later', async () => {
+    const { LIMITS } = await import('../src')
+    let l = started()
+    const col = l.board.columns[0]!.id
+    const burst = Array.from({ length: LIMITS.foldRateMax + 5 }, (_, i) =>
+      ({ id: `01K${String(i).padStart(23, '0')}`, at: 5_000 + i, author: ALICE, body: { t: 'cmd', cmd: { t: 'vote.toggle', id: 'nope' }, name: null, showName: false } }) as VerifiedEvent)
+    // Votes on a missing note fail anyway: use notes so accepted events change the board.
+    const notes = burst.map((e, i) => ({ ...e, body: { t: 'cmd', cmd: { t: 'note.add', columnId: col, text: `n${i}` }, name: null, showName: false } }) as VerifiedEvent)
+    l = foldAll(l, notes)
+    expect(Object.keys(l.board.notes)).toHaveLength(LIMITS.foldRateMax)
+    expect(foldEvent(l, cmd(BOB, { t: 'note.add', columnId: col, text: 'bob is fine' })).ok).toBe(true)
+    const later = { ...notes[0]!, id: '01L00000000000000000000000', at: 5_000 + LIMITS.foldRateWindowMs + 100 }
+    expect(foldEvent(l, later).ok).toBe(true)
+  })
+})

@@ -23,6 +23,7 @@
     "@retroboard/exporters": "workspace:*",
     "@retroboard/i18n": "workspace:*",
     "@retroboard/protocol": "workspace:*",
+    "@retroboard/sync": "workspace:*",
     "@retroboard/themes": "workspace:*",
     "nuxt": "^4.6.2",
     "pinia": "^4.1.0",

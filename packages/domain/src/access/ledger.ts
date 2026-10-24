@@ -13,6 +13,7 @@
 import { createBoard } from '../facilitation/board'
 import { reduce } from '../reducer'
 import type { Command, CommandType } from '../shared/commands'
+import { LIMITS } from '../shared/limits'
 import type { BoardState, ErrorCode } from '../shared/types'
 import { KEY_RE, ROOM_ID_RE } from './keyring'
 
@@ -39,9 +40,11 @@ export interface Ledger {
   readonly facilitators: readonly string[]
   readonly board: BoardState
   readonly applied: number
+  /** Clocks of each author's recent accepted events (rate limit window). */
+  readonly recent: Readonly<Record<string, readonly number[]>>
 }
 
-export type IgnoreReason = 'no-genesis' | 'bad-genesis' | 'duplicate-genesis' | 'not-facilitator' | ErrorCode
+export type IgnoreReason = 'no-genesis' | 'bad-genesis' | 'duplicate-genesis' | 'not-facilitator' | 'rate-limited' | ErrorCode
 
 export type FoldResult =
   | { readonly ok: true; readonly ledger: Ledger }
@@ -65,14 +68,25 @@ const idsFrom = (eventId: string) => {
 }
 
 export function emptyLedger(roomId: string): Ledger {
-  return { roomId, facilitatorKey: null, facilitators: [], board: createBoard({ newId: idsFrom(`genesis-${roomId}`) }), applied: 0 }
+  return { roomId, facilitatorKey: null, facilitators: [], board: createBoard({ newId: idsFrom(`genesis-${roomId}`) }), applied: 0, recent: {} }
 }
 
 const ignore = (ledger: Ledger, reason: IgnoreReason): FoldResult => ({ ok: false, ledger, reason })
 const applied = (ledger: Ledger, patch: Partial<Ledger>): FoldResult => ({ ok: true, ledger: { ...ledger, ...patch, applied: ledger.applied + 1 } })
 
+/** The author's accepted clocks still inside the window ending at `at`. */
+const windowOf = (ledger: Ledger, author: string, at: number): readonly number[] =>
+  (ledger.recent[author] ?? []).filter((t) => t > at - LIMITS.foldRateWindowMs)
+
 export function foldEvent(ledger: Ledger, event: VerifiedEvent): FoldResult {
+  const out = foldUnlimited(ledger, event)
+  if (!out.ok || event.body.t === 'genesis') return out
+  return { ok: true, ledger: { ...out.ledger, recent: { ...ledger.recent, [event.author]: [...windowOf(ledger, event.author, event.at), event.at] } } }
+}
+
+function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
   const { body, author } = event
+  if (body.t !== 'genesis' && windowOf(ledger, author, event.at).length >= LIMITS.foldRateMax) return ignore(ledger, 'rate-limited')
 
   if (body.t === 'genesis') {
     if (ledger.facilitatorKey !== null) return ignore(ledger, 'duplicate-genesis')

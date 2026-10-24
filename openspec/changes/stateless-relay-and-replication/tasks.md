@@ -2,13 +2,13 @@
 
 ## 1. Sync core
 
-- [ ] 1.1 Implement HLC, ULID ordering and version vectors in `packages/sync` with property-based tests (fast-check); verify convergence properties on random event permutations
-- [ ] 1.2 Implement the fold with checkpoints and re-fold on late events; verify unit tests and a benchmark of 5,000 events under 200 ms in Node
-- [ ] 1.3 Implement per-author rate limits in the fold; verify flood events are ignored identically on all replicas
+- [x] 1.1 Implement HLC, ULID ordering and version vectors in `packages/sync` with property-based tests (fast-check); verify convergence properties on random event permutations
+- [x] 1.2 Implement the fold with checkpoints and re-fold on late events; verify unit tests and a benchmark of 5,000 events under 200 ms in Node
+- [x] 1.3 Implement per-author rate limits in the fold; verify flood events are ignored identically on all replicas
 
 ## 2. Relay v2
 
-- [ ] 2.1 Rewrite `apps/relay` Room as a memory-only forwarder with ring buffer and `need-state`; verify unit tests and the "no storage API" CI check
+- [x] 2.1 Rewrite `apps/relay` Room as a memory-only forwarder with ring buffer and `need-state`; verify unit tests and the "no storage API" CI check
 - [ ] 2.2 Implement resync messages (`hello`, `need`, `have`) in the web relay adapter; verify an e2e test that restarts `wrangler dev` mid-retro and checks every page shows the same board within 5 s
 
 ## 3. Local replica

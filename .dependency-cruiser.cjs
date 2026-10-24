@@ -46,6 +46,12 @@ module.exports = {
       to: { pathNot: ['^packages/crypto/src', '@noble/'] },
     },
     {
+      name: 'sync-is-self-contained',
+      severity: 'error',
+      from: { path: '^packages/sync/src' },
+      to: { pathNot: '^packages/sync/src' },
+    },
+    {
       name: 'packages-never-import-apps',
       severity: 'error',
       from: { path: '^packages/' },

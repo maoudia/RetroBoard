@@ -9,6 +9,7 @@
 import { EventLog, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer } from '@retroboard/domain'
+import { HybridClock } from '@retroboard/sync'
 import { type Envelope, envelopeAad, PROTOCOL_VERSION, parsePresence, parseRelayFrame, parseSignedEvent, type Presence, type RelayFrame } from '@retroboard/protocol'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
@@ -25,7 +26,8 @@ export interface EncryptedDeps {
 }
 
 const toError = (reason: IgnoreReason): ErrorCode =>
-  reason === 'not-facilitator' || reason === 'no-genesis' || reason === 'bad-genesis' || reason === 'duplicate-genesis' ? 'forbidden' : reason
+  reason === 'rate-limited' ? 'limit-reached'
+    : reason === 'not-facilitator' || reason === 'no-genesis' || reason === 'bad-genesis' || reason === 'duplicate-genesis' ? 'forbidden' : reason
 
 export function buildWs2Url(base: string, roomId: string, loc: Pick<Location, 'protocol' | 'host'>): string {
   const origin = base || `${loc.protocol === 'https:' ? 'wss' : 'ws'}://${loc.host}`
@@ -45,7 +47,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private closed = false
   private reconnectTimer: ReturnType<typeof setTimeout> | undefined
   private heartbeat: ReturnType<typeof setInterval> | undefined
-  private lastAt = 0
+  private hlc = new HybridClock()
   private deps!: EncryptedDeps
   private WS: typeof WebSocket = WebSocket
   private now: () => number = Date.now
@@ -68,6 +70,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       this.deps = deps
       this.WS = deps.WS ?? WebSocket
       this.now = deps.now ?? Date.now
+      this.hlc = new HybridClock(this.now)
       if (!this.closed) this.open()
     }, () => this.handlers.onError('invalid'))
   }
@@ -102,8 +105,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   private clock(): number {
-    this.lastAt = Math.max(this.now(), this.lastAt + 1, this.log.lastAt + 1)
-    return this.lastAt
+    return this.hlc.tick()
   }
 
   private async publishLocal(body: EventBody): Promise<void> {
@@ -144,7 +146,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       // The envelope header must agree with the signed content (no relabelled replays).
       if (!event || event.id !== env.id || event.at !== env.hlc) continue
       const verified = await verifyEvent(this.deps.verifier, this.ring.roomId, event)
-      if (verified && this.log.insert(event)) added++
+      if (verified && this.log.insert(event)) { this.hlc.receive(event.at); added++ }
     }
     return added
   }
