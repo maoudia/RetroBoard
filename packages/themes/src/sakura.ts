@@ -11,6 +11,10 @@ export const sakura: ThemeDefinition = {
     text: '#3a2230', muted: '#7d5568', accent: '#c93a6b', accent2: '#4f9a5b', accentInk: '#ffffff',
     danger: '#c62a47', success: '#2f7d45', noteInk: '#3a2230',
   },
+  /** The dark variant (each participant picks light or dark; the board theme stays the same). */
+  alt: {
+    bg: '#1e1218', bg2: '#2a1822', surface: '#26161f', surface2: '#311d29', border: '#4d2c3d', text: '#fbeef3', muted: '#d1a7ba', accent: '#ff7aa6', accent2: '#7fd08a', accentInk: '#2b0714', danger: '#ff7d93', success: '#7fd08a', noteInk: '#3a2230',
+  },
   noteColors: ['#ffd1dc', '#ffe8b3', '#d4f0d0', '#d0e6ff', '#e6d4ff', '#ffd9c2', '#cdf3ee', '#fff4b8'],
   fonts: { display: '"Zen Maru Gothic", system-ui, sans-serif', body: '"Quicksand Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 22, control: 14 },

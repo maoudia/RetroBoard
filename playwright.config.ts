@@ -18,7 +18,8 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${port}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: process.env.CI ? 'retain-on-failure' : 'off',
+    // E2E_NO_VIDEO: CI-like runs on machines without Playwright's ffmpeg.
+    video: process.env.CI && !process.env.E2E_NO_VIDEO ? 'retain-on-failure' : 'off',
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {},
   },
   // Locally only Chromium is installed. CI runs the other projects (see .github/workflows/e2e.yml).

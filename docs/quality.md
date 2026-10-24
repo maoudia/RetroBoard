@@ -5,7 +5,7 @@ Every commit on `main` runs `.github/workflows/quality.yml`:
 | Job | What | Kept as |
 |---|---|---|
 | Unit tests and coverage | Vitest with v8 coverage and the coverage ratchets | Pages `coverage/`, `unit/results.json`; artifact `quality-unit` |
-| Playwright (chromium, firefox, webkit, phone, tv) | Full e2e suite per project against `wrangler dev` | Pages `e2e/<project>/` (HTML report); artifact `playwright-<project>` (HTML report, JSON, JUnit, traces, screenshots, videos of failures) |
+| Playwright (chromium, firefox, phone, tv; webkit nightly) | Full e2e suite per project against `wrangler dev` | Pages `e2e/<project>/` (HTML report); artifact `playwright-<project>` (HTML report, JSON, JUnit, traces, screenshots, videos of failures) |
 | Mutation testing | Stryker on the pure packages (domain, application, protocol, crypto, exporters), incremental | Pages `mutation/`; artifact `quality-mutation` |
 | Publish | Builds the quality site and deploys it to GitHub Pages, even when a test job failed | https://maoudia.github.io/RetroBoard/ |
 

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { collectProblems, createBoard } from './helpers'
+import { collectProblems, createBoard, join } from './helpers'
 
 test.describe('landing', () => {
   test('presents the product in a light, theme-independent design', async ({ page }) => {
@@ -42,15 +42,47 @@ test.describe('profile and local settings', () => {
     await expect(page.getByTestId('profile-name')).toHaveValue('Moncef')
   })
 
-  test('"my theme" overrides the board theme on my screen only', async ({ page }) => {
-    await createBoard(page, { theme: 'halloween', template: 'start-stop-continue' })
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'halloween')
+  test('the board theme is imposed; light or dark is personal, per participant', async ({ page, browser }) => {
+    await createBoard(page, { theme: 'halloween', template: 'start-stop-continue', name: 'Alice' })
+    const html = page.locator('html')
+    await expect(html).toHaveAttribute('data-theme', 'halloween')
+    // Default: the theme's own variant (Halloween is dark).
+    await expect(html).toHaveAttribute('data-variant', 'dark')
+    await page.getByTestId('btn-share').click()
+    const link = await page.getByTestId('share-url').inputValue()
+    await page.keyboard.press('Escape')
+    const bob = await join(browser, link, 'Bob')
+
+    // Alice switches to light from the toolbar; Bob stays dark. Same theme for both.
+    await page.getByTestId('btn-variant').click()
+    await expect(html).toHaveAttribute('data-variant', 'light')
+    await expect(bob.page.locator('html')).toHaveAttribute('data-variant', 'dark')
+    await expect(bob.page.locator('html')).toHaveAttribute('data-theme', 'halloween')
+
+    // The light Halloween uses its authored light palette (not the dark one).
+    const bg = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim())
+    expect(bg).toBe('#fbf6ef')
+
+    // Profile: back to the theme's own variant.
     await page.getByTestId('btn-profile').click()
-    await page.getByTestId('mode-mine').click()
-    await page.getByTestId('mine-slate').click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'slate')
-    await page.getByTestId('mode-board').click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'halloween')
+    await page.getByTestId('variant-theme').click()
+    await expect(html).toHaveAttribute('data-variant', 'dark')
+    await bob.ctx.close()
+  })
+
+  test('only the facilitator changes the board theme', async ({ page, browser }) => {
+    await createBoard(page, { theme: 'studio', template: 'start-stop-continue', name: 'Alice' })
+    await page.getByTestId('btn-share').click()
+    const bob = await join(browser, await page.getByTestId('share-url').inputValue(), 'Bob')
+    await page.keyboard.press('Escape')
+    await bob.page.getByTestId('btn-options').click()
+    await expect(bob.page.getByTestId('opt-readonly')).toBeVisible()
+    await expect(bob.page.locator('[data-testid^="theme-"]').first()).toBeDisabled()
+    await bob.page.keyboard.press('Escape')
+    await page.getByTestId('btn-options').click()
+    await page.getByTestId('theme-slate').click()
+    await expect(bob.page.locator('html')).toHaveAttribute('data-theme', 'slate')
+    await bob.ctx.close()
   })
 
   test('recent boards are listed locally and can be wiped', async ({ page }) => {

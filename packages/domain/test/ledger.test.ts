@@ -189,3 +189,13 @@ describe('phase rules in the fold', () => {
     expect(foldEvent(l, cmd(ALICE, { t: 'note.add', columnId: col, text: 'late' }))).toMatchObject({ ok: false, reason: 'phase' })
   })
 })
+
+describe('board theme is imposed', () => {
+  it('a participant cannot change the theme; the facilitator can', () => {
+    const l = started()
+    const forged = foldEvent(l, cmd(ALICE, { t: 'settings.update', themeId: 'halloween' }))
+    expect(forged).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(forged.ledger.board.settings.themeId).toBe(l.board.settings.themeId)
+    expect(foldAll(l, [cmd(FAC, { t: 'settings.update', themeId: 'halloween' })]).board.settings.themeId).toBe('halloween')
+  })
+})

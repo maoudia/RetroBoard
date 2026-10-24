@@ -3,6 +3,7 @@ const { t } = useT()
 const board = useBoardStore()
 const ui = useUiStore()
 const theme = useThemeStore()
+const settings = useSettingsStore()
 </script>
 
 <template>
@@ -28,7 +29,14 @@ const theme = useThemeStore()
       <ExportMenu />
       <button class="icon-btn" type="button" data-testid="btn-share" @click="ui.open('share')"><Icon name="lucide:share-2" class="ico" /><span>{{ t('toolbar.share') }}</span></button>
       <button class="icon-btn" type="button" data-testid="btn-options" @click="ui.open('options')"><Icon name="lucide:settings" class="ico" /><span>{{ t('toolbar.options') }}</span></button>
-      <ProfileButton class="me" />
+      <button
+        class="icon-btn" type="button" data-testid="btn-variant" :aria-pressed="theme.variant === 'dark'"
+        :aria-label="t(theme.variant === 'dark' ? 'toolbar.variant.toLight' : 'toolbar.variant.toDark')"
+        @click="settings.patch({ variant: theme.variant === 'dark' ? 'light' : 'dark' })"
+      >
+        <Icon :name="theme.variant === 'dark' ? 'lucide:sun' : 'lucide:moon'" class="ico" />
+      </button>
+            <ProfileButton class="me" />
     </nav>
   </header>
 </template>

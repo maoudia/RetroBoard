@@ -11,6 +11,10 @@ export const corporate: ThemeDefinition = {
     text: '#101828', muted: '#475467', accent: '#1d4ed8', accent2: '#0e7490', accentInk: '#ffffff',
     danger: '#b42318', success: '#067647', noteInk: '#101828',
   },
+  /** The dark variant (each participant picks light or dark; the board theme stays the same). */
+  alt: {
+    bg: '#0b1220', bg2: '#111a2e', surface: '#131c30', surface2: '#1a2540', border: '#2a3a5c', text: '#eef2fb', muted: '#a6b2c8', accent: '#6b9bff', accent2: '#38bdf8', accentInk: '#06122b', danger: '#ff7b72', success: '#4ade80', noteInk: '#101828',
+  },
   noteColors: ['#fef3c7', '#dbeafe', '#fce7f3', '#d1fae5', '#e0e7ff', '#fed7aa', '#cffafe', '#e5e7eb'],
   fonts: { display: '"Inter Variable", system-ui, sans-serif', body: '"Inter Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 12, control: 8 },

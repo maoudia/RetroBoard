@@ -1,9 +1,9 @@
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
-import type { ThemeDefinition } from '@retroboard/themes'
+import { type ThemeDefinition, type ThemeVariant, tokensFor } from '@retroboard/themes'
 
 /** Writes a theme as CSS custom properties and data attributes. Pure DOM, no framework. */
-export function applyTheme(theme: ThemeDefinition, root: HTMLElement = document.documentElement): void {
-  const t = theme.tokens
+export function applyTheme(theme: ThemeDefinition, variant: ThemeVariant = theme.scheme, root: HTMLElement = document.documentElement): void {
+  const t = tokensFor(theme, variant)
   const vars: Record<string, string> = {
     '--bg': t.bg, '--bg2': t.bg2, '--surface': t.surface, '--surface2': t.surface2, '--border': t.border,
     '--text': t.text, '--muted': t.muted, '--accent': t.accent, '--accent2': t.accent2, '--accent-ink': t.accentInk,
@@ -14,8 +14,9 @@ export function applyTheme(theme: ThemeDefinition, root: HTMLElement = document.
   }
   for (let i = 0; i < NOTE_COLOR_COUNT; i++) vars[`--note-${i}`] = theme.noteColors[i]!
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v)
-  root.style.colorScheme = theme.scheme
+  root.style.colorScheme = variant
   root.dataset.theme = theme.id
+  root.dataset.variant = variant
   root.dataset.enter = theme.motion.enter
   root.dataset.leave = theme.motion.leave
 }

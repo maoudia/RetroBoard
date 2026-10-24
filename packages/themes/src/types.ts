@@ -36,8 +36,10 @@ export interface ThemeDefinition {
   tagline: string
   /** 'pro' themes are sober and work-ready, 'fun' ones are seasonal and playful. */
   group: 'pro' | 'fun'
+  /** Native scheme: `tokens` are for it, `alt` for the other one. */
   scheme: 'dark' | 'light'
   tokens: ThemeTokens
+  alt: ThemeTokens
   /** Exactly NOTE_COLOR_COUNT sticky note colours. */
   noteColors: readonly string[]
   fonts: { display: string; body: string; mono: string }

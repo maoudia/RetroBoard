@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { THEMES, contrast, getTheme } from '../src'
+import { THEMES, contrast, getTheme, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -10,8 +10,9 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     expect(t.motion.enterMs).toBeGreaterThan(100)
   })
 
-  it('has readable text (WCAG AA 4.5:1)', () => {
-    const k = t.tokens
+  it.each(['light', 'dark'] as const)('has readable text in the %s variant (WCAG AA 4.5:1)', (variant) => {
+    const k = tokensFor(t, variant)
+    for (const [name, v] of Object.entries(k)) expect(v, name).toMatch(/^#[0-9a-f]{6}$/i)
     expect(contrast(k.text, k.bg), 'text on bg').toBeGreaterThanOrEqual(4.5)
     expect(contrast(k.text, k.surface), 'text on surface').toBeGreaterThanOrEqual(4.5)
     expect(contrast(k.muted, k.bg), 'muted on bg').toBeGreaterThanOrEqual(4.5)
@@ -21,10 +22,15 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     expect(contrast(k.danger, k.surface), 'danger on surface').toBeGreaterThanOrEqual(3)
   })
 
-  it('has readable sticky notes', () => {
+  it.each(['light', 'dark'] as const)('has readable sticky notes in the %s variant', (variant) => {
     t.noteColors.forEach((c, i) => {
-      expect(contrast(t.tokens.noteInk, c), `note ${i}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(tokensFor(t, variant).noteInk, c), `note ${i}`).toBeGreaterThanOrEqual(4.5)
     })
+  })
+
+  it('has a light and a dark variant that differ', () => {
+    expect(tokensFor(t, 'light').bg).not.toBe(tokensFor(t, 'dark').bg)
+    expect(contrast(tokensFor(t, 'light').bg, '#000000')).toBeGreaterThan(contrast(tokensFor(t, 'dark').bg, '#000000'))
   })
 })
 

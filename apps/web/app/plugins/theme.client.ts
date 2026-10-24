@@ -7,5 +7,5 @@ export default defineNuxtPlugin(() => {
   settings.apply()
   useHead({ htmlAttrs: { lang: currentLocale } })
   const theme = useThemeStore()
-  void theme.use(settings.s.themeMode === 'mine' && settings.s.myTheme ? settings.s.myTheme : (settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId), false)
+  void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false)
 })

@@ -93,7 +93,8 @@ function sendSetup(s: SetupResult) {
 // The board's theme is shared: everybody sees the same ambiance.
 const settings = useSettingsStore()
 const recents = useRecentsStore()
-const effectiveThemeId = computed(() => (settings.s.themeMode === 'mine' && settings.s.myTheme ? settings.s.myTheme : board.settings?.themeId))
+// Imposed: everyone sees the board's theme; only light or dark is personal.
+const effectiveThemeId = computed(() => board.settings?.themeId)
 watch(effectiveThemeId, (id) => { if (id && id !== theme.themeId) void theme.use(id, false) }, { immediate: true })
 
 // Remember this board on this device only (title and theme, never content).

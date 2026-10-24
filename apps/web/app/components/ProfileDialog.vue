@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LIMITS } from '@retroboard/domain'
-import { THEMES, THEME_GROUPS } from '@retroboard/themes'
+import { THEMES } from '@retroboard/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
 const { t, locale } = useT()
@@ -10,7 +10,6 @@ const identity = useIdentityStore()
 const settings = useSettingsStore()
 const recents = useRecentsStore()
 const board = useBoardStore()
-const theme = useThemeStore()
 const { push } = useToasts()
 
 const open = computed({ get: () => ui.dialog === 'profile', set: (v) => { if (!v && ui.dialog === 'profile') ui.close() } })
@@ -23,14 +22,7 @@ function saveIdentity() {
   identity.set({ name: name.value, showName: show.value })
   board.updateIdentity(identity.identity)
 }
-const set = (patch: Parameters<typeof settings.patch>[0]) => {
-  settings.patch(patch)
-  // Theme preferences apply at once, wherever the person is.
-  if (patch.themeMode || patch.myTheme) {
-    const id = settings.s.themeMode === 'mine' ? settings.s.myTheme : board.settings?.themeId
-    if (id) void theme.use(id, false)
-  }
-}
+const set = (patch: Parameters<typeof settings.patch>[0]) => settings.patch(patch)
 const { $ports } = useNuxtApp()
 async function wipe() {
   try { Object.keys(localStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => localStorage.removeItem(k)) } catch { /* ignore */ }
@@ -72,19 +64,10 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         </span>
       </div>
       <div class="line">
-        <span><strong>{{ t('profile.themeOnScreen') }}</strong><small class="muted">{{ t('profile.themeOnScreen.hint') }}</small></span>
-        <span class="seg">
-          <button type="button" :class="{ on: settings.s.themeMode === 'board' }" data-testid="mode-board" @click="set({ themeMode: 'board' })">{{ t('profile.modeBoard') }}</button>
-          <button type="button" :class="{ on: settings.s.themeMode === 'mine' }" data-testid="mode-mine" @click="set({ themeMode: 'mine', myTheme: settings.s.myTheme ?? theme.themeId })">{{ t('profile.modeMine') }}</button>
+        <span><strong>{{ t('profile.variant') }}</strong><small class="muted">{{ t('profile.variant.hint') }}</small></span>
+        <span class="seg" role="group" :aria-label="t('profile.variant')">
+          <button v-for="v in (['theme', 'light', 'dark', 'system'] as const)" :key="v" type="button" :class="{ on: settings.s.variant === v }" :aria-pressed="settings.s.variant === v" :data-testid="`variant-${v}`" @click="set({ variant: v })">{{ t(`profile.variant.${v}`) }}</button>
         </span>
-      </div>
-      <div v-if="settings.s.themeMode === 'mine'" class="mine">
-        <template v-for="g in THEME_GROUPS" :key="g.id">
-          <span class="lbl-sm muted">{{ t(g.id === 'pro' ? 'theme.pro' : 'theme.fun') }}</span>
-          <div class="chips">
-            <button v-for="th in THEMES.filter((x) => x.group === g.id)" :key="th.id" type="button" class="chip" :class="{ on: settings.s.myTheme === th.id }" :data-testid="`mine-${th.id}`" @click="set({ myTheme: th.id })">{{ th.name }}</button>
-          </div>
-        </template>
       </div>
       <div class="line">
         <span><strong>{{ t('profile.defaultTheme') }}</strong></span>

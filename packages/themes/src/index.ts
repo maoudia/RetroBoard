@@ -10,7 +10,7 @@ import { sakura } from './sakura'
 import { studio } from './studio'
 import { slate } from './slate'
 import { THEMES_EN as THEMES_EN_LOOKUP } from './texts.en'
-import type { ThemeDefinition } from './types'
+import type { ThemeDefinition, ThemeTokens } from './types'
 
 /**
  * To add a theme: create `packages/themes/src/<id>.ts` exporting a ThemeDefinition and add it here.
@@ -38,3 +38,8 @@ export function themeText(theme: ThemeDefinition, locale: 'fr' | 'en'): import('
   if (locale === 'en' && en) return en
   return { tagline: theme.tagline, ...theme.copy }
 }
+
+export type ThemeVariant = 'light' | 'dark'
+
+/** Tokens of a theme for a variant: its native tokens, or the authored alternate ones. */
+export const tokensFor = (theme: ThemeDefinition, variant: ThemeVariant): ThemeTokens => (variant === theme.scheme ? theme.tokens : theme.alt)
