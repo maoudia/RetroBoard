@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type RetroTemplate, localizeTemplate } from '~~/shared/domain/templates'
+import { type RetroTemplate, localizeTemplate } from '@retroboard/domain'
 
 const props = defineProps<{ template: RetroTemplate; selected: boolean; rank?: number; reasons?: string[] }>()
 const { t, locale } = useT()

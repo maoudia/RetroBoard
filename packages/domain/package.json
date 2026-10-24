@@ -1,0 +1,17 @@
+{
+  "name": "@retroboard/domain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "Pure domain of RetroBoard: aggregates, commands, policies. No I/O, no framework.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
+  },
+  "devDependencies": {
+    "@retroboard/testkit": "workspace:*"
+  }
+}

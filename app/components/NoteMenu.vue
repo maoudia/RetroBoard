@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { NOTE_COLOR_COUNT } from '~~/shared/domain/limits'
-import type { SnapshotNote } from '~~/shared/domain/types'
+import { NOTE_COLOR_COUNT } from '@retroboard/domain'
+import type { SnapshotNote } from '@retroboard/domain'
 const { t } = useT()
 
 const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()

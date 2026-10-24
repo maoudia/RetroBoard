@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createBoard } from '../../shared/domain/board'
-import { ROOM_ID_RE } from '../../shared/domain/schemas'
-import { buildCsp, withSecurityHeaders } from '../../apps/relay/src/headers'
-import { roomHash } from '../../apps/relay/src/logger'
-import { isAllowedOrigin } from '../../apps/relay/src/origin'
-import { DurableStorageRepository } from '../../apps/relay/src/repository'
-import { ids } from './helpers'
+import { createBoard } from '@retroboard/domain'
+import { ROOM_ID_RE } from '@retroboard/protocol'
+import { buildCsp, withSecurityHeaders } from '../src/headers'
+import { roomHash } from '../src/logger'
+import { isAllowedOrigin } from '../src/origin'
+import { DurableStorageRepository } from '../src/repository'
+import { ids } from '@retroboard/testkit'
 
 class FakeStorage {
   data = new Map<string, unknown>()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '~~/shared/domain/limits'
+import { LIMITS } from '@retroboard/domain'
 import { confetti } from '~/utils/fx'
 import { chime } from '~/utils/sound'
 const { t } = useT()

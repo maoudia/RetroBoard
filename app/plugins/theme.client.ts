@@ -1,5 +1,5 @@
 import { currentLocale } from '~/i18n'
-import { suggestThemeForDate } from '~~/shared/domain/suggest'
+import { suggestThemeForDate } from '@retroboard/domain'
 
 /** First paint: apply local settings, then the preferred or seasonal theme. Pages and boards then take over. */
 export default defineNuxtPlugin(() => {

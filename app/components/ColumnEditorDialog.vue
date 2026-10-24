@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { COLUMN_ICONS, DEFAULT_COLUMN_ICON } from '~~/shared/domain/icons'
-import { LIMITS } from '~~/shared/domain/limits'
+import { COLUMN_ICONS, DEFAULT_COLUMN_ICON, LIMITS  } from '@retroboard/domain'
 const { t } = useT()
 
 const ui = useUiStore()

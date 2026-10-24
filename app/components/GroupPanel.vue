@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '~~/shared/domain/limits'
+import { LIMITS } from '@retroboard/domain'
 import type { ColumnItem } from '~/utils/layout'
 const { t } = useT()
 

@@ -1,4 +1,4 @@
-import { LIMITS } from '~~/shared/domain/limits'
+import { LIMITS } from '@retroboard/domain'
 import { t } from '~/i18n'
 
 /** Publishes private drafts to the shared board, with the flight animation. */

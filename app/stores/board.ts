@@ -1,5 +1,5 @@
-import type { Command } from '~~/shared/domain/schemas'
-import type { ErrorCode, Snapshot } from '~~/shared/domain/types'
+import type { Command } from '@retroboard/protocol'
+import type { ErrorCode, Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { buildColumnItems, type SortMode } from '~/utils/layout'
 

@@ -1,4 +1,4 @@
-import type { BoardState, Peer, Snapshot, SnapshotNote } from './types'
+import type { BoardState, Peer, Snapshot, SnapshotNote } from './shared/types'
 
 export interface Viewer {
   cid: string

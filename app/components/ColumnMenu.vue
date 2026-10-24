@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Column } from '~~/shared/domain/types'
+import type { Column } from '@retroboard/domain'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; index: number; count: number; noteCount: number }>()

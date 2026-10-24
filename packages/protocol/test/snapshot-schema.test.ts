@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { alice, bob, harness } from './helpers'
-import { buildSnapshot } from '../../shared/domain/snapshot'
-import { parseCommand, parseHello, ROOM_ID_RE } from '../../shared/domain/schemas'
+import { alice, bob, harness } from '@retroboard/testkit'
+import { buildSnapshot } from '@retroboard/domain'
+import { parseCommand, parseHello, ROOM_ID_RE } from '@retroboard/protocol'
 
 describe('snapshot privacy', () => {
   const build = () => {

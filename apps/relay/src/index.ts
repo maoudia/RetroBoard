@@ -1,4 +1,4 @@
-import { ROOM_ID_RE } from '../../../shared/domain/schemas'
+import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { Env } from './env'
 import { buildCsp, loadCspHashes, withSecurityHeaders } from './headers'
 import { roomHash } from './logger'

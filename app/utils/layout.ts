@@ -1,4 +1,4 @@
-import type { Group, Snapshot, SnapshotNote } from '~~/shared/domain/types'
+import type { Group, Snapshot, SnapshotNote } from '@retroboard/domain'
 
 export type ColumnItem =
   | { kind: 'note'; key: string; note: SnapshotNote; votes: number }

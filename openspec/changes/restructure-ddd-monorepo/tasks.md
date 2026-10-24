@@ -8,8 +8,8 @@
 
 ## 2. Domain package
 
-- [ ] 2.1 Create `packages/domain` and move `shared/domain` into context folders (`ideation`, `voting`, `action-tracking`, `facilitation`, `catalogue`); verify all reducer, snapshot and template tests pass from the new location
-- [ ] 2.2 Create `packages/protocol` with the valibot command schemas and `parseCommand`; verify schema tests pass and `packages/domain` has no valibot import
+- [x] 2.1 Create `packages/domain` and move `shared/domain` into context folders (`ideation`, `voting`, `action-tracking`, `facilitation`, `catalogue`); verify all reducer, snapshot and template tests pass from the new location
+- [x] 2.2 Create `packages/protocol` with the valibot command schemas and `parseCommand`; verify schema tests pass and `packages/domain` has no valibot import
 
 ## 3. Web app and data packages
 

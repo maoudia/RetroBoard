@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['tests/unit/**/*.test.ts', 'app/**/*.test.ts', 'shared/**/*.test.ts', 'apps/*/src/**/*.test.ts', 'packages/*/src/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
+    include: ['tests/unit/**/*.test.ts', 'app/**/*.test.ts', 'shared/**/*.test.ts', 'apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
     environment: 'node',
     environmentMatchGlobs: undefined,
     coverage: { provider: 'v8', include: ['shared/**', 'app/**', 'apps/relay/src/**', 'packages/*/src/**'] },

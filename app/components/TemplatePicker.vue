@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { TEMPLATES, type Goal } from '~~/shared/domain/templates'
-import { type Reason, suggestTemplates } from '~~/shared/domain/suggest'
+import { TEMPLATES, type Goal, type Reason, suggestTemplates  } from '@retroboard/domain'
 import { GOAL_DEFS, MOOD_VALUES, goalHint, goalLabel, moodLabel, reasonLabel } from '~/utils/labels'
 const { t } = useT()
 

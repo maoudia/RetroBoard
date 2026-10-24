@@ -1,4 +1,4 @@
-import { NOTE_COLOR_COUNT } from '~~/shared/domain/limits'
+import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 import { randomId, safeStorage } from '~/utils/storage'
 
 export interface Draft { id: string; columnId: string; text: string; color: number }

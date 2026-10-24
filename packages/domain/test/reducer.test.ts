@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { alice, bob, harness } from './helpers'
-import { LIMITS } from '../../shared/domain/limits'
+import { alice, bob, harness } from '@retroboard/testkit'
+import { LIMITS } from '@retroboard/domain'
 
 describe('notes', () => {
   it('adds a note with author only when the actor shows their name', () => {

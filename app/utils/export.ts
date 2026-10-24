@@ -1,5 +1,5 @@
 import { t } from '~/i18n'
-import type { Snapshot } from '~~/shared/domain/types'
+import type { Snapshot } from '@retroboard/domain'
 import { buildColumnItems } from './layout'
 
 export interface ExportMeta { date: Date }

@@ -1,7 +1,6 @@
-import { createBoard } from '../../shared/domain/board'
-import { reduce } from '../../shared/domain/reducer'
-import { type Command, parseCommand } from '../../shared/domain/schemas'
-import type { Actor, BoardState } from '../../shared/domain/types'
+import { createBoard, reduce  } from '@retroboard/domain'
+import { type Command, parseCommand } from '@retroboard/protocol'
+import type { Actor, BoardState } from '@retroboard/domain'
 
 export function ids(prefix = 'id') {
   let i = 0

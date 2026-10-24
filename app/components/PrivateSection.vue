@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { LIMITS } from '~~/shared/domain/limits'
-import type { Column } from '~~/shared/domain/types'
+import { LIMITS } from '@retroboard/domain'
+import type { Column } from '@retroboard/domain'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; colorIndex: number }>()

@@ -1,4 +1,4 @@
-import { COLUMN_ICONS } from './shared/domain/icons'
+import { COLUMN_ICONS } from '@retroboard/domain'
 
 // Icons that are picked at runtime (columns, templates) cannot be found by the static scan.
 const dynamicIcons = [

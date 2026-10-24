@@ -1,7 +1,7 @@
-import { DEFAULT_COLUMN_ICON } from './icons'
-import { DEFAULT_TIMER_MS, DEFAULT_VOTE_LIMIT } from './limits'
-import { getTemplate, type RetroTemplate } from './templates'
-import type { BoardState, Column, ReduceContext } from './types'
+import { DEFAULT_COLUMN_ICON } from '../shared/icons'
+import { DEFAULT_TIMER_MS, DEFAULT_VOTE_LIMIT } from '../shared/limits'
+import { getTemplate, type RetroTemplate } from '../catalogue/templates'
+import type { BoardState, Column, ReduceContext } from '../shared/types'
 
 export const DEFAULT_TEMPLATE_ID = 'start-stop-continue'
 export const DEFAULT_THEME_ID = 'studio'

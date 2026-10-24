@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
-import { suggestThemeForDate } from '~~/shared/domain/suggest'
+import { suggestThemeForDate } from '@retroboard/domain'
 import { LOCAL_ROOM_PREFIX } from '~/transport'
 import { randomId } from '~/utils/storage'
 const { t, locale } = useT()

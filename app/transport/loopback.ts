@@ -1,8 +1,6 @@
-import { createBoard } from '~~/shared/domain/board'
-import { reduce } from '~~/shared/domain/reducer'
-import { type Command, parseCommand } from '~~/shared/domain/schemas'
-import { buildSnapshot } from '~~/shared/domain/snapshot'
-import type { BoardState } from '~~/shared/domain/types'
+import { createBoard, reduce , buildSnapshot  } from '@retroboard/domain'
+import { type Command, parseCommand } from '@retroboard/protocol'
+import type { BoardState } from '@retroboard/domain'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
 
 const newId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)

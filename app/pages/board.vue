@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROOM_ID_RE } from '~~/shared/domain/schemas'
+import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { defaultTransportFactory, isLocalRoom } from '~/transport'
 import { errorLabel } from '~/utils/labels'

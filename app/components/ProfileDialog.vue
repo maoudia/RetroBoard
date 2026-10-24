@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '~~/shared/domain/limits'
+import { LIMITS } from '@retroboard/domain'
 import { THEMES, THEME_GROUPS } from '~/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'

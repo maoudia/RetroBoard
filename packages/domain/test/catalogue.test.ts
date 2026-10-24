@@ -1,9 +1,6 @@
 import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
-import { COLUMN_ICONS } from '../../shared/domain/icons'
-import { LIMITS } from '../../shared/domain/limits'
-import { suggestTemplates, suggestThemeForDate } from '../../shared/domain/suggest'
-import { TEMPLATES } from '../../shared/domain/templates'
+import { COLUMN_ICONS, LIMITS , suggestTemplates, suggestThemeForDate , TEMPLATES  } from '@retroboard/domain'
 
 const lucide = createRequire(import.meta.url)('@iconify-json/lucide/icons.json') as {
   icons: Record<string, unknown>

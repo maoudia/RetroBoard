@@ -1,0 +1,21 @@
+{
+  "name": "@retroboard/protocol",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "Wire schemas (valibot) shared by the web app, the relay and the MCP server.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@retroboard/domain": "workspace:*",
+    "valibot": "^1.5.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
+  },
+  "devDependencies": {
+    "@retroboard/testkit": "workspace:*"
+  }
+}

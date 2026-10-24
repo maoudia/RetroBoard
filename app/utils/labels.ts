@@ -1,7 +1,5 @@
 import { td } from '~/i18n'
-import type { Goal } from '~~/shared/domain/templates'
-import type { Reason, ThemeSuggestion } from '~~/shared/domain/suggest'
-import type { ErrorCode } from '~~/shared/domain/types'
+import type { Goal, Reason, ThemeSuggestion , ErrorCode  } from '@retroboard/domain'
 
 export const errorLabel = (code: ErrorCode): string => td(`error.${code}`)
 export const reasonLabel = (r: Reason): string => td(`reason.${r}`)

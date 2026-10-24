@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { THEMES, THEME_GROUPS } from '~/themes'
-import { suggestThemeForDate } from '~~/shared/domain/suggest'
+import { suggestThemeForDate } from '@retroboard/domain'
 import { themeReasonLabel } from '~/utils/labels'
 const { t } = useT()
 

@@ -1,0 +1,11 @@
+{
+  "name": "@retroboard/testkit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "Test builders and harnesses shared by package tests. Never imported by production code.",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@retroboard/domain": "workspace:*", "@retroboard/protocol": "workspace:*" },
+  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json" }
+}

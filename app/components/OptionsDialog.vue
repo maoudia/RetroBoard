@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '~~/shared/domain/limits'
+import { LIMITS } from '@retroboard/domain'
 const { t } = useT()
 
 const ui = useUiStore()

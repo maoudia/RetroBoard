@@ -1,4 +1,4 @@
-import { NOTE_COLOR_COUNT } from '~~/shared/domain/limits'
+import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 import type { ThemeDefinition } from '~/themes/types'
 
 /** Writes a theme as CSS custom properties and data attributes. Pure DOM, no framework. */

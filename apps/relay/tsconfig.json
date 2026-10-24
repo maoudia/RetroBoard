@@ -16,10 +16,6 @@
   },
   "include": [
     "src/**/*.ts",
-    "worker-configuration.d.ts",
-    "../../shared/**/*.ts"
-  ],
-  "exclude": [
-    "../../shared/**/*.test.ts"
+    "worker-configuration.d.ts"
   ]
 }

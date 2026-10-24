@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Column } from '~~/shared/domain/types'
+import type { Column } from '@retroboard/domain'
 import type { SortMode } from '~/utils/layout'
 const { t } = useT()
 

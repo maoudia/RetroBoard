@@ -1,5 +1,5 @@
-import type { Command } from '~~/shared/domain/schemas'
-import type { ServerMessage } from '~~/shared/domain/types'
+import type { Command } from '@retroboard/protocol'
+import type { ServerMessage } from '@retroboard/domain'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
 
 export function buildWsUrl(base: string, roomId: string, loc: Pick<Location, 'protocol' | 'host'>): string {

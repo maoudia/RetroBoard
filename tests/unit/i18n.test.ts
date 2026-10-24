@@ -4,8 +4,8 @@ import { fr } from '../../app/i18n/fr'
 import { THEMES_EN } from '../../app/i18n/themes.en'
 import { detectLocale, translate } from '../../app/i18n'
 import { THEMES } from '../../app/themes'
-import { TEMPLATES, localizeTemplate } from '../../shared/domain/templates'
-import { harness } from './helpers'
+import { TEMPLATES, localizeTemplate } from '@retroboard/domain'
+import { harness } from '@retroboard/testkit'
 
 const params = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
 

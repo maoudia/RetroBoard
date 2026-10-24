@@ -14,7 +14,7 @@
     "preview": "wrangler dev",
     "deploy": "npm run generate && wrangler deploy",
     "lint": "eslint .",
-    "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json && pnpm --filter @retroboard/relay typecheck",
+    "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json && pnpm -r --filter './packages/*' --filter './apps/*' typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
@@ -38,7 +38,9 @@
     "nuxt": "^4.6.2",
     "pinia": "^4.1.0",
     "valibot": "^1.5.0",
-    "vue": "^3.5.44"
+    "vue": "^3.5.44",
+    "@retroboard/domain": "workspace:*",
+    "@retroboard/protocol": "workspace:*"
   },
   "devDependencies": {
     "@fission-ai/openspec": "^1.15.0",
@@ -54,7 +56,8 @@
     "vue-tsc": "^3.0.0",
     "wrangler": "^4.152.0",
     "ws": "^8.18.0",
-    "turbo": "^2.5.0"
+    "turbo": "^2.5.0",
+    "@retroboard/testkit": "workspace:*"
   },
   "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.28.0"

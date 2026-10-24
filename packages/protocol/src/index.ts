@@ -1,6 +1,6 @@
+/** Wire format of RetroBoard: valibot schemas for every message that crosses the network. */
 import * as v from 'valibot'
-import { COLUMN_ICONS } from './icons'
-import { LIMITS, NOTE_COLOR_COUNT } from './limits'
+import { COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 const Id = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
 const Text = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.noteText))
@@ -58,7 +58,14 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('timer.reset'), minutes: v.optional(v.picklist(LIMITS.timerMinutes)) }),
   v.object({ t: v.literal('board.reset') }),
 ])
-export type Command = v.InferOutput<typeof CommandSchema>
+export type { Command }
+
+// Compile-time guard: the wire schema and the domain command type must describe the same shapes.
+type Parsed = v.InferOutput<typeof CommandSchema>
+const _schemaMatchesDomain: (p: Parsed) => Command = (p) => p
+const _domainMatchesSchema: (c: Command) => Parsed = (c) => c
+void _schemaMatchesDomain
+void _domainMatchesSchema
 
 export const HelloSchema = v.object({
   t: v.literal('hello'),

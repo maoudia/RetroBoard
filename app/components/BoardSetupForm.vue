@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '~~/shared/domain/limits'
-import { DEFAULT_TEMPLATE_ID } from '~~/shared/domain/board'
+import { LIMITS, DEFAULT_TEMPLATE_ID  } from '@retroboard/domain'
 
 export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en' }
 
