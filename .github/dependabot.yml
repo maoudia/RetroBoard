@@ -1,12 +1,25 @@
 version: 2
 updates:
-  - package-ecosystem: npm
+  - package-ecosystem: npm # pnpm workspace (pnpm-lock.yaml at the root)
     directory: /
     schedule: { interval: weekly }
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 8
     groups:
       nuxt: { patterns: ["nuxt", "@nuxt/*", "@pinia/*", "pinia", "vue*"] }
-      testing: { patterns: ["vitest*", "@playwright/*", "playwright*"] }
+      testing: { patterns: ["vitest*", "@vitest/*", "@playwright/*", "playwright*"] }
+      cloudflare: { patterns: ["wrangler", "@cloudflare/*"] }
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # vue-tsc cannot run on TypeScript 7 yet (checked 2026-10-24); revisit when vue-tsc supports it.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Types follow the Node runtime used in CI and Cloudflare builds (24), not the newest Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    groups:
+      actions:
+        patterns: ["*"]

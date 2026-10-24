@@ -31,12 +31,21 @@ export function buildCsp(hashes: CspHashes, extraConnect: string[] = []): string
   ].join('; ')
 }
 
-export function withSecurityHeaders(res: Response, csp: string): Response {
+/**
+ * Origin trial tokens are bound to one origin, so each host gets its own token
+ * (a token for another origin would be ignored by Chrome).
+ */
+export function originTrialToken(host: string, tokens: Record<string, string> | undefined): string | null {
+  return tokens?.[host.toLowerCase()] ?? null
+}
+
+export function withSecurityHeaders(res: Response, csp: string, originTrial: string | null = null): Response {
   const out = new Response(res.body, res)
   const type = out.headers.get('content-type') ?? ''
   if (type.includes('text/html')) {
     out.headers.set('Content-Security-Policy', csp)
     out.headers.set('Cache-Control', 'no-cache')
+    if (originTrial) out.headers.set('Origin-Trial', originTrial)
   }
   out.headers.set('X-Frame-Options', 'DENY')
   out.headers.set('X-Content-Type-Options', 'nosniff')

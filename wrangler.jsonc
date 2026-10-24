@@ -37,6 +37,13 @@
   },
   "vars": {
     // Comma separated extra origins allowed to open the WebSocket. Used by `nuxt dev` on :3000.
-    "ALLOWED_ORIGINS": ""
+    "ALLOWED_ORIGINS": "",
+    // Chrome origin trial tokens for WebMCP, one per origin (public values). Expire 2027-03-30.
+    // Registered at https://developer.chrome.com/origintrials; see docs/webmcp.md.
+    "ORIGIN_TRIAL_TOKENS": {
+      "retroboard.maoudia.com": "Ak2HSoz1jPkKE+Y2kmk5KEurr9LLRHMkwCfkDVTedRb9Jqmjld/eyLruTwa7yJ/uuL824HmQ8Rbn7PwigvB5dAMAAABWeyJvcmlnaW4iOiJodHRwczovL3JldHJvYm9hcmQubWFvdWRpYS5jb206NDQzIiwiZmVhdHVyZSI6IldlYk1DUCIsImV4cGlyeSI6MTgwNjM2NDgwMH0=",
+      "retroboard-dev.maoudia.com": "AswYY8ZvD05D8K3MZkeXvpM1+4g7eKwH0j7ZjZ9CsKPijVq02b5bbxdUoOrmWzOwigrw/XdzNTPqLTKqItuivgIAAABaeyJvcmlnaW4iOiJodHRwczovL3JldHJvYm9hcmQtZGV2Lm1hb3VkaWEuY29tOjQ0MyIsImZlYXR1cmUiOiJXZWJNQ1AiLCJleHBpcnkiOjE4MDYzNjQ4MDB9",
+      "retroboard.www-maoudia-com.workers.dev": "Arv7apgclZhPs8i7ByNUr/xKCgbhxxnoIe1Dqq1wdUhdAjLox4kUV5qZ0/HZFhhhqvkmGBvQrrh8+8LQqsfspAQAAABmeyJvcmlnaW4iOiJodHRwczovL3JldHJvYm9hcmQud3d3LW1hb3VkaWEtY29tLndvcmtlcnMuZGV2OjQ0MyIsImZlYXR1cmUiOiJXZWJNQ1AiLCJleHBpcnkiOjE4MDYzNjQ4MDB9"
+    }
   }
 }

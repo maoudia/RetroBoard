@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { createBoard } from '@retroboard/domain'
 import { ROOM_ID_RE } from '@retroboard/protocol'
-import { buildCsp, withSecurityHeaders } from '../src/headers'
+import { buildCsp, originTrialToken, withSecurityHeaders } from '../src/headers'
 import { roomHash } from '../src/logger'
 import { isAllowedOrigin } from '../src/origin'
 import { DurableStorageRepository } from '../src/repository'
@@ -99,5 +101,35 @@ describe('DurableStorageRepository', () => {
     await r.persist(createBoard({ newId: ids() }), { ...noDirty, wipe: true })
     await r.erase()
     expect(await r.load()).toBeNull()
+  })
+})
+
+describe('origin trial (WebMCP)', () => {
+  const tokens = { 'retroboard.maoudia.com': 'TOKEN-PROD', 'retroboard-dev.maoudia.com': 'TOKEN-DEV' }
+
+  it('picks the token of the request host only', () => {
+    expect(originTrialToken('retroboard.maoudia.com', tokens)).toBe('TOKEN-PROD')
+    expect(originTrialToken('RETROBOARD-DEV.maoudia.com', tokens)).toBe('TOKEN-DEV')
+    expect(originTrialToken('localhost:8787', tokens)).toBeNull()
+    expect(originTrialToken('retroboard.maoudia.com', undefined)).toBeNull()
+  })
+
+  it('adds the Origin-Trial header to HTML only', () => {
+    const html = withSecurityHeaders(new Response('<p>', { headers: { 'content-type': 'text/html' } }), 'x', 'TOKEN-PROD')
+    const js = withSecurityHeaders(new Response('x', { headers: { 'content-type': 'text/javascript' } }), 'x', 'TOKEN-PROD')
+    expect(html.headers.get('Origin-Trial')).toBe('TOKEN-PROD')
+    expect(js.headers.get('Origin-Trial')).toBeNull()
+  })
+
+  it('wrangler config holds one token per registered origin, matching its host', () => {
+    const raw = readFileSync(fileURLToPath(new URL('../../../wrangler.jsonc', import.meta.url).href), 'utf8')
+    const block = raw.slice(raw.indexOf('"ORIGIN_TRIAL_TOKENS"'))
+    const pairs = [...block.matchAll(/"([a-z0-9.-]+)":\s*"([A-Za-z0-9+/=]+)"/g)].slice(0, 3)
+    expect(pairs).toHaveLength(3)
+    for (const [, host, token] of pairs) {
+      const payload = Buffer.from(token!, 'base64').toString('latin1')
+      expect(payload).toContain(`"origin":"https://${host}:443"`)
+      expect(payload).toContain('"feature":"WebMCP"')
+    }
   })
 })

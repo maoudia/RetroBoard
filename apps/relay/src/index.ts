@@ -1,6 +1,6 @@
 import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { Env } from './env'
-import { buildCsp, loadCspHashes, withSecurityHeaders } from './headers'
+import { buildCsp, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
 import { roomHash } from './logger'
 import { isAllowedOrigin } from './origin'
 
@@ -30,6 +30,6 @@ export default {
     const hashes = await loadCspHashes(env.ASSETS)
     const extra = (env.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim().replace(/^http/, 'ws')).filter(Boolean)
     const res = await env.ASSETS.fetch(request)
-    return withSecurityHeaders(res, buildCsp(hashes, extra))
+    return withSecurityHeaders(res, buildCsp(hashes, extra), originTrialToken(url.host, env.ORIGIN_TRIAL_TOKENS))
   },
 } satisfies ExportedHandler<Env>
