@@ -4,10 +4,12 @@ node_modules/
 .wrangler/
 .dev.vars
 .env
-dist/
+dist
 test-results/
 playwright-report/
 coverage/
 *.tsbuildinfo
 .DS_Store
 dist-worker
+.stryker-tmp/
+reports/

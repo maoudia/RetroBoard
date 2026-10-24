@@ -1,0 +1,55 @@
+name: OpenCode
+
+# Mention /oc or /opencode in a comment, or label an issue agent:opencode.
+# Needs an ANTHROPIC_API_KEY secret, an OPENCODE_MODEL variable (provider/model) and the OpenCode GitHub App.
+on:
+  # Only users with write access can trigger the agent (checked by the action); no untrusted code is checked out and run before that.
+  issue_comment: # zizmor: ignore[dangerous-triggers]
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [labeled]
+
+permissions: {}
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL: ${{ vars.OPENCODE_MODEL }}
+        run: |
+          if [ -n "$KEY" ] && [ -n "$MODEL" ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"; else echo "::notice::Set the ANTHROPIC_API_KEY secret and the OPENCODE_MODEL variable (provider/model) to enable OpenCode"; fi
+
+  opencode:
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    needs: preflight
+    if: |
+      needs.preflight.outputs.enabled == 'true' && (
+      (github.event_name != 'issues' && (contains(github.event.comment.body, '/oc') || contains(github.event.comment.body, '/opencode'))) ||
+      (github.event_name == 'issues' && github.event.label.name == 'agent:opencode'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: anomalyco/opencode/github@b4c7042c1713bf49239f22d44f1cd2528ace9ad7 # github-v1
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          model: ${{ vars.OPENCODE_MODEL }}
+          prompt: |
+            ${{ github.event_name == 'issues' && format('Implement issue #{0} following AGENTS.md. Run /opsx-apply for the change named in the issue, only for its task group, run pnpm verify, then open a pull request whose body contains Change: <change> and Closes #{0}.', github.event.issue.number) || '' }}

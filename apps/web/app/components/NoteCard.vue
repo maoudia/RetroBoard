@@ -74,7 +74,7 @@ function onDrop() {
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <span class="grow" />
       <button
-        class="vote" type="button" :aria-pressed="note.voted" :aria-label="note.voted ? t('note.unvote') : t('note.vote')" :class="{ voted: note.voted, off: !canVote && !note.voted }"
+        class="vote" type="button" :aria-pressed="note.voted" :aria-label="`${note.voted ? t('note.unvote') : t('note.vote')}${note.votes !== null ? ` ${note.votes}` : ''}`" :class="{ voted: note.voted, off: !canVote && !note.voted }"
         :data-testid="`vote-${note.id}`" @click="vote"
       >
         <span class="thumb" :class="{ 'vote-bump': bumped }" @animationend="bumped = false"><Icon name="lucide:thumbs-up" /></span>

@@ -1,0 +1,27 @@
+name: Agent task
+description: One task group of an OpenSpec change, for an agent or a human (one pull request)
+labels: [task-group]
+body:
+  - type: input
+    id: change
+    attributes:
+      label: OpenSpec change
+      description: Folder name under openspec/changes
+      placeholder: e2e-encrypted-rooms
+    validations:
+      required: true
+  - type: input
+    id: group
+    attributes:
+      label: Task group
+      placeholder: "2. Keys, links, genesis"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for the implementer
+      description: Context the tasks do not say. Agents read AGENTS.md first.
+  - type: markdown
+    attributes:
+      value: Label the issue `agent:claude` or `agent:opencode` to let an agent implement it.

@@ -28,3 +28,23 @@ Today: one `ci.yml` (lint, typecheck, unit, generate, dry run, e2e Chromium, dep
 ## Migration Plan
 
 Introduce workflows one by one behind `workflow_dispatch`, then make them required in branch protection. Rollback: disable the workflow.
+
+## Implementation notes (2026-10-24)
+
+- Workflows: `checks.yml` (verify, build, spec gate, workflow lint), `e2e.yml` (matrix),
+  `security.yml` (CodeQL, dependency review, OSV), `release.yml`, `smoke.yml`, `nightly.yml`
+  (mutation), `claude.yml`, `agent-review.yml`, `opencode.yml`. All actions pinned by SHA,
+  permissions per job, actionlint and zizmor clean.
+- E2E matrix: only Chromium is required. Firefox, WebKit, phone and TV run with
+  `continue-on-error` until `responsive-and-i18n-hardening` lands (task 2.1 stays open).
+- Mutation testing break threshold starts at 55 (measured baseline about 54-60% without template
+  data), to be raised toward 70 as reducer tests improve.
+- Secret scanning: GitHub secret scanning and push protection (repository setting) instead of the
+  gitleaks action, which needs a paid licence for organisation repositories.
+- Lighthouse budgets (2.3) and the SBOM (3.2) are not done yet; the bundle budget uses
+  `scripts/check-bundle-size.mjs` and accessibility uses axe in the e2e suite.
+- Agent workflows skip themselves until `CLAUDE_CODE_OAUTH_TOKEN` (Claude) or `ANTHROPIC_API_KEY`
+  plus the `OPENCODE_MODEL` variable (OpenCode) exist; live verification on a sandbox issue is
+  pending those secrets.
+- The relay "no storage API" guard (3.3) lands with `stateless-relay-and-replication`, since the
+  current relay still uses SQLite storage.

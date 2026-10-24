@@ -22,11 +22,18 @@
     "spec": "openspec",
     "postinstall": "pnpm --filter @retroboard/web prepare",
     "arch": "depcruise packages apps/relay/src --config .dependency-cruiser.cjs",
-    "knip": "knip"
+    "knip": "knip",
+    "test:coverage": "vitest run --coverage",
+    "size": "node scripts/check-bundle-size.mjs",
+    "licenses": "node scripts/check-licenses.mjs",
+    "mutation": "stryker run"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@fission-ai/openspec": "^1.15.0",
     "@playwright/test": "^1.64.1",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
     "@types/node": "^24.19.2",
     "@vitest/coverage-v8": "^5.0.5",
     "dependency-cruiser": "^18.7.0",

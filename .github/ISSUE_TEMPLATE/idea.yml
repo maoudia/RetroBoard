@@ -1,0 +1,10 @@
+name: Idea
+description: A feature, a retro format or a theme
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need, and for which kind of team?
+    validations:
+      required: true

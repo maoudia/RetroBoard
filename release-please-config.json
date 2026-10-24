@@ -1,0 +1,6 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": { "release-type": "node", "package-name": "retroboard", "changelog-path": "CHANGELOG.md", "include-component-in-tag": false }
+  }
+}

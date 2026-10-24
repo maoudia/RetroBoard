@@ -1,0 +1,24 @@
+name: Production smoke
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PROD_URL: ${{ vars.PROD_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check production (set the PROD_URL repository variable to enable)
+        run: |
+          if [ -z "$PROD_URL" ]; then echo "::notice::PROD_URL is not set, skipping"; exit 0; fi
+          node scripts/smoke.mjs "$PROD_URL"

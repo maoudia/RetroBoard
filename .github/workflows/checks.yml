@@ -1,0 +1,111 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  verify:
+    name: Specs, lint, types, architecture, unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec openspec validate --all --strict
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - name: Architecture rules (dependency-cruiser)
+        run: pnpm arch
+      - name: Unused code and dependencies (knip)
+        run: pnpm knip
+      - name: Unit tests with coverage ratchets
+        run: pnpm test:coverage
+      - name: Production licenses
+        run: pnpm licenses
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 7
+
+  build:
+    name: Static build, bundle budget, Worker dry run
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - run: pnpm size
+      - run: pnpm exec wrangler deploy --dry-run --outdir dist-worker
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: apps/web/.output/public
+          retention-days: 7
+
+  spec-gate:
+    name: Spec gate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: PR names an OpenSpec change or carries no-spec
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if echo ",$LABELS," | grep -q ",no-spec,"; then echo "no-spec label: skipped"; exit 0; fi
+          change=$(printf '%s' "$BODY" | grep -oE 'Change: *[a-z0-9-]+' | head -1 | sed 's/Change: *//')
+          if [ -z "$change" ]; then echo "::error::Add 'Change: <openspec-change>' to the PR body, or the no-spec label."; exit 1; fi
+          if [ -d "openspec/changes/$change" ]; then pnpm exec openspec validate "$change" --strict
+          elif ls openspec/changes/archive | grep -q -- "-$change$"; then echo "Change $change is archived."
+          else echo "::error::Unknown change $change"; exit 1; fi
+
+  workflows:
+    name: Workflow lint (actionlint, zizmor)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: pipx install actionlint-py && pipx install zizmor
+      - run: actionlint
+      - run: zizmor --offline .github/workflows

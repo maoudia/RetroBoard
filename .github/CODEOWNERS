@@ -1,0 +1,7 @@
+# Changes to automation, constraints, licensing and the relay need the maintainer.
+/.github/                 @aoudiamoncef
+/openspec/config.yaml     @aoudiamoncef
+/LICENSE                  @aoudiamoncef
+/NOTICE                   @aoudiamoncef
+/wrangler.jsonc           @aoudiamoncef
+/apps/relay/              @aoudiamoncef

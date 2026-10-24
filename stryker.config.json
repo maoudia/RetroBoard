@@ -1,0 +1,46 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts",
+    "related": false
+  },
+  "mutate": [
+    "packages/domain/src/**/*.ts",
+    "!packages/domain/src/**/*.d.ts",
+    "!packages/domain/src/catalogue/templates.ts",
+    "!packages/domain/src/catalogue/templates.en.ts"
+  ],
+  "reporters": [
+    "clear-text",
+    "progress",
+    "html"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/domain.html"
+  },
+  "thresholds": {
+    "high": 80,
+    "low": 65,
+    "break": 55
+  },
+  "concurrency": 4,
+  "tempDirName": ".stryker-tmp",
+  "ignorePatterns": [
+    "**/dist",
+    "**/.nuxt",
+    "**/.output",
+    ".wrangler",
+    "test-results",
+    "playwright-report",
+    "reports",
+    "coverage",
+    ".claude",
+    ".opencode",
+    "openspec",
+    "docs"
+  ],
+  "plugins": [
+    "@stryker-mutator/vitest-runner"
+  ]
+}
