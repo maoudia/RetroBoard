@@ -10,7 +10,7 @@
 - [x] 2.1 Implement anchored cursor frames, interpolation and the cursor layer (label, colour, avatar); verify unit tests of anchor mapping and e2e: B sees A's cursor over the same note with a different viewport
 - [x] 2.2 Relay path at 4 Hz while moving, with a separate relay budget for `eph` frames that drops excess silently; verify relay unit tests and e2e
 - [x] 2.4 Touch devices: focus sharing, cursor only while dragging, avatar markers on column tabs and notes instead of floating cursors; verify e2e on the phone project
-- [ ] 2.3 Add display cap (10 most recent) and presenter-mode hiding; verify unit test of the selection and e2e of presenter mode
+- [x] 2.3 Add display cap (10 most recent) and presenter-mode hiding; verify unit test of the selection and e2e of presenter mode
 
 ## 3. Presence and settings
 

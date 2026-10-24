@@ -13,5 +13,5 @@
 
 ## 3. Presenter mode
 
-- [ ] 3.1 Presenter mode toggle with high-contrast variant, QR join code (generated locally) and hidden cursors; verify e2e and that the QR encodes the participant link without the facilitator secret
+- [x] 3.1 Presenter mode toggle with high-contrast variant, QR join code (generated locally) and hidden cursors; verify e2e and that the QR encodes the participant link without the facilitator secret
 - [ ] 3.2 Touch long-press grouping and moving; verify e2e with touch emulation on a tablet viewport

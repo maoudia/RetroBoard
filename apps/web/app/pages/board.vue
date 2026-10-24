@@ -96,6 +96,11 @@ function sendSetup(s: SetupResult) {
   if (!isLocalRoom(roomId.value)) { shareOnReady.value = true; shareAfterReview.value = !!s.importActions?.length }
 }
 const shareOnReady = ref(false)
+// Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
+watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })
+function onPresenterKey(e: KeyboardEvent) { if (e.key === 'Escape' && ui.presenter && ui.dialog === null) ui.presenter = false }
+onMounted(() => document.addEventListener('keydown', onPresenterKey))
+onBeforeUnmount(() => { document.removeEventListener('keydown', onPresenterKey); ui.presenter = false })
 const shareAfterReview = ref(false)
 watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog === null && (!shareAfterReview.value || ui.reviewDone), (go) => {
   if (!go) return
@@ -148,6 +153,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
     <template v-else>
       <AppToolbar v-if="board.ready" />
       <CursorLayer v-if="board.ready" />
+      <PresenterJoin v-if="board.ready && ui.presenter" />
       <VoteBar v-if="board.ready" />
       <div v-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { chatInvite, emailInvite, mailtoHref } from '@retroboard/application'
 import { td } from '~/i18n'
-import { boardHash, inviteFromHash } from '~/utils/invite'
+import { boardHash, inviteFromHash, participantLink } from '~/utils/invite'
 const { t } = useT()
 /** The creator's tab keeps the passcode in memory: offered for copy, never put in a message. */
 const props = defineProps<{ passcode?: string | null }>()
@@ -17,7 +17,7 @@ const encrypted = computed(() => invite.value?.kind === 'encrypted')
 const protectedByPasscode = computed(() => invite.value?.kind === 'encrypted' && !!invite.value.ring.passcode)
 const url = computed(() => {
   if (!import.meta.client) return ''
-  return invite.value ? `${window.location.origin}/board${boardHash(invite.value, 'participant')}` : window.location.href
+  return invite.value ? participantLink(invite.value, window.location.origin) : window.location.href
 })
 /** Only the facilitator holds it: shown on demand, to keep or to hand to a co-facilitator. */
 const facilitatorUrl = computed(() => {

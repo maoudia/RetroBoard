@@ -35,14 +35,18 @@
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/vitest-runner": "10.1.1",
     "@types/node": "^24.19.2",
+    "@types/pngjs": "^6.0.5",
     "@vitest/coverage-v8": "^5.0.5",
     "dependency-cruiser": "^18.7.0",
     "eslint": "^10.13.0",
     "fast-check": "^4.10.2",
+    "jsqr": "1.4.0",
     "knip": "^6.43.0",
+    "pngjs": "7.0.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5",
-    "wrangler": "^4.152.0"
+    "wrangler": "^4.152.0",
+    "ws": "8.22.0"
   },
   "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.28.0"

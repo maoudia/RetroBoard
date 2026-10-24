@@ -18,4 +18,7 @@ export const newKeyRing = (): KeyRing => ({ roomId: randomId(16), roomKey: rando
 export const boardHash = (invite: Invite, role: 'participant' | 'facilitator' = 'participant'): string =>
   `#${invite.kind === 'legacy' ? invite.roomId : formatInvite(invite.ring, role === 'facilitator' && invite.ring.facilitatorSecret ? 'facilitator' : 'participant')}`
 
+/** The link participants open: never the facilitator secret, whoever builds it. */
+export const participantLink = (invite: Invite, origin: string): string => `${origin}/board${boardHash(invite, 'participant')}`
+
 export const inviteRoomId = (invite: Invite): string => (invite.kind === 'legacy' ? invite.roomId : invite.ring.roomId)

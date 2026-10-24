@@ -15,7 +15,8 @@ const pos = new Map<string, { left: number; top: number }>()
 let raf = 0
 let tick: ReturnType<typeof setInterval> | undefined
 
-const enabled = computed(() => settings.s.showCursors && !coarse.value)
+const ui = useUiStore()
+const enabled = computed(() => settings.s.showCursors && !coarse.value && !ui.presenter)
 const cursors = computed(() => (enabled.value ? live.visible : []))
 
 function bindEl(conn: string, el: unknown) {

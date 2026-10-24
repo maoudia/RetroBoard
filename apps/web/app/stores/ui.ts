@@ -18,10 +18,12 @@ export const useUiStore = defineStore('ui', () => {
   const dragNoteId = ref<string | null>(null)
   /** The carried-over actions review was closed (the invite panel waits for it on new boards). */
   const reviewDone = ref(false)
+  /** Presenter mode (screen sharing, room screen): larger type, no drafts, no pointers, QR to join. */
+  const presenter = ref(false)
 
   const open = (name: Exclude<DialogName, null>) => { dialog.value = name }
   const close = () => { dialog.value = null }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, reviewDone, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, reviewDone, presenter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
 })

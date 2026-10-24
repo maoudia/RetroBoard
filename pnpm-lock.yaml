@@ -31,6 +31,9 @@ importers:
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
+      '@types/pngjs':
+        specifier: ^6.0.5
+        version: 6.0.5
       '@vitest/coverage-v8':
         specifier: ^5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -43,9 +46,15 @@ importers:
       fast-check:
         specifier: ^4.10.2
         version: 4.10.2
+      jsqr:
+        specifier: 1.4.0
+        version: 1.4.0
       knip:
         specifier: ^6.43.0
         version: 6.43.0
+      pngjs:
+        specifier: 7.0.0
+        version: 7.0.0
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -55,6 +64,9 @@ importers:
       wrangler:
         specifier: ^4.152.0
         version: 4.152.0(@types/node@24.19.2)
+      ws:
+        specifier: 8.22.0
+        version: 8.22.0
 
   apps/relay:
     dependencies:
@@ -2134,6 +2146,9 @@ packages:
   '@types/node@24.19.2':
     resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
 
+  '@types/pngjs@6.0.5':
+    resolution: {integrity: sha512-0k5eKfrA83JOZPppLtS2C7OUtyNAl2wKNxfyYl9Q5g9lPkgBl/9hNyAu6HuEH2J4XmIv2znEpkDd0SaZVxW6iQ==}
+
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
@@ -3807,6 +3822,9 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
+  jsqr@1.4.0:
+    resolution: {integrity: sha512-dxLob7q65Xg2DvstYkRpkYtmKm2sPJ9oFhrhmudT1dZvNFFTlroai3AWSpLey/w5vMcLBXRgOJsbXpdN9HzU/A==}
+
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
@@ -4373,6 +4391,10 @@ packages:
   pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
+
+  pngjs@7.0.0:
+    resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
+    engines: {node: '>=14.19.0'}
 
   postcss-calc@11.2.3:
     resolution: {integrity: sha512-pFW3MR2a4W7uHcSGUiyQGGXZWHon83ljbNwnUJ1mRKublWQbv+3o9NiqhlV4TJfNby+U+zLY2OgiywzhA5eFqw==}
@@ -7710,6 +7732,10 @@ snapshots:
     dependencies:
       undici-types: 7.24.6
 
+  '@types/pngjs@6.0.5':
+    dependencies:
+      '@types/node': 24.19.2
+
   '@types/resolve@1.20.2': {}
 
   '@types/whatwg-mimetype@3.0.2':
@@ -9407,6 +9433,8 @@ snapshots:
 
   json5@2.2.3: {}
 
+  jsqr@1.4.0: {}
+
   keyv@5.6.0:
     dependencies:
       '@keyv/serialize': 1.1.1
@@ -10193,6 +10221,8 @@ snapshots:
       playwright-core: 1.64.1
 
   pluralize@8.0.0: {}
+
+  pngjs@7.0.0: {}
 
   postcss-calc@11.2.3(postcss@8.5.31):
     dependencies:

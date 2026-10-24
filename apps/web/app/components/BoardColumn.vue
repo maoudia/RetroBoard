@@ -54,7 +54,8 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
       <p v-if="!items.length" class="empty muted">{{ themeText(theme.theme).emptyColumn }}</p>
     </div>
 
-    <PrivateSection :column="column" :color-index="colorIndex" />
+    <!-- Presenter mode is shown to the room: my private drafts stay off screen. -->
+    <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
     <GroupPanel v-if="openGroup" :item="openGroup" />
   </section>
 </template>
