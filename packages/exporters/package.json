@@ -1,0 +1,21 @@
+{
+  "name": "@retroboard/exporters",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "Pure export functions (Markdown, CSV, JSON) over application read models.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
+  },
+  "dependencies": {
+    "@retroboard/domain": "workspace:*",
+    "@retroboard/application": "workspace:*"
+  },
+  "devDependencies": {
+    "@retroboard/testkit": "workspace:*"
+  }
+}

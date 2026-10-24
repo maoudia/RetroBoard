@@ -1,7 +1,7 @@
 import type { Command } from '@retroboard/protocol'
 import type { ErrorCode, Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
-import { buildColumnItems, type SortMode } from '~/utils/layout'
+import { buildColumnItems, type SortMode } from '@retroboard/application'
 
 /**
  * Client side view of a board. All rules live in the shared domain on the server:

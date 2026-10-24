@@ -1,0 +1,20 @@
+{
+  "name": "@retroboard/application",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "Use cases, ports and read models. Depends on the domain only.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
+  },
+  "dependencies": {
+    "@retroboard/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@retroboard/testkit": "workspace:*"
+  }
+}

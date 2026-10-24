@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnItem } from '~/utils/layout'
+import type { ColumnItem } from '@retroboard/application'
 const { t } = useT()
 
 const props = defineProps<{ item: Extract<ColumnItem, { kind: 'group' }>; secret: boolean }>()

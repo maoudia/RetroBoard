@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Column } from '@retroboard/domain'
-import type { SortMode } from '~/utils/layout'
+import type { SortMode } from '@retroboard/application'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; index: number; total: number }>()

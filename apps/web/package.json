@@ -23,7 +23,9 @@
     "@retroboard/domain": "workspace:*",
     "@retroboard/protocol": "workspace:*",
     "@retroboard/themes": "workspace:*",
-    "@retroboard/i18n": "workspace:*"
+    "@retroboard/i18n": "workspace:*",
+    "@retroboard/application": "workspace:*",
+    "@retroboard/exporters": "workspace:*"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.17.0",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { download, toCsv, toJson, toMarkdown } from '~/utils/export'
+import { download, exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
 const { t } = useT()
 
 const board = useBoardStore()
@@ -9,11 +9,11 @@ const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().rep
 function run(kind: 'md' | 'csv' | 'json' | 'copy') {
   const s = board.snapshot
   if (!s) return
-  if (kind === 'md') download(`${slug.value}.md`, toMarkdown(s, { date: new Date() }), 'text/markdown')
-  else if (kind === 'csv') download(`${slug.value}.csv`, toCsv(s), 'text/csv')
+  if (kind === 'md') download(`${slug.value}.md`, toMarkdown(s, { date: new Date(), labels: exportLabels }), 'text/markdown')
+  else if (kind === 'csv') download(`${slug.value}.csv`, toCsv(s, exportLabels), 'text/csv')
   else if (kind === 'json') download(`${slug.value}.json`, toJson(s), 'application/json')
   else {
-    navigator.clipboard?.writeText(toMarkdown(s, { date: new Date() })).then(() => push(t('export.copied'), 'ok'), () => push(t('export.copyFailed'), 'warn'))
+    navigator.clipboard?.writeText(toMarkdown(s, { date: new Date(), labels: exportLabels })).then(() => push(t('export.copied'), 'ok'), () => push(t('export.copyFailed'), 'warn'))
   }
 }
 </script>
