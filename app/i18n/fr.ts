@@ -81,7 +81,7 @@ export const fr = {
   'landing.p.notrack.h': 'Sans traceur', 'landing.p.notrack.p': 'Pas de cookie, pas de script tiers, polices auto-hébergées.',
   'landing.p.local.h': 'Brouillons locaux', 'landing.p.local.p': 'Ils ne quittent ton navigateur qu\'à la publication.',
   'landing.final': 'Prêt pour la prochaine rétro ?',
-  'landing.footer': 'RetroBoard, open source (MIT)',
+  'landing.footer': 'RetroBoard, open source (AGPL-3.0)',
   'landing.mock.sprint': 'Sprint 42',
   'landing.mock.votes': '3 votes par personne',
   'landing.mock.n1': 'Pair programming le mardi', 'landing.mock.n2': 'Démos de 15 min',

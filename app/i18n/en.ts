@@ -82,7 +82,7 @@ export const en: Record<keyof typeof fr, string> = {
   'landing.p.notrack.h': 'No trackers', 'landing.p.notrack.p': 'No cookies, no third-party scripts, self-hosted fonts.',
   'landing.p.local.h': 'Local drafts', 'landing.p.local.p': 'They only leave your browser when you publish.',
   'landing.final': 'Ready for the next retro?',
-  'landing.footer': 'RetroBoard, open source (MIT)',
+  'landing.footer': 'RetroBoard, open source (AGPL-3.0)',
   'landing.mock.sprint': 'Sprint 42',
   'landing.mock.votes': '3 votes per person',
   'landing.mock.n1': 'Pair programming on Tuesdays', 'landing.mock.n2': '15 min demos',

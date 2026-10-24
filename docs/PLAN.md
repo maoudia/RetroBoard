@@ -51,7 +51,7 @@ Non-negotiables (also in `openspec/config.yaml`, so every agent sees them):
 | ADR-07 | **Integrations in the browser**: structured files, rich clipboard, deep links, user-provided webhooks | OAuth apps through the Worker | No secrets, no tokens, no storage, no app reviews. |
 | ADR-08 | **Monorepo** (pnpm workspaces + Turborepo), packages per layer | Single Nuxt app with folders | Layer boundaries become package boundaries that tools enforce. |
 | ADR-09 | **OpenSpec** spec-driven workflow for Claude Code and OpenCode | Free-form issues | Specs are the contract agents implement and reviewers check. |
-| ADR-10 | **License: pending owner decision** between AGPL-3.0 (OSI open source, recommended for the open source spirit) and FSL-1.1-ALv2 (Fair Source, forbids competing resale) | MIT (allows resale); BSL 1.1 and Elastic 2.0 (disliked by the community) | Goal: stay in the open source spirit and discourage resale. Versions already published under MIT stay MIT. |
+| ADR-10 | **License AGPL-3.0-only** + commercial license on request (dual licensing), contributions under a CLA | MIT (allows closed resale); FSL-1.1-ALv2 (not OSI open source); BSL 1.1 and Elastic 2.0 (disliked by the community) | Real open source (OSI) that discourages closed resale: anyone running a modified version as a service must publish its source (AGPL section 13). Commits up to tag `last-mit` stay MIT. |
 | ADR-11 | **Payments through a Merchant of Record (Polar)** + stateless signed entitlement tokens | Own Stripe integration with a customer database | No customer database; the MoR is the system of record and handles sales tax. |
 | ADR-12 | **Local AI only** (Chrome Prompt API, Ollama/LM Studio on localhost, WebLLM) | Hosted LLM | No cost, no data leaves the participant's machine. |
 | ADR-13 | **MCP server as a local npm package** joining a board like a participant | Remote MCP on the Worker | A remote MCP would need the plaintext; a local one holds the room key like any participant. |
@@ -62,7 +62,7 @@ Sources for the cost and platform facts used above:
 - Durable Objects pricing and free limits: <https://developers.cloudflare.com/durable-objects/platform/pricing/> (100,000 requests/day, incoming WebSocket messages billed 20:1, 13,000 GB-s/day on Free).
 - Workers limits: <https://developers.cloudflare.com/workers/platform/limits/> (100,000 requests/day, 10 ms CPU per request on Free).
 - Cloudflare STUN is free (`stun.cloudflare.com`), TURN has 1,000 GB free then $0.05/GB: <https://developers.cloudflare.com/realtime/turn/faq/>.
-- FSL-1.1-ALv2: <https://spdx.org/licenses/FSL-1.1-ALv2.html>.
+- AGPL-3.0: <https://www.gnu.org/licenses/agpl-3.0.html>, SPDX `AGPL-3.0-only`.
 - Polar license keys and fees: <https://polar.sh/docs/features/benefits/license-keys>, <https://polar.sh/docs/fees>.
 
 ## 3. Target architecture
@@ -387,7 +387,7 @@ Retro gratuite, belle et sans compte, chiffree de bout en bout, qui ne garde rie
 | **Pro (facilitateur)** | 24 EUR/an (ou 2,99 EUR/mois) | Jusqu'a 50 participants, tous les themes et formats avances, agenda personnalisable illimite, rapport avance et marque, compagnon IA (presets), relais TURN pour les reseaux d'entreprise, sessions jusqu'a 4 h |
 | **Team** | 79 EUR/an | 5 facilitateurs, 100 participants, packs exclusifs, branding (logo, couleurs) sur board et rapport |
 | **Packs** | 3 a 5 EUR, achat unique | Themes saisonniers premium, formats de retro thematiques |
-| **Self-host** | Gratuit (FSL) | Usage interne libre ; support et installation privee sur devis MAIDAF |
+| **Self-host** | Gratuit (AGPL-3.0) | Libre, y compris en service, a condition de publier ses modifications ; licence commerciale (sans obligations AGPL), support et installation privee sur devis MAIDAF |
 
 Pourquoi l'annuel en priorite : sur 2,99 EUR, les frais Polar (5 % + 0,50 USD, +1,5 % carte hors US sur le plan Starter) prennent environ 20 % ; sur 24 EUR, environ 9 %. Source : <https://polar.sh/docs/fees>.
 
@@ -401,7 +401,7 @@ Pourquoi l'annuel en priorite : sur 2,99 EUR, les frais Polar (5 % + 0,50 USD, +
 
 ### 13.4 Cadre juridique et fiscal (a valider avec ton expert-comptable)
 
-- **Licence** : FSL-1.1-ALv2. Le texte interdit l'usage concurrent commercial et accorde Apache 2.0 deux ans apres chaque publication. Les versions deja publiees sous MIT le restent.
+- **Licence** : GNU AGPL-3.0-only (licence open source approuvee OSI). Quiconque fait tourner une version modifiee en service doit en publier le code source (art. 13 AGPL). Double licence : une licence commerciale peut etre vendue par MAIDAF a ceux qui ne veulent pas de ces obligations ; cela suppose de detenir les droits sur tout le code, donc un CLA (Contributor License Agreement) pour les contributions externes (CLA Assistant, gratuit). Les commits jusqu'au tag `last-mit` restent sous MIT.
 - **TVA** : en passant par un Merchant of Record, c'est lui qui vend au client final et gere la TVA de chaque pays (Directive 2006/112/CE, art. 58 pour le lieu de taxation des services electroniques B2C). Toi, tu factures une prestation au MoR. La qualification exacte (autoliquidation, lieu de la prestation B2B, CGI art. 259-1) est **a verifier** avec ton expert-comptable.
 - **Mentions legales** obligatoires sur le site : loi n. 2004-575 du 21 juin 2004 (LCEN), art. 6-III.
 - **RGPD** : meme sans stockage, Cloudflare traite des adresses IP et Polar des donnees de facturation. Il faut une politique de confidentialite (RGPD art. 13) qui liste ces traitements et sous-traitants.
@@ -448,7 +448,7 @@ Landing SEO (pages "format de retro X"), modeles de retro partageables, badge "M
 | WebRTC mesh does not scale past about 15 peers | Partial mesh, relay fallback at 4 Hz, cursor display cap |
 | Free quota exhausted by abuse | Turnstile, per-IP caps, room lifetime caps, cursors P2P |
 | E2E hides abuse content from us | Report flow sends the offending content (decrypted by the reporter) to the facilitator only; we cannot moderate what we cannot read, stated in CGU |
-| "Open source" wording vs FSL | Landing says "source available, Fair Source (FSL), Apache 2.0 after two years" |
+| AGPL does not forbid resale | Network copyleft makes closed resale impractical; trademark "RetroBoard" and the hosted service remain ours; commercial license for those who need closed use |
 | Polar dependency | License token format is ours; switching MoR changes only the redemption adapter |
 | Local AI quality and hardware | Opt-in, graceful degradation, no feature depends on it |
 
@@ -480,7 +480,7 @@ Points still to verify during implementation (not blocking the plan): free-plan 
 | Ethical business plan | Section 13, `licensing-and-monetization` |
 | Expand all groups in a column | `clusters-as-merged-ideas` |
 | HTML generated video on the home page | `landing-v2-and-product-video` |
-| Open source mention on landing | `landing-v2-and-product-video` (Fair Source wording) |
+| Open source mention on landing | `landing-v2-and-product-video` (AGPL-3.0) |
 | Profile uses landing theme; friendly avatar, personas, Gravatar | `theme-policy-and-variants`, `profile-avatars-and-team-space` |
 | Smarter retro name (team, sprint, date) | `profile-avatars-and-team-space`, `board-creation-v2` |
 | Accurate visible voting, votes on groups, hide counts | `voting-v2-and-ranking`, `clusters-as-merged-ideas` |

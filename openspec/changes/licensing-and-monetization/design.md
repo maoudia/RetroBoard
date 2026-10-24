@@ -7,7 +7,7 @@
 - No storage: the Worker is stateless; abuse limited by Turnstile on redemption and the rate limiting binding if available on the free plan (to verify), otherwise a per-IP cap in a Durable Object counter kept in memory.
 - Premium packs: built from a private package at deploy time into a Worker-only path (`/premium/<pack>.js`) served by the Worker after token verification, not from the public assets directory.
 - Plan definitions in `packages/domain/entitlements` (single source for landing, UI and relay).
-- Honest gating: client-only features in source-available code can be rebuilt by self-hosters for their own use, which the FSL allows; we sell the hosted service and content.
+- Honest gating: client-only features in AGPL code can be rebuilt by self-hosters, which the license allows; we sell the hosted service, premium content (not in the AGPL repository) and commercial licenses.
 
 ## Risks / Trade-offs
 
@@ -17,6 +17,6 @@
 
 ## Migration Plan
 
-1. Change LICENSE to FSL-1.1-ALv2 in one commit with NOTICE; tag the last MIT release.
+1. Done on 2026-10-24: LICENSE is AGPL-3.0-only with NOTICE, tag `last-mit` marks the last MIT commit.
 2. Ship free-plan limits in the relay with generous defaults.
 3. Enable Polar products and redemption; announce pricing.

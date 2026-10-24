@@ -1,7 +1,7 @@
 # RetroBoard
 
 [![CI](https://github.com/maoudia/retroboard/actions/workflows/ci.yml/badge.svg)](https://github.com/maoudia/retroboard/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Nuxt 4](https://img.shields.io/badge/Nuxt-4-00DC82?logo=nuxt&logoColor=white)](https://nuxt.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers%20%2B%20Durable%20Objects-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/durable-objects/)
@@ -138,4 +138,4 @@ docs/       Architecture notes
 
 ## License
 
-[MIT](LICENSE)
+[GNU AGPL-3.0](LICENSE). Commits up to the `last-mit` tag remain available under MIT. Commercial licensing (without AGPL obligations) is available from MAIDAF EURL. See [NOTICE](NOTICE).

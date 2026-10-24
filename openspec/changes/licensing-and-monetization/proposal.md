@@ -2,11 +2,11 @@
 
 ## Why
 
-The owner wants a cheap SaaS with advanced features and themes unlocked for paying teams, a free tier that covers a real retro, no resale of the product by others, and no server or storage to manage subscriptions.
+The owner wants a cheap SaaS with advanced features and themes unlocked for paying teams, a free tier that covers a real retro, an open source license (AGPL-3.0) that discourages closed resale, and no server or storage to manage subscriptions.
 
 ## What Changes
 
-- License the code under FSL-1.1-ALv2 (Fair Source); add NOTICE explaining that earlier releases remain MIT.
+- License the code under AGPL-3.0-only with NOTICE (earlier commits remain MIT up to tag `last-mit`), a commercial license offer and a CLA for external contributions.
 - Plans: Free, Pro, Team, one-off packs (docs/PLAN.md 13.2).
 - Checkout and subscriptions through Polar (Merchant of Record) with license keys.
 - Stateless `/license/redeem` endpoint: validates a license key with Polar and returns a signed entitlement token (Ed25519, 7 days).

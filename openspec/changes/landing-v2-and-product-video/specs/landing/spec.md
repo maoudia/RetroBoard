@@ -12,7 +12,7 @@ The landing page SHALL show a product walkthrough built from HTML and CSS animat
 - **THEN** the walkthrough is shown as a static sequence of captioned frames
 
 ### Requirement: Open code statement
-The landing page SHALL state that the source code is public under a Fair Source license that allows self-hosting for own use and becomes Apache 2.0 two years after each release, and SHALL link to the repository and the license.
+The landing page SHALL state that RetroBoard is open source under the GNU AGPL-3.0, that anyone may self-host it, that modified versions offered as a service must publish their source, and that a commercial license is available, and SHALL link to the repository and the license.
 
 #### Scenario: Visitor checks the license
 - **WHEN** a visitor clicks the license link

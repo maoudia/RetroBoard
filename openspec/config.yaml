@@ -18,7 +18,8 @@ context: |
   - Strict CSP (no unsafe-inline, no unsafe-eval), no cookies, no third-party trackers.
   - Integrations (Jira, Confluence, Google, Slack) run in the browser: files, rich clipboard, deep links,
     user-provided webhooks. No OAuth secrets and no tokens stored by us.
-  - Code license: pending owner decision (AGPL-3.0 or FSL-1.1-ALv2, see docs/PLAN.md ADR-10); do not change LICENSE.
+  - Code license: AGPL-3.0-only (dual licensing possible, so external contributions need the CLA). Dependencies must be
+    AGPL-compatible (MIT, BSD, ISC, Apache-2.0, MPL-2.0, LGPL, GPL-3.0, AGPL-3.0); never GPL-2.0-only or proprietary.
   Specs are written in English. Requirements use SHALL/MUST and every requirement has scenarios.
 
 rules:
