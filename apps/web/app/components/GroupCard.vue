@@ -12,7 +12,7 @@ function onDrop() {
   over.value = false
   const id = ui.dragNoteId
   ui.dragNoteId = null
-  if (id && !props.item.notes.some((n) => n.id === id)) board.send({ t: 'note.group', id, ontoId: top.value.id })
+  if (id && !props.item.notes.some((n) => n.id === id)) board.commands.groupNotes(id, top.value.id)
 }
 const open = () => { ui.openGroupId = props.item.group.id }
 </script>

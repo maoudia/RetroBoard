@@ -16,8 +16,8 @@ export function usePublish() {
     for (let i = 0; i < list.length; i += LIMITS.maxBatch) {
       const slice = list.slice(i, i + LIMITS.maxBatch)
       for (const d of slice) flights.record(d.columnId, d.text, document.querySelector(`[data-draft-id="${d.id}"]`))
-      const sent = board.send({ t: 'note.addMany', items: slice.map((d) => ({ columnId: d.columnId, text: d.text, color: d.color })) })
-      if (!sent) return push(t('publish.offline'), 'warn')
+      const sent = board.commands.publish(slice.map((d) => ({ columnId: d.columnId, text: d.text, color: d.color })))
+      if (!sent.ok) return push(t(sent.error === 'locked' ? 'publish.locked' : 'publish.offline'), 'warn')
       drafts.removeMany(slice.map((d) => d.id))
     }
   }

@@ -6,7 +6,7 @@ const props = defineProps<{ column: Column; index: number; count: number; noteCo
 const board = useBoardStore()
 const ui = useUiStore()
 const confirm = ref(false)
-const move = (to: number) => board.send({ t: 'column.move', id: props.column.id, toIndex: to })
+const move = (to: number) => board.commands.moveColumn(props.column.id, to)
 </script>
 
 <template>
@@ -29,6 +29,6 @@ const move = (to: number) => board.send({ t: 'column.move', id: props.column.id,
   <ConfirmDialog
     v-model:open="confirm"  danger :title="t('column.delete.title')" :confirm-label="t('common.delete')"
     :message="noteCount ? t('column.delete.msgNotes', { n: noteCount, title: column.title }) : t('column.delete.msgEmpty', { title: column.title })"
-    @confirm="board.send({ t: 'column.delete', id: column.id })"
+    @confirm="board.commands.deleteColumn(column.id)"
   />
 </template>

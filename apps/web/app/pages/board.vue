@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
-import { defaultTransportFactory, isLocalRoom } from '~/transport'
+import { isLocalRoom } from '~/transport'
 import { errorLabel } from '~/utils/labels'
 const { t, locale } = useT()
 
 const route = useRoute()
-const config = useRuntimeConfig()
+const { $ports } = useNuxtApp()
 const board = useBoardStore()
 const identity = useIdentityStore()
 const drafts = useDraftsStore()
@@ -27,7 +27,7 @@ function enter() {
   identity.load()
   drafts.load(roomId.value)
   if (!identity.named) ui.open('name')
-  board.connect(roomId.value, identity.identity, defaultTransportFactory(config.public.wsUrl as string))
+  board.connect(roomId.value, identity.identity, $ports.channelFactory)
 }
 
 onMounted(enter)
@@ -47,7 +47,7 @@ watch(needsSetup, (need) => {
   }
 })
 function sendSetup(s: SetupResult) {
-  board.send({ t: 'board.init', templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value })
+  board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value })
   setupOpen.value = false
 }
 

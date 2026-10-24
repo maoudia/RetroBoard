@@ -19,9 +19,9 @@
 
 ## 4. Application layer
 
-- [ ] 4.1 Create `packages/application` with ports (`RelayPort`, `ClockPort`, `IdPort`, `ClipboardPort`, `FilePort`, `NotifierPort`) and `Result` type; verify it compiles with no import outside `domain`
-- [ ] 4.2 Implement use cases for existing behaviour (publish drafts, vote, group, columns, actions, timer, settings) with unit tests using `packages/testkit` fakes; verify coverage >= 90% for `application`
-- [ ] 4.3 Refactor Pinia stores to call use cases and adapters wired in one composition-root plugin; verify the full e2e suite passes unchanged
+- [x] 4.1 Create `packages/application` with ports (`RelayPort`, `ClockPort`, `IdPort`, `ClipboardPort`, `FilePort`, `NotifierPort`) and `Result` type; verify it compiles with no import outside `domain`
+- [x] 4.2 Implement use cases for existing behaviour (publish drafts, vote, group, columns, actions, timer, settings) with unit tests using `packages/testkit` fakes; verify coverage >= 90% for `application`
+- [x] 4.3 Refactor Pinia stores to call use cases and adapters wired in one composition-root plugin; verify the full e2e suite passes unchanged
 
 ## 5. Enforcement
 

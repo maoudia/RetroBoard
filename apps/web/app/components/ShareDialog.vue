@@ -2,12 +2,13 @@
 const { t } = useT()
 const ui = useUiStore()
 const { push } = useToasts()
+const { $ports } = useNuxtApp()
 const open = computed({ get: () => ui.dialog === 'share', set: (v) => { if (!v && ui.dialog === 'share') ui.close() } })
 const url = computed(() => (import.meta.client ? window.location.href : ''))
 const canShare = computed(() => import.meta.client && typeof navigator.share === 'function')
 
 async function copy() {
-  try { await navigator.clipboard.writeText(url.value); push(t('share.copied'), 'ok') } catch { push(t('share.copyFailed'), 'warn') }
+  try { await $ports.clipboard.writeText(url.value); push(t('share.copied'), 'ok') } catch { push(t('share.copyFailed'), 'warn') }
 }
 const share = () => navigator.share({ title: t('share.nativeTitle'), url: url.value }).catch(() => {})
 </script>

@@ -41,8 +41,8 @@ watch(remaining, (r) => {
   }
 })
 
-const toggle = () => board.send({ t: running.value ? 'timer.pause' : 'timer.start' })
-const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.send({ t: 'timer.reset', minutes })
+const toggle = () => (running.value ? board.commands.pauseTimer() : board.commands.startTimer())
+const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.commands.resetTimer(minutes)
 </script>
 
 <template>

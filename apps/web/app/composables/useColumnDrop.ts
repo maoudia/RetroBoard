@@ -15,8 +15,8 @@ export function useColumnDrop(columnId: Ref<string> | (() => string)) {
         over.value = false
         const note = ui.dragNoteId && board.noteById(ui.dragNoteId)
         ui.dragNoteId = null
-        if (note && note.columnId !== id()) board.send({ t: 'note.move', id: note.id, columnId: id() })
-        else if (note && note.groupId) board.send({ t: 'note.ungroup', id: note.id })
+        if (note && note.columnId !== id()) board.commands.moveNote(note.id, id())
+        else if (note && note.groupId) board.commands.ungroupNote(note.id)
       },
     },
   }

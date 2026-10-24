@@ -1,11 +1,10 @@
-import type { Command } from '@retroboard/protocol'
 import type { ErrorCode, Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
-import { buildColumnItems, type SortMode } from '@retroboard/application'
+import { buildColumnItems, createBoardCommands, type SortMode } from '@retroboard/application'
 
 /**
- * Client side view of a board. All rules live in the shared domain on the server:
- * the store sends commands and renders the snapshots it receives.
+ * View model of a board: holds the latest snapshot and exposes the board use cases.
+ * Rules live in the domain; components never build protocol commands themselves.
  */
 export const useBoardStore = defineStore('board', () => {
   const snapshot = shallowRef<Snapshot | null>(null)
@@ -42,7 +41,7 @@ export const useBoardStore = defineStore('board', () => {
   }
 
   function updateIdentity(identity: Identity) { transport?.updateIdentity(identity) }
-  function send(cmd: Command): boolean { return transport?.send(cmd) ?? false }
+  const commands = createBoardCommands({ channel: () => transport, view: () => snapshot.value })
   /** Subscribe to snapshot transitions (animations need the previous one). */
   function onSnapshot(fn: (prev: Snapshot | null, next: Snapshot) => void) {
     listeners.add(fn)
@@ -68,7 +67,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, roomId, skew,
-    connect, disconnect, updateIdentity, send, onSnapshot,
+    connect, disconnect, updateIdentity, onSnapshot, commands,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, noteCount, openActions,
     itemsFor, noteById,
   }

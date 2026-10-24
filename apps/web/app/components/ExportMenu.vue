@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { download, exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
+import { exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
 const { t } = useT()
 
 const board = useBoardStore()
+const { $ports } = useNuxtApp()
 const { push } = useToasts()
 const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'retro')
 
 function run(kind: 'md' | 'csv' | 'json' | 'copy') {
   const s = board.snapshot
   if (!s) return
-  if (kind === 'md') download(`${slug.value}.md`, toMarkdown(s, { date: new Date(), labels: exportLabels }), 'text/markdown')
-  else if (kind === 'csv') download(`${slug.value}.csv`, toCsv(s, exportLabels), 'text/csv')
-  else if (kind === 'json') download(`${slug.value}.json`, toJson(s), 'application/json')
+  if (kind === 'md') $ports.file.save(`${slug.value}.md`, toMarkdown(s, { date: new Date(), labels: exportLabels }), 'text/markdown')
+  else if (kind === 'csv') $ports.file.save(`${slug.value}.csv`, toCsv(s, exportLabels), 'text/csv')
+  else if (kind === 'json') $ports.file.save(`${slug.value}.json`, toJson(s), 'application/json')
   else {
-    navigator.clipboard?.writeText(toMarkdown(s, { date: new Date(), labels: exportLabels })).then(() => push(t('export.copied'), 'ok'), () => push(t('export.copyFailed'), 'warn'))
+    $ports.clipboard.writeText(toMarkdown(s, { date: new Date(), labels: exportLabels })).then(() => push(t('export.copied'), 'ok'), () => push(t('export.copyFailed'), 'warn'))
   }
 }
 </script>

@@ -11,9 +11,9 @@ watch(() => props.item.group.title, (t) => { title.value = t ?? '' })
 
 const close = () => { ui.openGroupId = null }
 function saveTitle() {
-  if (title.value.trim() !== (props.item.group.title ?? '')) board.send({ t: 'group.rename', id: props.item.group.id, title: title.value })
+  if (title.value.trim() !== (props.item.group.title ?? '')) board.commands.renameGroup(props.item.group.id, title.value)
 }
-function dissolve() { board.send({ t: 'group.dissolve', id: props.item.group.id }); close() }
+function dissolve() { board.commands.dissolveGroup(props.item.group.id); close() }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
 onMounted(() => document.addEventListener('keydown', onKey))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey))

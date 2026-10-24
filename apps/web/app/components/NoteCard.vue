@@ -26,7 +26,7 @@ onMounted(() => { if (flightFrom && el.value) flights.fly(el.value, flightFrom) 
 const canVote = computed(() => !board.locked && (props.note.voted || board.votesLeft > 0))
 function vote() {
   if (!canVote.value) return push(board.locked ? t('error.locked') : t('error.vote-limit'), 'warn')
-  board.send({ t: 'vote.toggle', id: props.note.id })
+  board.commands.toggleVote(props.note.id)
 }
 // Votes changed (by anyone): bump the counter, and float a +1 for new votes.
 watch(() => props.note.votes, (n, o) => {
@@ -38,7 +38,7 @@ watch(() => props.note.votes, (n, o) => {
 function startEdit() { draft.value = props.note.text; editing.value = true }
 function saveEdit() {
   const t = draft.value.trim()
-  if (t && t !== props.note.text) board.send({ t: 'note.edit', id: props.note.id, text: t })
+  if (t && t !== props.note.text) board.commands.editNote(props.note.id, t)
   editing.value = false
 }
 
@@ -51,7 +51,7 @@ function onDrop() {
   over.value = false
   const id = ui.dragNoteId
   ui.dragNoteId = null
-  if (id && id !== props.note.id) board.send({ t: 'note.group', id, ontoId: props.note.id })
+  if (id && id !== props.note.id) board.commands.groupNotes(id, props.note.id)
 }
 </script>
 

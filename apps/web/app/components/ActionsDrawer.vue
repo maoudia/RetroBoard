@@ -14,11 +14,11 @@ watch(open, (v) => { if (v && !owner.value) owner.value = identity.name })
 
 function add() {
   if (!text.value.trim()) return
-  board.send({ t: 'action.add', text: text.value, owner: owner.value })
+  board.commands.addAction(text.value, owner.value)
   text.value = ''
 }
 function toggle(id: string, done: boolean, e: Event) {
-  board.send({ t: 'action.toggle', id, done })
+  board.commands.setActionDone(id, done)
   if (done) {
     const r = (e.target as HTMLElement).getBoundingClientRect()
     confetti(r.left + r.width / 2, r.top + r.height / 2, theme.theme.noteColors, 36)
@@ -39,7 +39,7 @@ function toggle(id: string, done: boolean, e: Event) {
         <input type="checkbox" :checked="a.done" :aria-label="t('actions.done', { text: a.text })" @change="toggle(a.id, ($event.target as HTMLInputElement).checked, $event)" />
         <span class="txt">{{ a.text }}</span>
         <span v-if="a.owner" class="pill">{{ a.owner }}</span>
-        <button class="mini-btn" type="button" :aria-label="t('actions.delete')" @click="board.send({ t: 'action.delete', id: a.id })"><Icon name="lucide:trash" /></button>
+        <button class="mini-btn" type="button" :aria-label="t('actions.delete')" @click="board.commands.deleteAction(a.id)"><Icon name="lucide:trash" /></button>
       </li>
     </ul>
   </BaseDialog>

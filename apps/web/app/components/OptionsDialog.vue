@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SettingsPatch } from '@retroboard/application'
 import { LIMITS } from '@retroboard/domain'
 const { t } = useT()
 
@@ -10,7 +11,7 @@ const title = ref('')
 const resetAsk = ref(false)
 watch(open, (v) => { if (v) title.value = board.settings?.title ?? '' })
 
-const set = (patch: Record<string, unknown>) => board.send({ t: 'settings.update', ...patch } as never)
+const set = (patch: SettingsPatch) => board.commands.updateSettings(patch)
 const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.value.title) set({ title: title.value }) }
 </script>
 
@@ -65,7 +66,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         </div>
       </section>
     </template>
-    <ConfirmDialog v-model:open="resetAsk" danger :title="t('options.resetConfirm.title')" :confirm-label="t('options.resetConfirm.ok')" :message="t('options.resetConfirm.msg')" @confirm="board.send({ t: 'board.reset' }); ui.close()" />
+    <ConfirmDialog v-model:open="resetAsk" danger :title="t('options.resetConfirm.title')" :confirm-label="t('options.resetConfirm.ok')" :message="t('options.resetConfirm.msg')" @confirm="board.commands.resetBoard(); ui.close()" />
   </BaseDialog>
 </template>
 

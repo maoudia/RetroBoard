@@ -15,7 +15,7 @@ function apply() {
 }
 function send() {
   if (!picked.value) return
-  board.send({ t: 'template.apply', templateId: picked.value, wipe: true, locale: locale.value })
+  board.commands.applyTemplate(picked.value, locale.value)
   ui.close()
 }
 </script>

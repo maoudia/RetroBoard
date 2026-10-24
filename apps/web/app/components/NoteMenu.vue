@@ -20,23 +20,23 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
       <div class="swatches" role="group" :aria-label="t('note.color')">
         <button
           v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: note.color === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
-          :aria-label="t('note.colorN', { n: i })" @click="board.send({ t: 'note.color', id: note.id, color: i - 1 }); close()"
+          :aria-label="t('note.colorN', { n: i })" @click="board.commands.recolorNote(note.id, i - 1); close()"
         />
       </div>
       <div class="dd-sep" />
-      <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.send({ t: 'note.ungroup', id: note.id }); close()">
+      <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.commands.ungroupNote(note.id); close()">
         <Icon name="lucide:ungroup" /> {{ t('note.ungroup') }}
       </button>
       <template v-if="others.length">
         <span class="lbl-sm muted">{{ t('note.moveTo') }}</span>
-        <button v-for="c in others" :key="c.id" class="dd-item" type="button" role="menuitem" @click="board.send({ t: 'note.move', id: note.id, columnId: c.id }); close()">
+        <button v-for="c in others" :key="c.id" class="dd-item" type="button" role="menuitem" @click="board.commands.moveNote(note.id, c.id); close()">
           <Icon :name="`lucide:${c.icon}`" /> {{ c.title }}
         </button>
       </template>
       <template v-if="note.mine">
         <div class="dd-sep" />
         <button class="dd-item" type="button" role="menuitem" @click="emit('edit'); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
-        <button class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="board.send({ t: 'note.delete', id: note.id }); close()">
+        <button class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="board.commands.deleteNote(note.id); close()">
           <Icon name="lucide:trash" /> {{ t('note.delete') }}
         </button>
       </template>

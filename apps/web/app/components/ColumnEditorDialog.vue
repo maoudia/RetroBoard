@@ -20,7 +20,8 @@ watch(open, (v) => {
 function save() {
   if (!title.value.trim()) return
   const payload = { title: title.value, subtitle: subtitle.value, icon: icon.value as (typeof COLUMN_ICONS)[number] }
-  board.send(editing.value ? { t: 'column.update', id: editing.value.id, ...payload } : { t: 'column.add', ...payload })
+  if (editing.value) board.commands.updateColumn(editing.value.id, payload)
+  else board.commands.addColumn(payload)
   ui.close()
 }
 </script>
