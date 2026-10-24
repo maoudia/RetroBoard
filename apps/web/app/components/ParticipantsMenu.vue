@@ -37,6 +37,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'parti
       </button>
     </template>
     <span class="head muted">{{ t('participants.online') }}</span>
+    <p v-if="board.roomCode" class="code muted" :title="t('share.roomCode.hint')" data-testid="peers-room-code">{{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <ul class="list" data-testid="peers">
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
         <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}</span>
@@ -65,6 +66,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'parti
 
 <style scoped>
 .head { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .3rem .5rem; }
+.code { margin: 0 .5rem .35rem; font-size: .8rem; }
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: 8px; flex-wrap: wrap; }
 .av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: .8rem; color: #1b1b1b; flex: none; }

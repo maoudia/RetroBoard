@@ -87,6 +87,8 @@ export interface BoardSettings {
   templateId: string | null
   /** False until the first participant picks a template and theme (board.init). */
   initialized: boolean
+  /** Language the board was created in (board.init); absent on older boards. Picks the room words. */
+  locale?: 'fr' | 'en'
 }
 
 export interface BoardState {

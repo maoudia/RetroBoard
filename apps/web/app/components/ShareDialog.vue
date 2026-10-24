@@ -52,6 +52,7 @@ const showQr = ref(false)
 <template>
   <BaseDialog v-model:open="open" :title="t('share.title')" width="520px">
     <p class="muted">{{ t('share.intro') }}</p>
+    <p v-if="board.roomCode" class="code-words" data-testid="share-room-code"><Icon name="lucide:badge-check" /> {{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <div class="row">
       <input class="field mono" :value="url" readonly :aria-label="t('share.link')" data-testid="share-url" @focus="($event.target as HTMLInputElement).select()" />
       <button class="btn btn-primary" type="button" data-testid="copy-link" @click="copy"><Icon name="lucide:copy" /> {{ t('share.copy') }}</button>
@@ -92,6 +93,7 @@ const showQr = ref(false)
 
 <style scoped>
 .row { display: flex; gap: .5rem; }
+.code-words { margin: 0; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
 .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
 .acts a.btn { text-decoration: none; }
 .code { align-items: center; }

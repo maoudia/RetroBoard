@@ -8,4 +8,4 @@
 ## 2. QR and room words
 
 - [x] 2.1 Local QR generation (no network) in share panel and presenter mode; verify e2e decoding the QR image
-- [ ] 2.2 Three-word room code from room id (fr and en word lists); verify unit tests (deterministic, same for all)
+- [x] 2.2 Three-word room code from room id (fr and en word lists); verify unit tests (deterministic, same for all)

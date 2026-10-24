@@ -335,6 +335,8 @@ export const fr = {
   'share.facilitator': 'Lien animateur',
   'share.facilitator.hint': 'Il contient aussi la clé d\'animation (réglages, minuteur, remise à zéro). Garde-le pour toi ou donne-le seulement à un co-animateur.',
   'share.nativeTitle': 'Rétro',
+  'share.roomCode': 'Mots du board :',
+  'share.roomCode.hint': 'Tout le monde sur ce board voit les trois mêmes mots : dites-les à voix haute pour vérifier.',
   'share.message': 'Message prêt à envoyer',
   'share.copyChat': 'Copier pour le chat',
   'share.email': 'E-mail',

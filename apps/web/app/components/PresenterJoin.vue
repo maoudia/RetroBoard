@@ -2,6 +2,7 @@
 import { inviteFromHash, participantLink } from '~/utils/invite'
 const { t } = useT()
 const ui = useUiStore()
+const board = useBoardStore()
 const route = useRoute()
 
 /** Join card for the room screen: QR of the participant link, never the facilitator secret. */
@@ -25,6 +26,7 @@ const folded = ref(false)
       <template v-if="!folded">
         <QrCode :value="url" :label="t('share.qr.alt')" :size="200" />
         <p class="muted small">{{ t('presenter.scan') }}</p>
+        <p v-if="board.roomCode" class="small words" data-testid="presenter-room-code">{{ board.roomCode }}</p>
         <p v-if="passcode" class="small" data-testid="presenter-passcode"><Icon name="lucide:key-round" /> {{ t('presenter.passcode') }}</p>
       </template>
     </aside>
@@ -35,5 +37,6 @@ const folded = ref(false)
 .join { position: fixed; right: 1rem; bottom: 1rem; z-index: 35; display: grid; gap: .5rem; width: 232px; padding: .75rem; border-radius: 14px; border: 1px solid var(--border); }
 header { display: flex; align-items: center; gap: .25rem; }
 header strong { flex: 1; }
+.words { font-weight: 700; font-size: 1rem; }
 .small { margin: 0; font-size: .85rem; display: flex; gap: .35rem; align-items: center; }
 </style>

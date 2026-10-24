@@ -1,4 +1,4 @@
-import { allowedInPhase, type CommandType, type ErrorCode, type Snapshot } from '@retroboard/domain'
+import { allowedInPhase, type CommandType, type ErrorCode, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { buildColumnItems, createBoardCommands, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
@@ -60,6 +60,8 @@ export const useBoardStore = defineStore('board', () => {
   const allowed = (command: CommandType) => access.value.canSteer || allowedInPhase(snapshot.value?.agenda ?? null, command)
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
+  /** Three words everyone sees for this board (shared boards only), in the board's language. */
+  const roomCode = computed(() => (roomId.value && !roomId.value.startsWith('local-') && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
   const sendCursor = (c: OwnCursor) => transport?.sendCursor?.(c)
   const sendFocus = (f: OwnFocus) => transport?.sendFocus?.(f)
   const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
@@ -93,7 +95,7 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, roomId, skew, accessDenied, roomFull,
+    snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,

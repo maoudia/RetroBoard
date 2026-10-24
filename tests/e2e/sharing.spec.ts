@@ -90,3 +90,15 @@ test('presenter mode: no private drafts, no pointers, a QR card to join; Escape 
   await expect(firstCol.locator('textarea')).toHaveValue('My private draft')
   await bob.ctx.close()
 })
+
+test('everyone on a board sees the same three words, in the board language', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
+  const words = (await page.getByTestId('share-room-code').locator('strong').textContent())!
+  expect(words).toMatch(/^[a-z]+ · [a-z]+ · [a-z]+$/)
+  const link = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await join(browser, link, 'Bob')
+  await bob.page.getByTestId('btn-participants').click()
+  await expect(bob.page.getByTestId('peers-room-code').locator('strong')).toHaveText(words)
+  await bob.ctx.close()
+})

@@ -336,6 +336,8 @@ export const en: Record<keyof typeof fr, string> = {
   'share.facilitator': 'Facilitator link',
   'share.facilitator.hint': 'It also holds the facilitator key (settings, timer, reset). Keep it for yourself or give it to a co-facilitator only.',
   'share.nativeTitle': 'Retro',
+  'share.roomCode': 'Board words:',
+  'share.roomCode.hint': 'Everyone on this board sees the same three words: say them out loud to check.',
   'share.message': 'Ready-made message',
   'share.copyChat': 'Copy for chat',
   'share.email': 'Email',
