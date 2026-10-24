@@ -83,3 +83,21 @@ test('touch screens: no floating pointers; who is editing shows on the note itse
   await expect(marker).toHaveCount(0)
   await bob.ctx.close()
 })
+
+test('participants menu: shows who is typing and in which column', async ({ page, browser, isMobile }) => {
+  test.skip(isMobile, 'covered on desktop; the menu is the same on phones')
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const bob = await join(browser, await shareUrl(page), 'Bob')
+  const col = bob.page.locator('section[data-testid^="column-"]').first()
+  const title = (await col.getByTestId('column-title').textContent())!.trim()
+  await col.locator('textarea').click()
+  await col.locator('textarea').pressSequentially('Une idée', { delay: 20 })
+
+  await page.getByTestId('btn-participants').click()
+  const bobRow = page.locator('li[data-testid^="peer-"]', { hasText: 'Bob' })
+  await expect(bobRow.locator('[data-testid^="peer-status-"]')).toHaveText(`écrit dans ${title}`)
+  // Bob stops typing: the status goes away.
+  await col.locator('textarea').evaluate((el) => (el as HTMLElement).blur())
+  await expect(bobRow.locator('[data-testid^="peer-status-"]')).toHaveCount(0)
+  await bob.ctx.close()
+})

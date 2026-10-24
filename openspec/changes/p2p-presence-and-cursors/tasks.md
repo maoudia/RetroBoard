@@ -14,5 +14,5 @@
 
 ## 3. Presence and settings
 
-- [ ] 3.1 Add presence states (online, idle, typing in column, speaking) to the participants menu; verify e2e
+- [x] 3.1 Add presence states (online, idle, typing in column; speaking comes with talk-time) to the participants menu; verify e2e
 - [ ] 3.2 Add profile settings "Share my cursor", "Show others' cursors", "Relay-only (hide my IP from peers)" with fr/en strings and privacy page text; verify e2e for each toggle

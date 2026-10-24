@@ -2,6 +2,7 @@
 import type { Peer } from '@retroboard/domain'
 const { t } = useT()
 const board = useBoardStore()
+const live = useLiveStore()
 const { push } = useToasts()
 const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
 const hue = (n: string | null) => { let h = 0; for (const c of n ?? 'x') h = (h * 31 + c.charCodeAt(0)) % 360; return h }
@@ -9,6 +10,17 @@ const hue = (n: string | null) => { let h = 0; for (const c of n ?? 'x') h = (h 
 /** Role changes need the peer's session key (encrypted boards) and the facilitator's rights. */
 const manageable = (p: Peer) => board.access.canManageRoles && !p.me && !!p.key
 const handOver = ref<Peer | null>(null)
+
+/** Live status of another participant: typing (in which column) or idle. Online says nothing. */
+function statusLabel(p: Peer): string | null {
+  if (p.me) return null
+  const s = live.status(p.conn)
+  if (s.status === 'typing') {
+    const col = board.columns.find((c) => c.id === s.column)?.title
+    return col ? t('live.typingIn', { column: col }) : t('live.typing')
+  }
+  return s.status === 'idle' ? t('live.idle') : null
+}
 
 function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', p: Peer) {
   if (!p.key || !board.sendRole(change, p.key)) { push(t('roles.failed'), 'warn'); return }
@@ -28,7 +40,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'parti
     <ul class="list" data-testid="peers">
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
         <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}</span>
-        <span class="nm">{{ p.name ?? t('common.anonymous') }}</span>
+        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
         <span v-if="p.role === 'facilitator'" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
         <span v-else-if="p.role === 'co-facilitator'" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
@@ -57,6 +69,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'parti
 li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: 8px; flex-wrap: wrap; }
 .av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: .8rem; color: #1b1b1b; flex: none; }
 .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st { display: block; font-size: .72rem; }
 .role { display: inline-flex; align-items: center; gap: .25rem; }
 .acts { display: inline-flex; gap: 2px; }
 .note { margin: .4rem .5rem 0; font-size: .78rem; }

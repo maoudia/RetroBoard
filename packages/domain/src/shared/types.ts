@@ -166,6 +166,8 @@ export interface Peer {
   role?: 'facilitator' | 'co-facilitator' | 'participant'
   key?: string
   hidden?: boolean
+  /** Relay connection id, to match live presence (cursors, focus). Not stable across reconnects. */
+  conn?: string
 }
 
 export interface Snapshot {

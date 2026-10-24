@@ -1,4 +1,4 @@
-import { CURSOR_STALE_MS, type CursorFrame, type FocusFrame, NOTE_COLOR_COUNT, type TimedCursor, visibleCursors } from '@retroboard/domain'
+import { CURSOR_STALE_MS, type CursorFrame, type FocusFrame, NOTE_COLOR_COUNT, type PresenceStatus, presenceStatus, type TimedCursor, visibleCursors } from '@retroboard/domain'
 
 export interface LiveCursor extends TimedCursor { readonly name: string | null; readonly color: number }
 export interface LiveFocus extends FocusFrame { readonly name: string | null; readonly color: number; readonly at: number }
@@ -19,22 +19,29 @@ export const useLiveStore = defineStore('live', () => {
   const focus = shallowRef(new Map<string, LiveFocus>())
   /** Ticks every few seconds so stale cursors fade without new frames. */
   const now = ref(Date.now())
+  /** Last cursor or focus change per connection, for "idle". */
+  const active = new Map<string, number>()
 
   function setCursor(c: CursorFrame, name: string | null) {
     const next = new Map(cursors.value)
     next.set(c.conn, { ...c, name, color: peerColor(c.conn), at: Date.now() })
     cursors.value = next
+    active.set(c.conn, Date.now())
   }
   function setFocus(f: FocusFrame, name: string | null) {
     const next = new Map(focus.value)
+    const prev = next.get(f.conn)
+    if (!prev || prev.column !== f.column || prev.note !== f.note || prev.typing !== f.typing) active.set(f.conn, Date.now())
     next.set(f.conn, { ...f, name, color: peerColor(f.conn), at: Date.now() })
     focus.value = next
   }
   function drop(conn: string) {
+    active.delete(conn)
     if (cursors.value.has(conn)) { const next = new Map(cursors.value); next.delete(conn); cursors.value = next }
     if (focus.value.has(conn)) { const next = new Map(focus.value); next.delete(conn); focus.value = next }
   }
   function reset() {
+    active.clear()
     cursors.value = new Map()
     focus.value = new Map()
   }
@@ -53,5 +60,14 @@ export const useLiveStore = defineStore('live', () => {
     return map
   })
 
-  return { cursors, focus, now, visible, onNote, inColumn, setCursor, setFocus, drop, reset }
+  /** Status in the participants menu; a peer not seen moving yet is simply online. */
+  function status(conn: string | undefined): { status: PresenceStatus; column: string | null } {
+    if (!conn) return { status: 'online', column: null }
+    const f = focus.value.get(conn)
+    const at = active.get(conn)
+    void cursors.value
+    return { status: at === undefined && !f?.typing ? 'online' : presenceStatus(f, at ?? now.value, now.value), column: f?.typing ? f.column : null }
+  }
+
+  return { cursors, focus, now, visible, status, onNote, inColumn, setCursor, setFocus, drop, reset }
 })

@@ -357,9 +357,9 @@ export class EncryptedRelayTransport implements BoardTransport {
     const best = (keys: (string | undefined)[]): Role => keys.filter((k): k is string => !!k).map((k) => roleOf(ledger, k)).sort((a, b) => rank[b] - rank[a])[0] ?? 'participant'
     const describe = (key: string | undefined, fkey?: string) => (key ? { key, role: best([key, fkey]), hidden: ledger.hidden.includes(key) } : {})
     const list: Peer[] = this.conns.map((c) => {
-      if (c === this.conn) return { name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole() }
+      if (c === this.conn) return { name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole(), conn: c }
       const p = this.presence.get(c)
-      return { name: p?.showName ? p.name : null, me: false, ...describe(p?.key, p?.fkey) }
+      return { name: p?.showName ? p.name : null, me: false, conn: c, ...describe(p?.key, p?.fkey) }
     })
     if (!list.some((p) => p.me)) list.unshift({ name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole() })
     return list.sort((x, y) => Number(y.me) - Number(x.me) || (x.name ?? '').localeCompare(y.name ?? ''))
