@@ -17,7 +17,9 @@
     "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p worker/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "verify": "npm run lint && npm run typecheck && npm test && openspec validate --all --strict",
+    "spec": "openspec"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",
@@ -39,6 +41,7 @@
     "vue": "^3.5.44"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "^1.15.0",
     "@nuxt/eslint": "^1.17.0",
     "@playwright/test": "^1.64.1",
     "@types/node": "^24.19.2",

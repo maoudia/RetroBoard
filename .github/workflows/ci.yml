@@ -25,6 +25,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx nuxt prepare
+      - name: OpenSpec validate
+        run: npx openspec validate --all --strict
+        env:
+          OPENSPEC_TELEMETRY: '0'
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

@@ -11,6 +11,13 @@ Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 th
 
 > A static Nuxt site served by a Cloudflare Worker. Each board is one SQLite-backed Durable Object, erased 24 h after its last activity.
 
+## Roadmap and contributing with agents
+
+- Master plan, decisions and business model: [docs/PLAN.md](docs/PLAN.md)
+- Specs and planned changes ([OpenSpec](https://www.npmjs.com/package/@fission-ai/openspec)): `openspec/specs`, `openspec/changes`
+- Agent instructions: [AGENTS.md](AGENTS.md), skill `.claude/skills/retroboard-stack`
+- Claude Code: `/opsx:propose`, `/opsx:apply`, `/opsx:archive`. OpenCode: `/opsx-propose`, `/opsx-apply`, `/opsx-archive`.
+
 ## Features
 
 | | |

@@ -1,0 +1,44 @@
+schema: spec-driven
+
+# Constraints an agent cannot infer from the code. Read docs/PLAN.md and AGENTS.md before planning.
+context: |
+  RetroBoard is a real-time retrospective board. Product owner: Moncef Aoudia (MAIDAF EURL).
+  Hard constraints (never trade them away in a design):
+  - Zero infrastructure cost: Cloudflare Workers Free plan only (static assets + one Durable Object class).
+  - Zero storage on our side: the relay keeps state in memory only and never calls the Durable Object
+    storage API. Durable state lives in participants' browsers (encrypted replicas) and in exported files.
+  - End-to-end encryption: board content is encrypted in the browser with a key carried in the URL
+    fragment. The relay only sees opaque ciphertext, room ids, sizes and timings.
+  - Board theme is set by the facilitator and cannot be overridden; participants may only switch the
+    light/dark variant of that theme.
+  - Every user-facing string goes through i18n (fr source, en required). Layout must work from 360px
+    phones to 4K TVs and projectors.
+  - Architecture: DDD with bounded contexts, clean architecture layers (domain -> application ->
+    adapters -> apps). The domain has no I/O and no framework imports. Enforced by architecture tests.
+  - Strict CSP (no unsafe-inline, no unsafe-eval), no cookies, no third-party trackers.
+  - Integrations (Jira, Confluence, Google, Slack) run in the browser: files, rich clipboard, deep links,
+    user-provided webhooks. No OAuth secrets and no tokens stored by us.
+  - Code license: FSL-1.1-ALv2 (self-host for own use allowed, no competing resale).
+  Specs are written in English. Requirements use SHALL/MUST and every requirement has scenarios.
+
+rules:
+  proposal:
+    - State what is out of scope.
+    - Name the bounded context(s) touched (see docs/PLAN.md section 4).
+    - State the impact on the free-plan budget (relay messages per minute) when the change adds traffic.
+  design:
+    - Show where each new type lives (domain, application, adapter, app) and the ports involved.
+    - Include a security and privacy note (what the relay can observe).
+  tasks:
+    - Tasks are sized for one agent session (about 2 hours) and each states how it is verified.
+    - Each task group lands its own tests (unit for domain/application, e2e for user flows) and i18n keys.
+    - Never add a task that writes to Durable Object storage or any server-side database.
+
+operations:
+  apply:
+    guidance:
+      - Run npm run verify (lint, typecheck, unit, architecture tests, openspec validate) before marking a group done.
+      - Keep commits small, one task group per commit, Conventional Commits.
+  archive:
+    guidance:
+      - Archive only after the PR is merged and CI is green on main.
