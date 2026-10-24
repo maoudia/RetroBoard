@@ -8,7 +8,7 @@ the GNU Affero General Public License as published by the Free Software Foundati
 If you run a modified version of RetroBoard as a network service, section 13 of the AGPL
 requires you to offer its complete corresponding source code to its users.
 
-Earlier releases: every commit up to and including the tag `last-mit` was published under the
+Earlier releases: every commit up to and including commit 214fe7520dbf (tag `last-mit`) was published under the
 MIT License and remains available under that license.
 
 Commercial licensing (use without AGPL obligations): contact MAIDAF EURL through
