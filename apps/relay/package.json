@@ -1,0 +1,11 @@
+{
+  "name": "@retroboard/relay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "types": "wrangler types --path worker-configuration.d.ts --config ../../wrangler.jsonc"
+  }
+}

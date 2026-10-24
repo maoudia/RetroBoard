@@ -37,11 +37,11 @@ Rules:
 ## Commands
 
 ```bash
-npm install
-npm run verify        # lint + typecheck + unit + openspec validate --all --strict
-npm run generate      # static site + CSP hashes
-npm run dev:worker    # http://localhost:8787 (site + relay)
-npm run e2e           # Playwright against wrangler dev (fr-FR locale by default)
+pnpm install
+pnpm verify        # lint + typecheck + unit + openspec validate --all --strict
+pnpm generate      # static site + CSP hashes
+pnpm dev:worker    # http://localhost:8787 (site + relay)
+pnpm e2e           # Playwright against wrangler dev (fr-FR locale by default)
 npx openspec list     # in-flight changes
 npx openspec show <change>
 ```
@@ -53,7 +53,7 @@ After `restructure-ddd-monorepo` lands, these become `pnpm verify`, `pnpm --filt
 - Tests for the work in the same group (unit for domain/application, e2e for user flows).
 - i18n keys in fr and en; pseudo-locale overflow check passes once it exists.
 - No CSP violation, no console error (`tests/e2e` has a guard test).
-- `npm run verify` green; e2e green for touched flows.
+- `pnpm verify` green; e2e green for touched flows.
 - Docs updated when behaviour or commands change.
 
 ## Things agents must not do

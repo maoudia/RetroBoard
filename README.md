@@ -65,24 +65,24 @@ Browser (Nuxt SPA, generated)                Cloudflare
 Requirements: Node 22+ (CI and Cloudflare builds use 24).
 
 ```bash
-npm install
-npm run generate     # nuxt generate + CSP hashes
-npm run dev:worker   # http://localhost:8787 (Worker + Durable Object + static site)
+pnpm install
+pnpm generate     # nuxt generate + CSP hashes
+pnpm dev:worker   # http://localhost:8787 (Worker + Durable Object + static site)
 ```
 
 Front-end only, with hot reload (needs the worker running for real-time boards):
 
 ```bash
-npm run dev          # http://localhost:3000
+pnpm dev          # http://localhost:3000
 ```
 
 ## Quality
 
 ```bash
-npm run lint
-npm run typecheck    # vue-tsc (app) + tsc (worker)
-npm test             # Vitest: reducer, snapshots, schemas, templates, themes, i18n, worker
-npm run e2e          # Playwright against `wrangler dev` (multi-user, drag and drop, CSP, i18n)
+pnpm lint
+pnpm typecheck    # vue-tsc (app) + tsc (worker)
+pnpm test             # Vitest: reducer, snapshots, schemas, templates, themes, i18n, worker
+pnpm e2e          # Playwright against `wrangler dev` (multi-user, drag and drop, CSP, i18n)
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of the above plus a Worker bundle dry run, and deploys `main` when Cloudflare credentials are configured.
@@ -91,9 +91,9 @@ CI (`.github/workflows/ci.yml`) runs all of the above plus a Worker bundle dry r
 
 **Option A - GitHub Actions.** Add the repository secrets `CLOUDFLARE_API_TOKEN` (permission "Workers Scripts: Edit") and `CLOUDFLARE_ACCOUNT_ID`. Every push to `main` that passes CI is deployed.
 
-**Option B - Workers Builds (Cloudflare dashboard).** Connect the repository, build command `npm run generate`, deploy command `npx wrangler deploy`.
+**Option B - Workers Builds (Cloudflare dashboard).** Connect the repository, build command `pnpm generate`, deploy command `npx wrangler deploy`.
 
-**Option C - by hand.** `npm run deploy`.
+**Option C - by hand.** `pnpm run deploy`.
 
 The Worker is named `retroboard` (`wrangler.jsonc`). Why a Worker and not Pages: Durable Objects with WebSockets and per-response security headers live in the same deployable unit as the static assets.
 
@@ -115,7 +115,7 @@ Board links are capability URLs: anyone who has the link can join. Share them ac
 1. Create `app/themes/<id>.ts` exporting a `ThemeDefinition` (copy `studio.ts`): tokens, 8 note colours, fonts, radius, motion preset (`enter`, `leave`, `ambient`), group `pro` or `fun`.
 2. Register it in `app/themes/index.ts`.
 3. Add its English texts in `app/i18n/themes.en.ts`.
-4. `npm test`: the contrast test fails if a palette is not readable (WCAG AA).
+4. `pnpm test`: the contrast test fails if a palette is not readable (WCAG AA).
 
 ## Add a retro format
 

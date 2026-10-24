@@ -14,11 +14,11 @@
     "preview": "wrangler dev",
     "deploy": "npm run generate && wrangler deploy",
     "lint": "eslint .",
-    "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p worker/tsconfig.json",
+    "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json && pnpm --filter @retroboard/relay typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "verify": "npm run lint && npm run typecheck && npm test && openspec validate --all --strict",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && openspec validate --all --strict",
     "spec": "openspec"
   },
   "dependencies": {
@@ -53,7 +53,9 @@
     "vitest": "^5.0.5",
     "vue-tsc": "^3.0.0",
     "wrangler": "^4.152.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "turbo": "^2.5.0"
   },
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@10.28.0"
 }

@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+  - tooling/*
+
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver
+  - workerd

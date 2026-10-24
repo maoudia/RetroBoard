@@ -1,4 +1,4 @@
-import type { BoardState, Dirty } from '../shared/domain/types'
+import type { BoardState, Dirty } from '../../../shared/domain/types'
 
 /** Port: where a board lives. The Durable Object does not care how. */
 export interface BoardRepository {

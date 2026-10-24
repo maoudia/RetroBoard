@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { createBoard } from '../../shared/domain/board'
 import { ROOM_ID_RE } from '../../shared/domain/schemas'
-import { buildCsp, withSecurityHeaders } from '../../worker/headers'
-import { roomHash } from '../../worker/logger'
-import { isAllowedOrigin } from '../../worker/origin'
-import { DurableStorageRepository } from '../../worker/repository'
+import { buildCsp, withSecurityHeaders } from '../../apps/relay/src/headers'
+import { roomHash } from '../../apps/relay/src/logger'
+import { isAllowedOrigin } from '../../apps/relay/src/origin'
+import { DurableStorageRepository } from '../../apps/relay/src/repository'
 import { ids } from './helpers'
 
 class FakeStorage {

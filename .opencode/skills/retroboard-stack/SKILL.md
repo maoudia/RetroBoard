@@ -69,8 +69,8 @@ Bounded contexts: facilitation, ideation, voting, action-tracking, talk-time, pr
 ## 5. Verify before saying done
 
 ```bash
-npm run verify          # or pnpm verify after the restructure
-npm run generate && npm run e2e   # for UI or relay changes
+pnpm verify          # or pnpm verify after the restructure
+pnpm generate && pnpm e2e   # for UI or relay changes
 ```
 
 Also check:

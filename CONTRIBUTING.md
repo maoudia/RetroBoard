@@ -1,15 +1,15 @@
 # Contributing
 
 ```bash
-npm install
-npm run generate && npm run dev:worker
+pnpm install
+pnpm generate && pnpm dev:worker
 ```
 
 Before opening a PR:
 
 ```bash
-npm run lint && npm run typecheck && npm test
-npm run generate && npm run e2e
+pnpm lint && pnpm typecheck && pnpm test
+pnpm generate && pnpm e2e
 ```
 
 Conventions:

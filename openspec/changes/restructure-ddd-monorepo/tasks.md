@@ -2,9 +2,9 @@
 
 ## 1. Workspace tooling
 
-- [ ] 1.1 Add pnpm workspace (`pnpm-workspace.yaml`), Turborepo (`turbo.json`) and root scripts (`dev`, `build`, `test`, `lint`, `typecheck`, `verify`); verify `pnpm install && pnpm turbo run test` passes with the current code
-- [ ] 1.2 Move `worker/` to `apps/relay` with its own package.json and tsconfig; verify `pnpm --filter relay typecheck` and the worker unit tests pass
-- [ ] 1.3 Update `wrangler.jsonc` paths and CI to pnpm; verify `wrangler deploy --dry-run` succeeds from the root
+- [x] 1.1 Add pnpm workspace (`pnpm-workspace.yaml`), Turborepo (`turbo.json`) and root scripts (`dev`, `build`, `test`, `lint`, `typecheck`, `verify`); verify `pnpm install && pnpm turbo run test` passes with the current code
+- [x] 1.2 Move `worker/` to `apps/relay` with its own package.json and tsconfig; verify `pnpm --filter relay typecheck` and the worker unit tests pass
+- [x] 1.3 Update `wrangler.jsonc` paths and CI to pnpm; verify `wrangler deploy --dry-run` succeeds from the root
 
 ## 2. Domain package
 
