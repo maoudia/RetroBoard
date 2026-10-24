@@ -76,7 +76,7 @@ export const HelloSchema = v.object({
 })
 export type Hello = v.InferOutput<typeof HelloSchema>
 
-export const ROOM_ID_RE = /^[A-Za-z0-9_-]{22,64}$/
+export { ROOM_ID_RE } from '@retroboard/domain'
 
 export type ClientMessage = Hello | Command
 
