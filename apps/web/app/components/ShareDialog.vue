@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { boardHash, inviteFromHash } from '~/utils/invite'
 const { t } = useT()
 const ui = useUiStore()
 const { push } = useToasts()
 const { $ports } = useNuxtApp()
 const open = computed({ get: () => ui.dialog === 'share', set: (v) => { if (!v && ui.dialog === 'share') ui.close() } })
-const url = computed(() => (import.meta.client ? window.location.href : ''))
+const route = useRoute()
+/** Participants' link: never the facilitator secret, whoever opens this dialog. */
+const url = computed(() => {
+  if (!import.meta.client) return ''
+  const invite = inviteFromHash(route.hash)
+  return invite ? `${window.location.origin}/board${boardHash(invite, 'participant')}` : window.location.href
+})
 const canShare = computed(() => import.meta.client && typeof navigator.share === 'function')
 
 async function copy() {

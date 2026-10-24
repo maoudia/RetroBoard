@@ -112,3 +112,16 @@ describe('X25519', () => {
     expect(await openFrom(bob, zeroEph, aad)).toBeNull()
   })
 })
+
+describe('room key schedule', () => {
+  it('binds the content key to the room and the passcode', async () => {
+    const { deriveContentKey } = await import('../src')
+    const rk = randomKey()
+    const a = await deriveContentKey(rk, 'Ab3dEfGhIjKlMnOpQrStUv')
+    expect(await deriveContentKey(rk, 'Ab3dEfGhIjKlMnOpQrStUv')).toEqual(a)
+    expect(await deriveContentKey(rk, 'Zz3dEfGhIjKlMnOpQrStUv')).not.toEqual(a)
+    const p = await deriveContentKey(rk, 'Ab3dEfGhIjKlMnOpQrStUv', 'cafe', 10)
+    expect(p).not.toEqual(a)
+    expect(await deriveContentKey(rk, 'Ab3dEfGhIjKlMnOpQrStUv', 'café'.normalize('NFD'), 10)).toEqual(await deriveContentKey(rk, 'Ab3dEfGhIjKlMnOpQrStUv', 'café', 10))
+  })
+})

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { isLocalRoom } from '~/transport'
+import { boardHash, inviteFromHash, inviteRoomId } from '~/utils/invite'
 import { errorLabel } from '~/utils/labels'
 const { t, locale } = useT()
 
@@ -14,9 +14,12 @@ const theme = useThemeStore()
 const ui = useUiStore()
 const { push } = useToasts()
 
-const roomId = computed(() => route.hash.replace(/^#/, ''))
-const validRoom = computed(() => ROOM_ID_RE.test(roomId.value) || (isLocalRoom(roomId.value) && roomId.value.length >= 12))
-const needsSetup = computed(() => board.ready && !board.settings?.initialized)
+const invite = computed(() => inviteFromHash(route.hash))
+const roomId = computed(() => (invite.value ? inviteRoomId(invite.value) : ''))
+const validRoom = computed(() => invite.value !== null)
+/** Legacy and solo boards have no roles; encrypted boards are steered by the facilitator key. */
+const canSteer = computed(() => invite.value?.kind === 'legacy' || !!invite.value?.ring.facilitatorSecret)
+const needsSetup = computed(() => board.ready && !board.settings?.initialized && canSteer.value)
 const setupOpen = ref(false)
 
 useHead({ title: computed(() => `${board.settings?.title ?? t('board.defaultTitle')} - RetroBoard`) })
@@ -27,12 +30,13 @@ function enter() {
   identity.load()
   drafts.load(roomId.value)
   if (!identity.named) ui.open('name')
-  board.connect(roomId.value, identity.identity, $ports.channelFactory)
+  const inv = invite.value!
+  board.connect(roomId.value, identity.identity, inv.kind === 'encrypted' ? $ports.encryptedChannelFactory(inv.ring) : $ports.channelFactory)
 }
 
 onMounted(enter)
 useBoardAgentTools()
-watch(roomId, enter)
+watch(() => route.hash, enter)
 onBeforeUnmount(() => board.disconnect())
 
 // A freshly created board gets its theme and template from the creator's setup.
@@ -60,7 +64,7 @@ watch(effectiveThemeId, (id) => { if (id && id !== theme.themeId) void theme.use
 
 // Remember this board on this device only (title and theme, never content).
 watch(() => [board.settings?.title, board.settings?.initialized] as const, ([title, init]) => {
-  if (init && title && roomId.value && !isLocalRoom(roomId.value)) recents.touch(roomId.value, title, board.settings!.themeId)
+  if (init && title && roomId.value && !isLocalRoom(roomId.value)) recents.touch(roomId.value, title, board.settings!.themeId, boardHash(invite.value!, 'facilitator'))
 })
 
 // Drafts of a deleted column have nowhere to live.

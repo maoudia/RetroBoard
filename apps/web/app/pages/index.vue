@@ -71,7 +71,7 @@ onMounted(() => {
           <button class="ghost" type="button" data-testid="solo" @click="solo">{{ t('landing.trySolo') }}</button>
         </div>
         <ul v-if="recents.items.length" class="resume" data-reveal :style="{ '--d': '300ms' }">
-          <li v-for="r in recents.items.slice(0, 3)" :key="r.id"><NuxtLink :to="{ path: '/board', hash: `#${r.id}` }"><Icon name="lucide:rotate-ccw" /> {{ t('landing.resume', { title: r.title }) }}</NuxtLink></li>
+          <li v-for="r in recents.items.slice(0, 3)" :key="r.id"><NuxtLink :to="{ path: '/board', hash: r.hash ?? `#${r.id}` }"><Icon name="lucide:rotate-ccw" /> {{ t('landing.resume', { title: r.title }) }}</NuxtLink></li>
         </ul>
 
         <div class="stage" data-reveal :style="{ '--d': '340ms' }" @pointermove="onMove" @pointerleave="onLeave">

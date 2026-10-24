@@ -2,6 +2,7 @@
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { suggestThemeForDate } from '@retroboard/domain'
 import { LOCAL_ROOM_PREFIX } from '~/transport'
+import { boardHash, newKeyRing } from '~/utils/invite'
 import { randomId } from '~/utils/storage'
 const { t, locale } = useT()
 
@@ -14,9 +15,9 @@ useHead({ title: computed(() => t('new.pageTitle')) })
 onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false) })
 
 function create(setup: SetupResult) {
-  const id = randomId(16)
-  try { sessionStorage.setItem(`retroboard:init:${id}`, JSON.stringify(setup)) } catch { /* the setup dialog will ask again */ }
-  void router.push({ path: '/board', hash: `#${id}` })
+  const ring = newKeyRing()
+  try { sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup)) } catch { /* the setup dialog will ask again */ }
+  void router.push({ path: '/board', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
 }
 function solo() {
   const id = LOCAL_ROOM_PREFIX + randomId(9)

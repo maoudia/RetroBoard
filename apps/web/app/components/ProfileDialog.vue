@@ -126,7 +126,7 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
       <p v-if="!recents.items.length" class="muted">{{ t('profile.recents.none') }}</p>
       <ul v-else class="recents" data-testid="recents">
         <li v-for="r in recents.items" :key="r.id">
-          <NuxtLink :to="{ path: '/board', hash: `#${r.id}` }" @click="ui.close()"><strong>{{ r.title }}</strong><small class="muted">{{ when(r.at) }}</small></NuxtLink>
+          <NuxtLink :to="{ path: '/board', hash: r.hash ?? `#${r.id}` }" @click="ui.close()"><strong>{{ r.title }}</strong><small class="muted">{{ when(r.at) }}</small></NuxtLink>
           <button class="mini-btn" type="button" :aria-label="t('profile.recents.remove')" @click="recents.remove(r.id)"><Icon name="lucide:x" /></button>
         </li>
       </ul>
