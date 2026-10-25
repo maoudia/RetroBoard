@@ -42,7 +42,11 @@ function closeLocal() {
   // offline can still learn about the closing from the peers that are here.
 }
 watch(() => board.lastNotice, (n) => {
-  if (n) push(t(`notice.${n.kind}` as never, { name: n.by ?? t('notice.someone'), column: n.column ?? '' } as never), 'info', 5000)
+  if (!n) return
+  // "Bob started Group" is only news on open boards, where anyone may move the phase.
+  if (n.kind === 'phase.next' && board.settings?.openFacilitation === false) return
+  const phase = n.phase ? t(`agenda.phase.${n.phase}` as never) : ''
+  push(t(`notice.${n.kind}` as never, { name: n.by ?? t('notice.someone'), column: n.column ?? '', phase } as never), 'info', 5000)
 })
 watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal() }, { immediate: true })
 

@@ -1,5 +1,7 @@
 import { sampleAgenda, sampleCountdown, type TimerSample, timerEvents } from '@retroboard/application'
 import type { AgendaState, PhaseKind } from '@retroboard/domain'
+import { chime } from '~/utils/sound'
+import { systemNotify } from '~/utils/system-notify'
 
 export interface PhaseEnded {
   /** Unique per occurrence, so the popup re-opens for a later run. */
@@ -16,8 +18,23 @@ export interface PhaseEnded {
  */
 export function usePhaseEnd() {
   const board = useBoardStore()
+  const settings = useSettingsStore()
+  const { push } = useToasts()
+  const { t } = useT()
   const ended = ref<PhaseEnded | null>(null)
-  const warning = ref(0)
+  const phaseName = (kind: PhaseKind | null) => (kind ? t(`agenda.phase.${kind}` as never) : '')
+
+  function warn(kind: PhaseKind | null) {
+    if (!settings.s.phaseWarning) return
+    push(kind ? t('phaseEnd.warningFor', { phase: phaseName(kind) }) : t('phaseEnd.warning'), 'warn', 5000)
+  }
+  function announce(e: PhaseEnded) {
+    ended.value = e
+    if (settings.s.sound) chime()
+    if (!settings.s.systemNotify) return
+    const title = e.source === 'agenda' ? t('phaseEnd.title', { phase: phaseName(e.phase) }) : t('phaseEnd.timer')
+    systemNotify(title, e.next ? t('phaseEnd.next', { phase: phaseName(e.next) }) : '')
+  }
   let seq = 0
   let agendaPrev: TimerSample | null = null
   let countPrev: TimerSample | null = null
@@ -30,16 +47,16 @@ export function usePhaseEnd() {
     const agenda = (snap.agenda ?? null) as AgendaState | null
     const a = sampleAgenda(agenda, now)
     for (const e of timerEvents(agendaPrev, a)) {
-      if (e === 'warning') warning.value++
+      if (e === 'warning') warn(agenda?.phases[agenda.current]?.kind ?? null)
       else if (agenda) {
-        ended.value = { id: ++seq, source: 'agenda', phase: agenda.phases[agenda.current]?.kind ?? null, next: agenda.phases[agenda.current + 1]?.kind ?? null }
+        announce({ id: ++seq, source: 'agenda', phase: agenda.phases[agenda.current]?.kind ?? null, next: agenda.phases[agenda.current + 1]?.kind ?? null })
       }
     }
     agendaPrev = a
     const c = sampleCountdown(snap.timer, now)
     for (const e of timerEvents(countPrev, c)) {
-      if (e === 'warning') warning.value++
-      else ended.value = { id: ++seq, source: 'countdown', phase: null, next: null }
+      if (e === 'warning') warn(null)
+      else announce({ id: ++seq, source: 'countdown', phase: null, next: null })
     }
     countPrev = c
     // Time was added or the phase moved on: the popup is obsolete.
@@ -48,5 +65,5 @@ export function usePhaseEnd() {
 
   onMounted(() => { tick = setInterval(step, 500) })
   onBeforeUnmount(() => clearInterval(tick))
-  return { ended, warning, dismiss: () => { ended.value = null } }
+  return { ended, dismiss: () => { ended.value = null } }
 }

@@ -304,6 +304,11 @@ export class EncryptedRelayTransport implements BoardTransport {
     else if (c.t === 'vote.reset') this.handlers.onNotice({ kind: 'reset.votes', by })
     else if (c.t === 'timer.reset' && c.agendaClock) this.handlers.onNotice({ kind: 'reset.clock', by })
     else if (c.t === 'agenda.prev') this.handlers.onNotice({ kind: 'phase.prev', by })
+    else if (c.t === 'agenda.next') {
+      const agenda = board.agenda
+      const phase = agenda?.phases[agenda.current]?.kind
+      if (phase) this.handlers.onNotice({ kind: 'phase.next', by, phase })
+    }
     else if (c.t === 'column.reset') this.handlers.onNotice({ kind: 'reset.column', by, column: c.id ? (board.columns.find((x) => x.id === c.id)?.title) : undefined })
   }
 

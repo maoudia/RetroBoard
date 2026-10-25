@@ -3,6 +3,7 @@ import { LIMITS } from '@retroboard/domain'
 import { THEMES } from '@retroboard/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
+import { askNotifyPermission, canNotify } from '~/utils/system-notify'
 const { t, locale } = useT()
 
 const ui = useUiStore()
@@ -23,6 +24,15 @@ function saveIdentity() {
   board.updateIdentity(identity.identity)
 }
 const set = (patch: Parameters<typeof settings.patch>[0]) => settings.patch(patch)
+/** System notifications: the browser permission is asked here, on opt-in, and nowhere else. */
+const notifyDenied = ref(typeof Notification !== 'undefined' && Notification.permission === 'denied')
+async function toggleNotify(box: HTMLInputElement) {
+  if (!box.checked) { set({ systemNotify: false }); return }
+  const ok = await askNotifyPermission()
+  notifyDenied.value = !ok
+  box.checked = ok
+  set({ systemNotify: ok })
+}
 const { $ports } = useNuxtApp()
 async function wipe() {
   try { Object.keys(localStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => localStorage.removeItem(k)) } catch { /* ignore */ }
@@ -97,6 +107,14 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
       <label class="line">
         <span><strong>{{ t('profile.shortcuts') }}</strong><small class="muted">{{ t('profile.shortcuts.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.shortcuts" data-testid="set-shortcuts" @change="set({ shortcuts: ($event.target as HTMLInputElement).checked })" />
+      </label>
+      <label class="line">
+        <span><strong>{{ t('profile.phaseWarning') }}</strong></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.phaseWarning" data-testid="set-phase-warning" @change="set({ phaseWarning: ($event.target as HTMLInputElement).checked })" />
+      </label>
+      <label v-if="canNotify()" class="line">
+        <span><strong>{{ t('profile.systemNotify') }}</strong><small class="muted">{{ notifyDenied ? t('profile.systemNotify.denied') : t('profile.systemNotify.hint') }}</small></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.systemNotify" data-testid="set-system-notify" @change="toggleNotify(($event.target as HTMLInputElement))" />
       </label>
       <label class="line">
         <span><strong>{{ t('profile.sound') }}</strong></span>

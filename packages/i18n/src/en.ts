@@ -802,5 +802,12 @@ export const en: Record<keyof typeof fr, string> = {
   'phaseEnd.nextPhase': 'Next phase',
   'phaseEnd.plus2': '+2 min',
   'phaseEnd.ok': 'OK',
-  'phaseEnd.aria': 'Time is up',
+  'phaseEnd.aria': 'Time is up',  'phaseEnd.warning': 'One minute left',
+  'phaseEnd.warningFor': 'One minute left for {phase}',
+  'profile.phaseWarning': 'Warn me one minute before the end',
+  'profile.systemNotify': 'System notification when time is up',
+  'profile.systemNotify.hint': 'Only while the tab is in the background. No push service: everything stays in your browser.',
+  'profile.systemNotify.denied': 'Notifications blocked by the browser',
+  'notice.phase.next': '{name} started {phase}',
+
 }

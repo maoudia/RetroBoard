@@ -1,15 +1,15 @@
 import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, type Page, test } from '@playwright/test'
-import { createBoard, enterName } from './helpers'
+import { createBoard, enterName, setOneFacilitator } from './helpers'
 
 /** One-minute phases (the protocol minimum); the tests move the page clock instead of waiting. */
-async function startShortAgenda(page: Page) {
-  await page.evaluate(() => {
+async function startShortAgenda(page: Page, firstMinutes = 1) {
+  await page.evaluate((first) => {
     const app = (document.getElementById('__nuxt') as unknown as { __vue_app__: { config: { globalProperties: { $pinia: { _s: Map<string, { commands: { setAgenda: (p: unknown, o: unknown) => void; startAgenda: () => void } }> } } } } }).__vue_app__
     const board = app.config.globalProperties.$pinia._s.get('board')!
-    board.commands.setAgenda([{ kind: 'write', minutes: 1 }, { kind: 'group', minutes: 5 }], { rules: false, autoPublish: false })
+    board.commands.setAgenda([{ kind: 'write', minutes: first }, { kind: 'group', minutes: 5 }, { kind: 'vote', minutes: 5 }], { rules: false, autoPublish: false })
     board.commands.startAgenda()
-  })
+  }, firstMinutes)
 }
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -40,6 +40,7 @@ test.describe('phase end popup', () => {
     const composer = bob.page.locator('section[data-testid^="column-"]').nth(0).locator('textarea')
     await composer.focus()
     await composer.pressSequentially('still typing')
+    await page.waitForTimeout(1200) // both watchers take a first sample before the jump
     await page.clock.fastForward(61_000)
     await bob.page.clock.fastForward(61_000)
 
@@ -89,5 +90,88 @@ test.describe('phase end popup', () => {
     await late.page.waitForTimeout(1800)
     await expect(late.page.getByTestId('phase-end')).toHaveCount(0)
     await late.ctx.close()
+  })
+
+  test('"1 minute left" toast, silenced by the personal setting', async ({ page }) => {
+    await page.clock.install()
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await startShortAgenda(page, 3)
+    await expect(page.getByTestId('agenda-phase')).toHaveText('Écriture')
+    await page.waitForTimeout(1200)
+    await page.clock.fastForward(2 * 60_000 + 5_000)
+    await expect(page.locator('.toasts')).toContainText('Plus qu\'une minute pour Écriture')
+    await expect(page.getByTestId('phase-end')).toHaveCount(0)
+
+    await page.getByTestId('btn-profile').click()
+    await page.getByTestId('set-phase-warning').uncheck()
+    await page.keyboard.press('Escape')
+    await page.getByTestId('agenda-ring').click()
+    await page.getByTestId('agenda-next').click()
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(1200)
+    await page.clock.fastForward(4 * 60_000 + 5_000)
+    await page.waitForTimeout(800)
+    await expect(page.locator('.toasts')).not.toContainText('Plus qu\'une minute')
+  })
+
+  test('a started phase is announced on open boards only', async ({ page, browser }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    const bob = await joinWithClock(browser, await shareLink(page), 'Bob')
+    await startShortAgenda(page, 5)
+    await expect(bob.page.getByTestId('agenda-phase')).toHaveText('Écriture')
+    await page.getByTestId('agenda-ring').click()
+    await page.getByTestId('agenda-next').click()
+    await page.keyboard.press('Escape')
+    await expect(bob.page.locator('.toasts')).toContainText('Alice a démarré Regroupement')
+    await bob.ctx.close()
+
+    await setOneFacilitator(page)
+    const carl = await joinWithClock(browser, await shareLink(page), 'Carl')
+    await page.getByTestId('agenda-ring').click()
+    await page.getByTestId('agenda-next').click()
+    await page.keyboard.press('Escape')
+    await expect(carl.page.getByTestId('agenda-phase')).toHaveText('Vote')
+    await carl.page.waitForTimeout(800)
+    await expect(carl.page.locator('.toasts')).not.toContainText('a démarré')
+    await carl.ctx.close()
+  })
+
+  test('system notification: asked on opt-in, shown only when the tab is hidden', async ({ page }) => {
+    await page.addInitScript(() => {
+      const calls: string[][] = []
+      class FakeNotification {
+        static permission: NotificationPermission = 'default'
+        static requestPermission = async () => { FakeNotification.permission = 'granted'; return 'granted' as NotificationPermission }
+        onclick: (() => void) | null = null
+        constructor(title: string, opts?: { body?: string }) { calls.push([title, opts?.body ?? '']) }
+        close() {}
+      }
+      ;(window as unknown as { Notification: unknown; __notes: string[][] }).Notification = FakeNotification
+      ;(window as unknown as { __notes: string[][] }).__notes = calls
+    })
+    await page.clock.install()
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await page.getByTestId('btn-profile').click()
+    await expect(page.getByTestId('set-system-notify')).not.toBeChecked()
+    await page.getByTestId('set-system-notify').check()
+    await expect(page.getByTestId('set-system-notify')).toBeChecked()
+    await page.keyboard.press('Escape')
+
+    await startShortAgenda(page, 1)
+    await page.waitForTimeout(1200)
+    await page.clock.fastForward(61_000)
+    await expect(page.getByTestId('phase-end')).toBeVisible()
+    expect(await page.evaluate(() => (window as unknown as { __notes: string[][] }).__notes)).toEqual([])
+
+    await page.getByTestId('phase-end-ok').click()
+    await page.evaluate(() => Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }))
+    await page.getByTestId('phase-end-more').count()
+    await page.getByTestId('agenda-ring').click()
+    await page.getByTestId('agenda-next').click()
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(1200)
+    await page.clock.fastForward(6 * 60_000)
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __notes: string[][] }).__notes.length)).toBe(1)
+    expect(await page.evaluate(() => (window as unknown as { __notes: string[][] }).__notes[0]![0])).toContain('Regroupement')
   })
 })

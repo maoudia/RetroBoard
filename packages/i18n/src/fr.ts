@@ -802,4 +802,11 @@ export const fr = {
   'phaseEnd.plus2': '+2 min',
   'phaseEnd.ok': 'OK',
   'phaseEnd.aria': 'Fin du temps',
+  'phaseEnd.warning': 'Plus qu\'une minute',
+  'phaseEnd.warningFor': 'Plus qu\'une minute pour {phase}',
+  'profile.phaseWarning': 'Prévenir une minute avant la fin',
+  'profile.systemNotify': 'Notification système à la fin du temps',
+  'profile.systemNotify.hint': 'Seulement quand l\'onglet est en arrière-plan. Aucun service de push : tout reste dans votre navigateur.',
+  'profile.systemNotify.denied': 'Notifications refusées par le navigateur',
+  'notice.phase.next': '{name} a démarré {phase}',
 } as const

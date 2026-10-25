@@ -32,6 +32,10 @@ export interface LocalSettings {
   p2p: boolean
   /** Single-key shortcuts on the board (keyboard users). */
   shortcuts: boolean
+  /** Toast one minute before a phase or the countdown ends. */
+  phaseWarning: boolean
+  /** System notification when time is up and the tab is hidden (asked on opt-in only). */
+  systemNotify: boolean
 }
 
 export type { ThemeVariantPref } from '~/utils/settings-migration'
@@ -42,6 +46,7 @@ const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true,
+  phaseWarning: true, systemNotify: false,
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

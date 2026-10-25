@@ -7,4 +7,4 @@
 ## 2. Popups and notifications
 
 - [x] 2.1 Popup queue service shared with talk-time popups and the name nudge; `PhaseEndPopup` alertdialog with megaphone, next phase, "Next phase" / "+2 min" / "OK", no focus steal while typing (fr/en); verify e2e with a short timer and axe
-- [ ] 2.2 "1 minute left" toast, "Bob started Group" toast on open boards, personal settings (warning, system notification, sound off by default) with the Notification API asked on opt-in only; verify e2e (permission granted in Playwright) and unit tests
+- [x] 2.2 "1 minute left" toast, "Bob started Group" toast on open boards, personal settings (warning, system notification, sound off by default) with the Notification API asked on opt-in only; verify e2e (permission granted in Playwright) and unit tests

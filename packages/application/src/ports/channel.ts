@@ -10,11 +10,13 @@ export interface Identity {
 
 /** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"). */
 export interface BoardNotice {
-  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev'
+  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next'
   /** Name the author chose to show, or null. */
   by: string | null
   /** Column title, for reset.column. */
   column?: string
+  /** Phase kind entered, for phase.next. */
+  phase?: string
 }
 
 export interface ChannelHandlers {
