@@ -27,12 +27,14 @@ export interface CommandBody { readonly t: 'cmd'; readonly cmd: Command; readonl
  * last claim in the total order wins), hide/unhide a participant.
  */
 export interface RoleBody {
-  readonly t: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide'
+  readonly t: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide' | 'participant.remove'
   readonly key: string
 }
+/** Facilitator-set display name of a participant, on this board only (an empty name clears it). */
+export interface RenameBody { readonly t: 'participant.rename'; readonly key: string; readonly name: string }
 /** @deprecated name kept for readers of earlier code: same as RoleBody. */
 export type DelegateBody = RoleBody
-export type EventBody = GenesisBody | CommandBody | RoleBody
+export type EventBody = GenesisBody | CommandBody | RoleBody | RenameBody
 
 export interface VerifiedEvent {
   /** Globally unique, sortable (ULID). Seeds deterministic ids created by this event. */
@@ -54,6 +56,10 @@ export interface Ledger {
   readonly facilitators: readonly string[]
   /** Participants whose events are ignored from now on (their earlier content stays). */
   readonly hidden: readonly string[]
+  /** Participants removed by the facilitator: hidden too, and their client leaves the board. */
+  readonly removed: readonly string[]
+  /** Names set by the facilitator, by participant key. */
+  readonly names: Readonly<Record<string, string>>
   readonly board: BoardState
   readonly applied: number
   /** Clocks of each author's recent accepted events (rate limit window). */
@@ -72,7 +78,7 @@ export type FoldResult =
  */
 export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType>([
   'settings.update', 'board.init', 'template.apply', 'board.reset', 'board.destroy', 'column.reset', 'vote.reset', 'timer.start', 'timer.pause', 'timer.reset',
-  'vote.close', 'vote.reopen', 'action.import',
+  'vote.close', 'vote.reopen', 'action.import', 'drafts.reveal',
   'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.prev', 'agenda.extend', 'agenda.end',
   'talk.assign', 'talk.end',
 ])
@@ -81,7 +87,7 @@ export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType
 export const isPrivileged = (body: EventBody): boolean => (body.t === 'cmd' ? PRIVILEGED_COMMANDS.has(body.cmd.t) : true)
 
 /** Role changes: only the current facilitator or the genesis key, never a co-facilitator. */
-const isRoleChange = (body: EventBody): body is RoleBody => body.t !== 'cmd' && body.t !== 'genesis'
+const isRoleChange = (body: EventBody): body is RoleBody | RenameBody => body.t !== 'cmd' && body.t !== 'genesis'
 
 export type Role = 'facilitator' | 'co-facilitator' | 'participant'
 
@@ -106,7 +112,7 @@ const idsFrom = (eventId: string) => {
 }
 
 export function emptyLedger(roomId: string): Ledger {
-  return { roomId, facilitatorKey: null, lead: null, facilitators: [], hidden: [], board: createBoard({ newId: idsFrom(`genesis-${roomId}`) }), applied: 0, recent: {} }
+  return { roomId, facilitatorKey: null, lead: null, facilitators: [], hidden: [], removed: [], names: {}, board: createBoard({ newId: idsFrom(`genesis-${roomId}`) }), applied: 0, recent: {} }
 }
 
 const ignore = (ledger: Ledger, reason: IgnoreReason): FoldResult => ({ ok: false, ledger, reason })
@@ -172,7 +178,22 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
       if (ledger.facilitators.includes(body.key)) return ignore(ledger, 'forbidden')
       return applied(ledger, { hidden: ledger.hidden.includes(body.key) ? ledger.hidden : [...ledger.hidden, body.key] })
     case 'participant.unhide':
+      // A removed participant stays out: only a fresh link brings them back.
+      if (ledger.removed.includes(body.key)) return ignore(ledger, 'forbidden')
       return applied(ledger, { hidden: without(ledger.hidden, body.key) })
+    case 'participant.remove':
+      if (ledger.facilitators.includes(body.key)) return ignore(ledger, 'forbidden')
+      return applied(ledger, {
+        hidden: ledger.hidden.includes(body.key) ? ledger.hidden : [...ledger.hidden, body.key],
+        removed: ledger.removed.includes(body.key) ? ledger.removed : [...ledger.removed, body.key],
+      })
+    case 'participant.rename': {
+      // Facilitators keep their own names: nobody renames the person who can steer the board.
+      if (ledger.facilitators.includes(body.key)) return ignore(ledger, 'forbidden')
+      const name = body.name.trim().slice(0, LIMITS.displayName)
+      const { [body.key]: _old, ...rest } = ledger.names
+      return applied(ledger, { names: name ? { ...rest, [body.key]: name } : rest })
+    }
     case 'cmd': {
       const out = reduce(ledger.board, body.cmd, { cid: author, name: body.name, showName: body.showName }, { now: event.at, newId: idsFrom(event.id) })
       return out.ok ? applied(ledger, { board: out.state }) : ignore(ledger, out.error)

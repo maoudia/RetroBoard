@@ -64,10 +64,19 @@ describe('board file and v2 payload details', () => {
     expect(parsePresence({ ...base, conn: 'no' })).toBeNull()
   })
 
-  it.each(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide'])('accepts the %s role event', async (t) => {
+  it.each(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide', 'participant.remove'])('accepts the %s role event', async (t) => {
     const { parseSignedEvent } = await import('../src')
     expect(parseSignedEvent({ id: env.id, at: 1, author: key, sig: 'A'.repeat(86), body: { t, key } })).not.toBeNull()
     expect(parseSignedEvent({ id: env.id, at: 1, author: key, sig: 'A'.repeat(86), body: { t, key: 'bad' } })).toBeNull()
+  })
+
+  it('accepts the rename event with a bounded name and rejects an oversized one', async () => {
+    const { parseSignedEvent } = await import('../src')
+    const signed = (body: unknown) => parseSignedEvent({ id: env.id, at: 1, author: key, sig: 'A'.repeat(86), body })
+    expect(signed({ t: 'participant.rename', key, name: 'Sam' })).not.toBeNull()
+    expect(signed({ t: 'participant.rename', key, name: '' })).not.toBeNull()
+    expect(signed({ t: 'participant.rename', key, name: 'x'.repeat(500) })).toBeNull()
+    expect(signed({ t: 'participant.rename', key })).toBeNull()
   })
 
   it('rejects unknown role events, a wrong signature length and bad relay frames', async () => {

@@ -116,6 +116,8 @@ export interface BoardState {
   agenda: AgendaState | null
   /** Speaking turns and time spoken per participant. */
   talk: TalkState
+  /** "Reveal all": every client publishes its own drafts when the clock passes `endsAt`. */
+  reveal?: { endsAt: number } | null
 }
 
 export interface Actor {

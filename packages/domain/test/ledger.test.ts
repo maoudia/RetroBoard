@@ -160,6 +160,36 @@ describe('facilitation roles', () => {
     expect(Object.values(l.board.notes).map((n) => n.text)).toEqual(['before', 'back'])
   })
 
+  it('removing a participant hides them for good: their events and an unhide are ignored', () => {
+    let l = started()
+    const col = l.board.columns[0]!.id
+    l = foldAll(l, [cmd(ALICE, { t: 'note.add', columnId: col, text: 'before' }), ev(FAC, { t: 'participant.remove', key: ALICE })])
+    expect(l.removed).toEqual([ALICE])
+    expect(l.hidden).toContain(ALICE)
+    expect(foldEvent(l, cmd(ALICE, { t: 'note.add', columnId: col, text: 'after' }))).toMatchObject({ ok: false, reason: 'hidden' })
+    expect(foldEvent(l, ev(FAC, { t: 'participant.unhide', key: ALICE }))).toMatchObject({ ok: false, reason: 'forbidden' })
+    expect(Object.values(l.board.notes).map((n) => n.text)).toEqual(['before'])
+  })
+
+  it('only the facilitator removes, and never a facilitator', () => {
+    let l = started()
+    l = foldAll(l, [ev(FAC, { t: 'role.delegate', key: CO })])
+    expect(foldEvent(l, ev(ALICE, { t: 'participant.remove', key: BOB }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, ev(CO, { t: 'participant.remove', key: BOB }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, ev(FAC, { t: 'participant.remove', key: CO }))).toMatchObject({ ok: false, reason: 'forbidden' })
+    expect(foldEvent(l, ev(FAC, { t: 'participant.remove', key: FAC }))).toMatchObject({ ok: false, reason: 'forbidden' })
+  })
+
+  it('the facilitator renames a participant; an empty name clears it; facilitators and others cannot', () => {
+    let l = started()
+    l = foldAll(l, [ev(FAC, { t: 'role.delegate', key: CO }), ev(FAC, { t: 'participant.rename', key: ALICE, name: '  Sam  ' })])
+    expect(l.names).toEqual({ [ALICE]: 'Sam' })
+    expect(foldEvent(l, ev(ALICE, { t: 'participant.rename', key: BOB, name: 'x' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, ev(FAC, { t: 'participant.rename', key: CO, name: 'x' }))).toMatchObject({ ok: false, reason: 'forbidden' })
+    l = foldAll(l, [ev(FAC, { t: 'participant.rename', key: ALICE, name: '   ' })])
+    expect(l.names).toEqual({})
+  })
+
   it('boards without a genesis (legacy) have no roles', () => {
     expect(roleOf(emptyLedger(roomId), ALICE)).toBe('facilitator')
   })
@@ -305,5 +335,24 @@ describe('board.destroy', () => {
 describe('reset and previous-phase commands are privileged', () => {
   it.each([{ t: 'column.reset', id: 'x' }, { t: 'vote.reset' }, { t: 'agenda.prev' }, { t: 'board.destroy' }] as Command[])('%j needs the facilitator', (c) => {
     expect(isPrivileged({ t: 'cmd', cmd: c, name: null, showName: false })).toBe(true)
+  })
+})
+
+describe('drafts.reveal', () => {
+  it('is privileged: a countdown of 5 seconds by default, clamped to 3..30', () => {
+    const l = started()
+    expect(foldEvent(l, cmd(ALICE, { t: 'drafts.reveal' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    const e = cmd(FAC, { t: 'drafts.reveal' })
+    const r = foldEvent(l, e)
+    expect(r.ok && r.ledger.board.reveal).toEqual({ endsAt: e.at + 5_000 })
+    const fast = cmd(FAC, { t: 'drafts.reveal', seconds: 1 })
+    const slow = cmd(FAC, { t: 'drafts.reveal', seconds: 999 })
+    expect(foldEvent(l, fast).ledger.board.reveal).toEqual({ endsAt: fast.at + 3_000 })
+    expect(foldEvent(l, slow).ledger.board.reveal).toEqual({ endsAt: slow.at + 30_000 })
+  })
+
+  it('a participant may start it on an open board', () => {
+    const open = foldAll(started(), [cmd(FAC, { t: 'settings.update', openFacilitation: true })])
+    expect(foldEvent(open, cmd(ALICE, { t: 'drafts.reveal' })).ok).toBe(true)
   })
 })

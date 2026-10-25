@@ -79,6 +79,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       return send({ t: 'talk.self' })
     },
     giveBackFloor: () => send({ t: 'talk.done' }),
+    revealDrafts: (seconds?: number) => send({ t: 'drafts.reveal', ...(seconds ? { seconds } : {}) }),
     closeVoting: () => send({ t: 'vote.close' }),
     reopenVoting: () => send({ t: 'vote.reopen' }),
 

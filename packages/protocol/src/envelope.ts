@@ -72,7 +72,8 @@ const Name = v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.displayN
 const EventBodySchema = v.variant('t', [
   v.strictObject({ t: v.literal('genesis'), roomId: v.pipe(v.string(), v.regex(ROOM_ID_RE)), facilitatorKey: Key }),
   v.strictObject({ t: v.literal('cmd'), cmd: CommandSchema, name: Name, showName: v.boolean() }),
-  v.strictObject({ t: v.picklist(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide']), key: Key }),
+  v.strictObject({ t: v.picklist(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide', 'participant.remove']), key: Key }),
+  v.strictObject({ t: v.literal('participant.rename'), key: Key, name: v.pipe(v.string(), v.maxLength(LIMITS.displayName)) }),
 ])
 
 /** Plaintext inside a `pub` envelope. */

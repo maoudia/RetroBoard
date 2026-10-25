@@ -2,8 +2,8 @@
 
 ## 1. Domain and crypto
 
-- [ ] 1.1 `participant.remove` and `participant.rename` role events with fold rules (facilitator only, not on facilitators); verify unit tests
-- [ ] 1.2 `drafts.reveal` command with countdown time; verify unit tests
+- [x] 1.1 `participant.remove` and `participant.rename` role events with fold rules (facilitator only, not on facilitators); verify unit tests
+- [x] 1.2 `drafts.reveal` command with countdown time; verify unit tests
 
 ## 2. Fresh link
 

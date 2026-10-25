@@ -29,6 +29,7 @@ export type Command =
   | { t: 'vote.toggle'; id: string }
   | { t: 'vote.add'; kind: VotableKind; id: string }
   | { t: 'vote.remove'; kind: VotableKind; id: string }
+  | { t: 'drafts.reveal'; seconds?: number }
   | { t: 'vote.close' }
   | { t: 'vote.reopen' }
   | { t: 'column.add'; title: string; subtitle?: string; icon?: ColumnIcon; color?: number }

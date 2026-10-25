@@ -5,7 +5,7 @@ import { done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate } from './board'
 import { emptyTalk } from './talk'
 
-type FacilitationCommand = 'board.init' | 'template.apply' | 'settings.update'
+type FacilitationCommand = 'drafts.reveal' | 'board.init' | 'template.apply' | 'settings.update'
   | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset' | 'board.destroy' | 'column.reset' | 'vote.reset'
   | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.prev' | 'agenda.extend' | 'agenda.end'
 
@@ -57,6 +57,12 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     return done({ ...s, settings }, { meta: true })
   },
 
+  /** Countdown for everyone: at `endsAt` each client publishes its own drafts (clients decide, drafts are local). */
+  'drafts.reveal': (s, c, _a, ctx) => {
+    const seconds = Math.min(30, Math.max(3, Math.trunc(c.seconds ?? 5)))
+    return done({ ...s, reveal: { endsAt: ctx.now + seconds * 1000 } }, { meta: true })
+  },
+
   'timer.start': (s, _c, _a, ctx) => {
     if (s.timer.running) return done(s, {})
     const remaining = s.timer.remaining > 0 ? s.timer.remaining : s.timer.length
@@ -83,7 +89,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
     // A reset board starts its agenda over.
     agenda: s.agenda ? { ...s.agenda, current: -1, startedAt: 0, pausedAt: null } : null,
-    talk: emptyTalk(),
+    talk: emptyTalk(), reveal: null,
   }, { meta: true, wipe: true }),
 
   /** Empties one column: its notes and clusters. Other columns, votes and actions elsewhere stay. */
