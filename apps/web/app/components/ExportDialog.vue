@@ -119,7 +119,7 @@ async function restoreBoardFile(e: Event) {
         <!-- Docs preview: the exporter escapes every text from the board. -->
         <!-- eslint-disable-next-line vue/no-v-html -->
         <div v-if="dest === 'docs'" class="preview doc" data-testid="export-preview" v-html="preview" />
-        <pre v-else class="preview" data-testid="export-preview">{{ preview }}</pre>
+        <pre v-else class="preview" tabindex="0" role="region" :aria-label="t('exportHub.previewLabel')" data-testid="export-preview">{{ preview }}</pre>
 
         <div v-if="dest === 'files' && board.canUseBoardFile()" class="boardfile">
           <strong><Icon name="lucide:file-lock" /> {{ t('boardFile.export') }}</strong>

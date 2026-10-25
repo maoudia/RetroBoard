@@ -832,4 +832,5 @@ export const fr = {
   'votedIdeas.createFor': 'Créer une action pour : {text}',
   'votedIdeas.more': 'Afficher tout ({n})',
   'votedIdeas.less': 'Afficher moins',
+  'exportHub.previewLabel': 'Aperçu de l\'export',
 } as const

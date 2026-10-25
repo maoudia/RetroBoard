@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { STICKY_COLORS, STICKY_INK, THEMES, contrast, getTheme, stickyColor, tokensFor } from '../src'
+import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, getTheme, mix, stickyColor, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -20,6 +20,22 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     expect(contrast(k.accentInk, k.accent), 'ink on accent').toBeGreaterThanOrEqual(4.5)
     expect(contrast(k.accent, k.surface), 'accent on surface').toBeGreaterThanOrEqual(3)
     expect(contrast(k.danger, k.surface), 'danger on surface').toBeGreaterThanOrEqual(3)
+  })
+
+  it.each(['light', 'dark'] as const)('keeps every text and control colour readable on every ground in the %s variant (WCAG 2.2 AA)', (variant) => {
+    const k = tokensFor(t, variant)
+    const grounds = { bg: k.bg, bg2: k.bg2, surface: k.surface, surface2: k.surface2 }
+    for (const [ground, hex] of Object.entries(grounds)) {
+      // Text (4.5:1): body text, muted text, links and the accent used as text, danger and success messages.
+      expect(contrast(k.text, hex), `text on ${ground}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(k.muted, hex), `muted on ${ground}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(k.accent, hex), `accent on ${ground}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(k.danger, hex), `danger on ${ground}`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(k.success, hex), `success on ${ground}`).toBeGreaterThanOrEqual(4.5)
+      // Non-text (3:1): the secondary accent as a graphical object, the field border.
+      expect(contrast(k.accent2, hex), `accent2 on ${ground}`).toBeGreaterThanOrEqual(3)
+      expect(contrast(controlColor(k), hex), `control border on ${ground}`).toBeGreaterThanOrEqual(CONTROL_CONTRAST)
+    }
   })
 
   it.each(['light', 'dark'] as const)('has readable sticky notes in the %s variant', (variant) => {
@@ -68,5 +84,22 @@ describe('sticky-note palette', () => {
   it('wraps unknown indexes onto the palette', () => {
     expect(stickyColor(8, 'light')).toBe(stickyColor(0, 'light'))
     expect(stickyColor(-1, 'dark')).toBe(stickyColor(7, 'dark'))
+  })
+})
+
+describe('control border', () => {
+  it('mixes colours in sRGB', () => {
+    expect(mix('#000000', '#ffffff', 1)).toBe('#000000')
+    expect(mix('#000000', '#ffffff', 0)).toBe('#ffffff')
+    expect(mix('#000000', '#ffffff', 0.5)).toBe('#808080')
+  })
+  it('is the faintest mix of the text colour that still reaches 3:1, never lighter than needed', () => {
+    const k = { text: '#000000', bg: '#ffffff', bg2: '#f0f0f0', surface: '#ffffff', surface2: '#f5f5f5' }
+    const c = controlColor(k)
+    expect(contrast(c, k.bg2)).toBeGreaterThanOrEqual(CONTROL_CONTRAST)
+    expect(contrast(c, k.bg2)).toBeLessThan(CONTROL_CONTRAST + 0.6)
+  })
+  it('falls back to the text colour when nothing fainter works', () => {
+    expect(controlColor({ text: '#777777', bg: '#808080', bg2: '#808080', surface: '#808080', surface2: '#808080' })).toBe('#777777')
   })
 })

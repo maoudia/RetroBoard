@@ -832,5 +832,6 @@ export const en: Record<keyof typeof fr, string> = {
   'votedIdeas.createFor': 'Create an action for: {text}',
   'votedIdeas.more': 'Show all ({n})',
   'votedIdeas.less': 'Show fewer',
+  'exportHub.previewLabel': 'Export preview',
 
 }

@@ -29,7 +29,7 @@ export function getTheme(id: string | null | undefined): ThemeDefinition {
 }
 
 export type * from './types'
-export { contrast, luminance } from './color'
+export { CONTROL_CONTRAST, contrast, controlColor, luminance, mix } from './color'
 export { STICKY_COLORS, STICKY_INK, stickyColor, type StickyColor } from './sticky'
 export { THEMES_EN, type ThemeText } from './texts.en'
 

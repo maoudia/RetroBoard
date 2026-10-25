@@ -114,7 +114,7 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer { display: grid; gap: .3rem; padding: .6rem; border-radius: 6px; background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
-.composer small { font-size: .7rem; opacity: .7; }
+.composer small { font-size: .7rem; font-weight: 600; } /* full ink: opacity would drop the contrast below 4.5:1 on the dark paper */
 .hint-row { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
 .compose-actions { display: flex; gap: .4rem; justify-content: flex-end; flex-wrap: wrap; }
 .composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }

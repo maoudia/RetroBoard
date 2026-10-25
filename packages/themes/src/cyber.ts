@@ -13,7 +13,7 @@ export const cyber: ThemeDefinition = {
   },
   /** The light variant (each participant picks light or dark; the board theme stays the same). */
   alt: {
-    bg: '#f2f5ff', bg2: '#e3e8ff', surface: '#ffffff', surface2: '#eef1ff', border: '#c5cdf2', text: '#0a0c1e', muted: '#4a5280', accent: '#0a6f80', accent2: '#a3159a', accentInk: '#ffffff', danger: '#c4123d', success: '#0b7a45', noteInk: '#0a0c18',
+    bg: '#f2f5ff', bg2: '#e3e8ff', surface: '#ffffff', surface2: '#eef1ff', border: '#c5cdf2', text: '#0a0c1e', muted: '#4a5280', accent: '#0a6f80', accent2: '#a3159a', accentInk: '#ffffff', danger: '#c4123d', success: '#0b7844', noteInk: '#0a0c18',
   },
   noteColors: ['#7df9ff', '#c7a6ff', '#b8ff9e', '#ff9ee8', '#ffe66d', '#ffb38a', '#9ec5ff', '#8ff7c8'],
   fonts: { display: '"Space Grotesk Variable", system-ui, sans-serif', body: '"Space Grotesk Variable", system-ui, sans-serif', mono: '"JetBrains Mono", ui-monospace, monospace' },

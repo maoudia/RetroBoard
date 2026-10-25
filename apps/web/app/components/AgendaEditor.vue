@@ -57,7 +57,7 @@ const remove = (i: number) => patch({ phases: model.value.phases.filter((_, k) =
 .head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .head > span { display: grid; }
 .presets { display: flex; gap: .35rem; flex-wrap: wrap; }
-.presets .on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.presets .on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); font-weight: 700; } /* accent on its own tint is under 4.5:1 in some themes */
 .list { margin: 0; padding: 0; list-style: none; display: grid; gap: .25rem; }
 li { display: grid; grid-template-columns: 1fr 5.5rem auto auto auto; gap: .35rem; align-items: center; }
 .mins { padding: .3rem .5rem; }

@@ -76,7 +76,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* Fields */
 .field {
-  width: 100%; padding: .6rem .8rem; border-radius: var(--r-control); border: 1px solid var(--border);
+  width: 100%; padding: .6rem .8rem; border-radius: var(--r-control); border: 1px solid var(--control, var(--border));
   background: color-mix(in oklab, var(--bg) 60%, var(--surface)); color: var(--text);
 }
 .field::placeholder { color: var(--muted); opacity: .85; }

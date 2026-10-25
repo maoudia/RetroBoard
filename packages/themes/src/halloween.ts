@@ -13,7 +13,7 @@ export const halloween: ThemeDefinition = {
   },
   /** The light variant (each participant picks light or dark; the board theme stays the same). */
   alt: {
-    bg: '#fbf6ef', bg2: '#f1e6d6', surface: '#ffffff', surface2: '#f7efe3', border: '#e2cfb4', text: '#1f1726', muted: '#5f5470', accent: '#b4520a', accent2: '#6d4bc9', accentInk: '#ffffff', danger: '#b3261e', success: '#1d7a45', noteInk: '#1c1424',
+    bg: '#fbf6ef', bg2: '#f1e6d6', surface: '#ffffff', surface2: '#f7efe3', border: '#e2cfb4', text: '#1f1726', muted: '#5f5470', accent: '#a74c09', accent2: '#6d4bc9', accentInk: '#ffffff', danger: '#b3261e', success: '#1c7643', noteInk: '#1c1424',
   },
   noteColors: ['#ffb561', '#dce4ff', '#c9bfe8', '#a8e6a2', '#ffb3cc', '#fff0a8', '#9ee7e0', '#ffc9a8'],
   fonts: { display: '"Pirata One", Georgia, serif', body: '"Alegreya Sans", system-ui, sans-serif', mono: 'ui-monospace, monospace' },

@@ -8,7 +8,7 @@ export const noel: ThemeDefinition = {
   scheme: 'dark',
   tokens: {
     bg: '#0b1f17', bg2: '#17382c', surface: '#112a21', surface2: '#18382c', border: '#2f6350',
-    text: '#f8f4ec', muted: '#b4d3c4', accent: '#ff5a5f', accent2: '#f4c95d', accentInk: '#2a0c10',
+    text: '#f8f4ec', muted: '#b4d3c4', accent: '#ff6c71', accent2: '#f4c95d', accentInk: '#2a0c10',
     danger: '#ff8a8e', success: '#8ee6b0', noteInk: '#1d2a22',
   },
   /** The light variant (each participant picks light or dark; the board theme stays the same). */

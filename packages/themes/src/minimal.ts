@@ -9,7 +9,7 @@ export const minimal: ThemeDefinition = {
   tokens: {
     bg: '#f5f6f8', bg2: '#e9ecf3', surface: '#ffffff', surface2: '#f1f3f7', border: '#dde1e8',
     text: '#14161a', muted: '#566070', accent: '#4338ca', accent2: '#0369a1', accentInk: '#ffffff',
-    danger: '#b91c3c', success: '#15803d', noteInk: '#14161a',
+    danger: '#b91c3c', success: '#147a3a', noteInk: '#14161a',
   },
   /** The dark variant (each participant picks light or dark; the board theme stays the same). */
   alt: {

@@ -2,8 +2,9 @@
 
 ## 1. Gate
 
-- [ ] 1.1 a11y.spec.ts on every route and dialog with `wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`, light and dark, chromium and phone, all impacts; fix what it finds; verify e2e
-- [ ] 1.2 Theme contrast unit test for every theme and variant (text 4.5:1, UI and large text 3:1); adjust tokens; verify packages/themes tests
+- [x] 1.1 a11y.spec.ts on every route and dialog with `wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`, light and dark, chromium and phone, all impacts; fix what it finds; verify e2e
+- [x] 1.2 Theme contrast unit test for every theme and variant (text 4.5:1, UI and large text 3:1); adjust tokens; verify packages/themes tests
+  - Done: text, muted, accent, danger and success at 4.5:1 and accent2 at 3:1 on bg, bg2, surface and surface2 for every theme and variant; a derived `--control` border (3:1) now outlines every `.field`. Decorative `--border` (cards, separators) stays under 3:1 by design. Other bordered custom controls (switches, chips) are covered by the manual audit until they use `--control`.
 
 ## 2. Board criteria
 
