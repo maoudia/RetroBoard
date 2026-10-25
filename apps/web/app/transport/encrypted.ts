@@ -149,6 +149,12 @@ export class EncryptedRelayTransport implements BoardTransport {
     return true
   }
 
+  sendRename(key: string, name: string): boolean {
+    if (this.closed || !this.known) return false
+    this.enqueue(() => this.publishLocal({ t: 'participant.rename', key, name }))
+    return true
+  }
+
   updateIdentity(identity: Identity): void {
     this.identity = identity
     this.enqueue(() => this.announce())
@@ -600,6 +606,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private liveName(conn: string): string | null | undefined {
     const p = this.presence.get(conn)
     if (p?.key && this.log.ledger.hidden.includes(p.key)) return undefined
+    if (p?.key && this.log.ledger.names[p.key]) return this.log.ledger.names[p.key]
     return p?.showName ? p.name : null
   }
 
@@ -756,12 +763,19 @@ export class EncryptedRelayTransport implements BoardTransport {
     const rank: Record<Role, number> = { facilitator: 2, 'co-facilitator': 1, participant: 0 }
     const best = (keys: (string | undefined)[]): Role => keys.filter((k): k is string => !!k).map((k) => roleOf(ledger, k)).sort((a, b) => rank[b] - rank[a])[0] ?? 'participant'
     const describe = (key: string | undefined, fkey?: string) => (key ? { key, role: best([key, fkey]), hidden: ledger.hidden.includes(key) } : {})
+    // A facilitator-set name wins over the participant's own (and shows even for an anonymous one in the list).
+    const named = (key: string | undefined, own: string | null): { name: string | null; renamed?: boolean } => {
+      const set = key ? ledger.names[key] : undefined
+      return set ? { name: set, renamed: true } : { name: own }
+    }
+    const mine = this.deps.session.publicKey
+    const myOwn = this.identity?.showName ? this.identity.name || null : null
     const list: Peer[] = this.conns.map((c) => {
-      if (c === this.conn) return { name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole(), conn: c }
+      if (c === this.conn) return { ...named(mine, myOwn), me: true, key: mine, role: this.myRole(), conn: c }
       const p = this.presence.get(c)
-      return { name: p?.showName ? p.name : null, me: false, conn: c, ...describe(p?.key, p?.fkey) }
+      return { ...named(p?.key, p?.showName ? p.name : null), me: false, conn: c, ...describe(p?.key, p?.fkey) }
     })
-    if (!list.some((p) => p.me)) list.unshift({ name: this.identity?.showName ? this.identity.name || null : null, me: true, key: this.deps.session.publicKey, role: this.myRole() })
+    if (!list.some((p) => p.me)) list.unshift({ ...named(mine, myOwn), me: true, key: mine, role: this.myRole() })
     return list.sort((x, y) => Number(y.me) - Number(x.me) || (x.name ?? '').localeCompare(y.name ?? ''))
   }
 
@@ -775,7 +789,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
     const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey }
-    this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now()), access })
+    this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now(), ledger.names), access })
   }
 
   private open(): void {

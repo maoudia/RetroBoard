@@ -76,7 +76,8 @@ export const useBoardStore = defineStore('board', () => {
   /** Phase cue for a command: open, closed (why, and when it opens) or open for me as facilitator. */
   const availability = (command: CommandType) => phaseAvailability(snapshot.value?.agenda ?? null, command, access.value.bypassesPhase)
   const allowed = (command: CommandType) => access.value.bypassesPhase || (access.value.canSteer && PRIVILEGED_COMMANDS.has(command)) || allowedInPhase(snapshot.value?.agenda ?? null, command)
-  const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
+  const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide' | 'participant.remove', key: string) => transport?.sendRole?.(change, key) ?? false
+  const sendRename = (key: string, name: string) => transport?.sendRename?.(key, name) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
   /** Three words everyone sees for this board (shared boards only), in the board's language. */
   const roomCode = computed(() => (roomId.value && !roomId.value.startsWith('local-') && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
@@ -124,7 +125,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, roomFull, roomCode, links, myKey,
-    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
+    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
     settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById,
   }

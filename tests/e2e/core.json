@@ -2,6 +2,6 @@
   "comment": "The push gate: data loss, encryption, sync, the daily flow and facilitation. Everything else runs nightly (pnpm e2e).",
   "specs": [
     "encryption", "p2p", "sync-field", "lifecycle", "sharing", "publishing",
-    "board", "composer", "author-name", "voting", "takeover", "presence", "accessibility-statement"
+    "board", "moderation", "composer", "author-name", "voting", "takeover", "presence", "accessibility-statement"
   ]
 }

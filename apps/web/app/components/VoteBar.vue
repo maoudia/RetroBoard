@@ -5,6 +5,7 @@ const drafts = useDraftsStore()
 const { publish } = usePublish()
 const limit = computed(() => board.settings?.voteLimit ?? 0)
 const ui = useUiStore()
+const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reveal.endsAt > Date.now() + board.skew)
 </script>
 
 <template>
@@ -32,6 +33,9 @@ const ui = useUiStore()
       </button>
       <button class="btn btn-sm" type="button" :aria-pressed="board.secretVoting" data-testid="secret-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting })">
         <Icon :name="board.secretVoting ? 'lucide:eye-off' : 'lucide:eye'" /> {{ t('votebar.secret', { state: board.secretVoting ? t('votebar.on') : t('votebar.off') }) }}
+      </button>
+      <button v-if="board.access.canSteer" class="btn btn-sm" type="button" :disabled="board.locked || revealing" :title="t('votebar.reveal.title')" data-testid="reveal-all" @click="board.commands.revealDrafts()">
+        <Icon name="lucide:sparkles" /> {{ t('votebar.reveal') }}
       </button>
       <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked" data-testid="publish-all" @click="publish()">
         <Icon name="lucide:send" /> {{ t('votebar.publishAll') }}<span v-if="drafts.count"> ({{ drafts.count }})</span>

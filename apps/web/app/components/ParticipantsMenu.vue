@@ -10,6 +10,10 @@ const hue = (n: string | null) => { let h = 0; for (const c of n ?? 'x') h = (h 
 /** Role changes need the peer's session key (encrypted boards) and the facilitator's rights. */
 const manageable = (p: Peer) => board.access.canManageRoles && !p.me && !!p.key
 const handOver = ref<Peer | null>(null)
+const renaming = ref<Peer | null>(null)
+function rename(p: Peer, name: string) {
+  if (!p.key || !board.sendRename(p.key, name)) push(t('roles.failed'), 'warn')
+}
 
 const talkOn = computed(() => (board.settings?.talkMode ?? 'off') !== 'off')
 /** Facilitators give the floor to anyone; a participant takes it when self start is allowed. */
@@ -48,7 +52,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     <ul class="list" data-testid="peers">
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
         <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}</span>
-        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
+        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
         <span v-if="p.role === 'facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
         <span v-else-if="p.role === 'co-facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
@@ -63,6 +67,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
           <button v-if="p.role === 'participant'" class="mini-btn" type="button" :aria-label="t('roles.promote', { name: p.name ?? t('common.anonymous') })" :title="t('roles.promote.short')" data-testid="role-promote" @click="role('role.delegate', p)"><Icon name="lucide:shield-plus" /></button>
           <button v-if="p.role === 'co-facilitator'" class="mini-btn" type="button" :aria-label="t('roles.revoke', { name: p.name ?? t('common.anonymous') })" :title="t('roles.revoke.short')" data-testid="role-revoke" @click="role('role.revoke', p)"><Icon name="lucide:shield-minus" /></button>
           <button v-if="!p.hidden" class="mini-btn" type="button" :aria-label="t('roles.handover', { name: p.name ?? t('common.anonymous') })" :title="t('roles.handover.short')" data-testid="role-handover" @click="handOver = p"><Icon name="lucide:crown" /></button>
+          <button v-if="p.role === 'participant'" class="mini-btn" type="button" :aria-label="t('roles.rename', { name: p.name ?? t('common.anonymous') })" :title="t('roles.rename.short')" data-testid="role-rename" @click="renaming = p"><Icon name="lucide:pencil" /></button>
           <button v-if="p.role === 'participant' && !p.hidden" class="mini-btn" type="button" :aria-label="t('roles.hide', { name: p.name ?? t('common.anonymous') })" :title="t('roles.hide.short')" data-testid="role-hide" @click="role('participant.hide', p)"><Icon name="lucide:eye-off" /></button>
           <button v-if="p.hidden" class="mini-btn" type="button" :aria-label="t('roles.unhide', { name: p.name ?? t('common.anonymous') })" :title="t('roles.unhide.short')" data-testid="role-unhide" @click="role('participant.unhide', p)"><Icon name="lucide:eye" /></button>
         </span>
@@ -74,6 +79,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     </p>
     <p v-if="board.snapshot?.access" class="note muted">{{ t('roles.e2eNote') }}</p>
   </Dropdown>
+  <RenameDialog :open="renaming !== null" :name="renaming?.name ?? null" @update:open="(v: boolean) => { if (!v) renaming = null }" @save="(n: string) => renaming && rename(renaming, n)" />
   <ConfirmDialog
     :open="handOver !== null" :title="t('roles.handover.title')" :confirm-label="t('roles.handover.ok')"
     :message="t('roles.handover.msg', { name: handOver?.name ?? t('common.anonymous') })"

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, publishNote, settle } from './helpers'
+import { createBoard, join, publishNote, settle } from './helpers'
 
 /** Target: WCAG 2.2 AA (ADR-0022). Every impact fails the build, not only serious and critical. */
 async function audit(page: Page) {
@@ -51,6 +51,24 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     await expect(page.getByTestId('palette')).toBeVisible()
     await page.waitForTimeout(500)
     expect(await audit(page)).toEqual([])
+  })
+
+  test('reveal countdown and the rename dialog', async ({ page, browser, isMobile }) => {
+    test.skip(isMobile, 'facilitator menus are covered on desktop')
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+    await page.getByTestId('btn-share').click()
+    const url = await page.getByTestId('share-url').inputValue()
+    await page.keyboard.press('Escape')
+    const bob = await join(browser, url, 'Bob')
+    await page.getByTestId('btn-participants').click()
+    await page.getByTestId('peers').locator('li', { hasText: 'Bob' }).getByTestId('role-rename').click()
+    await expect(page.getByTestId('rename-input')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+    await page.keyboard.press('Escape')
+    await page.getByTestId('reveal-all').click()
+    await expect(page.getByTestId('reveal-countdown')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+    await bob.ctx.close()
   })
 
   test('legal, privacy, terms and accessibility pages', async ({ page }) => {

@@ -55,7 +55,9 @@ export interface BoardChannel {
   updateIdentity(identity: Identity): void
   close(): void
   /** Encrypted boards: role changes, signed by the facilitator. Returns false when not possible. */
-  sendRole?(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide', key: string): boolean
+  /** Facilitator: set (or clear with an empty name) a participant's display name on this board. */
+  sendRename?(key: string, name: string): boolean
+  sendRole?(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide' | 'participant.remove', key: string): boolean
   /** Encrypted boards: the board file (.retro) content, or null when there is nothing to export. */
   exportBoardFile?(): Promise<string | null>
   /** Encrypted boards: restores events from a board file. Returns how many were new, or null if the file does not belong to this board. */

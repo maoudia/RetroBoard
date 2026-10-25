@@ -218,6 +218,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <TalkBanner v-if="board.ready" />
       <VoteBar v-if="board.ready" />
+      <RevealCountdown v-if="board.ready" />
       <BoardFilter v-if="board.ready && ui.filterOpen" />
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
       <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>

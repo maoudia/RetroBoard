@@ -186,6 +186,8 @@ export interface Peer {
   role?: 'facilitator' | 'co-facilitator' | 'participant'
   key?: string
   hidden?: boolean
+  /** The facilitator set this display name (shown with a hint). */
+  renamed?: boolean
   /** Relay connection id, to match live presence (cursors, focus). Not stable across reconnects. */
   conn?: string
 }
@@ -203,6 +205,8 @@ export interface Snapshot {
   agenda: AgendaState | null
   /** Speaking turns and time spoken per participant. */
   talk: TalkState
+  /** A "reveal all" countdown in progress or just over (server clock), or null. */
+  reveal?: { endsAt: number } | null
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */

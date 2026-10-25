@@ -6,7 +6,7 @@ export interface Viewer {
 }
 
 /** The only place where server state is turned into what a client may see. */
-export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], now: number): Snapshot {
+export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], now: number, names: Readonly<Record<string, string>> = {}): Snapshot {
   // Hidden counts: only until the facilitator closes voting, then everyone sees them at once.
   const secret = state.settings.secretVoting && !state.settings.votingClosed
   const all = Object.values(state.notes)
@@ -17,7 +17,8 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       columnId: n.columnId,
       text: n.text,
       color: n.color,
-      author: n.author,
+      // A facilitator rename shows on notes that already carry a name; it never unmasks an anonymous author.
+      author: n.author ? (names[n.ownerCid] ?? n.author) : n.author,
       groupId: n.groupId,
       votes: secret ? null : n.voters.length,
       voted: n.voters.includes(viewer.cid),
@@ -49,6 +50,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     timer: expired ? { ...t, running: false, remaining: 0, endsAt: 0 } : t,
     agenda: state.agenda,
     talk: state.talk,
+    reveal: state.reveal ?? null,
     peers,
     votesLeft: Math.max(0, state.settings.voteLimit - used),
   }

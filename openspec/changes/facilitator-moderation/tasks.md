@@ -12,5 +12,5 @@
 
 ## 3. Rename and reveal
 
-- [ ] 3.1 Rename from the participants menu with the facilitator hint (fr/en); verify e2e
-- [ ] 3.2 Reveal-all countdown for everyone, "keep private" toggle on drafts, publication at the deadline; verify e2e with two contexts and a mocked clock
+- [x] 3.1 Rename from the participants menu with the facilitator hint (fr/en); verify e2e
+- [x] 3.2 Reveal-all countdown for everyone, "keep private" toggle on drafts, publication at the deadline; verify e2e with two contexts (done with the real 5 s countdown: the event time comes from the sender's clock, so a per-page mocked clock does not model it)
