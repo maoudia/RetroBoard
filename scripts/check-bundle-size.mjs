@@ -6,7 +6,9 @@ import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 
 const dir = process.argv[2] ?? 'apps/web/.output/public'
-const BUDGET = { entryKb: 40, totalKb: 220 }
+// 2026-10-25: total raised from 220 to 245 kB for the peer-to-peer mesh, presenter mode, filter,
+// retro report, export by destination and talk time (+12 kB measured). Raise it only on purpose.
+const BUDGET = { entryKb: 40, totalKb: 245 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
