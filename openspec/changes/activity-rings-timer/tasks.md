@@ -2,7 +2,7 @@
 
 ## 1. Rings
 
-- [ ] 1.1 `ringProgress(agenda, now)` read model (outer, current, next, overtime laps) in packages/application; verify unit tests
+- [x] 1.1 `ringProgress(agenda, now)` read model (outer, current, next, overtime laps) in packages/application; verify unit tests
 - [ ] 1.2 `ActivityRings` SVG component (compact toolbar size, large in presenter and agenda panel), completion celebration with reduced-motion fallback, accessible text alternative; verify e2e and axe
 
 ## 2. Themes
