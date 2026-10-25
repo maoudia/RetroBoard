@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LIMITS } from '@retroboard/domain'
+import { hasChosen, showNameAfterTyping } from '~/utils/show-name'
 import { THEMES } from '@retroboard/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
@@ -17,7 +18,9 @@ const open = computed({ get: () => ui.dialog === 'profile', set: (v) => { if (!v
 const name = ref('')
 const show = ref(false)
 const wipeAsk = ref(false)
-watch(open, (v) => { if (v) { identity.load(); name.value = identity.name; show.value = identity.showName } })
+const touched = ref(false)
+watch(open, (v) => { if (v) { identity.load(); name.value = identity.name; show.value = identity.showName; touched.value = hasChosen(identity) } })
+watch(name, (n) => { show.value = showNameAfterTyping(n, touched.value, show.value) })
 
 function saveIdentity() {
   identity.set({ name: name.value, showName: show.value })
@@ -60,7 +63,7 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
       </div>
       <label class="line">
         <span><strong>{{ t('profile.showName') }}</strong><small class="muted">{{ t('profile.showName.hint') }}</small></span>
-        <input v-model="show" type="checkbox" role="switch" class="switch" data-testid="profile-show" @change="saveIdentity" />
+        <input v-model="show" type="checkbox" role="switch" class="switch" data-testid="profile-show" @change="touched = true; saveIdentity()" />
       </label>
     </section>
 

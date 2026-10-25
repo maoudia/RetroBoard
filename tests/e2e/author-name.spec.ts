@@ -1,0 +1,74 @@
+import AxeBuilder from '@axe-core/playwright'
+import { expect, test } from '@playwright/test'
+import { createBoard, join, noteByText, publishNote } from './helpers'
+
+async function link(page: import('@playwright/test').Page) {
+  if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
+  const url = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  return url
+}
+
+test('a typed name is shown on notes by default and the checkbox follows the name field', async ({ page, browser }) => {
+  await page.goto('/new')
+  await page.getByTestId('theme-studio').click()
+  await page.getByTestId('tab-all').click()
+  await page.getByTestId('template-start-stop-continue').click()
+  await page.getByTestId('setup-submit').click()
+  await expect(page.getByTestId('name-input')).toBeVisible()
+  await expect(page.getByTestId('name-show')).not.toBeChecked()
+  await page.getByTestId('name-input').fill('Alice')
+  await expect(page.getByTestId('name-show')).toBeChecked()
+  await page.getByTestId('name-input').fill('')
+  await expect(page.getByTestId('name-show')).not.toBeChecked()
+  await page.getByTestId('name-input').fill('Alice')
+  await page.getByTestId('name-save').click()
+  await expect(page.getByTestId('board')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await publishNote(page, 0, 'Signed idea')
+  const url = await link(page)
+
+  const bob = await join(browser, url, 'Bob')
+  await expect(noteByText(bob.page, 'Signed idea')).toContainText('Alice')
+  await bob.ctx.close()
+})
+
+test('the composer shows the signature and one click switches to anonymous for the next notes only', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const chip = page.locator('[data-testid^="signature-"]').first()
+  await expect(chip).toContainText('Alice')
+  await publishNote(page, 0, 'Before')
+  await chip.click()
+  await expect(chip).toHaveAttribute('data-signed', 'false')
+  await expect(chip).toContainText(/Anonym/)
+  await publishNote(page, 0, 'After')
+  const url = await link(page)
+
+  const bob = await join(browser, url, 'Bob')
+  await expect(noteByText(bob.page, 'Before')).toContainText('Alice')
+  await expect(noteByText(bob.page, 'After')).toBeVisible()
+  await expect(noteByText(bob.page, 'After')).not.toContainText('Alice')
+  // axe on the composer with the chip.
+  const found = (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+  expect(found).toEqual([])
+  await bob.ctx.close()
+})
+
+test('without a name the chip reads Anonymous and opens the name dialog', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: '' })
+  const chip = page.locator('[data-testid^="signature-"]').first()
+  await expect(chip).toContainText(/Anonym/)
+  await chip.click()
+  await expect(page.getByTestId('name-input')).toBeVisible()
+})
+
+test('a saved choice to stay anonymous is kept when the name is edited later', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.locator('[data-testid^="signature-"]').first().click()
+  await page.reload()
+  await expect(page.locator('[data-testid^="signature-"]').first()).toHaveAttribute('data-signed', 'false')
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('profile-name').fill('Alicia')
+  await page.getByTestId('profile-name').blur()
+  await expect(page.getByTestId('profile-show')).not.toBeChecked()
+})

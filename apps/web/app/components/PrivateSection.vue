@@ -7,6 +7,8 @@ const props = defineProps<{ column: Column; colorIndex: number }>()
 const board = useBoardStore()
 const drafts = useDraftsStore()
 const theme = useThemeStore()
+const identity = useIdentityStore()
+const ui = useUiStore()
 const { publish } = usePublish()
 const text = computed({ get: () => drafts.compose(props.column.id), set: (v: string) => drafts.setCompose(props.column.id, v) })
 /** On touch screens the keyboard's return key adds a line; the buttons act. */
@@ -27,6 +29,13 @@ function showSimilar(id: string) {
   el.classList.add('flash')
 }
 
+/** Signature of the next notes: my name, or anonymous. One click switches (no name yet: opens the name dialog). */
+const signed = computed(() => identity.showName && identity.name.trim() !== '')
+function toggleSignature() {
+  if (identity.name.trim() === '') { ui.open('name'); return }
+  identity.set({ name: identity.name, showName: !identity.showName })
+  board.updateIdentity(identity.identity)
+}
 function add() {
   if (drafts.add(props.column.id, text.value, props.colorIndex)) text.value = ''
 }
@@ -84,6 +93,9 @@ function onKey(e: KeyboardEvent) {
       <small class="hint-row"><span>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
     </label>
     <div class="compose-actions">
+      <button class="sig" type="button" :title="signed ? t('private.signedHint') : t('private.anonymousHint')" :data-testid="`signature-${column.id}`" :data-signed="signed" @click="toggleSignature">
+        <Icon :name="signed ? 'lucide:user-round' : 'lucide:venetian-mask'" /> {{ signed ? t('private.signedAs', { name: identity.name }) : t('private.anonymous') }}
+      </button>
       <button class="btn btn-sm" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /> {{ t('private.publishNow') }}</button>
       <button class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /> {{ t('private.add') }}</button>
     </div>
@@ -116,7 +128,9 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: .7rem; font-weight: 600; } /* full ink: opacity would drop the contrast below 4.5:1 on the dark paper */
 .hint-row { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
-.compose-actions { display: flex; gap: .4rem; justify-content: flex-end; flex-wrap: wrap; }
+.compose-actions { display: flex; gap: .4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+.sig { margin-right: auto; display: inline-flex; align-items: center; gap: .3rem; min-height: 28px; max-width: 100%; padding: .1rem .55rem; border: 1px solid var(--control, var(--border)); border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sig:hover { background: color-mix(in oklab, var(--accent) 12%, transparent); }
 .composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }
 .composer.gated textarea::placeholder { color: var(--muted); }
 .composer:focus-within { box-shadow: 0 0 0 3px var(--accent), var(--shadow-1); }
