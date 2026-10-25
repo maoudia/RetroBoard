@@ -61,7 +61,7 @@ export async function settle(page: Page) {
 export async function publishNote(page: Page, colIndex: number, text: string) {
   const col = column(page, colIndex)
   await col.locator('textarea').fill(text)
-  await col.locator('textarea').press('Enter')
+  await col.locator('[data-testid^="compose-add-"]').click()
   await col.locator('[data-testid^="publish-"]').click()
   await expect(noteByText(page, text)).toBeVisible()
   await settle(page)

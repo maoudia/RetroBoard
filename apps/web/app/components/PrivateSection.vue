@@ -64,8 +64,8 @@ function onKey(e: KeyboardEvent) {
       <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
         <p>{{ d.text }}</p>
         <span class="acts">
-          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" @click="publish([d.id])"><Icon name="lucide:send" /></button>
-          <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
+          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" :data-testid="`draft-publish-${d.id}`" @click="publish([d.id])"><Icon name="lucide:send" /></button>
+          <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" :data-testid="`draft-dismiss-${d.id}`" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
         </span>
       </li>
     </ul>
@@ -102,6 +102,11 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .similar .link { overflow-wrap: anywhere; text-align: left; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
 .draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: 8px; animation: pop-in .25s var(--ease); }
+/* Pointer devices reveal the actions on hover or focus; touch screens always show them. */
+@media (hover: hover) {
+  .draft .acts { opacity: 0; transition: opacity .15s; }
+  .draft:hover .acts, .draft:focus-within .acts { opacity: 1; }
+}
 .draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: .92rem; }
 .acts { display: flex; flex: none; color: var(--muted); }
 .composer { display: grid; gap: .3rem; padding: .6rem; border-radius: 6px; background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
