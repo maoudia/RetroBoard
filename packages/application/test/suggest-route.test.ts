@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { editDistance, suggestRoutes } from '../src'
 
-const ROUTES = ['/', '/new', '/check', '/legal', '/privacy', '/terms']
+const ROUTES = ['/', '/new', '/check', '/legal', '/privacy', '/terms', '/accessibility']
 
 describe('edit distance', () => {
   it('counts insert, delete, substitute and neighbour swap as one', () => {

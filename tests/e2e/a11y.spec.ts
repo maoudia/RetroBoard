@@ -53,8 +53,8 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     expect(await audit(page)).toEqual([])
   })
 
-  test('legal, privacy and terms pages', async ({ page }) => {
-    for (const path of ['/legal', '/privacy', '/terms']) {
+  test('legal, privacy, terms and accessibility pages', async ({ page }) => {
+    for (const path of ['/legal', '/privacy', '/terms', '/accessibility']) {
       await page.goto(path)
       await expect(page.locator('h1')).toBeVisible()
       expect(await audit(page)).toEqual([])

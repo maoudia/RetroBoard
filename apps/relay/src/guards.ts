@@ -1,7 +1,7 @@
 import { wantsHtml } from './errors'
 
 /** Pages that stay up during maintenance (legal duties) plus the health probe. */
-const MAINTENANCE_EXEMPT = new Set(['/healthz', '/legal', '/privacy', '/terms', '/maintenance', '/busy'])
+const MAINTENANCE_EXEMPT = new Set(['/healthz', '/legal', '/privacy', '/terms', '/accessibility', '/maintenance', '/busy'])
 
 export function isMaintenance(value: string | undefined): boolean {
   return value === '1' || value?.toLowerCase() === 'true'

@@ -7,6 +7,7 @@ const { t } = useT()
     <NuxtLink to="/legal" data-testid="link-legal">{{ t('legal.title') }}</NuxtLink>
     <NuxtLink to="/privacy" data-testid="link-privacy">{{ t('privacy.title') }}</NuxtLink>
     <NuxtLink to="/terms" data-testid="link-terms">{{ t('terms.title') }}</NuxtLink>
+    <NuxtLink to="/accessibility" data-testid="link-accessibility">{{ t('accessibility.title') }}</NuxtLink>
   </nav>
 </template>
 

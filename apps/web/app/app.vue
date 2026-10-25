@@ -1,4 +1,5 @@
 <template>
+  <SkipLink />
   <NuxtPage />
   <ProfileDialog />
   <ToastHost />

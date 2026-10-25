@@ -136,3 +136,9 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 /* Phase-gated controls (change phase-availability-cues): one look for everything a phase rule closes.
    Derived from the theme tokens, so every theme and variant gets a matching grey. */
 :root { --gated-bg: color-mix(in oklab, var(--surface) 78%, var(--border)); --gated-line: color-mix(in oklab, var(--border) 80%, var(--muted)); }
+
+/* WCAG 2.2: a focused element is never hidden under the sticky toolbar or the bottom bars (2.4.11),
+   and every button-like target is at least 24 px (2.5.8). */
+html { scroll-padding-top: calc(var(--toolbar-h, 64px) + 1rem); scroll-padding-bottom: 6rem; }
+.btn, .icon-btn, .dd-item, summary { min-block-size: 24px; min-inline-size: 24px; }
+main:focus { outline: none; }

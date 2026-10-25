@@ -6,7 +6,7 @@ const { t } = useT()
  * Legal, privacy and terms pages: text lives in i18n (fr, en) as `${doc}.${n}.h`, `${doc}.${n}.p`
  * and optional bullets `${doc}.${n}.li.${m}`. Sections are listed by the page.
  */
-const props = defineProps<{ doc: 'legal' | 'privacy' | 'terms'; sections: { bullets?: number }[] }>()
+const props = defineProps<{ doc: 'legal' | 'privacy' | 'terms' | 'accessibility'; sections: { bullets?: number }[] }>()
 useHead({ title: computed(() => `${td(`${props.doc}.title`)} - RetroBoard`) })
 </script>
 
