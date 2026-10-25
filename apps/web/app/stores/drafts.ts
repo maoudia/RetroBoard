@@ -15,10 +15,10 @@ export const useDraftsStore = defineStore('drafts', () => {
   }
   function persist() { if (room.value) safeStorage.set(key(), drafts.value) }
 
-  function add(columnId: string, text: string) {
+  function add(columnId: string, text: string, color?: number) {
     const t = text.trim()
     if (!t) return null
-    const d: Draft = { id: randomId(6), columnId, text: t, color: Math.floor(Math.random() * NOTE_COLOR_COUNT) }
+    const d: Draft = { id: randomId(6), columnId, text: t, color: color ?? Math.floor(Math.random() * NOTE_COLOR_COUNT) }
     drafts.value = [...drafts.value, d]
     persist()
     return d

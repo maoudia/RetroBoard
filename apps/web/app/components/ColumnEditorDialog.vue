@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { COLUMN_ICONS, DEFAULT_COLUMN_ICON, LIMITS  } from '@retroboard/domain'
+import { COLUMN_ICONS, DEFAULT_COLUMN_ICON, LIMITS, NOTE_COLOR_COUNT } from '@retroboard/domain'
 const { t } = useT()
 
 const ui = useUiStore()
@@ -10,16 +10,19 @@ const editing = computed(() => board.columns.find((c) => c.id === ui.editingColu
 const title = ref('')
 const subtitle = ref('')
 const icon = ref<string>(DEFAULT_COLUMN_ICON)
+const color = ref(0)
 watch(open, (v) => {
   if (!v) return
   title.value = editing.value?.title ?? ''
   subtitle.value = editing.value?.subtitle ?? ''
   icon.value = editing.value?.icon ?? DEFAULT_COLUMN_ICON
+  const idx = board.columns.findIndex((c) => c.id === editing.value?.id)
+  color.value = editing.value ? (editing.value.color ?? idx % NOTE_COLOR_COUNT) : board.columns.length % NOTE_COLOR_COUNT
 })
 
 function save() {
   if (!title.value.trim()) return
-  const payload = { title: title.value, subtitle: subtitle.value, icon: icon.value as (typeof COLUMN_ICONS)[number] }
+  const payload = { title: title.value, subtitle: subtitle.value, icon: icon.value as (typeof COLUMN_ICONS)[number], color: color.value }
   if (editing.value) board.commands.updateColumn(editing.value.id, payload)
   else board.commands.addColumn(payload)
   ui.close()
@@ -43,6 +46,15 @@ function save() {
           </button>
         </div>
       </fieldset>
+      <fieldset>
+        <legend class="lbl">{{ t('column.color') }}</legend>
+        <div class="swatches" role="radiogroup" :aria-label="t('column.color')">
+          <button
+            v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" role="radio" class="sw" :class="{ on: color === i - 1 }" :aria-checked="color === i - 1"
+            :aria-label="t('note.colorN', { n: i })" :style="{ background: `var(--note-${i - 1})` }" :data-testid="`col-color-${i - 1}`" @click="color = i - 1"
+          />
+        </div>
+      </fieldset>
     </form>
     <template #footer>
       <button class="btn btn-ghost" type="button" @click="ui.close()">{{ t('common.cancel') }}</button>
@@ -57,5 +69,8 @@ fieldset { border: 0; padding: 0; margin: 0; }
 .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: 200px; overflow: auto; padding: 2px; }
 .ico { display: grid; place-items: center; aspect-ratio: 1; font-size: 1.25rem; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface2); cursor: pointer; transition: transform .15s; }
 .ico:hover { transform: scale(1.1); }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.sw { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }
+.sw.on { border-color: var(--text); }
 .ico.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 </style>

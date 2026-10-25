@@ -26,14 +26,14 @@ function showSimilar(id: string) {
 }
 
 function add() {
-  if (drafts.add(props.column.id, text.value)) text.value = ''
+  if (drafts.add(props.column.id, text.value, props.colorIndex)) text.value = ''
 }
 /** Enter: draft. Shift+Enter: new line. Ctrl/Cmd+Enter: publish now. Escape: clear. */
 function onKey(e: KeyboardEvent) {
   if (e.isComposing) return
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault()
-    const d = drafts.add(props.column.id, text.value)
+    const d = drafts.add(props.column.id, text.value, props.colorIndex)
     if (d) { text.value = ''; publish([d.id]) }
   } else if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()

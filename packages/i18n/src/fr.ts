@@ -616,6 +616,7 @@ export const fr = {
   'column.titlePh': 'Ex: Questions',
   'column.subtitleLabel': 'Sous-titre (optionnel)',
   'column.subtitlePh': 'Ex: Ce qu\'on voudrait comprendre',
+  'column.color': 'Couleur par défaut des notes',
   'column.icon': 'Icône',
 
   'note.save': 'Enregistrer',

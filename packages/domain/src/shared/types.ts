@@ -5,6 +5,8 @@ export interface Column {
   title: string
   subtitle: string
   icon: string
+  /** Default sticky colour (index into the palette) of the notes written in this column. */
+  color?: number
 }
 
 export interface Group {

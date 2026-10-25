@@ -14,7 +14,7 @@ const { over, bind } = useColumnDrop(() => props.column.id)
 const items = computed(() => filterItems(board.itemsFor(props.column.id, board.countsHidden ? 'time' : sort.value), ui.filter))
 const noteCount = computed(() => board.snapshot?.notes.filter((n) => n.columnId === props.column.id).length ?? 0)
 const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupId) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
-const colorIndex = computed(() => props.index % 8)
+const colorIndex = computed(() => props.column.color ?? props.index % 8)
 const hasClusters = computed(() => items.value.some((i) => i.kind === 'group'))
 const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>

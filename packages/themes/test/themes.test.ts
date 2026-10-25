@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { THEMES, contrast, getTheme, tokensFor } from '../src'
+import { STICKY_COLORS, STICKY_INK, THEMES, contrast, getTheme, stickyColor, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -39,5 +39,34 @@ describe('registry', () => {
     expect(new Set(THEMES.map((t) => t.id)).size).toBe(THEMES.length)
     expect(getTheme('does-not-exist').id).toBeTruthy()
     expect(getTheme(null).id).toBe(getTheme(undefined).id)
+  })
+})
+
+describe('sticky-note palette', () => {
+  it('has one colour per note slot, with distinct light and dark values', () => {
+    expect(STICKY_COLORS).toHaveLength(NOTE_COLOR_COUNT)
+    expect(new Set(STICKY_COLORS.map((c) => c.id)).size).toBe(NOTE_COLOR_COUNT)
+    for (const c of STICKY_COLORS) {
+      expect(c.light).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(c.dark).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(c.light).not.toBe(c.dark)
+    }
+  })
+  it.each(['light', 'dark'] as const)('keeps the ink readable on every colour in the %s variant (WCAG AA 4.5:1)', (variant) => {
+    STICKY_COLORS.forEach((c, i) => {
+      expect(contrast(STICKY_INK, c[variant]), c.id).toBeGreaterThanOrEqual(4.5)
+      expect(stickyColor(i, variant)).toBe(c[variant])
+    })
+  })
+  it('keeps the colours of a note apart from each other (not near-identical)', () => {
+    for (const variant of ['light', 'dark'] as const) {
+      for (let a = 0; a < STICKY_COLORS.length; a++) for (let b = a + 1; b < STICKY_COLORS.length; b++) {
+        expect(STICKY_COLORS[a]![variant]).not.toBe(STICKY_COLORS[b]![variant])
+      }
+    }
+  })
+  it('wraps unknown indexes onto the palette', () => {
+    expect(stickyColor(8, 'light')).toBe(stickyColor(0, 'light'))
+    expect(stickyColor(-1, 'dark')).toBe(stickyColor(7, 'dark'))
   })
 })

@@ -617,6 +617,7 @@ export const en: Record<keyof typeof fr, string> = {
   'column.titlePh': 'E.g. Questions',
   'column.subtitleLabel': 'Subtitle (optional)',
   'column.subtitlePh': 'E.g. What we would like to understand',
+  'column.color': 'Default note colour',
   'column.icon': 'Icon',
 
   'note.save': 'Save',

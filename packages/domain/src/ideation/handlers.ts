@@ -1,5 +1,5 @@
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
-import { LIMITS } from '../shared/limits'
+import { LIMITS, NOTE_COLOR_COUNT } from '../shared/limits'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { makeNote, normalizeGroups } from './notes'
 
@@ -7,13 +7,15 @@ type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete'
   | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge'
   | 'column.add' | 'column.update' | 'column.delete' | 'column.move'
 
+const validColor = (n: number) => Number.isInteger(n) && n >= 0 && n < NOTE_COLOR_COUNT
+
 /** Ideation context: notes, groups (clusters) and columns. */
 export const ideationHandlers: HandlerMap<IdeationCommand> = {
   'note.add': (s, c, a, ctx) => {
     if (s.settings.locked) return fail('locked')
     if (!s.columns.some((x) => x.id === c.columnId)) return fail('not-found')
     if (noteCount(s) >= LIMITS.maxNotes) return fail('limit-reached')
-    const n = makeNote(a, ctx, c.columnId, c.text, c.color)
+    const n = makeNote(a, ctx, c.columnId, c.text, c.color ?? s.columns.find((x) => x.id === c.columnId)?.color)
     return done({ ...s, notes: { ...s.notes, [n.id]: n } }, { notes: [n.id] })
   },
 
@@ -24,7 +26,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     const notes = { ...s.notes }
     const ids: string[] = []
     for (const [index, i] of c.items.entries()) {
-      const n = makeNote(a, ctx, i.columnId, i.text, i.color, index)
+      const n = makeNote(a, ctx, i.columnId, i.text, i.color ?? s.columns.find((x) => x.id === i.columnId)?.color, index)
       notes[n.id] = n
       ids.push(n.id)
     }
@@ -152,15 +154,17 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
 
   'column.add': (s, c, _a, ctx) => {
     if (s.columns.length >= LIMITS.maxColumns) return fail('limit-reached')
-    const col = { id: ctx.newId(), title: c.title, subtitle: c.subtitle ?? '', icon: c.icon ?? DEFAULT_COLUMN_ICON }
+    if (c.color !== undefined && !validColor(c.color)) return fail('invalid')
+    const col = { id: ctx.newId(), title: c.title, subtitle: c.subtitle ?? '', icon: c.icon ?? DEFAULT_COLUMN_ICON, ...(c.color === undefined ? {} : { color: c.color }) }
     return done({ ...s, columns: [...s.columns, col], settings: { ...s.settings, templateId: null } }, { meta: true })
   },
 
   'column.update': (s, c) => {
     const i = s.columns.findIndex((x) => x.id === c.id)
     if (i < 0) return fail('not-found')
+    if (c.color !== undefined && !validColor(c.color)) return fail('invalid')
     const col = s.columns[i]!
-    const next = { ...col, title: c.title ?? col.title, subtitle: c.subtitle ?? col.subtitle, icon: c.icon ?? col.icon }
+    const next = { ...col, title: c.title ?? col.title, subtitle: c.subtitle ?? col.subtitle, icon: c.icon ?? col.icon, ...(c.color === undefined ? {} : { color: c.color }) }
     const columns = s.columns.map((x, k) => (k === i ? next : x))
     return done({ ...s, columns, settings: { ...s.settings, templateId: null } }, { meta: true })
   },

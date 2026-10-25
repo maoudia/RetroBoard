@@ -235,3 +235,33 @@ describe('browser agents policy', () => {
     expect(h.state.settings.browserAgentsAllowed).toBe(false)
   })
 })
+
+describe('column default colour', () => {
+  it('template columns start with distinct default colours', () => {
+    const h = harness()
+    const colors = h.state.columns.map((c) => c.color)
+    expect(colors.every((c) => typeof c === 'number')).toBe(true)
+    expect(new Set(colors).size).toBe(colors.length)
+  })
+
+  it('new notes take the column colour unless the author picks another', () => {
+    const h = harness()
+    const col = h.col(0)
+    h.run({ t: 'column.update', id: col, color: 4 })
+    h.run({ t: 'note.add', columnId: col, text: 'default' })
+    h.run({ t: 'note.add', columnId: col, text: 'picked', color: 1 })
+    h.run({ t: 'note.addMany', items: [{ columnId: col, text: 'batch' }] })
+    const byText = (t: string) => Object.values(h.state.notes).find((n) => n.text === t)!
+    expect([byText('default').color, byText('picked').color, byText('batch').color]).toEqual([4, 1, 4])
+  })
+
+  it('rejects colours outside the palette and keeps the column untouched', () => {
+    const h = harness()
+    const col = h.col(0)
+    const before = h.state.columns[0]!.color
+    expect(h.run({ t: 'column.update', id: col, color: 8 })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'column.update', id: col, color: 1.5 })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'column.add', title: 'x', color: -1 })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.state.columns[0]!.color).toBe(before)
+  })
+})

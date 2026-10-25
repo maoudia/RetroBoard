@@ -31,8 +31,8 @@ export type Command =
   | { t: 'vote.remove'; kind: VotableKind; id: string }
   | { t: 'vote.close' }
   | { t: 'vote.reopen' }
-  | { t: 'column.add'; title: string; subtitle?: string; icon?: ColumnIcon }
-  | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon }
+  | { t: 'column.add'; title: string; subtitle?: string; icon?: ColumnIcon; color?: number }
+  | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon; color?: number }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
   | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean }

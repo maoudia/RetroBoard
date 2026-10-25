@@ -1,6 +1,6 @@
 import { DEFAULT_TALK_BUDGET_MS, emptyTalk } from './talk'
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
-import { DEFAULT_TIMER_MS, DEFAULT_VOTE_LIMIT } from '../shared/limits'
+import { DEFAULT_TIMER_MS, DEFAULT_VOTE_LIMIT, NOTE_COLOR_COUNT } from '../shared/limits'
 import { getTemplate, type RetroTemplate } from '../catalogue/templates'
 import type { BoardState, Column, ReduceContext } from '../shared/types'
 
@@ -8,8 +8,9 @@ export const DEFAULT_TEMPLATE_ID = 'start-stop-continue'
 export const DEFAULT_THEME_ID = 'studio'
 
 export function columnsFromTemplate(template: RetroTemplate, newId: () => string): Column[] {
-  return template.columns.map((c) => ({
+  return template.columns.map((c, i) => ({
     id: newId(),
+    color: i % NOTE_COLOR_COUNT,
     title: c.title,
     subtitle: c.subtitle,
     icon: c.icon || DEFAULT_COLUMN_ICON,

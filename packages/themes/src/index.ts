@@ -30,6 +30,7 @@ export function getTheme(id: string | null | undefined): ThemeDefinition {
 
 export type * from './types'
 export { contrast, luminance } from './color'
+export { STICKY_COLORS, STICKY_INK, stickyColor, type StickyColor } from './sticky'
 export { THEMES_EN, type ThemeText } from './texts.en'
 
 /** Theme texts in a language. French is defined on the theme itself. */
