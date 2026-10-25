@@ -49,7 +49,17 @@ const caption = computed(() => (clock.value.phase ? phaseName(clock.value.phase.
 
 // Announce phase changes to screen readers (aria-live).
 const announce = ref('')
-watch(() => agenda.value.current, () => { announce.value = clock.value.phase ? t('agenda.now', { phase: phaseName(clock.value.phase.kind) }) : caption.value })
+const GATED = [['note.addMany', 'write'], ['vote.add', 'vote'], ['note.group', 'group'], ['action.add', 'actions']] as const
+const openSet = () => GATED.filter(([c]) => board.availability(c).closedBy === null).map(([, n]) => n)
+let before = openSet()
+watch(() => agenda.value.current, () => {
+  const now = openSet()
+  const list = (names: readonly string[]) => names.map((n) => t(`gated.noun.${n}` as never)).join(', ')
+  const opened = now.filter((n) => !before.includes(n)); const closedNow = before.filter((n) => !now.includes(n))
+  before = now
+  if (!clock.value.phase) { announce.value = caption.value; return }
+  announce.value = [t('agenda.now', { phase: phaseName(clock.value.phase.kind) }), opened.length ? t('gated.opened', { list: list(opened) }) : '', closedNow.length ? t('gated.closedList', { list: list(closedNow) }) : ''].filter(Boolean).join(' ')
+})
 
 const borrow = ref(true)
 const canSteer = computed(() => board.access.canSteer)

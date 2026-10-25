@@ -13,6 +13,7 @@ const { push } = useToasts()
 const bumped = ref(false)
 const plus = ref(0)
 
+const gate = computed(() => board.availability('vote.add'))
 const perItem = computed(() => board.settings?.maxVotesPerItem ?? 1)
 const closed = computed(() => board.settings?.votingClosed ?? false)
 const single = computed(() => perItem.value <= 1)
@@ -35,7 +36,13 @@ watch(() => props.votes, (n, o) => {
 </script>
 
 <template>
-  <span v-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
+  <!-- Closed by the phase: the same greyed look as a closed composer, with the reason for assistive technologies. -->
+  <span v-if="gate.closedBy && !gate.allowed" class="vc">
+    <button class="vote off gated" type="button" disabled aria-disabled="true" :aria-label="`${t('gated.vote.closed', { phase: t(`agenda.phase.${gate.closedBy}`) })} - ${label}`" :title="t('gated.vote.closed', { phase: t(`agenda.phase.${gate.closedBy}`) })" :data-testid="`gated-vote-${id}`">
+      <span class="thumb"><Icon name="lucide:lock" /></span>
+    </button>
+  </span>
+  <span v-else-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
     <button
       v-if="!single && voted && !closed" class="vote undo" type="button"
       :aria-label="t('vote.undo', { label })" :data-testid="`unvote-${id}`" @click="remove"
@@ -64,6 +71,7 @@ watch(() => props.votes, (n, o) => {
 .vote { position: relative; display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: .2rem .55rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
 .vote.voted { background: var(--note-ink, currentColor); color: var(--c, #fff); border-color: var(--note-ink, currentColor); }
 .vote.off { opacity: .55; cursor: not-allowed; }
+.vote.gated { background: var(--gated-bg); border-style: dashed; }
 .vote.undo { padding: .2rem .4rem; }
 .mine { display: inline-flex; gap: 3px; }
 .mine i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }

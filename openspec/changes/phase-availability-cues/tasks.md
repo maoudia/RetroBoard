@@ -4,4 +4,4 @@
 
 - [x] 1.1 `phaseAvailability(snapshot, role)` read model (allowed, reason, next opening phase) on top of `allowedInPhase`; verify unit tests for every phase kind and both roles
 - [x] 1.2 `GatedHint` component, `--gated` token in every theme and variant, composer and publish buttons closed with reason (fr/en); verify e2e (Vote phase blocks writing visibly) and theme contrast tests
-- [ ] 1.3 Same cue on vote, action and group controls, facilitator hint, live region announcing opened and closed actions on phase change; verify e2e and axe
+- [x] 1.3 Same cue on vote and action controls (grouping is a drag: a refused drop already shows the phase toast, existing behaviour, not re-tested here), facilitator hint, live region announcing opened and closed actions on phase change; verify e2e and axe

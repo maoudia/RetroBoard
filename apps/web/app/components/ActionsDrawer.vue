@@ -15,13 +15,14 @@ const owner = ref('')
 const due = ref('')
 watch(open, (v) => { if (v && !owner.value) owner.value = identity.name })
 
+const gate = computed(() => board.availability('action.add'))
 const STATUSES: ActionStatus[] = ['todo', 'doing', 'done', 'blocked', 'dropped']
 const workflow = computed(() => board.settings?.actionMode === 'workflow')
 const carried = computed(() => board.actions.filter((a) => a.carriedFrom !== null))
 const fresh = computed(() => board.actions.filter((a) => a.carriedFrom === null))
 
 function add() {
-  if (!text.value.trim()) return
+  if (!text.value.trim() || !gate.value.allowed) return
   board.commands.addAction(text.value, owner.value, due.value || undefined)
   team.rememberOwner(owner.value)
   text.value = ''
@@ -52,7 +53,8 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
       <input v-model="text" class="field" :maxlength="LIMITS.actionText" :placeholder="t('actions.placeholder')" :aria-label="t('actions.newLabel')" data-testid="action-text" />
       <OwnerCombobox v-model="owner" />
       <input v-model="due" class="field due" type="date" :aria-label="t('actions.due')" :title="t('actions.due')" data-testid="action-due" />
-      <button class="btn btn-primary" type="submit" data-testid="action-add"><Icon name="lucide:plus" /> {{ t('actions.add') }}</button>
+      <GatedHint :availability="gate" what="gated.actions" testid="gated-actions" />
+      <button class="btn btn-primary" type="submit" :disabled="!gate.allowed" data-testid="action-add"><Icon name="lucide:plus" /> {{ t('actions.add') }}</button>
     </form>
 
     <p v-if="!board.actions.length" class="muted empty">{{ t('actions.empty') }}</p>
