@@ -63,3 +63,31 @@ test('the facilitator sets the note length; the counter warns near the limit and
   await page.getByRole('menuitem', { name: /Modifier/i }).click()
   await expect(note.getByTestId('note-counter')).toContainText('40 / 40')
 })
+
+test('draft-first: Add is the primary button on the right, Publish now the secondary one before it', async ({ page }) => {
+  await createBoard(page)
+  const col = page.locator('[data-testid^="column-"]').first()
+  await col.locator('textarea').fill('une idee')
+  const now = await col.locator('[data-testid^="compose-publish-"]').boundingBox()
+  const add = await col.locator('[data-testid^="compose-add-"]').boundingBox()
+  expect(now!.x).toBeLessThan(add!.x)
+  await expect(col.locator('[data-testid^="compose-add-"]')).toHaveClass(/btn-primary/)
+  await expect(col.locator('[data-testid^="compose-publish-"]')).not.toHaveClass(/btn-primary/)
+  // Focus order follows the visual order.
+  await col.locator('[data-testid^="compose-publish-"]').focus()
+  await page.keyboard.press('Tab')
+  await expect(col.locator('[data-testid^="compose-add-"]')).toBeFocused()
+})
+
+test.describe('draft-first on a phone', () => {
+  test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true })
+  test('same order and 24 px targets at 360 px', async ({ page }) => {
+    await createBoard(page)
+    const col = page.locator('[data-testid^="column-"]').first()
+    await col.locator('textarea').fill('une idee')
+    const now = await col.locator('[data-testid^="compose-publish-"]').boundingBox()
+    const add = await col.locator('[data-testid^="compose-add-"]').boundingBox()
+    expect(now!.x).toBeLessThan(add!.x)
+    expect(Math.min(now!.height, add!.height)).toBeGreaterThanOrEqual(24)
+  })
+})

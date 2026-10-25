@@ -84,8 +84,8 @@ function onKey(e: KeyboardEvent) {
       <small class="hint-row"><span>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
     </label>
     <div class="compose-actions">
-      <button class="btn btn-sm" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /> {{ t('private.add') }}</button>
-      <button class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /> {{ t('private.publishNow') }}</button>
+      <button class="btn btn-sm" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /> {{ t('private.publishNow') }}</button>
+      <button class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /> {{ t('private.add') }}</button>
     </div>
     <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
