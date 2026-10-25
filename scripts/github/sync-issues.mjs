@@ -62,6 +62,10 @@ const PLAN = {
   'note-to-action': ['P7', 'C', []],
   'actions-from-votes': ['P7', 'C', ['note-to-action']],
   'accessibility-wcag': ['P7', 'C', []],
+  // Field test of 2026-10-25 (real devices, peer to peer): beta blockers.
+  'reliable-board-sync': ['P7', 'A', []],
+  'author-name-by-default': ['P7', 'B', []],
+  'draft-first-composer': ['P7', 'B', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
@@ -80,6 +84,7 @@ const ROADMAP = {
   'service-pages': 'R1', 'single-facilitator': 'R1', 'sticky-notes-v2': 'R1', 'board-lifecycle': 'R1', 'edge-security-and-domain': 'R1',
   'p2p-presence-and-cursors': 'R1', 'keyboard-shortcuts': 'R1', 'ci-toolchain-speed': 'R1',
   'open-facilitation-default': 'R1', 'phase-availability-cues': 'R1', 'name-nudge': 'R1',
+  'reliable-board-sync': 'R1', 'author-name-by-default': 'R1', 'draft-first-composer': 'R1',
   'accessibility-wcag': 'R2', 'phase-end-notifications': 'R2', 'note-to-action': 'R2', 'actions-from-votes': 'R2',
   'facilitator-moderation': 'R2', 'activity-rings-timer': 'R2', 'cluster-reveal-motion': 'R2', 'voting-results-charts': 'R2', 'voting-v2-and-ranking': 'R2',
   'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2', 'profile-avatars-and-team-space': 'R2',
