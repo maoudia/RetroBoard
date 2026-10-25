@@ -4,7 +4,7 @@
 
 - [x] 1.1 `STICKY_COLORS` (8 colours, light and dark values) in packages/themes with contrast tests; map existing colour indexes; verify the theme suite
 - [x] 1.2 `Column.color` default per column (domain, templates, `column.update.color`), drafts and notes start with it; verify unit tests and e2e
-- [ ] 1.3 Quick swatch row on notes and the full palette sheet (rounded large swatches, spring selection, reduced-motion fallback, fr/en, keyboard accessible); verify e2e on chromium and phone and axe
+- [x] 1.3 Quick swatch row on notes and the full palette sheet (rounded large swatches, spring selection, reduced-motion fallback, fr/en, keyboard accessible); verify e2e on chromium and phone and axe
 
 ## 2. Composer and limits
 

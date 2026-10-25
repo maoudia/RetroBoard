@@ -624,6 +624,7 @@ export const en: Record<keyof typeof fr, string> = {
   'note.unvote': 'Remove my vote',
   'note.vote': 'Vote',
   'note.options': 'Note options',
+  'note.palette': 'Colour palette',
   'note.color': 'Colour',
   'note.colorN': 'Colour {n}',
   'note.ungroup': 'Remove from group',

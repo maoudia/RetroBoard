@@ -204,6 +204,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <ConfirmDialog v-model:open="takeoverOpen" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />
       <TemplateDialog />
       <ColumnEditorDialog />
+      <PaletteDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />
       <PasscodeDialog :open="needsPasscode" :wrong="board.accessDenied" @submit="unlock" />
     </template>

@@ -9,6 +9,8 @@ const ui = useUiStore()
 const live = useLiveStore()
 const flights = useFlights()
 
+/** Swatches shown on hover; the full palette is one click away. */
+const QUICK = [0, 1, 2, 3, 5]
 const el = ref<HTMLElement | null>(null)
 const editing = ref(false)
 const draft = ref('')
@@ -59,6 +61,14 @@ function onDrop() {
       <button class="mini-btn" type="button" :aria-label="t('note.save')" @click="saveEdit"><Icon name="lucide:check" /></button>
     </div>
 
+    <div v-if="!editing" class="quick" role="group" :aria-label="t('note.color')" :data-testid="`quick-${note.id}`">
+      <button
+        v-for="i in QUICK" :key="i" type="button" class="q" :class="{ on: note.color === i }" :style="{ background: `var(--note-${i})` }"
+        :aria-label="t('note.colorN', { n: i + 1 })" :aria-pressed="note.color === i" :data-testid="`quick-color-${note.id}-${i}`" @click.stop="board.commands.recolorNote(note.id, i)"
+      />
+      <button type="button" class="q more" :aria-label="t('note.palette')" :data-testid="`quick-palette-${note.id}`" @click.stop="ui.openPalette(note.id)"><Icon name="lucide:palette" /></button>
+    </div>
+
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <span class="grow" />
@@ -82,6 +92,15 @@ function onDrop() {
 .note.over { outline-color: var(--accent); transform: scale(1.04); }
 .note::after { content: ''; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: .0; }
 .text { overflow-wrap: anywhere; white-space: pre-wrap; font-weight: 500; line-height: 1.3; }
+.quick {
+  position: absolute; top: -13px; right: 10px; display: flex; gap: 4px; align-items: center; padding: 3px 6px; border-radius: 999px;
+  background: var(--surface); box-shadow: var(--shadow-1), 0 0 0 1px var(--border); opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.note:hover .quick, .note:focus-within .quick { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .quick { display: none; } }
+.q { width: 16px; height: 16px; padding: 0; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; display: grid; place-items: center; }
+.q.on { border-color: var(--text); }
+.q.more { background: transparent; border: 0; box-shadow: none; color: var(--text); font-size: .85rem; }
 footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem; }
 .grow { flex: 1; }
 .by { font-size: .74rem; font-style: italic; opacity: .78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }

@@ -623,6 +623,7 @@ export const fr = {
   'note.unvote': 'Retirer mon vote',
   'note.vote': 'Voter',
   'note.options': 'Options du post-it',
+  'note.palette': 'Palette de couleurs',
   'note.color': 'Couleur',
   'note.colorN': 'Couleur {n}',
   'note.ungroup': 'Retirer du groupe',

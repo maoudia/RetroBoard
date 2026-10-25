@@ -29,6 +29,17 @@ test.describe('accessibility (axe)', () => {
     }
   })
 
+  test('palette sheet and hover swatches', async ({ page }) => {
+    await createBoard(page)
+    await publishNote(page, 0, 'Couleur')
+    const note = page.locator('article.note', { hasText: 'Couleur' })
+    await note.hover()
+    await note.getByLabel(/palette/i).click()
+    await expect(page.getByTestId('palette')).toBeVisible()
+    await page.waitForTimeout(500)
+    expect(await audit(page)).toEqual([])
+  })
+
   test('legal, privacy and terms pages', async ({ page }) => {
     for (const path of ['/legal', '/privacy', '/terms']) {
       await page.goto(path)

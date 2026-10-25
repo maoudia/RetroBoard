@@ -6,6 +6,7 @@ const { t } = useT()
 const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()
 const emit = defineEmits<{ edit: [] }>()
 const board = useBoardStore()
+const ui = useUiStore()
 const others = computed(() => board.columns.filter((c) => c.id !== props.note.columnId))
 </script>
 
@@ -23,6 +24,7 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           :aria-label="t('note.colorN', { n: i })" @click="board.commands.recolorNote(note.id, i - 1); close()"
         />
       </div>
+      <button class="dd-item" type="button" role="menuitem" :data-testid="`palette-open-${note.id}`" @click="ui.openPalette(note.id); close()"><Icon name="lucide:palette" /> {{ t('note.palette') }}</button>
       <div class="dd-sep" />
       <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.commands.ungroupNote(note.id); close()">
         <Icon name="lucide:ungroup" /> {{ t('note.ungroup') }}
