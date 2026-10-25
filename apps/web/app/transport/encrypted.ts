@@ -43,7 +43,7 @@ export interface EncryptedDeps {
 
 const toError = (reason: IgnoreReason): ErrorCode =>
   reason === 'rate-limited' ? 'limit-reached'
-    : reason === 'hidden' ? 'forbidden'
+    : reason === 'hidden' || reason === 'closed' ? 'forbidden'
     : reason === 'not-facilitator' || reason === 'no-genesis' || reason === 'bad-genesis' || reason === 'duplicate-genesis' ? 'forbidden' : reason
 
 export function buildWs2Url(base: string, roomId: string, loc: Pick<Location, 'protocol' | 'host'>): string {
@@ -231,13 +231,25 @@ export class EncryptedRelayTransport implements BoardTransport {
     try { return JSON.parse(fromUtf8(pt)) as unknown } catch { return null }
   }
 
+  /** Set once the board is destroyed: the local copy is deleted and nothing is stored again. */
+  private forgotten = false
+  private forgetReplica(): void {
+    if (this.forgotten) return
+    this.forgotten = true
+    clearTimeout(this.replicaTimer)
+    this.replicaTimer = undefined
+    this.pendingReplica = []
+    void this.deps.replica?.delete(this.ring.roomId).catch(() => { /* best effort */ })
+  }
+
   private pendingReplica: Envelope[] = []
   private replicaTimer: ReturnType<typeof setTimeout> | undefined
 
   /** Envelopes are already ciphertext: the replica stores them as they are, in small batches. */
   private remember(envs: readonly Envelope[]): void {
     const replica = this.deps.replica
-    if (!replica || envs.length === 0) return
+    if (!replica || envs.length === 0 || this.forgotten) return
+    if (this.log.ledger.board.settings.destroyed) { this.forgetReplica(); return }
     this.pendingReplica.push(...envs)
     if (this.replicaTimer) return
     this.replicaTimer = setTimeout(() => {
@@ -636,6 +648,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private emit(): void {
     if (!this.synced && this.log.ledger.facilitatorKey === null) return
     const ledger = this.log.ledger
+    if (ledger.board.settings.destroyed) this.forgetReplica()
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
     const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey }

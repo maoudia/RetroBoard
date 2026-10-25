@@ -7,5 +7,5 @@
 
 ## 2. Product
 
-- [ ] 2.1 Destroy flow: confirmation by title, replica wipe, recents removal, closed-board page, suggestion after export (fr/en); verify e2e with two contexts and an offline third
+- [x] 2.1 Destroy flow: confirmation by title, replica wipe, recents removal, closed-board page, suggestion after export (fr/en); verify e2e with two contexts and an offline third
 - [ ] 2.2 Reset menu (board, column, votes, clock) with confirmations and everyone-toasts, previous-phase button in the agenda panel; verify e2e

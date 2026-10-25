@@ -40,6 +40,12 @@ export const useDraftsStore = defineStore('drafts', () => {
     drafts.value = [...drafts.value, ...items.map((i) => ({ id: randomId(6), ...i }))]
     persist()
   }
+  /** Forgets every local draft and typed text of the current room (board destroyed). */
+  function clear() {
+    drafts.value = []
+    composing.value = {}
+    if (room.value) { safeStorage.remove(key()); safeStorage.remove(composeKey()) }
+  }
   function remove(id: string) { drafts.value = drafts.value.filter((d) => d.id !== id); persist() }
   function removeMany(ids: string[]) { const s = new Set(ids); drafts.value = drafts.value.filter((d) => !s.has(d.id)); persist() }
   function prune(columnIds: string[]) {
@@ -50,5 +56,5 @@ export const useDraftsStore = defineStore('drafts', () => {
   const forColumn = (columnId: string) => drafts.value.filter((d) => d.columnId === columnId)
   const count = computed(() => drafts.value.length)
 
-  return { drafts, composing, compose, setCompose, load, add, restore, remove, removeMany, prune, forColumn, count }
+  return { drafts, composing, compose, setCompose, clear, load, add, restore, remove, removeMany, prune, forColumn, count }
 })

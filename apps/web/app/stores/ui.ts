@@ -1,5 +1,5 @@
 import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
-export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | null
+export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | null
 
 /** Purely visual state shared by components. */
 export const useUiStore = defineStore('ui', () => {

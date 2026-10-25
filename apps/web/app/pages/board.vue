@@ -4,6 +4,7 @@ import { LIMITS } from '@retroboard/domain'
 import { isLocalRoom } from '~/transport'
 import { boardHash, inviteFromHash, inviteRoomId, isRetiredLink } from '~/utils/invite'
 import { errorLabel } from '~/utils/labels'
+import { safeStorage } from '~/utils/storage'
 const { t, locale } = useT()
 
 const route = useRoute()
@@ -11,6 +12,7 @@ const { $ports } = useNuxtApp()
 const board = useBoardStore()
 const identity = useIdentityStore()
 const drafts = useDraftsStore()
+const recents = useRecentsStore()
 const theme = useThemeStore()
 const ui = useUiStore()
 const { push } = useToasts()
@@ -25,6 +27,21 @@ const retiredLink = computed(() => !validRoom.value && isRetiredLink(route.hash)
 const canSteer = computed(() => invite.value?.kind === 'legacy' || !!invite.value?.ring.facilitatorSecret)
 const needsSetup = computed(() => board.ready && !board.settings?.initialized && canSteer.value)
 const setupOpen = ref(false)
+
+/** Closed boards: the facilitator destroyed it. Only the (random) room id is remembered, to explain the link next time. */
+const closedKey = (id: string) => `retroboard:closed:${id}`
+const closed = ref(false)
+function closeLocal() {
+  const id = roomId.value
+  if (!id || closed.value) return
+  closed.value = true
+  safeStorage.set(closedKey(id), Date.now())
+  drafts.clear()
+  void recents.remove(id)
+  // The transport deletes the encrypted copy itself and stays connected on purpose: a participant who was
+  // offline can still learn about the closing from the peers that are here.
+}
+watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal() }, { immediate: true })
 
 useHead({ title: computed(() => `${board.settings?.title ?? t('board.defaultTitle')} - RetroBoard`) })
 
@@ -42,7 +59,9 @@ function takeHandoff(id: string): string | null {
 
 function enter() {
   board.disconnect()
+  closed.value = false
   if (!validRoom.value) return
+  if (safeStorage.get<number | null>(closedKey(roomId.value), null) !== null) { closed.value = true; return }
   identity.load()
   drafts.load(roomId.value)
   const inv = invite.value!
@@ -133,7 +152,6 @@ watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog ===
 
 // The board's theme is shared: everybody sees the same ambiance.
 const settings = useSettingsStore()
-const recents = useRecentsStore()
 // Imposed: everyone sees the board's theme; only light or dark is personal.
 const effectiveThemeId = computed(() => board.settings?.themeId)
 watch(effectiveThemeId, (id) => { if (id && id !== theme.themeId) void theme.use(id, false) }, { immediate: true })
@@ -173,6 +191,12 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <template #actions><NuxtLink class="btn btn-primary" to="/">{{ t('board.invalid.cta') }}</NuxtLink></template>
     </ServicePage>
 
+    <ServicePage
+      v-else-if="closed" icon="lucide:flame" :title="t('board.closed.title')" :lead="t('board.closed.lead')" testid="board-closed"
+    >
+      <template #actions><NuxtLink class="btn btn-primary" to="/new" data-testid="closed-new">{{ t('board.closed.new') }}</NuxtLink><NuxtLink class="btn" to="/">{{ t('service.home') }}</NuxtLink></template>
+    </ServicePage>
+
     <template v-else>
       <AppToolbar v-if="board.ready" />
       <CursorLayer v-if="board.ready" />
@@ -205,6 +229,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <TemplateDialog />
       <ColumnEditorDialog />
       <PaletteDialog />
+      <DestroyDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />
       <PasscodeDialog :open="needsPasscode" :wrong="board.accessDenied" @submit="unlock" />
     </template>

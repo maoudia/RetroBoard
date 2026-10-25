@@ -130,6 +130,10 @@ async function restoreBoardFile(e: Event) {
           </span>
           <input ref="fileInput" type="file" accept=".retro,application/json" class="visually-hidden" tabindex="-1" aria-hidden="true" data-testid="import-retro-input" @change="restoreBoardFile" />
         </div>
+        <p v-if="board.access.role !== 'participant'" class="after small muted" data-testid="export-after">
+          {{ t('destroy.afterExport') }}
+          <button class="link" type="button" data-testid="export-destroy" @click="ui.open('destroy')">{{ t('options.destroyBtn') }}</button>
+        </p>
       </section>
     </div>
   </BaseDialog>
@@ -149,6 +153,8 @@ async function restoreBoardFile(e: Event) {
 .small { font-size: .85rem; margin: 0; }
 .preview { max-height: 34vh; overflow: auto; margin: 0; padding: .7rem .8rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .preview.doc { white-space: normal; font-size: .88rem; }
+.after { padding-top: .6rem; border-top: 1px solid var(--border); }
+.link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
 .boardfile { display: grid; gap: .4rem; padding-top: .7rem; border-top: 1px solid var(--border); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 </style>

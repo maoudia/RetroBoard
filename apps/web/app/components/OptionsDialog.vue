@@ -34,9 +34,9 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <div class="line">
           <span><strong>{{ t('options.noteMax') }}</strong><small class="muted">{{ t('options.noteMax.hint') }}</small></span>
           <span class="stepper">
-            <button class="mini-btn" type="button" :aria-label="t('options.less')" :disabled="s.noteMaxLength <= NOTE_TEXT_MIN" data-testid="opt-note-max-less" @click="set({ noteMaxLength: Math.max(NOTE_TEXT_MIN, s.noteMaxLength - 20) })"><Icon name="lucide:minus" /></button>
+            <button class="mini-btn" type="button" :aria-label="t('options.noteMax.less')" :disabled="s.noteMaxLength <= NOTE_TEXT_MIN" data-testid="opt-note-max-less" @click="set({ noteMaxLength: Math.max(NOTE_TEXT_MIN, s.noteMaxLength - 20) })"><Icon name="lucide:minus" /></button>
             <output class="mono" data-testid="opt-note-max">{{ s.noteMaxLength }}</output>
-            <button class="mini-btn" type="button" :aria-label="t('options.more')" :disabled="s.noteMaxLength >= LIMITS.noteText" data-testid="opt-note-max-more" @click="set({ noteMaxLength: Math.min(LIMITS.noteText, s.noteMaxLength + 20) })"><Icon name="lucide:plus" /></button>
+            <button class="mini-btn" type="button" :aria-label="t('options.noteMax.more')" :disabled="s.noteMaxLength >= LIMITS.noteText" data-testid="opt-note-max-more" @click="set({ noteMaxLength: Math.min(LIMITS.noteText, s.noteMaxLength + 20) })"><Icon name="lucide:plus" /></button>
           </span>
         </div>
       </section>
@@ -136,6 +136,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <div class="line">
           <span><strong>{{ t('options.reset') }}</strong><small class="muted">{{ t('options.reset.hint') }}</small></span>
           <button class="btn btn-danger btn-sm" type="button" data-testid="opt-reset" @click="resetAsk = true"><Icon name="lucide:trash" /> {{ t('options.resetBtn') }}</button>
+        </div>
+        <div v-if="board.access.role !== 'participant'" class="line">
+          <span><strong>{{ t('options.destroy') }}</strong><small class="muted">{{ t('options.destroy.hint') }}</small></span>
+          <button class="btn btn-danger btn-sm" type="button" data-testid="opt-destroy" @click="ui.open('destroy')"><Icon name="lucide:flame" /> {{ t('options.destroyBtn') }}</button>
         </div>
       </section>
       </fieldset>
