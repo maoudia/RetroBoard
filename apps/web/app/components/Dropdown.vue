@@ -11,7 +11,7 @@ const panel = ref<HTMLElement | null>(null)
 const close = () => { open.value = false }
 /** The browser may scroll the focused trigger into view right after opening: that must not close the menu. */
 let openedAt = 0
-const onScroll = () => { if (performance.now() - openedAt > 250) close() }
+const onScroll = (e: Event) => { if (panel.value?.contains(e.target as Node)) return; if (performance.now() - openedAt > 250) close() }
 const toggle = () => { open.value = !open.value }
 
 function place() {

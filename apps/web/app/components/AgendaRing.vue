@@ -72,6 +72,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
     </template>
 
     <div class="panel" data-testid="agenda-panel">
+      <div class="big"><ActivityRings :progress="rings" :size="96" /></div>
       <ol class="phases">
         <li v-for="(p, i) in agenda.phases" :key="p.id" :class="{ now: i === agenda.current, past: i < agenda.current }" :aria-current="i === agenda.current ? 'step' : undefined" :data-testid="`phase-${i}`">
           <span class="nm">{{ phaseName(p.kind) }}</span>
@@ -118,4 +119,12 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 .note { margin: 0; padding: .4rem .6rem; border-radius: 8px; background: color-mix(in oklab, var(--danger) 14%, transparent); color: var(--danger); font-weight: 600; }
 .small { margin: 0; font-size: .8rem; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+</style>
+
+<style>
+/* Presenter mode and TV: the toolbar rings grow so they read from the back of the room. */
+:root[data-presenter] .ring .rings { width: 96px; height: 96px; }
+:root[data-presenter] .ring .txt strong { font-size: 1.8rem; }
+@media (min-width: 2200px) { .ring .rings { width: 96px; height: 96px; } }
+.panel .big { display: grid; justify-items: center; }
 </style>

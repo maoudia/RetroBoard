@@ -35,6 +35,12 @@ test.describe('time-boxed agenda', () => {
     const token = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ring-1').trim())
     expect(token).toMatch(/^#[0-9a-f]{6}$/i)
     expect(stroke).not.toBe('none')
+    // Large rings in the panel, and bigger toolbar rings in presenter mode.
+    await panel(page, async () => { await expect(page.getByTestId('agenda-panel').getByTestId('activity-rings')).toHaveAttribute('width', '96') })
+    const small = (await rings.first().boundingBox())!.width
+    await page.getByTestId('btn-presenter').click()
+    await expect.poll(async () => (await rings.first().boundingBox())!.width).toBeGreaterThan(small)
+    await page.keyboard.press('Escape')
     // The text alternative says where the team is.
     await expect(page.getByTestId('agenda-ring')).toContainText(/%/)
   })
