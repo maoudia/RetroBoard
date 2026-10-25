@@ -11,7 +11,11 @@ const title = ref('')
 const resetAsk = ref(false)
 watch(open, (v) => { if (v) title.value = board.settings?.title ?? '' })
 
-const set = (patch: SettingsPatch) => board.commands.updateSettings(patch)
+const set = (patch: SettingsPatch) => {
+  board.commands.updateSettings(patch)
+  // Switching an open board to one facilitator: whoever switches becomes the lead.
+  if (patch.openFacilitation === false && board.myKey) { ui.takeoverAsked = true; board.sendRole('role.claim', board.myKey) }
+}
 const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.value.title) set({ title: title.value }) }
 </script>
 

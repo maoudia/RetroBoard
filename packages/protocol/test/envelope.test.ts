@@ -64,7 +64,7 @@ describe('board file and v2 payload details', () => {
     expect(parsePresence({ ...base, conn: 'no' })).toBeNull()
   })
 
-  it.each(['role.delegate', 'role.revoke', 'role.handover', 'participant.hide', 'participant.unhide'])('accepts the %s role event', async (t) => {
+  it.each(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide'])('accepts the %s role event', async (t) => {
     const { parseSignedEvent } = await import('../src')
     expect(parseSignedEvent({ id: env.id, at: 1, author: key, sig: 'A'.repeat(86), body: { t, key } })).not.toBeNull()
     expect(parseSignedEvent({ id: env.id, at: 1, author: key, sig: 'A'.repeat(86), body: { t, key: 'bad' } })).toBeNull()

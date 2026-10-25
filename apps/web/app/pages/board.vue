@@ -88,6 +88,8 @@ watch(needsSetup, (need) => {
 })
 function sendSetup(s: SetupResult) {
   board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value, openFacilitation: s.facilitation !== 'one' })
+  // One facilitator: the creator's tab is the lead (it never gets the takeover question).
+  if (s.facilitation === 'one' && board.myKey) { ui.takeoverAsked = true; board.sendRole('role.claim', board.myKey) }
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
   if (s.importActions?.length) board.commands.importActions(s.importActions)
   if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish })
@@ -97,6 +99,19 @@ function sendSetup(s: SetupResult) {
   if (!isLocalRoom(roomId.value)) { shareOnReady.value = true; shareAfterReview.value = !!s.importActions?.length }
 }
 const shareOnReady = ref(false)
+
+// One facilitator: opening the facilitator link while someone else leads asks before taking over.
+const takeoverOpen = ref(false)
+const leadName = computed(() => board.peers.find((p) => !p.me && p.role === 'facilitator')?.name ?? t('common.anonymous'))
+watch(() => [board.ready, board.settings?.initialized, board.settings?.openFacilitation, board.access.isLead, board.access.role] as const, ([ready, init, open, lead, role]) => {
+  const holdsLink = invite.value?.kind === 'encrypted' && !!invite.value.ring.facilitatorSecret
+  if (ready && init && open === false && !lead && role !== 'participant' && holdsLink && !ui.takeoverAsked && !setupOpen.value) { ui.takeoverAsked = true; takeoverOpen.value = true }
+})
+function takeOver() { if (board.myKey) board.sendRole('role.claim', board.myKey) }
+// The lead lost the role to someone else's takeover.
+watch(() => board.access.isLead, (now, was) => {
+  if (was && !now && board.settings?.openFacilitation === false) push(t('roles.takeover.lost', { name: leadName.value }), 'info', 8000)
+})
 // Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
 watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })
 function onPresenterKey(e: KeyboardEvent) {
@@ -186,6 +201,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <OptionsDialog />
       <NameDialog />
       <NameNudge />
+      <ConfirmDialog v-model:open="takeoverOpen" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />
       <TemplateDialog />
       <ColumnEditorDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />

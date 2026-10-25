@@ -19,6 +19,8 @@ export const useUiStore = defineStore('ui', () => {
   const dragNoteId = ref<string | null>(null)
   /** The carried-over actions review was closed (the invite panel waits for it on new boards). */
   const reviewDone = ref(false)
+  /** This tab already answered (or caused) the "take over facilitation?" question. */
+  const takeoverAsked = ref(false)
   /** Presenter mode (screen sharing, room screen): larger type, no drafts, no pointers, QR to join. */
   const presenter = ref(false)
   /** My view filter (text, colours, author, has votes). Never shared. */
@@ -30,5 +32,5 @@ export const useUiStore = defineStore('ui', () => {
   const close = () => { dialog.value = null }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, expandedColumns, toggleExpanded, dragGroupId }
 })

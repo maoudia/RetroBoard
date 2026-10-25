@@ -59,13 +59,13 @@ export const useBoardStore = defineStore('board', () => {
 
   function updateIdentity(identity: Identity) { transport?.updateIdentity(identity) }
   /** Encrypted boards: my access. Legacy boards have no roles: everybody may steer. */
-  const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, bypassesPhase: true, canManageRoles: false })
+  const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, bypassesPhase: true, canManageRoles: false, isLead: true })
   /** Phase rules: may I do this now? Facilitators always may. */
   // Open boards: steering commands are open to all, content commands still follow the phase.
   /** Phase cue for a command: open, closed (why, and when it opens) or open for me as facilitator. */
   const availability = (command: CommandType) => phaseAvailability(snapshot.value?.agenda ?? null, command, access.value.bypassesPhase)
   const allowed = (command: CommandType) => access.value.bypassesPhase || (access.value.canSteer && PRIVILEGED_COMMANDS.has(command)) || allowedInPhase(snapshot.value?.agenda ?? null, command)
-  const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
+  const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
   /** Three words everyone sees for this board (shared boards only), in the board's language. */
   const roomCode = computed(() => (roomId.value && !roomId.value.startsWith('local-') && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))

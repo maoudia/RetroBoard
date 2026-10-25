@@ -29,7 +29,7 @@ function statusLabel(p: Peer): string | null {
   return s.status === 'idle' ? t('live.idle') : null
 }
 
-function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', p: Peer) {
+function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide', p: Peer) {
   if (!p.key || !board.sendRole(change, p.key)) { push(t('roles.failed'), 'warn'); return }
   if (change === 'participant.hide') push(t('roles.hidden.newBoard'), 'warn')
 }

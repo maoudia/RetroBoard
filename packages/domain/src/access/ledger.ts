@@ -22,10 +22,12 @@ export interface GenesisBody { readonly t: 'genesis'; readonly roomId: string; r
 export interface CommandBody { readonly t: 'cmd'; readonly cmd: Command; readonly name: string | null; readonly showName: boolean }
 /**
  * Role events, by session public key: delegate (co-facilitator), revoke, hand over (the key
- * becomes the facilitator, the previous one stays co-facilitator), hide/unhide a participant.
+ * becomes the facilitator, the previous one stays co-facilitator), claim (take over with the
+ * facilitator link: same effect as a hand-over, but only the capability key may sign it, and the
+ * last claim in the total order wins), hide/unhide a participant.
  */
 export interface RoleBody {
-  readonly t: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide'
+  readonly t: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide'
   readonly key: string
 }
 /** @deprecated name kept for readers of earlier code: same as RoleBody. */
@@ -135,6 +137,8 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
   if (isRoleChange(body)) {
     if (author !== ledger.lead && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
+    // A takeover is the facilitator link at work: signed by the capability key, never by a co-facilitator's session key.
+    if (body.t === 'role.claim' && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
   } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
     return ignore(ledger, 'not-facilitator')
   } else if (body.t === 'cmd' && body.cmd.t === 'settings.update' && body.cmd.openFacilitation !== undefined && !ledger.facilitators.includes(author)) {
@@ -155,6 +159,7 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
       // The genesis key is the root of trust, and the facilitator must hand over first.
       if (body.key === ledger.facilitatorKey || body.key === ledger.lead) return ignore(ledger, 'forbidden')
       return applied(ledger, { facilitators: without(ledger.facilitators, body.key) })
+    case 'role.claim':
     case 'role.handover':
       if (ledger.hidden.includes(body.key)) return ignore(ledger, 'forbidden')
       return applied(ledger, { lead: body.key, facilitators: ledger.facilitators.includes(body.key) ? ledger.facilitators : [...ledger.facilitators, body.key] })

@@ -239,3 +239,34 @@ describe('everyone facilitates (open boards)', () => {
     expect(foldEvent(open, cmd(ALICE, { t: 'settings.update', locked: true })).ok).toBe(true)
   })
 })
+
+describe('takeover with the facilitator link (role.claim)', () => {
+  it('the last claim wins; every previous lead stays co-facilitator', () => {
+    let l = foldAll(started(), [ev(FAC, { t: 'role.claim', key: ALICE })])
+    expect(l.lead).toBe(ALICE)
+    expect(roleOf(l, FAC)).toBe('co-facilitator')
+    l = foldAll(l, [ev(FAC, { t: 'role.claim', key: BOB })])
+    expect(l.lead).toBe(BOB)
+    expect(roleOf(l, ALICE)).toBe('co-facilitator')
+    expect(roleOf(l, BOB)).toBe('facilitator')
+  })
+
+  it('is replayed identically on every peer (same events, same lead)', () => {
+    const events = [ev(FAC, { t: 'role.claim', key: ALICE }), ev(FAC, { t: 'role.claim', key: BOB }), ev(FAC, { t: 'role.claim', key: ALICE })]
+    expect(foldAll(started(), events).lead).toBe(ALICE)
+    expect(foldAll(started(), events).lead).toBe(foldAll(started(), events).lead)
+  })
+
+  it('only the capability key may claim: not a lead, a co-facilitator or a participant', () => {
+    const l = foldAll(started(), [ev(FAC, { t: 'role.claim', key: ALICE }), ev(ALICE, { t: 'role.delegate', key: CO })])
+    expect(foldEvent(l, ev(ALICE, { t: 'role.claim', key: BOB }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, ev(CO, { t: 'role.claim', key: CO }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, ev(BOB, { t: 'role.claim', key: BOB }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+  })
+
+  it('ignores a claim for a hidden participant or a malformed key', () => {
+    const hidden = foldAll(started(), [ev(FAC, { t: 'participant.hide', key: ALICE })])
+    expect(foldEvent(hidden, ev(FAC, { t: 'role.claim', key: ALICE }))).toMatchObject({ ok: false, reason: 'forbidden' })
+    expect(foldEvent(started(), ev(FAC, { t: 'role.claim', key: 'short' }))).toMatchObject({ ok: false, reason: 'invalid' })
+  })
+})
