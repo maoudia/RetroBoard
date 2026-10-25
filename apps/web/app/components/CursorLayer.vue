@@ -16,6 +16,7 @@ let raf = 0
 let tick: ReturnType<typeof setInterval> | undefined
 
 const ui = useUiStore()
+const { isLeadConn } = useLead()
 const enabled = computed(() => settings.s.showCursors && !coarse.value && !ui.presenter)
 const cursors = computed(() => (enabled.value ? live.visible : []))
 
@@ -62,7 +63,7 @@ const label = (c: LiveCursor) => c.name || t('common.anonymous')
     <div class="cursors" aria-hidden="true">
       <div v-for="c in cursors" :key="c.conn" :ref="(el) => bindEl(c.conn, el)" class="cursor" :class="`c-${c.color}`" :data-testid="`cursor-${c.conn}`" hidden>
         <svg viewBox="0 0 16 16" width="18" height="18"><path d="M1 1l5.5 14 2-6 6-2z" /></svg>
-        <span class="label">{{ label(c) }}</span>
+        <span class="label"><Icon v-if="isLeadConn(c.conn)" class="crown" name="lucide:crown" :data-testid="`crown-${c.conn}`" /><span v-if="isLeadConn(c.conn)" class="sr-only">{{ t('roles.facilitator') }}: </span>{{ label(c) }}</span>
       </div>
     </div>
   </Teleport>
@@ -73,6 +74,7 @@ const label = (c: LiveCursor) => c.name || t('common.anonymous')
 .cursor { position: absolute; top: 0; left: 0; will-change: transform; }
 .cursor svg { display: block; fill: var(--c); stroke: var(--ink); stroke-width: 1; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .3)); }
 .label { position: absolute; left: 14px; top: 14px; padding: .1rem .4rem; font-size: .72rem; font-weight: 600; white-space: nowrap; border-radius: 6px; background: var(--c); color: var(--ink); }
+.crown { position: absolute; left: 0; top: -15px; width: 14px; height: 14px; color: var(--ink); filter: drop-shadow(0 0 1px var(--c)); }
 .c-0 { --c: var(--note-0); } .c-1 { --c: var(--note-1); } .c-2 { --c: var(--note-2); } .c-3 { --c: var(--note-3); }
 .c-4 { --c: var(--note-4); } .c-5 { --c: var(--note-5); } .c-6 { --c: var(--note-6); } .c-7 { --c: var(--note-7); }
 </style>

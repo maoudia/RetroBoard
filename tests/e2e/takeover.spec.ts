@@ -3,7 +3,9 @@ import { createBoard, enterName } from './helpers'
 
 async function facilitatorLink(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
-  await page.getByTestId('share-facilitator-toggle').click()
+  // One facilitator: the link has its own card; open boards keep it under Advanced.
+  const toggle = page.getByTestId('share-facilitator-toggle')
+  if (await toggle.count()) await toggle.click()
   const url = await page.getByTestId('share-facilitator-url').inputValue()
   await page.keyboard.press('Escape')
   return url
@@ -58,4 +60,59 @@ test('open boards never ask', async ({ page, browser }) => {
   await erin.page.waitForTimeout(1_500)
   await expect(erin.page.getByRole('dialog')).toHaveCount(0)
   await erin.ctx.close()
+})
+
+test('the lead sees the facilitator link card at once, hands over to a connected participant, and the crown follows', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await page.getByTestId('btn-share').click()
+  const participantUrl = await page.getByTestId('share-url').inputValue()
+  // No expanding needed: card, warning and copy are visible.
+  await expect(page.getByTestId('share-facilitator-card')).toBeVisible()
+  await expect(page.getByTestId('share-facilitator-url')).toBeVisible()
+  await expect(page.getByTestId('share-facilitator-copy')).toBeVisible()
+  await expect(page.getByTestId('share-handover-select')).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  const bob = await openAs(browser, participantUrl, 'Bob')
+  // Bob has no facilitator link: he sees neither the card nor the link.
+  await bob.page.getByTestId('btn-share').click()
+  await expect(bob.page.getByTestId('share-facilitator-card')).toHaveCount(0)
+  await bob.page.keyboard.press('Escape')
+
+  await page.getByTestId('btn-share').click()
+  await page.getByTestId('share-handover-select').selectOption({ label: 'Bob' })
+  await page.getByTestId('share-handover').click()
+  await page.keyboard.press('Escape')
+
+  // The crown badge moves to Bob in everyone's participants list.
+  await bob.page.getByTestId('btn-participants').click()
+  await expect(bob.page.getByTestId('peers').locator('[data-role="facilitator"]')).toContainText('Bob')
+  await expect(bob.page.getByTestId('peers').locator('[data-role="facilitator"] [data-testid="badge-facilitator"]')).toBeVisible()
+  await bob.ctx.close()
+})
+
+test('the lead\'s pointer carries a crown for others, an ordinary pointer does not', async ({ page, browser, isMobile }) => {
+  test.skip(isMobile, 'touch screens show no floating pointers')
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await page.getByTestId('btn-share').click()
+  const url = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await openAs(browser, url, 'Bob')
+
+  // Alice (lead) points at the board; Bob sees a pointer with a crown.
+  const box = (await page.getByTestId('board').boundingBox())!
+  await page.mouse.move(box.x + 200, box.y + 200)
+  await page.mouse.move(box.x + 260, box.y + 240, { steps: 6 })
+  const alice = bob.page.locator('[data-testid^="cursor-"]', { hasText: 'Alice' })
+  await expect(alice).toBeVisible()
+  await expect(alice.locator('[data-testid^="crown-"]')).toBeVisible()
+
+  // Bob points: Alice sees Bob's pointer without a crown.
+  const bbox = (await bob.page.getByTestId('board').boundingBox())!
+  await bob.page.mouse.move(bbox.x + 300, bbox.y + 200)
+  await bob.page.mouse.move(bbox.x + 340, bbox.y + 240, { steps: 6 })
+  const bobCursor = page.locator('[data-testid^="cursor-"]', { hasText: 'Bob' })
+  await expect(bobCursor).toBeVisible()
+  await expect(bobCursor.locator('[data-testid^="crown-"]')).toHaveCount(0)
+  await bob.ctx.close()
 })

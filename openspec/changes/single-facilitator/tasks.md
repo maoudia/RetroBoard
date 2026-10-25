@@ -8,5 +8,5 @@
 
 ## 2. Visibility
 
-- [ ] 2.1 Crown badge on the lead's pointer, presence markers and participants list; verify e2e and axe
-- [ ] 2.2 Facilitator link card in the share panel with copy, warning and handover to a connected participant (fr/en); verify e2e
+- [x] 2.1 Crown badge on the lead's pointer, presence markers and participants list; verify e2e and axe
+- [x] 2.2 Facilitator link card in the share panel with copy, warning and handover to a connected participant (fr/en); verify e2e

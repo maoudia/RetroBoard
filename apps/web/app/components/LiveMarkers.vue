@@ -4,6 +4,7 @@ const { t } = useT()
 
 /** Who else is here (a note being edited or dragged, a column in view). Up to 3 dots, then +n. */
 const props = defineProps<{ peers?: LiveFocus[]; testid: string }>()
+const { isLeadConn } = useLead()
 const shown = computed(() => (props.peers ?? []).slice(0, 3))
 const more = computed(() => Math.max(0, (props.peers?.length ?? 0) - 3))
 const label = (p: LiveFocus) => p.name || t('common.anonymous')
@@ -12,7 +13,7 @@ const title = computed(() => t('live.here', { names: (props.peers ?? []).map((p)
 
 <template>
   <span v-if="peers?.length" class="markers" role="img" :aria-label="title" :title="title" :data-testid="testid">
-    <span v-for="p in shown" :key="p.conn" class="dot" :class="[`c-${p.color}`, { typing: p.typing }]">{{ label(p).slice(0, 1).toUpperCase() }}</span>
+    <span v-for="p in shown" :key="p.conn" class="dot" :class="[`c-${p.color}`, { typing: p.typing, lead: isLeadConn(p.conn) }]">{{ label(p).slice(0, 1).toUpperCase() }}<Icon v-if="isLeadConn(p.conn)" class="crown" name="lucide:crown" :data-testid="`crown-marker-${p.conn}`" /></span>
     <span v-if="more" class="dot more">+{{ more }}</span>
   </span>
 </template>
@@ -20,6 +21,8 @@ const title = computed(() => t('live.here', { names: (props.peers ?? []).map((p)
 <style scoped>
 .markers { display: inline-flex; align-items: center; }
 .dot { display: grid; place-items: center; width: 20px; height: 20px; margin-left: -5px; font-size: .65rem; font-weight: 700; border-radius: 50%; border: 2px solid var(--surface); background: var(--c); color: var(--ink); }
+.dot { position: relative; }
+.crown { position: absolute; top: -9px; left: 3px; width: 11px; height: 11px; color: var(--text); }
 .dot:first-child { margin-left: 0; }
 .dot.more { background: var(--surface-2, var(--surface)); color: var(--muted); }
 .dot.typing { animation: pulse 1.2s var(--ease) infinite; }

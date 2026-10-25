@@ -25,6 +25,15 @@ const facilitatorUrl = computed(() => {
   return inv?.kind === 'encrypted' && inv.ring.facilitatorSecret ? `${window.location.origin}/board${boardHash(inv, 'facilitator')}` : null
 })
 const showFacilitator = ref(false)
+/** One facilitator: the link has its own card, and the lead can hand over to someone connected. */
+const oneFacilitator = computed(() => board.settings?.openFacilitation === false)
+const connected = computed(() => board.peers.filter((p) => !p.me && p.key && !p.hidden))
+const handTo = ref('')
+function handOver() {
+  if (!handTo.value || !board.sendRole('role.handover', handTo.value)) { push(t('roles.failed'), 'warn'); return }
+  push(t('share.handover.done'), 'ok')
+  handTo.value = ''
+}
 async function copyFacilitator() {
   if (!facilitatorUrl.value) return
   try { await $ports.clipboard.writeText(facilitatorUrl.value); push(t('share.copied'), 'ok') } catch { push(t('share.copyFailed'), 'warn') }
@@ -80,7 +89,22 @@ const showQr = ref(false)
       <li><Icon name="lucide:lock" /> {{ t(encrypted ? 'share.note.memory' : 'share.note.erase') }}</li>
       <li><Icon name="lucide:eye-off" /> {{ t('share.note.drafts') }}</li>
     </ul>
-    <details v-if="facilitatorUrl" class="fac" :open="showFacilitator" @toggle="showFacilitator = ($event.target as HTMLDetailsElement).open">
+    <section v-if="facilitatorUrl && oneFacilitator" class="fac card" data-testid="share-facilitator-card">
+      <h3>{{ t('share.facilitator.card') }}</h3>
+      <p class="muted small"><Icon name="lucide:triangle-alert" aria-hidden="true" /> {{ t('share.facilitator.warn') }}</p>
+      <div class="row">
+        <input class="field mono" :value="facilitatorUrl" readonly :aria-label="t('share.facilitator')" data-testid="share-facilitator-url" @focus="($event.target as HTMLInputElement).select()" />
+        <button class="btn" type="button" data-testid="share-facilitator-copy" @click="copyFacilitator"><Icon name="lucide:copy" /> {{ t('share.copy') }}</button>
+      </div>
+      <div v-if="board.access.canManageRoles" class="row">
+        <select v-model="handTo" class="field" :aria-label="t('share.handover.label')" data-testid="share-handover-select">
+          <option value="">{{ connected.length ? t('share.handover.pick') : t('share.handover.none') }}</option>
+          <option v-for="p in connected" :key="p.key" :value="p.key">{{ p.name ?? t('common.anonymous') }}</option>
+        </select>
+        <button class="btn" type="button" :disabled="!handTo" data-testid="share-handover" @click="handOver"><Icon name="lucide:crown" /> {{ t('roles.handover.ok') }}</button>
+      </div>
+    </section>
+    <details v-else-if="facilitatorUrl" class="fac" :open="showFacilitator" @toggle="showFacilitator = ($event.target as HTMLDetailsElement).open">
       <summary data-testid="share-facilitator-toggle">{{ t(board.settings?.openFacilitation ? 'share.facilitator.advanced' : 'share.facilitator') }}</summary>
       <p class="muted small">{{ t(board.settings?.openFacilitation ? 'share.facilitator.advanced.hint' : 'share.facilitator.hint') }}</p>
       <div v-if="showFacilitator" class="row">
@@ -105,4 +129,5 @@ const showQr = ref(false)
 .fac { display: grid; gap: .5rem; padding-top: .5rem; border-top: 1px solid var(--border); }
 .fac summary { cursor: pointer; font-weight: 600; }
 .small { font-size: .85rem; margin: 0; }
+h3 { font-size: 1rem; margin: 0; }
 </style>

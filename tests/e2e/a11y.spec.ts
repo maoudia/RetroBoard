@@ -53,6 +53,17 @@ test.describe('accessibility (axe)', () => {
     expect(await audit(page)).toEqual([])
   })
 
+  test('one-facilitator share panel with the facilitator link card, and the participants list', async ({ page }) => {
+    await createBoard(page, { theme: 'studio', template: 'start-stop-continue', oneFacilitator: true })
+    await page.getByTestId('btn-share').click()
+    await expect(page.getByTestId('share-facilitator-card')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+    await page.keyboard.press('Escape')
+    await page.getByTestId('btn-participants').click()
+    await expect(page.getByTestId('badge-facilitator')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+  })
+
   test('actions drawer with the owner combobox open, and the results dialog', async ({ page }) => {
     await createBoard(page, { theme: 'studio', template: 'start-stop-continue' })
     await publishNote(page, 0, 'Ranked idea')

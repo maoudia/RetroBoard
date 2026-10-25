@@ -49,8 +49,8 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
         <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}</span>
         <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
-        <span v-if="p.role === 'facilitator'" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
-        <span v-else-if="p.role === 'co-facilitator'" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
+        <span v-if="p.role === 'facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
+        <span v-else-if="p.role === 'co-facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
         <span v-if="p.me" class="pill">{{ t('common.you') }}</span>
         <span v-if="talkOn && p.key && board.snapshot?.talk.active?.speaker === p.key" class="pill talking" data-testid="badge-speaking"><Icon name="lucide:mic" /> {{ t('talk.now') }}</span>
