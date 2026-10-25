@@ -9,6 +9,7 @@ const theme = useThemeStore()
 const identity = useIdentityStore()
 const team = useTeamStore()
 const { push } = useToasts()
+const jumper = useJumpToSource()
 const open = computed({ get: () => ui.dialog === 'actions', set: (v) => { if (!v && ui.dialog === 'actions') ui.close() } })
 const text = ref('')
 const owner = ref('')
@@ -16,7 +17,7 @@ const due = ref('')
 /** Note or group the next action comes from (set by the note and group menus). */
 const source = ref<{ sourceId: string; text: string } | null>(null)
 watch(open, (v) => {
-  if (!v) return
+  if (!v) { ui.focusSource = null; return }
   const from = ui.actionFrom
   if (from) {
     text.value = from.text.slice(0, LIMITS.actionText)
@@ -58,6 +59,7 @@ function saveForNextTime() {
   team.saveActions(board.settings?.title ?? '', board.actions)
   push(t('actions.saved', { n: board.actions.filter(isOpenAction).length }), 'ok')
 }
+const clip = (s: string) => (s.length > 60 ? `${s.slice(0, 60)}...` : s)
 const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 </script>
 
@@ -85,7 +87,7 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
           {{ t(section.key === 'carried' ? 'actions.previous' : 'actions.thisRetro') }}
         </h3>
         <ul class="list" :data-testid="section.key === 'fresh' ? 'actions' : undefined">
-          <li v-for="a in section.items" :key="a.id" :class="[`s-${a.status}`, { done: a.status === 'done' || a.status === 'dropped' }]" :data-testid="`action-${a.id}`" :data-status="a.status">
+          <li v-for="a in section.items" :key="a.id" :class="[`s-${a.status}`, { done: a.status === 'done' || a.status === 'dropped', hl: !!ui.focusSource && a.sourceNote === ui.focusSource }]" :data-testid="`action-${a.id}`" :data-status="a.status">
             <input
               v-if="!workflow" type="checkbox" :checked="a.done" :aria-label="t('actions.done', { text: a.text })"
               @change="toggle(a, ($event.target as HTMLInputElement).checked, $event)"
@@ -98,6 +100,10 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
             </select>
             <span class="txt">
               {{ a.text }}
+              <button v-if="a.sourceNote && jumper.sourceText(a.sourceNote) !== null" class="srclink" type="button" :data-testid="`action-from-${a.id}`" @click="jumper.jump(a.sourceNote)">
+                <Icon name="lucide:sticky-note" aria-hidden="true" /> {{ t('actions.fromLink', { text: clip(jumper.sourceText(a.sourceNote) ?? '') }) }}
+              </button>
+              <small v-else-if="a.sourceNote" class="muted from">{{ t('actions.fromGone') }}</small>
               <small v-if="a.carriedFrom !== null" class="muted from">{{ a.carriedFrom ? t('actions.from', { title: a.carriedFrom }) : t('actions.carried') }}</small>
             </span>
             <span class="meta">
@@ -129,6 +135,8 @@ li input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accen
 .status { padding: .25rem .4rem; font-size: .85rem; }
 .txt { display: grid; overflow-wrap: anywhere; }
 .from { font-size: .78rem; }
+.srclink { justify-self: start; display: inline-flex; gap: .3rem; align-items: center; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: .78rem; text-align: left; cursor: pointer; text-decoration: underline; }
+li.hl { background: var(--accent-soft); border-radius: 8px; }
 .meta { display: inline-flex; gap: .3rem; flex-wrap: wrap; justify-content: flex-end; }
 .due-pill { display: inline-flex; gap: .25rem; align-items: center; }
 .done .txt { text-decoration: line-through; color: var(--muted); }

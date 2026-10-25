@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, type Page, test } from '@playwright/test'
 import { createBoard, enterName, join, noteByText, publishNote } from './helpers'
 
@@ -87,5 +88,52 @@ test.describe('create an action from a note', () => {
     await page.getByTestId('group-create-action').click()
     await expect(page.getByTestId('action-text')).not.toHaveValue('')
     await expect(page.getByTestId('action-source')).toBeVisible()
+  })
+
+  test('the badge shows on every screen and opens the actions; the action links back to the note', async ({ page, browser }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    const bob = await join(browser, await shareLink(page), 'Bob')
+    await publishNote(page, 0, 'Fix the build')
+    await publishNote(page, 1, 'Unrelated')
+    await expect(noteByText(bob.page, 'Fix the build')).toBeVisible()
+
+    await menuOf(page, 'Fix the build')
+    await page.locator('[data-testid^="create-action-"]').click()
+    await page.getByTestId('action-add').click()
+    await page.keyboard.press('Escape')
+
+    const badgeBob = noteByText(bob.page, 'Fix the build').locator('[data-testid^="action-badge-"]')
+    await expect(badgeBob).toHaveText(/1 action/)
+    await expect(noteByText(bob.page, 'Unrelated').locator('[data-testid^="action-badge-"]')).toHaveCount(0)
+    expect((await new AxeBuilder({ page: bob.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([])
+
+    await badgeBob.click()
+    await expect(bob.page.getByTestId('action-text')).toBeVisible()
+    await expect(bob.page.locator('li.hl')).toContainText('Fix the build')
+    await bob.page.locator('[data-testid^="action-from-"]').click()
+    await expect(bob.page.getByTestId('action-text')).toBeHidden()
+    await expect(noteByText(bob.page, 'Fix the build')).toBeFocused()
+
+    // Deleting the idea drops the badge; the action stays without its link.
+    await menuOf(page, 'Fix the build')
+    await page.locator('[data-testid^="delete-"]').click()
+    await expect(noteByText(bob.page, 'Fix the build')).toHaveCount(0)
+    await bob.page.getByTestId('btn-actions').click()
+    await expect(bob.page.locator('[data-testid^="action-"][data-status]')).toContainText('Fix the build')
+    await expect(bob.page.locator('[data-testid^="action-from-"]')).toHaveCount(0)
+    await bob.ctx.close()
+  })
+
+  test('a group carries the badge too', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'One')
+    await publishNote(page, 0, 'Two')
+    await noteByText(page, 'One').dragTo(noteByText(page, 'Two'))
+    await page.locator('[data-testid^="group-"]').first().click()
+    await page.getByTestId('group-create-action').click()
+    await page.getByTestId('action-add').click()
+    await page.keyboard.press('Escape')
+    const badge = page.locator('[data-testid^="action-badge-"]')
+    await expect(badge.first()).toHaveText(/1 action/)
   })
 })

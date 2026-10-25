@@ -1,4 +1,4 @@
-import { allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
+import { type ActionItem, allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { type BoardNotice, buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
@@ -101,6 +101,12 @@ export const useBoardStore = defineStore('board', () => {
   /** Counts are hidden while secret voting is on and voting is still open. */
   const countsHidden = computed(() => secretVoting.value && !votingClosed.value)
   const noteCount = computed(() => snapshot.value?.notes.length ?? 0)
+  /** Actions created from a note or a group, by source id. */
+  const actionsBySource = computed(() => {
+    const map = new Map<string, ActionItem[]>()
+    for (const a of actions.value) if (a.sourceNote) map.set(a.sourceNote, [...(map.get(a.sourceNote) ?? []), a])
+    return map
+  })
   const openActions = computed(() => actions.value.filter((a) => !a.done).length)
 
   function itemsFor(columnId: string, sort: SortMode) {
@@ -111,7 +117,7 @@ export const useBoardStore = defineStore('board', () => {
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
-    settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
+    settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById,
   }
 })

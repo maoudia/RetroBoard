@@ -6,6 +6,7 @@ const props = defineProps<{ item: Extract<ColumnItem, { kind: 'group' }>; secret
 const board = useBoardStore()
 const ui = useUiStore()
 const over = ref(false)
+const fromHere = computed(() => board.actionsBySource.get(props.item.group.id)?.length ?? 0)
 const top = computed(() => props.item.notes[0]!)
 
 function onDrop() {
@@ -28,7 +29,7 @@ const open = () => { ui.openGroupId = props.item.group.id }
 
 <template>
   <div class="cluster" :class="{ expanded }">
-  <section v-if="expanded" class="inline" :class="{ over }" :data-testid="`cluster-inline-${item.group.id}`" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop">
+  <section v-if="expanded" class="inline" :class="{ over }" tabindex="-1" :data-source-id="item.group.id" :data-testid="`cluster-inline-${item.group.id}`" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop">
     <button class="ihead" type="button" :aria-label="t('group.label', { title: item.title, n: item.notes.length })" @click="open">
       <Icon name="lucide:layers" /> <strong>{{ item.title }}</strong> <span class="muted">{{ item.notes.length }}</span>
     </button>
@@ -38,7 +39,7 @@ const open = () => { ui.openGroupId = props.item.group.id }
   </section>
   <button
     v-else
-    type="button" class="stack" :class="{ over }" :data-testid="`group-${item.group.id}`" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
+    type="button" class="stack" :class="{ over }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
     :style="{ '--c': `var(--note-${top.color})`, '--c2': `var(--note-${item.notes[1]?.color ?? top.color})` }"
     draggable="true" @dragstart="onDragStart" @dragend="ui.dragGroupId = null"
     @click="open" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop"
@@ -53,6 +54,9 @@ const open = () => { ui.openGroupId = props.item.group.id }
         <span v-if="!secret && !item.group.votable" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
       </span>
     </span>
+  </button>
+  <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${item.group.id}`" @click.stop="ui.openActionsFor(item.group.id)">
+    <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
   </button>
   <!-- Outside the stack button (no nested buttons): a cluster is voted as one idea. -->
   <VoteControl
@@ -69,6 +73,7 @@ const open = () => { ui.openGroupId = props.item.group.id }
 .inline.over { border-style: solid; border-color: var(--accent); }
 .ihead { display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; text-align: left; }
 .inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .6rem; }
+.abadge { position: absolute; left: .55rem; bottom: .45rem; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
 .gvote { position: absolute; right: .55rem; bottom: .45rem; color: var(--note-ink); }
 .stack { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
 .stack:hover { transform: translateY(-3px) scale(1.015); }

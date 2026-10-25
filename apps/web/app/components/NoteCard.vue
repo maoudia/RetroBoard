@@ -7,6 +7,7 @@ const board = useBoardStore()
 const ui = useUiStore()
 const live = useLiveStore()
 const flights = useFlights()
+const fromHere = computed(() => board.actionsBySource.get(props.note.id)?.length ?? 0)
 
 /** Swatches shown on hover; the full palette is one click away. */
 const QUICK = [0, 1, 2, 3, 5]
@@ -52,7 +53,7 @@ function onDrop() {
 
 <template>
   <article
-    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine }" :data-testid="`note-${note.id}`" :data-anchor="note.id" data-anchor-kind="note"
+    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note"
     :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
@@ -80,6 +81,9 @@ function onDrop() {
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <span class="grow" />
+      <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${note.id}`" @click.stop="ui.openActionsFor(note.id)">
+        <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
+      </button>
       <LiveMarkers :peers="live.onNote.get(note.id)" :testid="`live-note-${note.id}`" />
       <!-- Notes inside a votable cluster are voted through the cluster. -->
       <VoteControl v-if="note.votable" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />
@@ -112,6 +116,8 @@ function onDrop() {
 .q.more { background: transparent; border: 0; box-shadow: none; color: var(--text); font-size: .85rem; }
 footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem; }
 .grow { flex: 1; }
+.abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
+.abadge:hover { background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
 .by { font-size: .74rem; font-style: italic; opacity: .78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
 .vote {
   position: relative; display: inline-flex; align-items: center; gap: .3rem; padding: .22rem .55rem; border-radius: 999px; cursor: pointer;

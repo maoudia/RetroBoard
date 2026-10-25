@@ -812,5 +812,11 @@ export const en: Record<keyof typeof fr, string> = {
   'note.toAction': 'Create an action',
   'actions.fromNote': 'From: {text}',
   'actions.detach': 'Detach from the note',
+  'actions.count.one': '{n} action',
+  'actions.count.other': '{n} actions',
+  'actions.countLabel.one': '{n} action created from this idea: show',
+  'actions.countLabel.other': '{n} actions created from this idea: show',
+  'actions.fromLink': 'from: {text}',
+  'actions.fromGone': 'idea deleted',
 
 }

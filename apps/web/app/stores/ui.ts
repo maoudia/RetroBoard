@@ -37,8 +37,11 @@ export const useUiStore = defineStore('ui', () => {
   /** Action form to prefill when the actions panel opens (from a note or group menu). */
   const actionFrom = ref<{ sourceId: string; text: string; owner: string } | null>(null)
   function openActionFrom(source: { sourceId: string; text: string; owner: string }) { actionFrom.value = source; dialog.value = 'actions' }
+  /** Source note or group whose actions the actions panel highlights. */
+  const focusSource = ref<string | null>(null)
+  function openActionsFor(sourceId: string) { focusSource.value = sourceId; dialog.value = 'actions' }
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, editNoteId, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, dragGroupId }
 })

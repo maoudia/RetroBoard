@@ -812,4 +812,10 @@ export const fr = {
   'note.toAction': 'Créer une action',
   'actions.fromNote': 'À partir de : {text}',
   'actions.detach': 'Détacher de la note',
+  'actions.count.one': '{n} action',
+  'actions.count.other': '{n} actions',
+  'actions.countLabel.one': '{n} action créée depuis cette idée : voir',
+  'actions.countLabel.other': '{n} actions créées depuis cette idée : voir',
+  'actions.fromLink': 'depuis : {text}',
+  'actions.fromGone': 'idée supprimée',
 } as const
