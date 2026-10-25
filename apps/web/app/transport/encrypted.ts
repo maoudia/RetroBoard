@@ -461,11 +461,17 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.mesh?.broadcastLive(JSON.stringify({ t: 'eph', env, hop: 0 } satisfies PeerFrame))
   }
 
+  /** Latest own pointer and focus, resent when a direct link opens (frames sent before it are lost). */
+  private lastCursor: OwnCursor | null = null
+  private lastFocus: OwnFocus | null = null
+
   sendCursor(cursor: OwnCursor): void {
+    this.lastCursor = cursor
     if (this.conn && this.synced) void this.sendPeerLive({ t: 'cursor', conn: this.conn, ...cursor }).catch(() => {})
   }
 
   sendFocus(focus: OwnFocus): void {
+    this.lastFocus = focus
     if (this.conn && this.synced) void this.sendPeerLive({ t: 'focus', conn: this.conn, ...focus }).catch(() => {})
   }
 
@@ -529,6 +535,10 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   private async onPeerOpen(conn: string): Promise<void> {
     this.reportLinks()
+    if (this.conn) {
+      if (this.lastFocus) void this.sendPeerLive({ t: 'focus', conn: this.conn, ...this.lastFocus }).catch(() => {})
+      if (this.lastCursor) void this.sendPeerLive({ t: 'cursor', conn: this.conn, ...this.lastCursor }).catch(() => {})
+    }
     // Initial sync: tell the peer what I hold; it answers with what I lack, then `synced`.
     const ids = this.log.all().map((e) => e.id)
     const parts = chunks(ids, HAVE_CHUNK)

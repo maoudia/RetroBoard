@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { closeShare, createBoard, join, noteByText, publishNote } from './helpers'
+import { closeShare, createBoard, enterName, join, noteByText, publishNote } from './helpers'
 
 const TEXT = 'Deploy on Fridays'
 const variants = (s: string) => {
@@ -219,7 +219,8 @@ test('board file: export, then restore into the same link after the board is gon
   expect(published.join('')).not.toContain('Kept in the file')
 
   // A file for another board is refused.
-  await closeShare(fresh)
+  // The new browser has no name yet: the name dialog sits over the board.
+  await enterName(fresh, 'Alice')
   await fresh.getByTestId('btn-export').click()
   await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'x.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText.replace(/"room":"[^"]+"/, '"room":"Zz3dEfGhIjKlMnOpQrStUv"')) })
   await expect(fresh.getByText(/does not belong|n'appartient pas/)).toBeVisible()
