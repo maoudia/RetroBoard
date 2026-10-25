@@ -43,7 +43,7 @@ const PLAN = {
   'licensing-and-monetization': ['P6', 'A', ['stateless-relay-and-replication']],
   // Owner feedback wave of 2026-10-25.
   'sticky-notes-v2': ['P7', 'A', []],
-  'single-facilitator': ['P7', 'A', []],
+  'single-facilitator': ['P7', 'A', ['open-facilitation-default']],
   'board-lifecycle': ['P7', 'A', []],
   'facilitator-moderation': ['P7', 'A', ['single-facilitator']],
   'cluster-reveal-motion': ['P7', 'B', []],
@@ -54,6 +54,14 @@ const PLAN = {
   'themes-pop-culture': ['P7', 'C', ['activity-rings-timer']],
   'ci-toolchain-speed': ['P7', 'C', []],
   'service-pages': ['P7', 'C', []],
+  // Second owner wave of 2026-10-25.
+  'open-facilitation-default': ['P7', 'A', []],
+  'phase-availability-cues': ['P7', 'B', []],
+  'name-nudge': ['P7', 'B', []],
+  'phase-end-notifications': ['P7', 'B', []],
+  'note-to-action': ['P7', 'C', []],
+  'actions-from-votes': ['P7', 'C', ['note-to-action']],
+  'accessibility-wcag': ['P7', 'C', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
@@ -62,8 +70,8 @@ const PHASES = {
 // Roadmap: every change belongs to one release milestone (the GitHub roadmap is built from these).
 // Target dates are planning targets, revisited at each release review.
 const RELEASES = {
-  R1: { title: 'R1 Beta ready', due: '2026-11-08', description: 'Stable beta for real teams: service pages, one clear facilitator, sticky notes v2, board lifecycle, edge security, peer-to-peer field test, keyboard, faster CI.' },
-  R2: { title: 'R2 Facilitation and visuals', due: '2026-11-29', description: 'Moderation, activity rings, cluster motion, results charts, publishing and note visuals, responsive and profile, exports and report.' },
+  R1: { title: 'R1 Beta ready', due: '2026-11-08', description: 'Stable beta for real teams: service pages, everyone facilitates by default (or one clear facilitator), phase cues, name nudge, sticky notes v2, board lifecycle, edge security, peer-to-peer field test, keyboard, faster CI.' },
+  R2: { title: 'R2 Facilitation and visuals', due: '2026-11-29', description: 'Accessibility (WCAG 2.2 AA), phase-end popups, note to action and voted ideas, moderation, activity rings, cluster motion, results charts, publishing and note visuals, responsive and profile, exports and report.' },
   R3: { title: 'R3 Teams and themes', due: '2026-12-20', description: 'Calendar import, genre themes, creation stepper, action carry-over sources, delivery harness, WebMCP rollout.' },
   R4: { title: 'R4 Agents and growth', due: '2027-01-31', description: 'MCP server and agent sessions, local AI companion, landing v2 and product video.' },
   PARKED: { title: 'Parked', due: null, description: 'On hold by owner decision (monetisation postponed on 2026-10-24).' },
@@ -71,6 +79,8 @@ const RELEASES = {
 const ROADMAP = {
   'service-pages': 'R1', 'single-facilitator': 'R1', 'sticky-notes-v2': 'R1', 'board-lifecycle': 'R1', 'edge-security-and-domain': 'R1',
   'p2p-presence-and-cursors': 'R1', 'keyboard-shortcuts': 'R1', 'ci-toolchain-speed': 'R1',
+  'open-facilitation-default': 'R1', 'phase-availability-cues': 'R1', 'name-nudge': 'R1',
+  'accessibility-wcag': 'R2', 'phase-end-notifications': 'R2', 'note-to-action': 'R2', 'actions-from-votes': 'R2',
   'facilitator-moderation': 'R2', 'activity-rings-timer': 'R2', 'cluster-reveal-motion': 'R2', 'voting-results-charts': 'R2', 'voting-v2-and-ranking': 'R2',
   'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2', 'profile-avatars-and-team-space': 'R2',
   'export-hub': 'R2', 'retro-report': 'R2',

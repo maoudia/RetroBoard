@@ -10,6 +10,7 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 
 ## R1 Beta ready (target 2026-11-08)
 
+* `open-facilitation-default` ([proposal](../openspec/changes/open-facilitation-default/proposal.md))
 * `service-pages` ([proposal](../openspec/changes/service-pages/proposal.md))
 * `single-facilitator` ([proposal](../openspec/changes/single-facilitator/proposal.md))
 * `sticky-notes-v2` ([proposal](../openspec/changes/sticky-notes-v2/proposal.md))
@@ -18,9 +19,15 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 * `p2p-presence-and-cursors` ([proposal](../openspec/changes/p2p-presence-and-cursors/proposal.md))
 * `keyboard-shortcuts` ([proposal](../openspec/changes/keyboard-shortcuts/proposal.md))
 * `ci-toolchain-speed` ([proposal](../openspec/changes/ci-toolchain-speed/proposal.md))
+* `phase-availability-cues` ([proposal](../openspec/changes/phase-availability-cues/proposal.md))
+* `name-nudge` ([proposal](../openspec/changes/name-nudge/proposal.md))
 
 ## R2 Facilitation and visuals (target 2026-11-29)
 
+* `accessibility-wcag` ([proposal](../openspec/changes/accessibility-wcag/proposal.md))
+* `phase-end-notifications` ([proposal](../openspec/changes/phase-end-notifications/proposal.md))
+* `note-to-action` ([proposal](../openspec/changes/note-to-action/proposal.md))
+* `actions-from-votes` ([proposal](../openspec/changes/actions-from-votes/proposal.md))
 * `facilitator-moderation` ([proposal](../openspec/changes/facilitator-moderation/proposal.md))
 * `activity-rings-timer` ([proposal](../openspec/changes/activity-rings-timer/proposal.md))
 * `cluster-reveal-motion` ([proposal](../openspec/changes/cluster-reveal-motion/proposal.md))

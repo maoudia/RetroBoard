@@ -31,3 +31,6 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0018](0018-no-paid-service-and-no-vendor-lock-in.md) | No paid service and no vendor lock-in | accepted | 2026-10-24 |
 | [0019](0019-edge-protection-instead-of-a-captcha.md) | Edge protection instead of a captcha | accepted | 2026-10-24 |
 | [0020](0020-remove-protocol-v1-and-server-side-storage.md) | Remove protocol v1 and its server-side storage | accepted | 2026-10-24 |
+| [0021](0021-everyone-facilitates-by-default.md) | Everyone facilitates by default | accepted | 2026-10-25 |
+| [0022](0022-wcag-2-2-aa-as-the-accessibility-target.md) | WCAG 2.2 AA as the accessibility target | proposed | 2026-10-25 |
+| [0023](0023-in-app-and-local-notifications-only.md) | In-app and local notifications only | proposed | 2026-10-25 |

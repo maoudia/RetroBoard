@@ -14,6 +14,8 @@ Today the facilitator capability is a secret in a link: anyone who opens the fac
 - The facilitator link gets its own card in the share panel ("For you or a co-facilitator"), with copy, a warning, and "send to a connected participant" (handover) instead of a collapsed detail.
 - Theme sync: a regression test proves that a facilitator who is not the creator, and a new lead after handover, theme the board for everyone (the owner's report could not be reproduced; the test stays).
 
+Applies to boards in "One facilitator" mode only; "Everyone facilitates" (the default since open-facilitation-default) has no lead, no crown and no takeover.
+
 Out of scope: accounts or identity verification.
 
 Bounded contexts: Access (roles), Presence (badge). Relay traffic: one role event per takeover.

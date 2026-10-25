@@ -27,3 +27,4 @@ Chosen option: "Facilitator role with delegation to co-facilitators", because on
 ## More Information
 
 Clarified by the single-facilitator change (one lead at a time).
+Refined by ADR-0021 (everyone facilitates by default).

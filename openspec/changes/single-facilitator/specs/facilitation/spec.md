@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: One lead facilitator
-The system SHALL have exactly one lead facilitator at a time: the creator first, then whoever confirms taking over with the facilitator link, or the person the lead hands over to.
+On a "One facilitator" board (see open-facilitation-default), the system SHALL have exactly one lead facilitator at a time: the creator first, then whoever confirms taking over with the facilitator link, or the person the lead hands over to.
 
 #### Scenario: Takeover with the link
 - **WHEN** Bob opens the facilitator link while Alice leads and confirms "Take over facilitation"
