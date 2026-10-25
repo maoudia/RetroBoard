@@ -60,6 +60,10 @@ Only the tab that created a board MAY create its first event. Any other tab that
 - **WHEN** the facilitator opens his facilitator link on a phone while nobody else is online and the relay is empty
 - **THEN** the phone shows "Waiting for someone who has this board", and once the laptop comes online the phone shows the original board
 
+#### Scenario: Restore or start over
+- **WHEN** a facilitator is waiting and nobody holds the board
+- **THEN** the screen offers to restore a board file, or to start a new board after a confirmation; a participant only waits
+
 #### Scenario: Holder comes online
 - **WHEN** a participant is waiting and a holder connects
 - **THEN** the board appears without a reload

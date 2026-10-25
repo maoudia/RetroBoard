@@ -40,7 +40,7 @@ Non-negotiables (also in `openspec/config.yaml`, so every agent sees them):
 
 ## 2. Decisions taken (ADR log)
 
-Decisions live in [docs/adr](adr/README.md), one MADR 4.0 file each (ADR-0001 to ADR-0016 come from the table that was here; later decisions such as peer-to-peer board events, no paid service and edge protection are ADR-0017 to ADR-0020). Write a new one with `pnpm adr:new "Title"`; CI checks them (`.github/workflows/adr.yml`).
+Decisions live in [docs/adr](adr/README.md), one MADR 4.0 file each (ADR-0001 to ADR-0016 come from the table that was here; later decisions such as board events on two paths with anti-entropy (ADR-0024, which supersedes ADR-0017), no paid service and edge protection are ADR-0017 to ADR-0024). Write a new one with `pnpm adr:new "Title"`; CI checks them (`.github/workflows/adr.yml`).
 
 Sources for the cost and platform facts used above:
 - Durable Objects pricing and free limits: <https://developers.cloudflare.com/durable-objects/platform/pricing/> (100,000 requests/day, incoming WebSocket messages billed 20:1, 13,000 GB-s/day on Free).

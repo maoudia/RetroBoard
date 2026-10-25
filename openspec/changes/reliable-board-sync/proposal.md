@@ -37,7 +37,7 @@ The owner's requirement: 0 EUR, fully distributed and reliable.
 - **Durable local writes.**
   - The replica writes own events immediately.
   - Pending writes are flushed on close and on `pagehide`, never dropped, except after a destroy or under the "until I leave" retention.
-- **No accidental forks.** Only the tab that created the board (the setup handoff in this tab) may publish a genesis. Any other tab with no events waits in a "waiting for someone who has this board" state, with drafts still allowed. It never creates a new board.
+- **No accidental forks.** Only the tab that created the board (the setup handoff in this tab) may publish a genesis. Any other tab with no events waits in a "waiting for someone who has this board" state, It offers a board-file restore and, to a facilitator only, an explicit confirmed "start a new board". It never creates a board by itself.
 - **Tests that model the field.**
   - A transport harness runs several real transports in Node: a fake relay that can be evicted, a fake RTC that fails chosen pairs, a memory replica, and a controllable clock.
   - Playwright scenarios: no WebRTC in one context, offline toggles, reload right after publishing.

@@ -38,7 +38,7 @@ Inbound events from either path go through `ingest`, which drops ids already in 
 | State | Condition | UI |
 |---|---|---|
 | `open` | log has a genesis | board, editable |
-| `waiting` | `hist` done, no genesis yet, others present or not creator | "Waiting for someone who has this board", drafts allowed |
+| `waiting` | `hist` done (or 8 s without a direct link), no genesis yet, not the creator | "Waiting for someone who has this board", with "restore from a board file" and, for facilitators, a confirmed "start a new board" (no composer: nothing to publish to yet) |
 | `creating` | alone, `hist` done, empty log, this tab created the board | publishes the genesis, then `open` |
 | `denied` | envelopes arrived and none opened | passcode screen, as today |
 

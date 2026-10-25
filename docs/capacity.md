@@ -75,10 +75,12 @@ So the free plan is no longer the limit for a team or a company: requests allow 
 participant sessions per day, and duration hundreds of retros (to be verified in production: the
 hibernation delay after the last message is set by Cloudflare). Nothing requires the paid plan.
 
-Participants who cannot open any direct link (strict corporate network, or the "Direct links"
-setting off) use the relay fallback: their board events go through it, buffered in memory, and
-they share no cursors. Each of them costs about what a relay-only participant cost before (a few
-hundred messages per hour), still far below the free limits.
+When a participant's links are incomplete (strict corporate network, the "Direct links" setting
+off, or a single pair that never connects), the events of the affected participants also go
+through the relay, buffered in memory (ADR-0024). The relay is then awake for as long as they
+write, which is what bounds the free plan: about 28 fully active one-hour retros per day at
+128 MB in the worst case (every participant relayed, writing the whole hour); real retros write in
+bursts and cost far less. Cursors never use the relay. To be measured in production.
 
 What it costs in privacy: with direct links, participants see each other's IP address (as in a
 video call) and the STUN server (default `stun.cloudflare.com`, free, replaceable with a

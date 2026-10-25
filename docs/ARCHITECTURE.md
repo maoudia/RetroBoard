@@ -21,11 +21,14 @@ Handlers are a map `type -> handler`, so adding a command is: a schema entry, a 
 ### 2. One Durable Object per board
 `idFromName(roomId)` routes every participant of a board to one object.
 
-- **Peer to peer first (2026-10-24)**: board events, cursors and focus travel on a WebRTC mesh
-  between the participants (`apps/web/app/transport/mesh.ts`, topology in `packages/sync/src/mesh.ts`).
-  The relay below only introduces peers (participant list, encrypted offer/answer, presence) and
-  carries the board for participants who cannot open any direct link (bridge peer). STUN only,
-  no TURN, no paid service. See `openspec/changes/p2p-presence-and-cursors/design.md`.
+- **Two paths for board events (ADR-0024, 2026-10-25)**: every event goes to every open WebRTC link
+  (`apps/web/app/transport/mesh.ts`) and, when this participant's links are incomplete, also to the
+  relay as an encrypted envelope. With a complete mesh no board event touches the relay. Cursors and
+  focus stay peer to peer. Every connection backs the board up: after the relay history a client
+  pushes what the history lacked, and a deterministic seeder re-pushes when someone joins (so an
+  evicted relay is refilled). A command is always accepted once the board is open (local-first), and
+  only the tab that created a board may publish its first event (no fork). STUN only, no TURN, no
+  paid service. See `openspec/changes/reliable-board-sync/design.md`.
 - **Protocol v2 (`/ws2`, `RelayRoom`, default for new boards)**: a memory-only forwarder of encrypted
   envelopes. It never calls `ctx.storage` (a unit test fails if the code references it). A bounded
   ring buffer (2,000 envelopes or 4 MB) serves late joiners; after an eviction the relay asks the
