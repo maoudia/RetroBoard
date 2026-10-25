@@ -6,9 +6,10 @@ export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 45_000,
   expect: { timeout: 8_000 },
-  // Files run in parallel (every test uses its own room, so none shares state). E2E_WORKERS=1 for debugging.
+  // One worker: on 2 cores Chromium is CPU bound, a second worker gained 12% and made tests flaky.
+  // Every test uses its own room, so E2E_WORKERS=4 is safe on a bigger machine.
   fullyParallel: false,
-  workers: Number(process.env.E2E_WORKERS ?? 2),
+  workers: Number(process.env.E2E_WORKERS ?? 1),
   retries: process.env.CI ? 1 : 0,
   // CI keeps everything for the quality site (GitHub Pages) and the run artifacts.
   reporter: process.env.CI

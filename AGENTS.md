@@ -47,7 +47,8 @@ pnpm install
 pnpm verify        # lint + typecheck + unit + openspec validate --all --strict
 pnpm generate      # static site + CSP hashes
 pnpm dev:worker    # http://localhost:8787 (site + relay)
-pnpm e2e           # Playwright against wrangler dev (fr-FR locale by default)
+pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), about 7 minutes
+pnpm e2e           # the full suite, about 18 minutes (nightly on every browser)
 npx openspec list     # in-flight changes
 npx openspec show <change>
 ```

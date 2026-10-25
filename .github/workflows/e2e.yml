@@ -21,7 +21,7 @@ jobs:
       matrix:
         # PR gate: Chromium only. Firefox, phone, tv and WebKit run nightly (nightly.yml).
         project: [chromium]
-        shard: ['1/3', '2/3', '3/3']
+        shard: ['1/2', '2/2']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,7 +35,8 @@ jobs:
       - name: Install the browser
         run: pnpm exec playwright install --with-deps ${{ matrix.project == 'firefox' && 'firefox' || matrix.project == 'webkit' && 'webkit' || 'chromium' }}
       - run: pnpm generate
-      - run: pnpm e2e --project=${{ matrix.project }} --shard=${{ matrix.shard }}
+      # Core specs only (tests/e2e/core.json): the full suite runs nightly on every browser.
+      - run: pnpm e2e:core --project=${{ matrix.project }} --shard=${{ matrix.shard }}
       - name: Slowest tests
         if: always()
         run: node scripts/quality/slow-tests.mjs
