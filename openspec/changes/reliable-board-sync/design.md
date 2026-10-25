@@ -78,7 +78,7 @@ Rule: `publishLocal` stamps `at = max(clock.tick(), log.lastAt + 1)`, so a local
 Seven scenarios in `apps/web/test/sync-field.test.ts`, each failing for the stated reason:
 
 1. Partial mesh: a note does not reach a participant with no direct link to its author.
-2. Hibernation (sockets kept, buffer gone) then a relay-only joiner: the bridge announced itself once and never pushes again, the joiner sees nothing.
+2. Hibernation (sockets kept, buffer gone) then a relay-only joiner: the bridge announced itself once and never pushes again, the joiner sees nothing. Whether it self-heals depends on the random connection ids (the bridge is recomputed before the joiner's presence arrives, so the board only reaches the joiner when the joiner's id happens to sort first). The harness uses ascending ids to make the failure repeatable.
 3. A command sent during a WebSocket blip is refused (`send()` is false until the re-sync).
 4. A reload within the 250 ms write batch loses genesis, `board.init` and notes when nobody else is online.
 5. A facilitator link on a second device builds its own board when it finds an empty relay.

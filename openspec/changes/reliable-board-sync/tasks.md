@@ -17,7 +17,6 @@
 - [ ] 3.1 Outbox semantics: `send()` accepted once a genesis is known, delivered on the next welcome; connection status separate from board status; verify the WebSocket blip scenario (no loss, no duplicate)
 - [ ] 3.2 Replica write-through for own events, flush on close and `pagehide`, kept skipped after destroy and for "until I leave"; retry failed writes and tell the page (`onReplica('failing')`, a visible "cannot save on this device" banner, fr/en) instead of swallowing the error; verify the reload and storage-failure scenarios and the IndexedDB adapter test for ordering with `delete`
 - [ ] 3.3 Single creator (`creator` dep from the setup handoff) and the `waiting` state with its screen (fr/en, drafts allowed); verify the new-device scenario and e2e for the waiting screen
-
 - [ ] 3.4 Causal local timestamps (design D9): a new local event never sorts before an event the log already holds; verify the clock-skew scenario and a unit test of the stamp rule
 
 ## 4. Field-like end-to-end

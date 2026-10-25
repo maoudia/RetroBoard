@@ -9,9 +9,9 @@
  * - a memory replica store.
  * Time is driven by `World.run(ms)` on vitest fake timers (setTimeout, setInterval, Date).
  */
-import { type ReplicaRecord, type ReplicaStorePort } from '@retroboard/application'
+import type { ReplicaRecord, ReplicaStorePort } from '@retroboard/application'
 import { deriveContentKey, fromBase64Url, randomKey, toBase64Url } from '@retroboard/crypto'
-import { type Command, type Snapshot } from '@retroboard/domain'
+import type { Command, Snapshot } from '@retroboard/domain'
 import { parseClientFrame, type Envelope, type RelayFrame } from '@retroboard/protocol'
 import { vi } from 'vitest'
 import { createSessionSigner, ed25519Verifier, signerFor } from '../app/adapters/signing'
@@ -49,6 +49,13 @@ export class FakeRelay {
   stats = { pubFrames: 0, pubEnvs: 0, freshEnvs: 0, fanOut: 0 }
   /** When true, new connections are refused (relay unreachable). */
   down = false
+  /**
+   * Connection ids. Ascending by default (join order), so the order of the mesh, the bridge and the
+   * seeder is the same on every run; the real relay uses random ids, set `random` to try those.
+   */
+  random = false
+  private seq = 0
+  private connId(): string { return this.random ? hex(12) : `c${String(++this.seq).padStart(11, '0')}` }
 
   get buffered() { return this.buffer.size }
 
@@ -67,7 +74,7 @@ export class FakeRelay {
   /** A client socket opened. */
   accept(socket: FakeSocket): void {
     if (this.down) { realSetTimeout(() => socket.serverClose(), 0); return }
-    const conn = hex(12)
+    const conn = this.connId()
     socket.conn = conn
     this.sockets.set(conn, socket)
     socket.toClient({ t: 'welcome', conn, peers: this.conns() })
@@ -188,8 +195,8 @@ export class FakeRtcNet {
   next() { return `pc${++this.id}` }
   /** The constructor a participant passes as `RTC`. */
   rtcFor(owner: string): typeof RTCPeerConnection {
-    const net = this
-    return class extends FakePc { constructor() { super(net, owner) } } as unknown as typeof RTCPeerConnection
+    const bind = (n: FakeRtcNet) => class extends FakePc { constructor() { super(n, owner) } }
+    return bind(this) as unknown as typeof RTCPeerConnection
   }
 }
 
@@ -386,7 +393,7 @@ export class World {
   async run(ms: number, step = 25): Promise<void> {
     for (let t = 0; t < ms; t += step) {
       await vi.advanceTimersByTimeAsync(step)
-      await realTick(1)
+      await realTick(3)
     }
     await realTick(2)
   }
