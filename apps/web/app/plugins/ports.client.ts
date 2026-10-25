@@ -11,7 +11,8 @@ export interface Ports {
   /** Solo (local-) boards: in-tab loopback. */
   channelFactory: ChannelFactory
   /** Protocol v2: end-to-end encrypted room for a key ring. */
-  encryptedChannelFactory(ring: KeyRing, passcode?: string): ChannelFactory
+  /** `creator`: this tab is the one that just created the board (it alone may write its first event). */
+  encryptedChannelFactory(ring: KeyRing, passcode?: string, opts?: { creator?: boolean }): ChannelFactory
   clipboard: ClipboardPort
   file: FilePort
   notifier: NotifierPort
@@ -32,7 +33,7 @@ export default defineNuxtPlugin(() => {
   if (replica) void requestPersistence()
   const ports: Ports = {
     channelFactory: localTransportFactory,
-    encryptedChannelFactory: (ring, passcode) => (roomId, handlers) => new EncryptedRelayTransport(
+    encryptedChannelFactory: (ring, passcode, opts) => (roomId, handlers) => new EncryptedRelayTransport(
       buildWs2Url(config.public.wsUrl as string, roomId, window.location), ring, handlers,
       (async () => ({
         contentKey: await deriveContentKey(fromBase64Url(ring.roomKey)!, ring.roomId, ring.passcode ? passcode : undefined),
@@ -41,6 +42,7 @@ export default defineNuxtPlugin(() => {
         verifier: ed25519Verifier,
         replica: replica ?? undefined,
         p2p: settings.s.p2p,
+        creator: opts?.creator === true,
         iceServers: String(config.public.iceServers ?? '').split(',').map((s) => s.trim()).filter(Boolean).map((urls) => ({ urls })),
       }))(),
     ),

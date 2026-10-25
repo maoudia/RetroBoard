@@ -54,6 +54,11 @@ export class PeerMesh {
     this.RTC = o.RTC ?? RTCPeerConnection
   }
 
+  /** Links I should have with the current participants but that are not open (yet, or ever). */
+  get missing(): number {
+    return [...this.wanted].filter((c) => !this.links.get(c)?.open).length
+  }
+
   /** Participants with an open link. */
   get linked(): string[] {
     return [...this.links].filter(([, l]) => l.open).map(([c]) => c)

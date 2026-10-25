@@ -208,22 +208,19 @@ test('board file: export, then restore into the same link after the board is gon
     ws.send(JSON.stringify({ t: 'hist', envs: [], done: true }))
   })
   await fresh.goto(facilitatorLink)
-  // An empty room for the facilitator: the set-up dialog comes first.
-  await fresh.getByTestId('setup-submit').click()
-  await fresh.getByTestId('name-input').fill('Alice')
-  await fresh.getByTestId('name-save').click()
-  await expect(fresh.getByTestId('board')).toBeVisible()
-  await closeShare(fresh)
-  await expect(noteByText(fresh, 'Kept in the file')).toHaveCount(0)
-
-  await fresh.getByTestId('btn-export').click()
-  await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'board.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText) })
+  // Nobody holds the board: the facilitator's new browser waits instead of inventing a second board.
+  await expect(fresh.getByTestId('board-waiting')).toBeVisible()
+  await expect(fresh.getByTestId('board')).toHaveCount(0)
+  await fresh.getByTestId('waiting-restore-input').setInputFiles({ name: 'board.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText) })
   await expect(noteByText(fresh, 'Kept in the file')).toBeVisible()
-  // Restored events go to the other participants peer to peer (p2p.spec.ts): none to the relay.
-  await fresh.waitForTimeout(500)
-  expect(published.filter((m) => m.includes('"t":"pub"'))).toHaveLength(0)
+  await expect(fresh.getByTestId('board-waiting')).toHaveCount(0)
+  // The restored board is backed up on the relay (memory only, ciphertext) for late joiners (ADR-0024).
+  await expect.poll(() => published.filter((m) => m.includes('"t":"pub"')).length, { timeout: 5000 }).toBeGreaterThan(0)
+  expect(published.join('')).not.toContain('Kept in the file')
 
   // A file for another board is refused.
+  await closeShare(fresh)
+  await fresh.getByTestId('btn-export').click()
   await fresh.getByTestId('import-retro-input').setInputFiles({ name: 'x.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText.replace(/"room":"[^"]+"/, '"room":"Zz3dEfGhIjKlMnOpQrStUv"')) })
   await expect(fresh.getByText(/does not belong|n'appartient pas/)).toBeVisible()
   await ctx.close()

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bridgeOf, chunks, FULL_MESH_MAX, isFullMesh, isInitiator, meshLinks, SeenSet } from '../src/mesh'
+import { seederOf, chunks, FULL_MESH_MAX, isFullMesh, isInitiator, meshLinks, SeenSet } from '../src/mesh'
 
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `c${String(i).padStart(3, '0')}`)
 
@@ -52,11 +52,11 @@ describe('mesh topology', () => {
   })
 })
 
-describe('bridge for relay-only participants', () => {
-  it('is the lowest id among peers with the mesh, only when someone needs it', () => {
-    expect(bridgeOf(['c', 'a', 'b'], new Set())).toBeNull()
-    expect(bridgeOf(['c', 'a', 'b'], new Set(['a']))).toBe('b')
-    expect(bridgeOf(['a', 'b'], new Set(['a', 'b']))).toBeNull()
+describe('seeder', () => {
+  it('is the lowest id among the peers that hold the board, null when nobody does', () => {
+    expect(seederOf([])).toBeNull()
+    expect(seederOf(['c', 'a', 'b'])).toBe('a')
+    expect(seederOf(['b'])).toBe('b')
   })
 })
 

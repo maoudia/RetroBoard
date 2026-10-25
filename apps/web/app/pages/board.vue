@@ -64,6 +64,10 @@ function takeHandoff(id: string): string | null {
   } catch { return null }
 }
 
+function hasSetupHandoff(id: string): boolean {
+  try { return sessionStorage.getItem(`retroboard:init:${id}`) !== null } catch { return false }
+}
+
 function enter() {
   board.disconnect()
   closed.value = false
@@ -77,7 +81,9 @@ function enter() {
     if (passcode.value === null) return
   }
   if (!identity.named) ui.open('name')
-  board.connect(roomId.value, identity.identity, inv.kind === 'encrypted' ? $ports.encryptedChannelFactory(inv.ring, passcode.value ?? undefined) : $ports.channelFactory)
+  // Only the tab that just created this board may write its first event (the set-up hand-off is still there).
+  const creator = hasSetupHandoff(roomId.value)
+  board.connect(roomId.value, identity.identity, inv.kind === 'encrypted' ? $ports.encryptedChannelFactory(inv.ring, passcode.value ?? undefined, { creator }) : $ports.channelFactory)
 }
 
 function unlock(code: string) {
@@ -89,15 +95,17 @@ onMounted(enter)
 useBoardAgentTools()
 watch(() => route.hash, () => { passcode.value = null; enter() })
 // Retention "until I leave": the encrypted copy goes with the tab or the navigation away.
+// Anything still waiting to be written is written first, so a delete is never followed by a late write.
 function forgetIfLeaving() {
   const inv = invite.value
-  if (settings.s.retentionDays === 0 && inv?.kind === 'encrypted') void $ports.replica?.delete(inv.ring.roomId)
+  if (settings.s.retentionDays === 0 && inv?.kind === 'encrypted') void board.flush().finally(() => $ports.replica?.delete(inv.ring.roomId).catch(() => {}))
+  else void board.flush()
 }
 onMounted(() => window.addEventListener('pagehide', forgetIfLeaving))
 onBeforeUnmount(() => {
   window.removeEventListener('pagehide', forgetIfLeaving)
-  board.disconnect()
   forgetIfLeaving()
+  board.disconnect()
 })
 
 // A freshly created board gets its theme and template from the creator's setup.
@@ -129,9 +137,9 @@ const shareOnReady = ref(false)
 // One facilitator: opening the facilitator link while someone else leads asks before taking over.
 const takeoverOpen = ref(false)
 const leadName = computed(() => board.peers.find((p) => !p.me && p.role === 'facilitator')?.name ?? t('common.anonymous'))
-watch(() => [board.ready, board.settings?.initialized, board.settings?.openFacilitation, board.access.isLead, board.access.role] as const, ([ready, init, open, lead, role]) => {
+watch(() => [board.ready, board.settings?.initialized, board.settings?.openFacilitation, board.access.isLead, board.access.role, ui.dialog] as const, ([ready, init, open, lead, role, dialog]) => {
   const holdsLink = invite.value?.kind === 'encrypted' && !!invite.value.ring.facilitatorSecret
-  if (ready && init && open === false && !lead && role !== 'participant' && holdsLink && !ui.takeoverAsked && !setupOpen.value) { ui.takeoverAsked = true; takeoverOpen.value = true }
+  if (ready && init && open === false && !lead && role !== 'participant' && holdsLink && !ui.takeoverAsked && !setupOpen.value && dialog !== 'name') { ui.takeoverAsked = true; takeoverOpen.value = true }
 })
 function takeOver() { if (board.myKey) board.sendRole('role.claim', board.myKey) }
 // The lead lost the role to someone else's takeover.
@@ -212,9 +220,11 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <VoteBar v-if="board.ready" />
       <BoardFilter v-if="board.ready && ui.filterOpen" />
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
-      <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ t('board.connecting') }}</div>
+      <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
+      <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
 
-      <div v-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
+      <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" />
+      <div v-else-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 
       <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board">
         <BoardColumn v-for="(c, i) in board.columns" :key="c.id" :column="c" :index="i" :total="board.columns.length" />
@@ -254,6 +264,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .offline { position: fixed; z-index: 50; top: 76px; left: 50%; translate: -50% 0; box-shadow: var(--shadow-2); background: var(--surface2); }
+.offline.warn { top: 124px; border: 1px solid var(--warn, var(--danger)); }
 .loading { display: flex; gap: .6rem; align-items: center; justify-content: center; flex: 1; color: var(--muted); font-weight: 600; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { rotate: 360deg; } }

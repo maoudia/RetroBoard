@@ -12,9 +12,13 @@ export class HybridClock {
 
   get current(): number { return this.last }
 
-  /** Timestamp for a new local event. */
-  tick(): number {
-    this.last = Math.max(this.wall(), this.last + 1)
+  /**
+   * Timestamp for a new local event. `floor`: the latest timestamp of the local log; the event
+   * always sorts after it, even when this device's wall clock runs far behind the others
+   * (otherwise its events would sort before the genesis and every replica would ignore them).
+   */
+  tick(floor = 0): number {
+    this.last = Math.max(this.wall(), this.last + 1, floor + 1)
     return this.last
   }
 

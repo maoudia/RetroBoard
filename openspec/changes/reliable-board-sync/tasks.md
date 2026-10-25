@@ -8,16 +8,16 @@
 
 ## 2. Two paths and anti-entropy
 
-- [ ] 2.1 ADR-0024 "Board events on two paths, anti-entropy on every connection", superseding ADR-0017; verify `pnpm adr:check`
-- [ ] 2.2 Publish every event to the mesh and the relay; delete relay-only mode, the bridge and partial-mesh forwarding; `seederOf` in the sync package with unit tests; verify the partial mesh and no-link harness scenarios pass
-- [ ] 2.3 Push what `hist` lacked on welcome (with jitter) and seeder re-push on join; verify the eviction and late-joiner scenarios pass and the fake relay counts at most one full upload per join
+- [x] 2.1 ADR-0024 "Board events on two paths, anti-entropy on every connection", superseding ADR-0017; verify `pnpm adr:check`
+- [x] 2.2 Publish every event to the mesh and the relay; delete relay-only mode, the bridge and partial-mesh forwarding; `seederOf` in the sync package with unit tests; verify the partial mesh and no-link harness scenarios pass
+- [x] 2.3 Push what `hist` lacked on welcome (with jitter) and seeder re-push on join; verify the eviction and late-joiner scenarios pass and the fake relay counts at most one full upload per join
 
 ## 3. Local-first and ready states
 
-- [ ] 3.1 Outbox semantics: `send()` accepted once a genesis is known, delivered on the next welcome; connection status separate from board status; verify the WebSocket blip scenario (no loss, no duplicate)
-- [ ] 3.2 Replica write-through for own events, flush on close and `pagehide`, kept skipped after destroy and for "until I leave"; retry failed writes and tell the page (`onReplica('failing')`, a visible "cannot save on this device" banner, fr/en) instead of swallowing the error; verify the reload and storage-failure scenarios and the IndexedDB adapter test for ordering with `delete`
-- [ ] 3.3 Single creator (`creator` dep from the setup handoff) and the `waiting` state with its screen (fr/en, drafts allowed); verify the new-device scenario and e2e for the waiting screen
-- [ ] 3.4 Causal local timestamps (design D9): a new local event never sorts before an event the log already holds; verify the clock-skew scenario and a unit test of the stamp rule
+- [x] 3.1 Outbox semantics: `send()` accepted once a genesis is known, delivered on the next welcome; connection status separate from board status; verify the WebSocket blip scenario (no loss, no duplicate)
+- [x] 3.2 Replica write-through for own events, flush on close and `pagehide`, kept skipped after destroy and for "until I leave"; retry failed writes and tell the page (`onReplica('failing')`, a visible "cannot save on this device" banner, fr/en) instead of swallowing the error; verify the reload and storage-failure scenarios and the IndexedDB adapter test for ordering with `delete`
+- [x] 3.3 Single creator (`creator` dep from the setup handoff) and the `waiting` state with its screen (fr/en, drafts allowed); verify the new-device scenario and e2e for the waiting screen
+- [x] 3.4 Causal local timestamps (design D9): a new local event never sorts before an event the log already holds; verify the clock-skew scenario and a unit test of the stamp rule
 
 ## 4. Field-like end-to-end
 

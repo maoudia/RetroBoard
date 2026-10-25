@@ -25,7 +25,7 @@ When the relay has lost its memory, the system SHALL rebuild the room from the r
 ## ADDED Requirements
 
 ### Requirement: Two delivery paths
-Every board event SHALL be sent both through the relay and over every open direct link, and participants MUST ignore an event they already hold.
+Every board event SHALL be sent over every open direct link, and also through the relay whenever the sender does not have a direct link with every other participant. Participants MUST ignore an event they already hold.
 
 #### Scenario: Partial mesh
 - **WHEN** Alice, Bob and Carol are on a board and only the Alice-Bob and Bob-Carol links open

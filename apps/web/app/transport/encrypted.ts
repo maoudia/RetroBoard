@@ -1,10 +1,12 @@
 /**
- * Protocol v2 transport: end-to-end encrypted board, peer to peer.
+ * Protocol v2 transport: end-to-end encrypted board, peer to peer with the relay as a safety net
+ * (ADR-0024).
  *
- * Board events and cursors travel on a WebRTC mesh between the participants (mesh.ts). The relay
- * keeps the strict minimum: who is in the room, the encrypted WebRTC offer and answer, presence,
- * and a fallback for participants who cannot open any direct link (they publish through the
- * relay, and one peer of the mesh, the bridge, forwards the board to and from them).
+ * Board events go to every open direct link of the WebRTC mesh (mesh.ts) and, whenever my links
+ * are incomplete, also through the relay (memory only, ciphertext). On every connection a client
+ * pushes what the relay history lacked, and one holder re-seeds the relay when someone joins, so
+ * the board survives a relay that lost its memory, a flaky link or a participant without WebRTC.
+ * Cursors and focus stay peer to peer.
  *
  * Inbound: open (AES-GCM, AAD binds room/id/hlc) -> parse -> verify signature -> fold.
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
@@ -13,17 +15,19 @@
 import { EventLog, type OwnCursor, type OwnFocus, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
-import { bridgeOf, chunks, HybridClock, isFullMesh, SeenSet } from '@retroboard/sync'
+import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
 import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseSignal, parseSignedEvent, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal } from '@retroboard/protocol'
-import type { BoardTransport, Identity, TransportHandlers } from './types'
+import type { BoardTransport, ConnectionStatus, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
 import { PeerMesh } from './mesh'
 
 /** Retry delay when the board is at its participant cap. */
 export const FULL_RETRY_MS = 15_000
-/** Others are in the room but no direct link opened by then: use the relay fallback. */
+/** Others are in the room but none synced with me by then: decide with what the relay and my copy hold. */
 export const P2P_WAIT_MS = 8_000
+/** Random delay before uploading what the relay lacks, so holders reconnecting together do not all upload. */
+export const RESEED_JITTER_MS = 800
 
 export interface EncryptedDeps {
   contentKey: Uint8Array
@@ -39,6 +43,8 @@ export interface EncryptedDeps {
   p2p?: boolean
   iceServers?: RTCIceServer[]
   RTC?: typeof RTCPeerConnection
+  /** This tab created the board (setup hand-off): it alone may write the genesis without being asked. */
+  creator?: boolean
 }
 
 const toError = (reason: IgnoreReason): ErrorCode =>
@@ -61,9 +67,14 @@ export class EncryptedRelayTransport implements BoardTransport {
   private full = false
   private synced = false
   private mesh: PeerMesh | null = null
-  /** No direct link: my board events go through the relay (fallback). */
-  private relayOnly = false
   private p2pTimer: ReturnType<typeof setTimeout> | undefined
+  /** Ids the relay is known to hold (history, fan-out, what I pushed): the rest is uploaded at the next welcome. */
+  private readonly relayHas = new Set<string>()
+  private reseedTimer: ReturnType<typeof setTimeout> | undefined
+  /** The facilitator chose to start a new board in a room nobody holds. */
+  private startRequested = false
+  private lastStatus: ConnectionStatus | null = null
+  private replicaFailing = false
   /** Sealed envelopes by event id: served to peers without sealing again. */
   private readonly sealed = new Map<string, Envelope>()
   /** Peers that finished the initial sync with me, and the `have` lists being received. */
@@ -76,7 +87,6 @@ export class EncryptedRelayTransport implements BoardTransport {
   /** Presence and signalling from the others that did not / did open with my key (wrong passcode). */
   private liveFailed = 0
   private liveOpened = 0
-  private wasBridge = false
   private queue: Promise<void> = Promise.resolve()
   private attempts = 0
   private closed = false
@@ -100,7 +110,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   connect(identity: Identity): void {
     this.identity = identity
     this.closed = false
-    this.handlers.onStatus('connecting')
+    this.setStatus('connecting')
     void this.depsReady.then((deps) => {
       this.deps = deps
       this.WS = deps.WS ?? WebSocket
@@ -113,19 +123,28 @@ export class EncryptedRelayTransport implements BoardTransport {
     }, () => this.handlers.onError('invalid'))
   }
 
-  private get reachable(): boolean {
-    return this.ws?.readyState === 1 || (this.mesh?.linked.length ?? 0) > 0
+  private setStatus(status: ConnectionStatus): void {
+    if (this.lastStatus === status) return
+    this.lastStatus = status
+    this.handlers.onStatus(status)
+  }
+
+  /** The board is known here (genesis in the log): commands are accepted even without a connection. */
+  private get known(): boolean {
+    return this.log.ledger.facilitatorKey !== null
   }
 
   send(command: Command): boolean {
-    if (!this.reachable || !this.synced || !this.identity) return false
+    // Local first: once the board is known the command is folded and saved at once, and delivered
+    // as soon as a path exists (links on open, the relay at the next welcome).
+    if (this.closed || !this.known || !this.identity) return false
     const body: EventBody = { t: 'cmd', cmd: command, name: this.identity.name || null, showName: this.identity.showName }
     this.enqueue(() => this.publishLocal(body))
     return true
   }
 
   sendRole(change: RoleBody['t'], key: string): boolean {
-    if (!this.reachable || !this.synced) return false
+    if (this.closed || !this.known) return false
     this.enqueue(() => this.publishLocal({ t: change, key }))
     return true
   }
@@ -138,18 +157,18 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   close(): void {
     this.closed = true
-    // Writes still batched are dropped: the page may be deleting this replica right now.
-    clearTimeout(this.replicaTimer)
-    this.replicaTimer = undefined
-    this.pendingReplica = []
+    // What is still batched is written now (unless the board was destroyed): the page may be
+    // reloading, and the replica is the only copy when nobody else is online.
+    void this.flush()
     clearTimeout(this.reconnectTimer)
     clearTimeout(this.p2pTimer)
+    clearTimeout(this.reseedTimer)
     clearInterval(this.heartbeat)
     this.mesh?.close()
     this.mesh = null
     this.ws?.close(1000)
     this.ws = null
-    this.handlers.onStatus('closed')
+    this.setStatus('closed')
   }
 
   async exportBoardFile(): Promise<string | null> {
@@ -182,6 +201,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       const added = await this.ingest(envs)
       if (added.length) {
         this.publish(added)
+        this.push(added) // a restored board is backed up on the relay too (memory only), whoever is here
         this.emit()
       }
       resolve(added.length)
@@ -195,13 +215,11 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.queue = this.queue.then(job).catch(() => { /* a failed job must not block the next ones */ })
   }
 
-  private clock(): number {
-    return this.hlc.tick()
-  }
-
   private async publishLocal(body: EventBody): Promise<void> {
     const signer = isPrivileged(body) && this.deps.facilitator ? this.deps.facilitator : this.deps.session
-    const draft = { id: ulid(), at: this.clock(), body }
+    // After everything the log holds, whatever this device's clock says (a clock far behind the
+    // others would otherwise sort the event before the genesis, where every replica ignores it).
+    const draft = { id: ulid(), at: this.hlc.tick(this.log.lastAt), body }
     const verdict = this.log.preview({ ...draft, author: signer.publicKey })
     if (!verdict.ok) {
       this.handlers.onError(toError(verdict.reason))
@@ -213,7 +231,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.emit()
     const env = await this.sealEvent(event)
     this.sealed.set(env.id, env)
-    this.remember([env])
+    this.remember([env], true)
     this.publish([env])
   }
 
@@ -244,19 +262,47 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   private pendingReplica: Envelope[] = []
   private replicaTimer: ReturnType<typeof setTimeout> | undefined
+  private replicaWrites: Promise<void> = Promise.resolve()
 
-  /** Envelopes are already ciphertext: the replica stores them as they are, in small batches. */
-  private remember(envs: readonly Envelope[]): void {
+  /**
+   * Envelopes are already ciphertext: the replica stores them as they are. My own events are
+   * written at once (`now`), what others send me in small batches.
+   */
+  private remember(envs: readonly Envelope[], now = false): void {
     const replica = this.deps.replica
     if (!replica || envs.length === 0 || this.forgotten) return
     if (this.log.ledger.board.settings.destroyed) { this.forgetReplica(); return }
     this.pendingReplica.push(...envs)
+    if (now) { void this.flush(); return }
     if (this.replicaTimer) return
-    this.replicaTimer = setTimeout(() => {
-      this.replicaTimer = undefined
-      const batch = this.pendingReplica.splice(0)
-      void replica.append(this.ring.roomId, batch.map((e) => ({ id: e.id, data: JSON.stringify(e) }))).catch(() => { /* best effort */ })
-    }, 250)
+    this.replicaTimer = setTimeout(() => { this.replicaTimer = undefined; void this.flush() }, 250)
+  }
+
+  /** Writes what is pending. Failures are retried once, then reported to the page (never silent). */
+  flush(): Promise<void> {
+    const replica = this.deps?.replica
+    clearTimeout(this.replicaTimer)
+    this.replicaTimer = undefined
+    if (!replica || this.forgotten) { this.pendingReplica = []; return this.replicaWrites }
+    const batch = this.pendingReplica.splice(0)
+    if (batch.length === 0) return this.replicaWrites
+    const records = batch.map((e) => ({ id: e.id, data: JSON.stringify(e) }))
+    const write = async () => {
+      try {
+        await replica.append(this.ring.roomId, records)
+      } catch {
+        try { await replica.append(this.ring.roomId, records) } catch { this.setReplica(true); return }
+      }
+      this.setReplica(false)
+    }
+    this.replicaWrites = this.replicaWrites.then(write)
+    return this.replicaWrites
+  }
+
+  private setReplica(failing: boolean): void {
+    if (this.replicaFailing === failing) return
+    this.replicaFailing = failing
+    this.handlers.onReplica?.(failing ? 'failing' : 'ok')
   }
 
   private async loadReplica(): Promise<void> {
@@ -312,29 +358,39 @@ export class EncryptedRelayTransport implements BoardTransport {
     else if (c.t === 'column.reset') this.handlers.onNotice({ kind: 'reset.column', by, column: c.id ? (board.columns.find((x) => x.id === c.id)?.title) : undefined })
   }
 
-  /** Relay `pub` (fallback path), in frames of at most 100 envelopes. */
+  /** Relay `pub`, in frames of at most 100 envelopes. */
   private push(envs: readonly Envelope[]): void {
-    for (const part of chunks(envs, 100)) if (this.ws?.readyState === 1) this.ws.send(JSON.stringify({ t: 'pub', envs: part }))
+    if (this.ws?.readyState !== 1) return
+    for (const part of chunks(envs, 100)) {
+      for (const e of part) this.relayHas.add(e.id)
+      this.ws.send(JSON.stringify({ t: 'pub', envs: part }))
+    }
   }
 
-  private relayOnlyPeers(): Set<string> {
-    const set = new Set([...this.presence.values()].filter((p) => p.relayOnly && this.conns.includes(p.conn)).map((p) => p.conn))
-    if (this.relayOnly && this.conn) set.add(this.conn)
-    return set
-  }
-
-  private get isBridge(): boolean {
-    return !!this.conn && !this.relayOnly && bridgeOf(this.conns, this.relayOnlyPeers()) === this.conn
+  /** Participants of the room other than me. */
+  private get others(): number {
+    return this.conns.filter((c) => c !== this.conn).length
   }
 
   /**
-   * New envelopes go to the mesh. Through the relay only when I am relay-only, or when I bridge
-   * relay-only participants. `from`: the peer they came from (not sent back to it).
+   * Whether the relay must carry my events: there is nobody on the mesh side to rely on (no mesh
+   * while others are here) or at least one link I should have is not open. A missing pair is
+   * missing for both its ends, so both use the relay; everyone else already gets the event over
+   * their direct links. With a complete mesh no board event touches the relay (ADR-0024).
+   */
+  private get relayNeeded(): boolean {
+    if (this.others === 0) return false
+    return this.mesh ? this.mesh.missing > 0 : true
+  }
+
+  /**
+   * New envelopes go to every open link, and to the relay when my links are incomplete.
+   * `from`: the peer they came from (not sent back to it).
    */
   private publish(envs: readonly Envelope[], from?: string): void {
     if (!envs.length) return
     if (this.mesh) for (const part of chunks(envs, PEER_ENV_CHUNK)) this.mesh.broadcastReliable(JSON.stringify({ t: 'env', envs: part } satisfies PeerFrame), from)
-    if (this.relayOnly || this.isBridge) this.push(envs)
+    if (this.relayNeeded) this.push(envs)
   }
 
   private async sealedAll(): Promise<Envelope[]> {
@@ -342,27 +398,44 @@ export class EncryptedRelayTransport implements BoardTransport {
       const known = this.sealed.get(e.id)
       if (known) return known
       const env = await this.sealEvent(e)
-      this.sealed.set(e.id, env)
+      this.sealed.set(env.id, env)
       return env
     }))
   }
 
-  private async republishAll(): Promise<void> {
-    this.push(await this.sealedAll())
+  /**
+   * Uploads to the relay what it does not hold: my own events written while I was offline, the
+   * board when its memory was lost. `everything`: also what I believe it holds (a holder re-seeds
+   * when someone joins; the relay forwards only ids it did not have).
+   */
+  private scheduleReseed(everything: boolean, jitterMs = RESEED_JITTER_MS): void {
+    if (this.reseedTimer && !everything) return
+    clearTimeout(this.reseedTimer)
+    // On welcome only what I held when the relay answered counts (my own offline events, the board
+    // after an eviction): what peers send me afterwards is theirs to upload.
+    const mine = everything ? null : new Set(this.log.all().map((e) => e.id))
+    this.reseedTimer = setTimeout(() => {
+      this.reseedTimer = undefined
+      this.enqueue(async () => {
+        if (this.closed || this.ws?.readyState !== 1 || this.log.size === 0) return
+        const all = await this.sealedAll()
+        this.push(mine ? all.filter((e) => mine.has(e.id) && !this.relayHas.has(e.id)) : all)
+      })
+    }, Math.random() * jitterMs)
   }
 
-  /** Becoming the bridge, or a new relay-only participant: hand them the whole board once. */
-  private async checkBridge(): Promise<void> {
-    const bridge = this.isBridge
-    if (bridge && !this.wasBridge) await this.republishAll()
-    this.wasBridge = bridge
+  /** The lowest connection id among the participants that hold the board uploads it when someone joins. */
+  private get isSeeder(): boolean {
+    if (!this.conn || this.log.size === 0) return false
+    const holders = [this.conn, ...[...this.presence.values()].filter((p) => p.ready && this.conns.includes(p.conn)).map((p) => p.conn)]
+    return seederOf(holders) === this.conn
   }
 
   private async announce(): Promise<void> {
     if (!this.conn || !this.identity) return
     const p: Presence = {
       t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, key: this.deps.session.publicKey,
-      ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}), ...(this.relayOnly ? { relayOnly: true } : {}),
+      ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}), ...(this.log.size > 0 ? { ready: true } : {}),
     }
     await this.sendEph(p)
   }
@@ -404,7 +477,7 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   private onLive(live: Live): void {
     if (!this.conns.includes(live.conn) || live.conn === this.conn) return
-    if (live.t === 'presence') { this.presence.set(live.conn, live); this.emit(); void this.checkBridge(); return }
+    if (live.t === 'presence') { this.presence.set(live.conn, live); this.emit(); return }
     const name = this.liveName(live.conn)
     if (name === undefined) return
     if (live.t === 'cursor') this.handlers.onCursor?.({ conn: live.conn, anchor: live.anchor, x: live.x, y: live.y, drag: live.drag }, name)
@@ -420,44 +493,42 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.peerHave.clear()
     clearTimeout(this.p2pTimer)
     const canP2p = this.deps.p2p !== false && typeof (this.deps.RTC ?? globalThis.RTCPeerConnection) === 'function'
-    if (!canP2p || !this.conn) { this.setRelayOnly(true); return }
-    this.setRelayOnly(false)
+    if (!canP2p || !this.conn) { this.reportLinks(); return }
     this.mesh = new PeerMesh({
       me: this.conn,
       iceServers: this.deps.iceServers ?? [],
       RTC: this.deps.RTC,
       signal: (to, kind, sdp) => this.enqueue(() => this.sendSignal(to, kind, sdp)),
       onOpen: (c) => this.enqueue(() => this.onPeerOpen(c)),
-      onClose: (c) => { this.peerSynced.delete(c); this.peerHave.delete(c) },
+      onClose: (c) => { this.peerSynced.delete(c); this.peerHave.delete(c); this.reportLinks() },
       onReliable: (c, data) => this.onPeerData(c, data),
       onLive: (c, data) => this.onPeerData(c, data),
     })
     this.mesh.update(this.conns)
-    this.armP2pTimer()
+    this.reportLinks()
+    this.armSyncTimer()
   }
 
-  /** Others are here and no link opened in time: fall back to the relay (and keep trying links). */
-  private armP2pTimer(): void {
+  /** What the page shows: direct links when there are some (or nobody to link with), the relay otherwise. */
+  private reportLinks(): void {
+    const linked = this.mesh?.linked.length ?? 0
+    this.handlers.onLinks?.({ p2p: this.mesh !== null && (linked > 0 || this.others === 0), peers: linked })
+  }
+
+  /**
+   * Others are here but none synced with me over a direct link: stop waiting for one. What the
+   * relay history and my own copy hold is what there is (a creator may then start the board).
+   */
+  private armSyncTimer(): void {
     clearTimeout(this.p2pTimer)
     this.p2pTimer = setTimeout(() => this.enqueue(async () => {
-      if (this.closed || !this.mesh || this.mesh.linked.length > 0) return
-      if (this.conns.some((c) => c !== this.conn)) { this.setRelayOnly(true); await this.announce(); await this.maybeSynced() }
+      if (this.closed || this.synced || !this.histDone) return
+      await this.onSynced(true)
     }), P2P_WAIT_MS)
   }
 
-  private setRelayOnly(on: boolean): void {
-    if (this.relayOnly === on) return
-    this.relayOnly = on
-    this.handlers.onLinks?.({ p2p: !on, peers: this.mesh?.linked.length ?? 0 })
-  }
-
   private async onPeerOpen(conn: string): Promise<void> {
-    if (this.relayOnly && this.mesh) {
-      // A direct link after all: back to peer to peer.
-      this.setRelayOnly(false)
-      await this.announce()
-    }
-    this.handlers.onLinks?.({ p2p: true, peers: this.mesh?.linked.length ?? 0 })
+    this.reportLinks()
     // Initial sync: tell the peer what I hold; it answers with what I lack, then `synced`.
     const ids = this.log.all().map((e) => e.id)
     const parts = chunks(ids, HAVE_CHUNK)
@@ -493,7 +564,6 @@ export class EncryptedRelayTransport implements BoardTransport {
         if (this.mesh && !isFullMesh(this.conns.length)) {
           for (const part of chunks(added, PEER_ENV_CHUNK)) this.mesh.broadcastReliable(JSON.stringify({ t: 'env', envs: part } satisfies PeerFrame), conn)
         }
-        if (this.isBridge) this.push(added)
         this.emit()
         return
       }
@@ -531,7 +601,7 @@ export class EncryptedRelayTransport implements BoardTransport {
         this.conns = frame.peers
         this.synced = false
         this.histDone = false
-        this.wasBridge = false
+        this.relayHas.clear()
         this.startMesh()
         await this.announce()
         return
@@ -541,26 +611,37 @@ export class EncryptedRelayTransport implements BoardTransport {
         for (const c of [...this.presence.keys()]) if (!frame.peers.includes(c)) this.presence.delete(c)
         for (const c of known) if (!frame.peers.includes(c)) this.handlers.onPeerLeft?.(c)
         this.mesh?.update(this.conns)
-        if (frame.peers.some((c) => !known.has(c) && c !== this.conn)) await this.announce()
-        await this.checkBridge()
+        const joined = frame.peers.some((c) => !known.has(c) && c !== this.conn)
+        if (joined) await this.announce()
+        this.reportLinks()
+        // Someone joined: one holder uploads the board, in case the relay lost its memory.
+        if (joined && this.synced && this.isSeeder) this.scheduleReseed(true, 200)
         this.emit()
         return
       }
       case 'hist':
         this.received += frame.envs.length
+        for (const e of frame.envs) this.relayHas.add(e.id)
         await this.ingest(frame.envs)
-        if (frame.done) { this.histDone = true; await this.maybeSynced() }
+        if (frame.done) {
+          this.histDone = true
+          // Upload what the relay history lacked: my events written offline, or a board it forgot.
+          this.scheduleReseed(false)
+          await this.maybeSynced()
+          if (!this.synced) this.armSyncTimer()
+        }
         return
       case 'env': {
-        // Events of relay-only participants (or of the bridge, for them).
+        // Events that reached me through the relay (a participant whose links are incomplete).
         this.received += frame.envs.length
+        for (const e of frame.envs) this.relayHas.add(e.id)
         const added = await this.ingest(frame.envs)
         if (added.length) {
-          // The bridge carries them into the mesh; other mesh peers got them from the relay too.
-          if (this.isBridge && this.mesh && !isFullMesh(this.conns.length)) {
+          // Large boards (partial mesh): pass them on to the direct links as well.
+          if (this.mesh && !isFullMesh(this.conns.length)) {
             for (const part of chunks(added, PEER_ENV_CHUNK)) this.mesh.broadcastReliable(JSON.stringify({ t: 'env', envs: part } satisfies PeerFrame))
           }
-          if (this.relayOnly && !this.synced) await this.maybeSynced()
+          if (!this.synced && this.histDone) await this.maybeSynced()
           this.emit()
         }
         return
@@ -576,8 +657,8 @@ export class EncryptedRelayTransport implements BoardTransport {
         return
       }
       case 'need':
-        // Older relays: re-seed only what relay-only participants need.
-        if (this.relayOnly || this.isBridge) await this.republishAll()
+        // Older relays: the buffer is gone, upload the board.
+        this.scheduleReseed(true)
         return
       case 'err':
         if (frame.code === 'full') { this.full = true; this.handlers.onRoomFull?.(true); return }
@@ -609,22 +690,24 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.mesh = null
     this.ws?.close(1000)
     this.ws = null
-    this.handlers.onStatus('closed')
+    this.setStatus('closed')
     this.handlers.onAccessDenied?.()
   }
 
   /**
-   * The board is ready once the relay answered and, when others are in the room, one of them
-   * synced with me peer to peer (or I fell back to the relay).
+   * The board is ready once the relay answered and, when it holds nothing I know, once a peer
+   * synced with me over a direct link or the wait ran out. A board I already hold (my copy or
+   * the relay history) opens at once: peers catch me up in the background.
    */
   private async maybeSynced(): Promise<void> {
     if (this.synced || !this.histDone) return
-    const alone = !this.conns.some((c) => c !== this.conn)
-    if (!alone && this.peerSynced.size === 0 && !this.relayOnly) return
+    const alone = this.others === 0
+    if (!this.known && !alone && this.peerSynced.size === 0) return
     await this.onSynced(alone || this.peerSynced.size > 0)
   }
 
   private async onSynced(mayCreate: boolean): Promise<void> {
+    if (this.synced) return
     // The board exists but not one event opened: wrong passcode (or a corrupted link).
     // Stop here: publishing anything, a genesis above all, would fork the board.
     if ((this.received > 0 || (this.liveFailed > 0 && this.liveOpened === 0)) && this.log.size === 0) {
@@ -632,15 +715,23 @@ export class EncryptedRelayTransport implements BoardTransport {
       return
     }
     this.synced = true
-    // Relay-only: hand the relay what I hold (the bridge forwards it into the mesh).
-    if (this.relayOnly) await this.republishAll()
-    await this.checkBridge()
-    // Only create the board when alone or after a peer confirmed there is none yet.
-    if (mayCreate && this.log.ledger.facilitatorKey === null && this.deps.facilitator) {
-      await this.publishLocal({ t: 'genesis', roomId: this.ring.roomId, facilitatorKey: this.deps.facilitator.publicKey })
-    }
-    this.handlers.onStatus('open')
+    clearTimeout(this.p2pTimer)
+    // Only the tab that created the board (or a facilitator who chose to start a new one) writes a genesis.
+    const create = mayCreate && !this.known && !!this.deps.facilitator && (this.deps.creator === true || this.startRequested)
+    if (create) await this.publishLocal({ t: 'genesis', roomId: this.ring.roomId, facilitatorKey: this.deps.facilitator!.publicKey })
+    await this.announce() // "ready" for the seeder rule
+    this.setStatus(this.known ? 'open' : 'waiting')
     this.emit()
+  }
+
+  startBoard(): void {
+    this.startRequested = true
+    this.enqueue(async () => {
+      if (this.synced && !this.known && !this.closed) {
+        this.synced = false
+        await this.onSynced(true)
+      }
+    })
   }
 
   /** My best role: as this tab's session key, or through the facilitator key of my link. */
@@ -666,7 +757,9 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   /** Before the relay answers, the board can already show what the local replica holds. */
   private emit(): void {
-    if (!this.synced && this.log.ledger.facilitatorKey === null) return
+    // A room nobody holds shows nothing: there is no board until a genesis exists.
+    if (!this.known) return
+    if (this.lastStatus === 'waiting') this.setStatus('open')
     const ledger = this.log.ledger
     if (ledger.board.settings.destroyed) this.forgetReplica()
     const role = this.myRole()
@@ -676,7 +769,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   private open(): void {
-    this.handlers.onStatus(this.attempts === 0 ? 'connecting' : 'reconnecting')
+    this.setStatus(this.attempts === 0 ? 'connecting' : 'reconnecting')
     const ws = new this.WS(this.url)
     this.ws = ws
     ws.onopen = () => {
@@ -699,7 +792,11 @@ export class EncryptedRelayTransport implements BoardTransport {
       this.mesh = null
       clearTimeout(this.p2pTimer)
       this.synced = false
-      this.handlers.onStatus('reconnecting')
+      this.histDone = false
+      this.relayHas.clear()
+      clearTimeout(this.reseedTimer)
+      this.reportLinks()
+      this.setStatus('reconnecting')
       // Full room: no point hammering it, a seat frees up when someone leaves.
       this.reconnectTimer = setTimeout(() => { this.attempts++; this.open() }, this.full ? FULL_RETRY_MS : backoffDelay(this.attempts))
     }

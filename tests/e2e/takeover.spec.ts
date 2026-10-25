@@ -101,18 +101,23 @@ test('the lead\'s pointer carries a crown for others, an ordinary pointer does n
 
   // Alice (lead) points at the board; Bob sees a pointer with a crown.
   const box = (await page.getByTestId('board').boundingBox())!
-  await page.mouse.move(box.x + 200, box.y + 200)
-  await page.mouse.move(box.x + 260, box.y + 240, { steps: 6 })
+  // Pointers travel on the direct link only: keep moving until it is open.
   const alice = bob.page.locator('[data-testid^="cursor-"]', { hasText: 'Alice' })
-  await expect(alice).toBeVisible()
+  await expect(async () => {
+    await page.mouse.move(box.x + 200, box.y + 200)
+    await page.mouse.move(box.x + 260, box.y + 240, { steps: 6 })
+    await expect(alice).toBeVisible({ timeout: 1_000 })
+  }).toPass({ timeout: 20_000 })
   await expect(alice.locator('[data-testid^="crown-"]')).toBeVisible()
 
   // Bob points: Alice sees Bob's pointer without a crown.
   const bbox = (await bob.page.getByTestId('board').boundingBox())!
-  await bob.page.mouse.move(bbox.x + 300, bbox.y + 200)
-  await bob.page.mouse.move(bbox.x + 340, bbox.y + 240, { steps: 6 })
   const bobCursor = page.locator('[data-testid^="cursor-"]', { hasText: 'Bob' })
-  await expect(bobCursor).toBeVisible()
+  await expect(async () => {
+    await bob.page.mouse.move(bbox.x + 300, bbox.y + 200)
+    await bob.page.mouse.move(bbox.x + 340, bbox.y + 240, { steps: 6 })
+    await expect(bobCursor).toBeVisible({ timeout: 1_000 })
+  }).toPass({ timeout: 20_000 })
   await expect(bobCursor.locator('[data-testid^="crown-"]')).toHaveCount(0)
   await bob.ctx.close()
 })

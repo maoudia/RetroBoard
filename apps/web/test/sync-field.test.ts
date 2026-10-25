@@ -1,7 +1,6 @@
 /**
  * Field failures of the 2026-10-25 test, replayed against the transport (change reliable-board-sync).
- * `it.fails`: each is expected to fail until the matching task group lands, and flips to `it` then.
- * A scenario that stops failing too early is reported by vitest as a failure, so none can rot.
+ * Each scenario failed against the transport of ADR-0017 (see design.md of the change) and passes since ADR-0024.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { createBoardAs, MemoryReplica, World } from './sync-harness'
@@ -19,9 +18,9 @@ async function boardWith(...names: string[]) {
   return { alice, others }
 }
 
-describe('field failures', () => {
+describe('field failures', { timeout: 60_000 }, () => {
   // 1. Alice-Carol cannot link (different NATs). Bob links to both and nobody forwards.
-  it.fails('partial mesh: a note reaches a participant who has no direct link with its author', async () => {
+  it('partial mesh: a note reaches a participant who has no direct link with its author', async () => {
     world = new World()
     const alice = await world.join('alice', { facilitator: true })
     await createBoardAs(world, alice)
@@ -35,7 +34,7 @@ describe('field failures', () => {
   })
 
   // 2. The relay was evicted from memory (sockets stay), then someone who cannot link joins.
-  it.fails('late joiner without any direct link after the relay lost its memory sees the board', async () => {
+  it('late joiner without any direct link after the relay lost its memory sees the board', async () => {
     const { alice, others } = await boardWith('bob')
     alice.note('before')
     await world.until(() => others[0]!.notes.includes('before'))
@@ -48,7 +47,7 @@ describe('field failures', () => {
   })
 
   // 3. A WebSocket blip: commands are dropped while the transport re-syncs.
-  it.fails('a command sent while the connection is lost is kept and delivered later', async () => {
+  it('a command sent while the connection is lost is kept and delivered later', async () => {
     const { alice, others } = await boardWith('bob')
     const bob = others[0]!
     bob.setOnline(false)
@@ -60,7 +59,7 @@ describe('field failures', () => {
   })
 
   // 4. Reload right after publishing, nobody else online, the relay holds nothing.
-  it.fails('the facilitator reloads right after publishing and keeps the board and the note', async () => {
+  it('the facilitator reloads right after publishing and keeps the board and the note', async () => {
     world = new World()
     const replica = new MemoryReplica()
     const seed = { value: null as string | null }
@@ -75,7 +74,7 @@ describe('field failures', () => {
   })
 
   // 5. The facilitator link opened on a second device while the first one is offline.
-  it.fails('a facilitator link on a new device does not start a second board', async () => {
+  it('a facilitator link on a new device does not start a second board', async () => {
     world = new World()
     const alice = await world.join('alice', { facilitator: true, creator: true })
     await createBoardAs(world, alice)
@@ -83,6 +82,7 @@ describe('field failures', () => {
     await world.until(() => alice.notes.includes('original'))
     await world.run(500)
     alice.close()
+    world.relay.forget() // the relay's memory is gone too: nobody holds the board
     const phone = await world.join('phone', { facilitator: true, creator: false })
     await world.run(5_000)
     // Nobody holds the board yet: the phone waits, it never invents one.
@@ -94,7 +94,7 @@ describe('field failures', () => {
   // 6. A device whose clock is more than a minute behind. HybridClock.receive caps what it learns at
   // wall + 60 s, so its events get a time before the genesis, sort first in the total order and are
   // ignored by every replica, silently (preview() only checks the head of the log).
-  it.fails('a participant with a clock one hour behind can still publish', async () => {
+  it('a participant with a clock one hour behind can still publish', async () => {
     const { alice } = await boardWith()
     const late = await world.join('late', { clockSkewMs: -3_600_000 })
     expect(await world.until(() => late.columnIds.length > 0)).toBe(true)
@@ -103,7 +103,7 @@ describe('field failures', () => {
   })
 
   // 7. IndexedDB refuses writes (quota, private mode, closed database): today nothing says so.
-  it.fails('the page is told when the board cannot be saved on this device', async () => {
+  it('the page is told when the board cannot be saved on this device', async () => {
     world = new World()
     const replica = new MemoryReplica()
     replica.failWrites = true

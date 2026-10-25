@@ -22,8 +22,9 @@ The owner's requirement: 0 EUR, fully distributed and reliable.
 ## What Changes
 
 - **Distributed state, unchanged in principle.** Every participant holds the full signed, encrypted event log and folds it with the same domain rules. There is no server authority and no server storage.
-- **Two delivery paths for every board event.**
-  - Every event goes both to the mesh and to the relay.
+- **Two delivery paths, the relay only when needed.**
+  - Every event goes to every open direct link. It also goes to the relay when this participant's links are incomplete (a missing pair makes both ends use the relay).
+  - When every pair is linked, no board event touches the relay.
   - The relay stays a memory-only forwarder of ciphertext.
   - Peers deduplicate by event id.
   - The mesh carries cursors and focus, and is a second path for board events.
@@ -60,7 +61,8 @@ The domain is unchanged.
 
 ## Free-plan budget
 
-- **Board events:** each event now crosses the relay once in and fans out to N-1 sockets. A busy retro is about 300 events for 15 people, or about 4,500 outbound messages per retro.
+- **Complete mesh (the normal case):** no board event crosses the relay; the figures of `docs/capacity.md` hold.
+- **Incomplete mesh or a participant without WebRTC:** events of the affected participants cross the relay once (incoming, billed 20:1) and fan out (outgoing, free). The relay is then awake for the activity, which is the duration that bounds the free plan (about 28 fully active one-hour retros per day at 128 MB, see the ADR); bursts make real retros much cheaper. To be measured in production.
 - **Re-seeding:** one push of the board per connection and one per join from the seeder. Ids the relay already holds are not fanned out.
 - **Cursors** stay peer to peer, so the per-participant relay rate stays under 4 messages per second.
 - **To confirm against the Durable Objects pricing page:** incoming WebSocket messages are billed as requests at a 20:1 ratio, and outgoing ones are free.

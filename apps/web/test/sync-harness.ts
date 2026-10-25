@@ -285,7 +285,7 @@ export interface PeerOptions {
   p2p?: boolean
   /** Session signing seed shared by tabs that reload (same tab). */
   seed?: { value: string | null }
-  /** Single-creator rule (change reliable-board-sync): this tab created the board. */
+  /** Single-creator rule (ADR-0024): this tab created the board. Defaults to true for the facilitator. */
   creator?: boolean
   /** This device's clock is off by this many ms. */
   clockSkewMs?: number
@@ -298,13 +298,18 @@ export class Peer {
   accessDenied = false
   /** Last state reported by the transport for local saving. */
   replicaState: 'ok' | 'failing' = 'ok'
+  /** Cursors and focus frames received from others (peer to peer only). */
+  cursors: string[] = []
+  focus: string[] = []
+  links: { p2p: boolean; peers: number } | null = null
   transport!: EncryptedRelayTransport
   readonly net = { online: true }
 
   constructor(readonly name: string, readonly world: World, readonly opts: PeerOptions, readonly replica: MemoryReplica) {}
 
   get notes(): string[] { return (this.snapshot?.notes ?? []).map((n) => n.text).sort() }
-  get columnIds(): string[] { return (this.snapshot?.columns ?? []).map((c) => c.id) }
+  /** Columns of the board once it was set up (an empty room has placeholder columns until `board.init`). */
+  get columnIds(): string[] { return this.snapshot?.settings.initialized ? (this.snapshot.columns ?? []).map((c) => c.id) : [] }
 
   /** Sends a command through the transport. Returns what the transport answered. */
   send(cmd: Command): boolean { return this.transport.send(cmd) }
@@ -371,7 +376,7 @@ export class World {
       p2p: opts.p2p ?? true,
       now: () => Date.now() + (opts.clockSkewMs ?? 0),
       iceServers: [],
-      ...(opts.creator !== undefined ? { creator: opts.creator } : {}),
+      creator: opts.creator ?? opts.facilitator === true,
     }))() as Promise<EncryptedDeps>
     peer.transport = new EncryptedRelayTransport(
       `ws://fake/ws2?room=${this.roomId}`,
@@ -382,6 +387,9 @@ export class World {
         onStatus: (s) => { peer.status = s },
         onAccessDenied: () => { peer.accessDenied = true },
         onReplica: (state) => { peer.replicaState = state },
+        onCursor: (_c, name) => { peer.cursors.push(String(name)) },
+        onFocus: (_f, name) => { peer.focus.push(String(name)) },
+        onLinks: (state) => { peer.links = state },
       },
       deps,
     )

@@ -62,6 +62,15 @@ test('three participants: everyone links to everyone and sees every note', async
   const url = await shareUrl(page)
   const bob = await joinRecorded(browser, url, 'Bob')
   const carol = await joinRecorded(browser, url, 'Carol')
+  // The relay carries a board event while a link is still missing (ADR-0024): publish once all links are open.
+  await carol.page.getByTestId('btn-participants').click()
+  await expect(carol.page.getByTestId('links-state')).toContainText('2')
+  await carol.page.keyboard.press('Escape')
+  await bob.page.getByTestId('btn-participants').click()
+  await expect(bob.page.getByTestId('links-state')).toContainText('2')
+  await bob.page.keyboard.press('Escape')
+  bob.sent.length = 0
+  carol.sent.length = 0
   await publishNote(carol.page, 0, 'Carol idea')
   await publishNote(bob.page, 1, 'Bob idea')
   for (const p of [page, bob.page, carol.page]) {

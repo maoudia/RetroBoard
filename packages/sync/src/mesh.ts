@@ -36,12 +36,12 @@ export const isFullMesh = (n: number, fullMeshMax = FULL_MESH_MAX): boolean => n
 export const isInitiator = (me: string, other: string): boolean => me < other
 
 /**
- * The peer that bridges relay-only participants (no direct link possible): the lowest
- * connection id among the participants that do have the mesh. null when nobody needs it.
+ * The peer that re-seeds the relay when someone joins: the lowest connection id among the
+ * participants that hold the board. Every peer computes the same answer from the same list, so
+ * exactly one of them uploads (the others stay quiet). null when nobody holds the board.
  */
-export function bridgeOf(conns: readonly string[], relayOnly: ReadonlySet<string>): string | null {
-  if (!conns.some((c) => relayOnly.has(c))) return null
-  return [...conns].filter((c) => !relayOnly.has(c)).sort()[0] ?? null
+export function seederOf(holders: readonly string[]): string | null {
+  return [...holders].sort()[0] ?? null
 }
 
 /** Splits a list into chunks (data channel messages stay well under the 256 KB SCTP limit). */

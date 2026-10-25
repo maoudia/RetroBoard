@@ -12,7 +12,7 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 |---|---|---|---|
 | [0000](0000-use-markdown-architectural-decision-records.md) | Use Markdown Architectural Decision Records | accepted | 2026-10-25 |
 | [0001](0001-host-on-cloudflare-workers-with-static-assets.md) | Host on Cloudflare Workers with static assets | accepted | 2026-10-24 |
-| [0002](0002-hybrid-sync-relay-for-events-and-p2p-for-cursors.md) | Hybrid sync: relay for events, peer to peer for cursors | superseded by [ADR-0017](0017-board-events-and-cursors-travel-peer-to-peer.md) | 2026-10-24 |
+| [0002](0002-hybrid-sync-relay-for-events-and-p2p-for-cursors.md) | Hybrid sync: relay for events, peer to peer for cursors | superseded by [ADR-0024](0024-board-events-on-two-paths-anti-entropy-on-every-connection.md) | 2026-10-24 |
 | [0003](0003-event-sourced-board-replicated-in-every-browser.md) | Event-sourced board replicated in every browser | accepted | 2026-10-24 |
 | [0004](0004-end-to-end-encryption-with-keys-in-the-link.md) | End-to-end encryption with keys in the link | accepted | 2026-10-24 |
 | [0005](0005-facilitator-role-with-delegation.md) | Facilitator role with delegation | accepted | 2026-10-24 |
@@ -27,10 +27,11 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0014](0014-french-and-english-interface.md) | French and English interface | accepted | 2026-10-24 |
 | [0015](0015-team-profile-kept-locally.md) | Team profile kept locally | accepted | 2026-10-24 |
 | [0016](0016-webmcp-tools-for-browser-agents.md) | WebMCP tools for browser agents | accepted | 2026-10-24 |
-| [0017](0017-board-events-and-cursors-travel-peer-to-peer.md) | Board events and cursors travel peer to peer | accepted | 2026-10-24 |
+| [0017](0017-board-events-and-cursors-travel-peer-to-peer.md) | Board events and cursors travel peer to peer | superseded by [ADR-0024](0024-board-events-on-two-paths-anti-entropy-on-every-connection.md) | 2026-10-24 |
 | [0018](0018-no-paid-service-and-no-vendor-lock-in.md) | No paid service and no vendor lock-in | accepted | 2026-10-24 |
 | [0019](0019-edge-protection-instead-of-a-captcha.md) | Edge protection instead of a captcha | accepted | 2026-10-24 |
 | [0020](0020-remove-protocol-v1-and-server-side-storage.md) | Remove protocol v1 and its server-side storage | accepted | 2026-10-24 |
 | [0021](0021-everyone-facilitates-by-default.md) | Everyone facilitates by default | accepted | 2026-10-25 |
 | [0022](0022-wcag-2-2-aa-as-the-accessibility-target.md) | WCAG 2.2 AA as the accessibility target | proposed | 2026-10-25 |
 | [0023](0023-in-app-and-local-notifications-only.md) | In-app and local notifications only | proposed | 2026-10-25 |
+| [0024](0024-board-events-on-two-paths-anti-entropy-on-every-connection.md) | Board events on two paths, anti-entropy on every connection | accepted | 2026-10-25 |

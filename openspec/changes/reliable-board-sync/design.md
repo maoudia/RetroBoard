@@ -8,10 +8,9 @@ The board is the signed event log held by each participant. The relay never orde
 
 ### D2. Two paths for every board event
 
-`publish(envs)` always does both:
+`publish(envs)` always sends to every open link (`mesh.broadcastReliable`). It also sends to the relay (`pub`) whenever **my links are incomplete**: no mesh at all, or fewer open links than other participants in the room (`linked < conns - 1`).
 
-- `mesh.broadcastReliable(...)` to every open link;
-- relay `pub`.
+Why this is enough: a missing pair is missing for both of its ends, so both ends see themselves as incomplete and use the relay, and every participant with complete links already gets the event over the mesh. A participant without WebRTC can never be linked, so as long as one is in the room everybody is incomplete and every event also crosses the relay. When every pair is linked, no board event touches the relay and the free-plan budget of ADR-0017 is unchanged.
 
 Inbound events from either path go through `ingest`, which drops ids already in the log. Partial-mesh forwarding, `relayOnly` and the bridge (`bridgeOf`, `checkBridge`, `republishAll` on bridge change) are deleted. The mesh keeps:
 
@@ -24,7 +23,7 @@ Inbound events from either path go through `ingest`, which drops ids already in 
   - The client records the ids received in `hist` (up to `done`).
   - It then pushes every envelope of its log whose id was not in `hist`, in frames of 100.
   - This one rule covers both the outbox (D4) and re-seeding an evicted relay.
-- **On join (a `peers` frame with a new connection id):**
+- **On join (a `peers` frame with a new connection id, whether or not events flow through the relay at that moment):**
   - The seeder re-pushes its whole log.
   - The seeder is the lowest connection id among peers that announced `ready` in their presence.
   - The relay's `buffer.add` returns only fresh ids, so a relay that still holds the board fans out nothing.

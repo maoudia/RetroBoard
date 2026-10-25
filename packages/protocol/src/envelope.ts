@@ -94,8 +94,10 @@ export const PresenceSchema = v.strictObject({
   key: v.optional(Key),
   /** Facilitator public key when this browser holds the facilitator link (public: it is in the genesis). */
   fkey: v.optional(Key),
-  /** No direct link (network or setting): this participant's board events go through the relay. */
+  /** Older clients: no direct link, board events through the relay. Ignored since ADR-0024. */
   relayOnly: v.optional(v.boolean()),
+  /** This participant holds the board (genesis known): it may be the one that re-seeds the relay. */
+  ready: v.optional(v.boolean()),
 })
 export type Presence = v.InferOutput<typeof PresenceSchema>
 

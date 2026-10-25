@@ -21,6 +21,21 @@ describe('HybridClock', () => {
   })
 })
 
+describe('HybridClock floor', () => {
+  it('a device whose clock is far behind still stamps after what its log holds', () => {
+    const clock = new HybridClock(() => 1_000)
+    clock.receive(1_000 + 3_600_000) // learned, but capped at wall + MAX_DRIFT_MS
+    expect(clock.tick(3_600_000)).toBe(3_600_001)
+    expect(clock.tick(3_600_000)).toBe(3_600_002)
+  })
+
+  it('without a floor the stamp follows the wall clock as before', () => {
+    const clock = new HybridClock(() => 5_000)
+    expect(clock.tick()).toBe(5_000)
+    expect(clock.tick(0)).toBe(5_001)
+  })
+})
+
 describe('event order', () => {
   it('is a total order independent of arrival order', () => {
     const ev = fc.record({ at: fc.integer({ min: 0, max: 50 }), id: fc.string({ minLength: 1, maxLength: 4 }) })

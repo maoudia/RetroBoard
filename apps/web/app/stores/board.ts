@@ -15,6 +15,8 @@ export const useBoardStore = defineStore('board', () => {
   const lastNotice = ref<(BoardNotice & { at: number }) | null>(null)
   /** Encrypted board that does not open with the keys we have (wrong passcode). */
   const accessDenied = ref(false)
+  /** Writes to the local copy keep failing (storage full or blocked): the board is not saved on this device. */
+  const replicaFailing = ref(false)
   /** The board is at its participant cap; the channel retries until a seat frees up. */
   const roomFull = ref(false)
   /** Peer-to-peer state of this tab: direct links, or the relay fallback. */
@@ -28,6 +30,7 @@ export const useBoardStore = defineStore('board', () => {
   function connect(room: string, identity: Identity, factory: TransportFactory) {
     disconnect()
     accessDenied.value = false
+    replicaFailing.value = false
     roomFull.value = false
     links.value = null
     roomId.value = room
@@ -47,6 +50,7 @@ export const useBoardStore = defineStore('board', () => {
       onPeerLeft: (conn) => live.drop(conn),
       onRoomFull: (full) => { roomFull.value = full },
       onLinks: (s) => { links.value = s },
+      onReplica: (state) => { replicaFailing.value = state === 'failing' },
     })
     transport.connect(identity)
   }
@@ -61,6 +65,10 @@ export const useBoardStore = defineStore('board', () => {
   }
 
   function updateIdentity(identity: Identity) { transport?.updateIdentity(identity) }
+  /** Writes the pending local copy now (the page is going away). */
+  const flush = () => transport?.flush?.() ?? Promise.resolve()
+  /** Nobody holds this board and the facilitator chose to start a new one in this room. */
+  const startBoard = () => transport?.startBoard?.()
   /** Encrypted boards: my access. Legacy boards have no roles: everybody may steer. */
   const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, bypassesPhase: true, canManageRoles: false, isLead: true })
   /** Phase rules: may I do this now? Facilitators always may. */
@@ -115,8 +123,8 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
-    connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
+    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, roomFull, roomCode, links, myKey,
+    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
     settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById,
   }

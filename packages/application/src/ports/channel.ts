@@ -1,6 +1,9 @@
 import type { Command, CursorFrame, ErrorCode, FocusFrame, Snapshot } from '@retroboard/domain'
 
-export type ConnectionStatus = 'connecting' | 'open' | 'reconnecting' | 'closed'
+/**
+ * `waiting`: connected, but nobody holds this board yet. Nothing is created in its place.
+ */
+export type ConnectionStatus = 'connecting' | 'open' | 'reconnecting' | 'waiting' | 'closed'
 
 export interface Identity {
   cid: string
@@ -36,6 +39,8 @@ export interface ChannelHandlers {
   onLinks?(state: { p2p: boolean; peers: number }): void
   /** A peer left: drop its cursor and focus. */
   onPeerLeft?(conn: string): void
+  /** Saving on this device: `failing` when writes to the local copy keep failing (storage full or blocked). */
+  onReplica?(state: 'ok' | 'failing'): void
 }
 
 /** What a participant shares live; the channel adds its connection id. */
@@ -55,6 +60,10 @@ export interface BoardChannel {
   exportBoardFile?(): Promise<string | null>
   /** Encrypted boards: restores events from a board file. Returns how many were new, or null if the file does not belong to this board. */
   importBoardFile?(text: string): Promise<number | null>
+  /** Encrypted boards: the facilitator starts a brand new board in a room nobody holds (explicit choice). */
+  startBoard?(): void
+  /** Encrypted boards: writes the pending local copy now (the page is going away). */
+  flush?(): Promise<void>
   /** Live presence, best effort: dropped when offline. */
   sendCursor?(cursor: OwnCursor): void
   sendFocus?(focus: OwnFocus): void
