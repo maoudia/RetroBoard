@@ -109,7 +109,8 @@ Useful tasks: summarise themes, suggest SMART actions with owners, spot actions 
     "initialized": true,
     "talkMode": "off",
     "talkBudgetMs": 120000,
-    "talkSelfStart": false
+    "talkSelfStart": false,
+    "noteMaxLength": 280
   },
   "columns": [
     {
@@ -585,7 +586,8 @@ tests","0","Alice"
     "initialized": true,
     "talkMode": "ring",
     "talkBudgetMs": 120000,
-    "talkSelfStart": false
+    "talkSelfStart": false,
+    "noteMaxLength": 280
   },
   "columns": [
     {
@@ -1197,7 +1199,8 @@ tests","","Alice"
     "initialized": true,
     "talkMode": "ring",
     "talkBudgetMs": 120000,
-    "talkSelfStart": false
+    "talkSelfStart": false,
+    "noteMaxLength": 280
   },
   "columns": [
     {

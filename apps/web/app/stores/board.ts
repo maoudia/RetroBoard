@@ -1,4 +1,4 @@
-import { allowedInPhase, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
+import { allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
@@ -90,6 +90,8 @@ export const useBoardStore = defineStore('board', () => {
   const timer = computed(() => snapshot.value?.timer ?? null)
   const votesLeft = computed(() => snapshot.value?.votesLeft ?? 0)
   const ready = computed(() => snapshot.value !== null)
+  /** Longest note text on this board (facilitator setting). */
+  const noteLimit = computed(() => snapshot.value?.settings.noteMaxLength ?? DEFAULT_NOTE_MAX_LENGTH)
   const locked = computed(() => snapshot.value?.settings.locked ?? false)
   const secretVoting = computed(() => snapshot.value?.settings.secretVoting ?? false)
   const votingClosed = computed(() => snapshot.value?.settings.votingClosed ?? false)
@@ -106,7 +108,7 @@ export const useBoardStore = defineStore('board', () => {
   return {
     snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
-    settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
+    settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,
   }
 })

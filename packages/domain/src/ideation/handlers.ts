@@ -1,5 +1,5 @@
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
-import { LIMITS, NOTE_COLOR_COUNT } from '../shared/limits'
+import { DEFAULT_NOTE_MAX_LENGTH, LIMITS, NOTE_COLOR_COUNT } from '../shared/limits'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { makeNote, normalizeGroups } from './notes'
 
@@ -7,6 +7,8 @@ type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete'
   | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge'
   | 'column.add' | 'column.update' | 'column.delete' | 'column.move'
 
+/** A peer that ignores the board's note length limit is refused by everyone. */
+const tooLong = (s: { settings: { noteMaxLength?: number } }, text: string) => text.length > (s.settings.noteMaxLength ?? DEFAULT_NOTE_MAX_LENGTH)
 const validColor = (n: number) => Number.isInteger(n) && n >= 0 && n < NOTE_COLOR_COUNT
 
 /** Ideation context: notes, groups (clusters) and columns. */
@@ -14,6 +16,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
   'note.add': (s, c, a, ctx) => {
     if (s.settings.locked) return fail('locked')
     if (!s.columns.some((x) => x.id === c.columnId)) return fail('not-found')
+    if (tooLong(s, c.text)) return fail('invalid')
     if (noteCount(s) >= LIMITS.maxNotes) return fail('limit-reached')
     const n = makeNote(a, ctx, c.columnId, c.text, c.color ?? s.columns.find((x) => x.id === c.columnId)?.color)
     return done({ ...s, notes: { ...s.notes, [n.id]: n } }, { notes: [n.id] })
@@ -23,6 +26,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     if (s.settings.locked) return fail('locked')
     if (noteCount(s) + c.items.length > LIMITS.maxNotes) return fail('limit-reached')
     if (c.items.some((i) => !s.columns.some((x) => x.id === i.columnId))) return fail('not-found')
+    if (c.items.some((i) => tooLong(s, i.text))) return fail('invalid')
     const notes = { ...s.notes }
     const ids: string[] = []
     for (const [index, i] of c.items.entries()) {
@@ -38,6 +42,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     const n = s.notes[c.id]
     if (!n) return fail('not-found')
     if (n.ownerCid !== a.cid) return fail('forbidden')
+    if (tooLong(s, c.text)) return fail('invalid')
     return done({ ...s, notes: { ...s.notes, [n.id]: { ...n, text: c.text } } }, { notes: [n.id] })
   },
 

@@ -53,7 +53,7 @@ describe('schemas', () => {
 
   it.each([
     [{ t: 'note.add', columnId: 'abcd1234', text: '   ' }],
-    [{ t: 'note.add', columnId: 'abcd1234', text: 'a'.repeat(281) }],
+    [{ t: 'note.add', columnId: 'abcd1234', text: 'a'.repeat(501) }],
     [{ t: 'note.add', columnId: '../etc', text: 'x' }],
     [{ t: 'note.add', columnId: 'abcd1234', text: 'x', color: 99 }],
     [{ t: 'column.add', title: 'x', icon: 'not-an-icon' }],

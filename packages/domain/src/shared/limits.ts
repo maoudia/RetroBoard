@@ -1,6 +1,7 @@
 /** Hard limits enforced by the domain (server side). The UI reads them to size inputs. */
 export const LIMITS = {
-  noteText: 280,
+  /** Hard cap of a note; the board setting `noteMaxLength` lowers it (NOTE_TEXT_MIN..noteText). */
+  noteText: 500,
   columnTitle: 40,
   columnSubtitle: 90,
   groupTitle: 60,
@@ -38,3 +39,6 @@ export const LIMITS = {
 export const NOTE_COLOR_COUNT = 8
 export const DEFAULT_VOTE_LIMIT = 3
 export const DEFAULT_TIMER_MS = 5 * 60_000
+
+export const NOTE_TEXT_MIN = 40
+export const DEFAULT_NOTE_MAX_LENGTH = 280

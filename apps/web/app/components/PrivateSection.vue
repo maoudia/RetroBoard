@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { similarIdeas } from '@retroboard/application'
-import { LIMITS } from '@retroboard/domain'
 import type { Column } from '@retroboard/domain'
 const { t } = useT()
 
@@ -75,7 +74,7 @@ function onKey(e: KeyboardEvent) {
     <label class="composer" :class="{ gated: closed }" :style="{ '--c': `var(--note-${colorIndex})` }">
       <span class="sr-only">{{ t('private.newIn', { title: column.title }) }}</span>
       <textarea
-        v-model="text" :maxlength="LIMITS.noteText" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
+        v-model="text" :maxlength="board.noteLimit" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
         :aria-describedby="gate.closedBy ? `gated-${column.id}` : undefined"
         :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         @keydown="onKey"

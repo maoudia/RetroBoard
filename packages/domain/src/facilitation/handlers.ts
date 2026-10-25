@@ -1,5 +1,6 @@
 import { agendaRunning, closePhase, extendPhase, MIN, newAgenda } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
+import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
 import { done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate } from './board'
 import { emptyTalk } from './talk'
@@ -34,6 +35,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   },
 
   'settings.update': (s, c) => {
+    if (c.noteMaxLength !== undefined && !(Number.isInteger(c.noteMaxLength) && c.noteMaxLength >= NOTE_TEXT_MIN && c.noteMaxLength <= LIMITS.noteText)) return fail('invalid')
     const settings = {
       ...s.settings,
       title: c.title ?? s.settings.title,
@@ -50,6 +52,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       talkMode: c.talkMode ?? s.settings.talkMode,
       talkBudgetMs: c.talkBudgetSec !== undefined ? c.talkBudgetSec * 1000 : s.settings.talkBudgetMs,
       talkSelfStart: c.talkSelfStart ?? s.settings.talkSelfStart,
+      noteMaxLength: c.noteMaxLength ?? s.settings.noteMaxLength,
     }
     return done({ ...s, settings }, { meta: true })
   },

@@ -95,6 +95,8 @@ export interface BoardSettings {
   talkBudgetMs: number
   /** Participants may take the floor themselves. */
   talkSelfStart: boolean
+  /** Longest note text accepted, NOTE_TEXT_MIN..LIMITS.noteText (facilitator setting). */
+  noteMaxLength: number
   /** Language the board was created in (board.init); absent on older boards. Picks the room words. */
   locale?: 'fr' | 'en'
 }

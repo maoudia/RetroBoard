@@ -265,3 +265,34 @@ describe('column default colour', () => {
     expect(h.state.columns[0]!.color).toBe(before)
   })
 })
+
+describe('note length limit', () => {
+  it('defaults to 280 and is a facilitator setting between 40 and 500', () => {
+    const h = harness()
+    expect(h.state.settings.noteMaxLength).toBe(280)
+    expect(h.run({ t: 'settings.update', noteMaxLength: 100 }).ok).toBe(true)
+    expect(h.state.settings.noteMaxLength).toBe(100)
+    for (const bad of [39, 501, 100.5, Number.NaN]) {
+      expect(h.run({ t: 'settings.update', noteMaxLength: bad })).toEqual({ ok: false, error: 'invalid' })
+    }
+    expect(h.state.settings.noteMaxLength).toBe(100)
+  })
+
+  it('refuses a note, a batch or an edit above the limit and accepts the limit itself', () => {
+    const h = harness()
+    h.run({ t: 'settings.update', noteMaxLength: 100 })
+    expect(h.run({ t: 'note.add', columnId: h.col(0), text: 'x'.repeat(100) }).ok).toBe(true)
+    expect(h.run({ t: 'note.add', columnId: h.col(0), text: 'x'.repeat(300) })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'note.addMany', items: [{ columnId: h.col(0), text: 'ok' }, { columnId: h.col(0), text: 'y'.repeat(101) }] })).toEqual({ ok: false, error: 'invalid' })
+    const id = Object.keys(h.state.notes)[0]!
+    expect(h.run({ t: 'note.edit', id, text: 'z'.repeat(101) }, alice)).toEqual({ ok: false, error: 'invalid' })
+    expect(Object.keys(h.state.notes)).toHaveLength(1)
+  })
+
+  it('does not rewrite notes already above a limit lowered later', () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'x'.repeat(200) })
+    h.run({ t: 'settings.update', noteMaxLength: 50 })
+    expect(Object.values(h.state.notes)[0]!.text).toHaveLength(200)
+  })
+})

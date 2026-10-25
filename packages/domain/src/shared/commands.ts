@@ -37,7 +37,7 @@ export type Command =
   | { t: 'column.move'; id: string; toIndex: number }
   | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean }
   | { t: 'template.apply'; templateId: string; wipe?: boolean; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number }
   | { t: 'action.add'; text: string; owner: string; due?: string }
   | { t: 'action.update'; id: string; text?: string; owner?: string; due?: string | null }
   | { t: 'action.status'; id: string; status: ActionStatusName }
