@@ -42,10 +42,3 @@ The system MUST sign each participant's events with a per-session key and MUST a
 #### Scenario: Edit by someone else
 - **WHEN** a participant sends an edit for a note published by another session key
 - **THEN** every participant ignores the edit
-
-### Requirement: Creation challenge
-The system SHALL require a successful bot challenge before the relay accepts the first connection of a new room.
-
-#### Scenario: Scripted room creation
-- **WHEN** a client opens a new room without a valid challenge token
-- **THEN** the relay refuses the connection

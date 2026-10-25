@@ -16,7 +16,7 @@ Current protocol sends plaintext commands; the Durable Object reduces them. See 
 - Envelope `{ v:1, roomId, eventId(ULID), hlc, ct }`, AAD = `v|roomId|eventId|hlc`. Nonce 96-bit random per event.
 - Genesis event contains facilitator public key and policies; it is signed with the facilitator key and is the root of trust.
 - Facilitator link `#k=<roomKey>&f=<facilitatorSecret>`; participants' link omits `f`. Share dialog never shows `f` except to the facilitator.
-- Turnstile: widget on /new; token sent in the WebSocket upgrade query; relay verifies with siteverify once per room (secret in Worker secrets).
+- ~~Turnstile on /new~~ dropped (owner decision 2026-10-24): no third-party widget and no paid or vendor-specific service. Abuse protection stays at the edge (Cloudflare automatic DDoS mitigation, a free rate-limiting rule on `/ws2`, Under Attack Mode when needed) plus the relay's own per-socket budgets; see docs/capacity.md.
 - Where it lives: primitives in `packages/crypto`; `KeyRing` value object in `domain/access`; `CreateBoard`, `JoinBoard` use cases in `application`; envelope schema in `protocol`; admission in `apps/relay`.
 
 Security and privacy note: the relay observes room ids, IPs, timing and sizes (docs/PLAN.md 5.7). Links in browser history contain the key; the share dialog warns not to paste links in public channels.
@@ -25,7 +25,7 @@ Security and privacy note: the relay observes room ids, IPs, timing and sizes (d
 
 - [Key in URL appears in history and screenshots] -> optional passcode; "copy link" never puts the key in the visible part of QR captions.
 - [Lost facilitator link] -> co-facilitator delegation; facilitator key also kept in the facilitator's browser.
-- [Turnstile adds friction] -> only on creation, invisible mode.
+- [Scripted room creation] -> edge rate limiting and relay budgets; rooms cost almost nothing since the peer-to-peer mesh.
 
 ## Migration Plan
 

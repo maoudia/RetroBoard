@@ -59,3 +59,10 @@ The system SHALL display at most 10 remote cursors at a time, choosing the most 
 #### Scenario: Large retro
 - **WHEN** 25 participants move their pointers
 - **THEN** each participant sees at most 10 remote cursors
+
+### Requirement: Snapshots
+The system SHALL let the facilitator emit signed snapshots so that new participants do not need the full event history (moved from stateless-relay-and-replication: with the mesh, a joiner syncs from a peer, and a snapshot bounds that sync).
+
+#### Scenario: Long retro
+- **WHEN** a board has more than 2,000 events and a snapshot exists
+- **THEN** a new participant loads the board from the snapshot plus later events

@@ -14,7 +14,7 @@
 ## 3. Protocol and relay
 
 - [x] 3.1 Define envelope v2 schema in `packages/protocol` and encrypt/decrypt in the relay adapter; verify an e2e test that inspects WebSocket frames and finds no plaintext note text
-- [ ] 3.2 Add Turnstile to /new and verification in the relay on first connection of a room; verify e2e with the Turnstile test keys (always-pass and always-fail)
+- [x] 3.2 ~~Add Turnstile~~ Dropped by the owner (2026-10-24): edge protection instead, see design.md. Was: Add Turnstile to /new and verification in the relay on first connection of a room; verify e2e with the Turnstile test keys (always-pass and always-fail)
 
 ## 4. Passcode and UX
 

@@ -9,7 +9,7 @@
 ## 2. Relay v2
 
 - [x] 2.1 Rewrite `apps/relay` Room as a memory-only forwarder with ring buffer and `need-state`; verify unit tests and the "no storage API" CI check
-- [ ] 2.2 Implement resync messages (`hello`, `need`, `have`) in the web relay adapter; verify an e2e test that restarts `wrangler dev` mid-retro and checks every page shows the same board within 5 s
+- [x] 2.2 Superseded by the peer-to-peer mesh (p2p-presence-and-cursors 1.2): peers resync with `have` / missing envelopes / `synced` on every link, the relay holds nothing to lose. Was: Implement resync messages (`hello`, `need`, `have`) in the web relay adapter; verify an e2e test that restarts `wrangler dev` mid-retro and checks every page shows the same board within 5 s
 
 ## 3. Local replica
 
@@ -19,7 +19,7 @@
 ## 4. Board file and snapshots
 
 - [x] 4.1 Implement board file export/import (encrypted) and the restore flow; verify e2e export then restore into a fresh room
-- [ ] 4.2 Implement signed snapshots and snapshot-based join; verify unit test with 3,000 events and e2e late joiner
+- [x] 4.2 Moved to p2p-presence-and-cursors 4.3 (requirement moved with it). Was: Implement signed snapshots and snapshot-based join; verify unit test with 3,000 events and e2e late joiner
 
 ## 5. Cleanup
 

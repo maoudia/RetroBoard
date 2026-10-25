@@ -10,4 +10,4 @@
 
 - [x] 2.1 Vote UI: toolbar remaining dots, my-vote dots on items, undo, bump animation, cluster vote button (fr/en); verify e2e
 - [x] 2.2 Facilitator close/reveal controls; verify e2e that counts appear simultaneously in two contexts
-- [ ] 2.3 Ranking page with podium, ties, "create action" per item; verify e2e and visual regression
+- [x] 2.3 Ranking dialog with podium, ties, "create action" per item; e2e done, visual regression moved to agentic-delivery-harness 2.2; redesign with charts continues in `voting-results-charts`

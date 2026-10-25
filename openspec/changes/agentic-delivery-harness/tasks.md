@@ -9,7 +9,7 @@
 ## 2. End-to-end and quality
 
 - [ ] 2.1 Shard Playwright across Chromium, Firefox, WebKit and four viewports (360, 768, 1440, 2560); verify the matrix runs green on main
-- [ ] 2.2 Add visual regression on 12 key screens x 2 variants x 3 locales (fr, en, pseudo) with a label-driven baseline update workflow; verify a deliberate CSS change produces a diff artifact
+- [ ] 2.2 (All visual-regression checks of other changes are tracked here, 2026-10-25.) Add visual regression on 12 key screens x 2 variants x 3 locales (fr, en, pseudo) with a label-driven baseline update workflow; verify a deliberate CSS change produces a diff artifact
 - [ ] 2.3 Add axe a11y checks on every page and Lighthouse CI + size-limit budgets; verify budgets fail when exceeded
 - [x] 2.4 Add Stryker mutation testing on `packages/domain` (changed files on PR, full nightly) with a 70% break threshold; verify the report artifact
 
@@ -17,7 +17,7 @@
 
 - [x] 3.1 Add CodeQL, dependency review, OSV scanner, gitleaks and a license allow-list; verify each job runs and reports
 - [ ] 3.2 Generate a CycloneDX SBOM on release and attach it; verify the release has the SBOM asset
-- [ ] 3.3 Add a test that fails if `apps/relay` references Durable Object storage APIs; verify by adding a temporary `ctx.storage` call
+- [x] 3.3 Add a test that fails if `apps/relay` references Durable Object storage APIs; verify by adding a temporary `ctx.storage` call
 
 ## 4. Preview, release, production
 

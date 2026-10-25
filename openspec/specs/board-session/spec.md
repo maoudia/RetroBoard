@@ -30,16 +30,16 @@ The system SHALL show the number and names (or "Anonymous") of the people curren
 - **WHEN** a second person joins the board
 - **THEN** both participants see a count of 2 in the participants menu
 
-### Requirement: Board expiry
-The system SHALL erase a board 24 hours after its last activity.
-
-#### Scenario: Inactive board
-- **WHEN** nobody acted on a board for 24 hours
-- **THEN** opening the link shows a new empty board
-
 ### Requirement: Solo mode
 The system SHALL offer a solo mode that runs entirely in the browser without contacting the relay.
 
 #### Scenario: Try solo
 - **WHEN** a visitor chooses "Try it solo"
 - **THEN** a local board opens and no WebSocket connection is made
+
+### Requirement: Board lifetime
+The system SHALL keep a board only in participants' replicas and exported board files; a board SHALL disappear from the service as soon as no participant is connected and the relay is evicted, and SHALL disappear from a device when its local retention period ends.
+
+#### Scenario: Everyone left
+- **WHEN** all participants closed the board and the relay was evicted
+- **THEN** the service holds no trace of the board and only participants' replicas or board files can bring it back

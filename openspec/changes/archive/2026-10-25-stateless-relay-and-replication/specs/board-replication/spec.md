@@ -5,7 +5,7 @@ Defines where a board's state lives when the service stores nothing: in each par
 ## ADDED Requirements
 
 ### Requirement: No server-side persistence
-The relay MUST NOT write board events, snapshots or metadata to any persistent storage; it MAY keep a bounded in-memory buffer of encrypted envelopes.
+The relay MUST NOT write board events, snapshots or metadata to any persistent storage; it MAY keep a bounded in-memory buffer of encrypted envelopes (since the peer-to-peer mesh, only for participants on the relay fallback).
 
 #### Scenario: Relay restart
 - **WHEN** the relay instance for a room is evicted while no participant is connected
@@ -42,10 +42,3 @@ The system SHALL let any participant export an encrypted board file and SHALL le
 #### Scenario: Restore next week
 - **WHEN** the facilitator imports last week's board file into an empty room link
 - **THEN** the board appears exactly as exported
-
-### Requirement: Snapshots
-The system SHALL let the facilitator emit signed snapshots so that new participants do not need the full event history.
-
-#### Scenario: Long retro
-- **WHEN** a board has more than 2,000 events and a snapshot exists
-- **THEN** a new participant loads the board from the snapshot plus later events

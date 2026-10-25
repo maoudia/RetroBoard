@@ -21,3 +21,4 @@
 
 - [x] 4.1 Relay-only fallback with a bridge peer; verify e2e with one participant forced relay-only
 - [ ] 4.2 Production check of link success rates behind corporate networks (manual, documented in docs/capacity.md)
+- [ ] 4.3 Signed snapshots and snapshot-based join (moved from stateless-relay-and-replication 4.2); verify unit test with 3,000 events and e2e late joiner

@@ -7,7 +7,7 @@
 
 ## 2. UI
 
-- [ ] 2.1 Build the segmented ring and expandable phase panel in `packages/ui`; verify visual regression and a11y (announced phase changes)
+- [x] 2.1 Segmented ring and expandable phase panel, built in apps/web (AgendaRing; no `packages/ui` package exists, drift accepted); a11y covered by the axe suite; visual regression moved to agentic-delivery-harness 2.2; the Apple-Fitness-style redesign continues in `timer-rings-and-phase-control`
 - [x] 2.2 Facilitator phase controls (start, pause, extend with borrow/extend total, skip); verify e2e with two contexts
 - [x] 2.3 Phase-aware UI (composer, grouping, vote buttons) and auto-publish at end of Write; verify e2e
 

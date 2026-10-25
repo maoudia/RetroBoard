@@ -11,3 +11,10 @@ The system SHALL show the same countdown to every participant and SHALL let part
 #### Scenario: Time is up
 - **WHEN** the countdown reaches zero
 - **THEN** every participant sees a celebration and an optional chime plays if enabled locally
+
+### Requirement: Phase-bound countdown
+When a board has an agenda, the shared countdown SHALL show the remaining time of the current phase and SHALL be controlled through the agenda.
+
+#### Scenario: Next phase
+- **WHEN** the facilitator moves from Write to Group
+- **THEN** the countdown resets to the Group duration for everyone

@@ -11,7 +11,7 @@ Board links are capability URLs today, and the server reads every note. The prod
 - Optional passcode combined with the key (two-factor sharing: link + passcode).
 - Facilitator capability key (Ed25519) in a separate facilitator link; privileged events must be signed.
 - Per-participant session signing keys, so author-only edits hold without a server.
-- Turnstile challenge before a room is created.
+- ~~Turnstile challenge before a room is created~~ (dropped 2026-10-24, see design.md).
 - **BREAKING**: old `/board#<id>` links stop working after migration (boards are ephemeral, so no data migration).
 
 Out of scope: key rotation inside a running board, moderation tooling, sealed ballots (in `voting-v2-and-ranking`).

@@ -2,7 +2,8 @@
 
 ## 1. Read model and metrics
 
-- [x] 1.1 Report read model with metrics (counts, distributions, phase timings, talk shares, ROTI); verify unit tests with a fixture board
+- [x] 1.1 Report read model with metrics (counts, distributions, phase timings, talk shares); verify unit tests with a fixture board
+- [ ] 1.2 ROTI (return on time invested) vote at the close phase and its distribution in the report; verify unit tests
 
 ## 2. Page and file
 
