@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { suggestOwners } from '@retroboard/application'
+import { ownerChoices } from '@retroboard/application'
 import { LIMITS } from '@retroboard/domain'
 const { t } = useT()
 
@@ -16,11 +16,16 @@ const listId = `${uid}-owners`
 const open = ref(false)
 const active = ref(-1)
 
-const options = computed(() => suggestOwners(
-  model.value,
-  board.peers.map((p) => p.name).filter((n): n is string => !!n),
-  team.profile.owners,
-))
+type Option = { name: string; source: 'present' | 'history' | 'custom' }
+const MAX_USED = 6
+const options = computed<Option[]>(() => {
+  const { connected, used } = ownerChoices({ peers: board.peers, actions: board.actions }, model.value, team.profile.owners)
+  const list: Option[] = [...connected.map((name) => ({ name, source: 'present' as const })), ...used.slice(0, MAX_USED).map((name) => ({ name, source: 'history' as const }))]
+  const typed = model.value.trim().slice(0, LIMITS.actionOwner)
+  const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
+  if (typed && !list.some((o) => fold(o.name) === fold(typed))) list.push({ name: typed, source: 'custom' })
+  return list
+})
 watch(model, () => { active.value = -1 })
 
 function pick(i: number) {
@@ -48,14 +53,18 @@ const label = (o: { name: string; source: string }) => (o.source === 'custom' ? 
       @focus="open = true" @input="open = true" @keydown="onKey" @blur="open = false"
     />
     <ul v-show="open && options.length" :id="listId" class="list" role="listbox" :aria-label="t('owner.suggestions')" data-testid="owner-options">
-      <li
-        v-for="(o, i) in options" :id="`${listId}-${i}`" :key="`${o.source}-${o.name}`" role="option" :aria-selected="i === active"
-        :class="[o.source, { active: i === active }]" :data-testid="`owner-option-${o.source}`" @mousedown.prevent="pick(i)"
-      >
-        <Icon :name="o.source === 'present' ? 'lucide:circle-dot' : o.source === 'history' ? 'lucide:history' : 'lucide:user-plus'" />
-        <span>{{ label(o) }}</span>
-        <small v-if="o.source === 'present'" class="muted">{{ t('owner.present') }}</small>
-      </li>
+      <template v-for="(o, i) in options" :key="`${o.source}-${o.name}`">
+        <li v-if="i === 0 ? o.source !== 'custom' : o.source !== options[i - 1]!.source && o.source !== 'custom'" role="presentation" class="sec" :data-testid="`owner-section-${o.source}`">
+          {{ t(o.source === 'present' ? 'owner.connected' : 'owner.used') }}
+        </li>
+        <li
+          :id="`${listId}-${i}`" role="option" :aria-selected="i === active"
+          :class="[o.source, { active: i === active }]" :data-testid="`owner-option-${o.source}`" @mousedown.prevent="pick(i)"
+        >
+          <Icon :name="o.source === 'present' ? 'lucide:circle-dot' : o.source === 'history' ? 'lucide:history' : 'lucide:user-plus'" />
+          <span>{{ label(o) }}</span>
+        </li>
+      </template>
     </ul>
   </div>
 </template>
@@ -66,5 +75,7 @@ const label = (o: { name: string; source: string }) => (o.source === 'custom' ? 
 li { display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; border-radius: 8px; cursor: pointer; }
 li small { margin-left: auto; }
 li.active, li:hover { background: var(--accent-soft); }
+li.sec { padding: .35rem .5rem .1rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); cursor: default; }
+li.sec:hover { background: none; }
 li.custom { border-top: 1px solid var(--border); font-style: italic; }
 </style>

@@ -27,11 +27,11 @@ test.describe('actions v2', () => {
     await page.getByTestId('action-text').fill('Fix flaky tests')
     await page.getByTestId('owner-input').fill('')
     await page.getByTestId('owner-input').fill('bo')
-    // Bob is connected: suggested first; the typed text comes last.
-    await expect(page.getByTestId('owner-options').locator('[role="option"]').first()).toContainText('Bob')
+    // Connected people are a fixed section at the top (Bob is in it); the typed text comes last.
+    await expect(page.getByTestId('owner-section-present')).toHaveText('Connectés maintenant')
+    await expect(page.getByTestId('owner-options').locator('[data-testid="owner-option-present"]').filter({ hasText: 'Bob' })).toBeVisible()
     await expect(page.getByTestId('owner-options').locator('[role="option"]').last()).toContainText('bo')
-    await page.getByTestId('owner-input').press('ArrowDown')
-    await page.getByTestId('owner-input').press('Enter')
+    await page.getByTestId('owner-options').locator('[data-testid="owner-option-present"]').filter({ hasText: 'Bob' }).click()
     await expect(page.getByTestId('owner-input')).toHaveValue('Bob')
     await page.getByTestId('action-due').fill('2026-11-07')
     await page.getByTestId('action-add').click()

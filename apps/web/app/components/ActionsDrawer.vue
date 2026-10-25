@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { VOTED_SORTS, type VotedIdea, type VotedSort, votedIdeas } from '@retroboard/application'
 import { type ActionItem, type ActionStatus, isOpenAction, LIMITS } from '@retroboard/domain'
 import { confetti } from '~/utils/fx'
 const { t } = useT()
@@ -10,6 +11,19 @@ const identity = useIdentityStore()
 const team = useTeamStore()
 const { push } = useToasts()
 const jumper = useJumpToSource()
+const settings = useSettingsStore()
+const ideas = computed(() => (board.snapshot ? votedIdeas(board.snapshot, settings.s.votedSort, board.columns.map((c) => c.id)) : null))
+const TOP = 8
+const showAll = ref(false)
+const shownIdeas = computed(() => (showAll.value ? ideas.value ?? [] : (ideas.value ?? []).slice(0, TOP)))
+const columnTitle = (id: string) => board.columns.find((c) => c.id === id)?.title ?? ''
+const SORT_LABEL: Record<VotedSort, string> = { votes: 'votedIdeas.sort.votes', column: 'votedIdeas.sort.column', newest: 'votedIdeas.sort.newest', author: 'votedIdeas.sort.author' }
+function fromIdea(idea: VotedIdea) {
+  text.value = idea.title.slice(0, LIMITS.actionText)
+  owner.value = idea.author ?? ''
+  source.value = { sourceId: idea.id, text: idea.title }
+  void nextTick(() => document.querySelector<HTMLInputElement>('[data-testid="action-text"]')?.focus())
+}
 const open = computed({ get: () => ui.dialog === 'actions', set: (v) => { if (!v && ui.dialog === 'actions') ui.close() } })
 const text = ref('')
 const owner = ref('')
@@ -78,6 +92,34 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
       <button class="btn btn-primary" type="submit" :disabled="!gate.allowed" data-testid="action-add"><Icon name="lucide:plus" /> {{ t('actions.add') }}</button>
     </form>
 
+    <section v-if="ideas && ideas.length" class="sec ideas" data-testid="voted-ideas">
+      <div class="ideas-h">
+        <h3 class="sec-h"><Icon name="lucide:thumbs-up" aria-hidden="true" /> {{ t('votedIdeas.title') }}</h3>
+        <label class="sortl">
+          <span class="muted small">{{ t('votedIdeas.sort') }}</span>
+          <select class="field" :value="settings.s.votedSort" data-testid="voted-sort" @change="settings.patch({ votedSort: ($event.target as HTMLSelectElement).value as VotedSort })">
+            <option v-for="m in VOTED_SORTS" :key="m" :value="m">{{ t(SORT_LABEL[m] as never) }}</option>
+          </select>
+        </label>
+      </div>
+      <ul class="list">
+        <li v-for="i in shownIdeas" :key="i.id" class="idea" :data-testid="`idea-${i.id}`">
+          <span class="vcount mono">{{ i.votes }}</span>
+          <span class="txt">
+            {{ i.title }}
+            <small class="muted from">{{ columnTitle(i.columnId) }}<template v-if="i.author"> - {{ i.author }}</template> - {{ t('votedIdeas.votes', { n: i.votes }) }}</small>
+          </span>
+          <span v-if="board.actionsBySource.get(i.id)?.length" class="pill">{{ t('actions.count', { n: board.actionsBySource.get(i.id)!.length }) }}</span>
+          <button class="btn btn-sm" type="button" :disabled="!gate.allowed" :aria-label="t('votedIdeas.createFor', { text: clip(i.title) })" :data-testid="`idea-create-${i.id}`" @click="fromIdea(i)">
+            <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('votedIdeas.create') }}
+          </button>
+        </li>
+      </ul>
+      <button v-if="ideas.length > TOP" class="btn btn-sm btn-ghost more" type="button" data-testid="voted-more" @click="showAll = !showAll">
+        {{ showAll ? t('votedIdeas.less') : t('votedIdeas.more', { n: ideas.length }) }}
+      </button>
+    </section>
+
     <p v-if="!board.actions.length" class="muted empty">{{ t('actions.empty') }}</p>
 
     <template v-for="section in [{ key: 'carried', items: carried }, { key: 'fresh', items: fresh }]" :key="section.key">
@@ -126,6 +168,12 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 
 <style scoped>
 .add { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: .5rem; }
+.ideas-h { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.sortl { display: inline-flex; align-items: center; gap: .4rem; }
+.sortl .field { padding: .25rem .4rem; font-size: .85rem; }
+.idea { grid-template-columns: auto 1fr auto auto; }
+.vcount { min-width: 2ch; text-align: center; font-weight: 800; color: var(--accent); }
+.more { justify-self: start; }
 .src { grid-column: 1 / -1; margin: 0; display: flex; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
 .sec { display: grid; gap: .25rem; margin-top: .75rem; }
 .sec-h { display: flex; gap: .4rem; align-items: center; margin: 0; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
