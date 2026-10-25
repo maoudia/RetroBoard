@@ -29,7 +29,7 @@ test.describe('time-boxed agenda', () => {
     const bob = await join(browser, await shareLink(page), 'Bob')
     await panel(page, () => page.getByTestId('agenda-start').click())
     await expect(bob.page.getByTestId('agenda-phase')).toHaveText('Inclusion')
-    await expect(bob.page.getByTestId('agenda-live')).toContainText('Inclusion')
+    await expect(bob.page.getByTestId('live-polite')).toContainText('Inclusion')
 
     // To Write (2 steps): Bob writes a draft, publishes it, and has no vote buttons.
     await next(page)

@@ -146,6 +146,7 @@ function onPresenterKey(e: KeyboardEvent) {
 // Leave guard: unpublished drafts would stay in this browser only; the browser asks first.
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
 const phaseEnd = usePhaseEnd()
+useBoardAnnouncements()
 useShortcuts()
 onMounted(() => { document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
 onBeforeUnmount(() => { document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
@@ -230,6 +231,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <ActionsReviewDialog />
       <OptionsDialog />
       <NameDialog />
+      <LiveRegions />
       <NameNudge />
       <LazyPhaseEndPopup v-if="phaseEnd.ended.value" :key="phaseEnd.ended.value.id" :ended="phaseEnd.ended.value" @close="phaseEnd.dismiss" />
       <ConfirmDialog v-model:open="takeoverOpen" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />

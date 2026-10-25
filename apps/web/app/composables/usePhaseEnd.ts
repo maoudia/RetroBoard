@@ -21,6 +21,7 @@ export function usePhaseEnd() {
   const settings = useSettingsStore()
   const { push } = useToasts()
   const { t } = useT()
+  const announcer = useLiveAnnouncer()
   const ended = ref<PhaseEnded | null>(null)
   const phaseName = (kind: PhaseKind | null) => (kind ? t(`agenda.phase.${kind}` as never) : '')
 
@@ -30,10 +31,11 @@ export function usePhaseEnd() {
   }
   function announce(e: PhaseEnded) {
     ended.value = e
-    if (settings.s.sound) chime()
-    if (!settings.s.systemNotify) return
     const title = e.source === 'agenda' ? t('phaseEnd.title', { phase: phaseName(e.phase) }) : t('phaseEnd.timer')
-    systemNotify(title, e.next ? t('phaseEnd.next', { phase: phaseName(e.next) }) : '')
+    const next = e.next ? t('phaseEnd.next', { phase: phaseName(e.next) }) : ''
+    announcer.assertive(next ? `${title}. ${next}` : title)
+    if (settings.s.sound) chime()
+    if (settings.s.systemNotify) systemNotify(title, next)
   }
   let seq = 0
   let agendaPrev: TimerSample | null = null

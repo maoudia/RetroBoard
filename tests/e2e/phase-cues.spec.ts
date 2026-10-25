@@ -68,10 +68,10 @@ test('votes and actions get the same closed cue; a phase change says what opened
 
   // Group phase: the polite live region says what opened (nothing closes: drafts still land).
   await panel(page, 'agenda-next')
-  await expect(bob.page.getByTestId('agenda-live')).toContainText(/Ouvert|Opened/)
+  await expect(bob.page.getByTestId('live-polite')).toContainText(/Ouvert|Opened/)
   // Vote phase: voting opens, grouping closes.
   await panel(page, 'agenda-next')
-  await expect(bob.page.getByTestId('agenda-live')).toContainText(/Ouvert : le vote|Opened: voting/)
-  await expect(bob.page.getByTestId('agenda-live')).toContainText(/Fermé|Closed/)
+  await expect(bob.page.getByTestId('live-polite')).toContainText(/Ouvert : le vote|Opened: voting/)
+  await expect(bob.page.getByTestId('live-polite')).toContainText(/Fermé|Closed/)
   await bob.ctx.close()
 })

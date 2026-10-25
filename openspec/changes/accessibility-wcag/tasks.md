@@ -8,7 +8,7 @@
 
 ## 2. Board criteria
 
-- [ ] 2.1 `useAnnouncer()` with merged polite messages and assertive timer end; new notes, phase change, vote reveal wired; verify unit tests and e2e reading the live region
+- [x] 2.1 `useAnnouncer()` with merged polite messages and assertive timer end; new notes, phase change, vote reveal wired; verify unit tests and e2e reading the live region
 - [ ] 2.2 Drag alternatives ("Group with...", "Move up", "Move down") in note and group menus (fr/en); verify e2e keyboard only
 - [ ] 2.3 Skip links, 24 px minimum targets, focus not obscured by toolbar and popups (scroll padding), reduced-motion versions; verify e2e and axe
 

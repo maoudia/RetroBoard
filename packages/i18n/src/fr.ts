@@ -833,4 +833,8 @@ export const fr = {
   'votedIdeas.more': 'Afficher tout ({n})',
   'votedIdeas.less': 'Afficher moins',
   'exportHub.previewLabel': 'Aperçu de l\'export',
+  'a11y.newNotes.one': '{n} nouvelle idée dans {column}',
+  'a11y.newNotes.other': '{n} nouvelles idées dans {column}',
+  'a11y.phase': 'Maintenant : {phase}',
+  'a11y.revealed': 'Les votes sont révélés',
 } as const

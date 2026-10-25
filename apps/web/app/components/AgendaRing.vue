@@ -47,8 +47,8 @@ const centre = computed(() => {
 const phaseName = (kind: string) => t(`agenda.phase.${kind}` as never)
 const caption = computed(() => (clock.value.phase ? phaseName(clock.value.phase.kind) : agenda.value.current < 0 ? t('agenda.notStarted') : t('agenda.ended')))
 
-// Announce phase changes to screen readers (aria-live).
-const announce = ref('')
+// Announce phase changes to screen readers (merged by the shared announcer).
+const announcer = useLiveAnnouncer()
 const GATED = [['note.addMany', 'write'], ['vote.add', 'vote'], ['note.group', 'group'], ['action.add', 'actions']] as const
 const openSet = () => GATED.filter(([c]) => board.availability(c).closedBy === null).map(([, n]) => n)
 let before = openSet()
@@ -57,8 +57,9 @@ watch(() => agenda.value.current, () => {
   const list = (names: readonly string[]) => names.map((n) => t(`gated.noun.${n}` as never)).join(', ')
   const opened = now.filter((n) => !before.includes(n)); const closedNow = before.filter((n) => !now.includes(n))
   before = now
-  if (!clock.value.phase) { announce.value = caption.value; return }
-  announce.value = [t('agenda.now', { phase: phaseName(clock.value.phase.kind) }), opened.length ? t('gated.opened', { list: list(opened) }) : '', closedNow.length ? t('gated.closedList', { list: list(closedNow) }) : ''].filter(Boolean).join(' ')
+  if (!clock.value.phase) { announcer.collect({ kind: 'phase', phase: caption.value }); return }
+  const detail = [opened.length ? t('gated.opened', { list: list(opened) }) : '', closedNow.length ? t('gated.closedList', { list: list(closedNow) }) : ''].filter(Boolean).join(' ')
+  announcer.collect({ kind: 'phase', phase: phaseName(clock.value.phase.kind), ...(detail ? { detail } : {}) })
 })
 
 const borrow = ref(true)
@@ -115,7 +116,6 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
       <p class="muted small">{{ t('agenda.total', { planned: minutes(clock.totalPlannedMs), elapsed: minutes(clock.totalElapsedMs) }) }}</p>
     </div>
   </Dropdown>
-  <span class="visually-hidden" aria-live="polite" data-testid="agenda-live">{{ announce }}</span>
 </template>
 
 <style scoped>

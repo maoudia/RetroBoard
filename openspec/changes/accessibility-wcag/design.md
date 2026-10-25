@@ -4,7 +4,7 @@
 
 ### D1. One announcer
 
-A single `useAnnouncer()` composable owns two live regions (polite, assertive) mounted once in the layout. Callers send messages with a key; repeated messages within 2 s are merged ("3 new notes in Start") so a busy board does not flood screen readers. Assertive is reserved for the end of a timer and errors.
+A single announcer composable (`useLiveAnnouncer()`, named so because Nuxt reserves `useAnnouncer`) owns two live regions (polite, assertive) mounted once in the layout. Callers send messages with a key; repeated messages within 2 s are merged ("3 new notes in Start") so a busy board does not flood screen readers. Assertive is reserved for the end of a timer and errors.
 
 ### D2. Drag alternatives through the existing menus
 
