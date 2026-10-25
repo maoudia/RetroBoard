@@ -46,6 +46,14 @@ export default defineNuxtPlugin(() => {
     ),
     clipboard: {
       writeText: (text) => (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject(new Error('clipboard unavailable'))),
+      writeRich: async (html, text) => {
+        if (!navigator.clipboard) throw new Error('clipboard unavailable')
+        if (typeof ClipboardItem === 'undefined' || !navigator.clipboard.write) return navigator.clipboard.writeText(text)
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+        })])
+      },
     },
     file: { save: download },
     notifier: { notify: push },

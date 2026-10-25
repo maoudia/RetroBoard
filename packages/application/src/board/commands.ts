@@ -13,7 +13,7 @@ export interface BoardCommandDeps {
   view(): Snapshot | null
 }
 
-export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string }
+export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean }
 export interface ColumnInput { title: string; subtitle?: string; icon?: Extract<Command, { t: 'column.add' }>['icon'] }
 
 /**
@@ -70,6 +70,15 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       const note = deps.view()?.notes.find((n) => n.id === noteId)
       return note && note.myVotes > 0 ? this.removeVote('note', noteId) : this.addVote('note', noteId)
     },
+    /** Talk time: give the floor (facilitator), take it or give it back (participant). */
+    giveFloor: (speaker: string, label: string | null) => (deps.view()?.settings.talkMode === 'off' ? err('invalid') : send({ t: 'talk.assign', speaker, label })),
+    endTurn: () => send({ t: 'talk.end' }),
+    takeFloor(): BoardResult {
+      const s = deps.view()?.settings
+      if (s && (s.talkMode === 'off' || !s.talkSelfStart)) return err('forbidden')
+      return send({ t: 'talk.self' })
+    },
+    giveBackFloor: () => send({ t: 'talk.done' }),
     closeVoting: () => send({ t: 'vote.close' }),
     reopenVoting: () => send({ t: 'vote.reopen' }),
 

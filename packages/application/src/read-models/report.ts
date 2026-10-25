@@ -3,7 +3,7 @@
  * device from the board. No names beyond what the board already shows; anonymous authors are
  * aggregated under one bucket.
  */
-import type { ActionItem, ActionStatus, PhaseKind, Snapshot, SnapshotNote } from '@retroboard/domain'
+import { type ActionItem, type ActionStatus, type PhaseKind, type Snapshot, type SnapshotNote, talkShares } from '@retroboard/domain'
 import { type ColumnItem, buildColumnItems } from './column-items'
 import { buildRanking, podium, type RankedItem } from './ranking'
 
@@ -32,6 +32,8 @@ export interface Report {
   /** Carried-over actions and where they ended up. */
   carried: { total: number; byStatus: Partial<Record<ActionStatus, number>> }
   agenda: ReportPhase[] | null
+  /** Talk time shares per shown name (anonymous aggregated), null when nobody had a turn. */
+  talk: { label: string | null; ms: number; share: number }[] | null
 }
 
 const sumVotes = (notes: readonly SnapshotNote[], s: Pick<Snapshot, 'groups'>): number =>
@@ -69,5 +71,6 @@ export function buildReport(s: Snapshot, date: Date): Report {
     actions: s.actions,
     carried: { total: carriedList.length, byStatus },
     agenda: s.agenda ? s.agenda.phases.map((p) => ({ kind: p.kind, plannedMs: p.plannedMs, actualMs: p.actualMs ?? null })) : null,
+    talk: (() => { const shares = talkShares(s.talk, s.now); return shares.length ? shares : null })(),
   }
 }

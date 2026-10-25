@@ -162,6 +162,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <AppToolbar v-if="board.ready" />
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
+      <TalkBanner v-if="board.ready" />
       <VoteBar v-if="board.ready" />
       <BoardFilter v-if="board.ready && ui.filterOpen" />
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
@@ -180,6 +181,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <ShareDialog :passcode="passcode" />
       <RankingDialog />
       <ReportDialog />
+      <ExportDialog />
       <ActionsReviewDialog />
       <OptionsDialog />
       <NameDialog />

@@ -37,7 +37,7 @@ export type Command =
   | { t: 'column.move'; id: string; toIndex: number }
   | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale }
   | { t: 'template.apply'; templateId: string; wipe?: boolean; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean }
   | { t: 'action.add'; text: string; owner: string; due?: string }
   | { t: 'action.update'; id: string; text?: string; owner?: string; due?: string | null }
   | { t: 'action.status'; id: string; status: ActionStatusName }
@@ -48,6 +48,10 @@ export type Command =
   | { t: 'timer.pause' }
   | { t: 'timer.reset'; minutes?: TimerMinutes }
   | { t: 'board.reset' }
+  | { t: 'talk.assign'; speaker: string; label: string | null }
+  | { t: 'talk.end' }
+  | { t: 'talk.self' }
+  | { t: 'talk.done' }
   | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number }[]; rules?: boolean; autoPublish?: boolean }
   | { t: 'agenda.options'; rules?: boolean; autoPublish?: boolean }
   | { t: 'agenda.clear' }

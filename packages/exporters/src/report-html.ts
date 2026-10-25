@@ -81,6 +81,11 @@ export function toReportHtml(r: Report, t: ReportLabels): string {
     for (const p of r.agenda) out.push(`<tr><td>${e(t(`agenda.phase.${p.kind}`))}</td><td>${minutes(p.plannedMs)}</td><td>${p.actualMs === null ? '-' : minutes(p.actualMs)}</td></tr>`)
     out.push('</tbody></table>')
   }
+  if (r.talk) {
+    out.push(`<h2>${e(t('report.talk'))}</h2><ul>`)
+    for (const s of r.talk) out.push(`<li>${e(s.label ?? t('report.anonymous'))}: ${Math.round(s.share * 100)} % <span class="v">(${minutes(s.ms)})</span></li>`)
+    out.push('</ul>')
+  }
   out.push(`<p class="muted">${e(t('report.footer'))}</p></body></html>`)
   return out.join('\n')
 }

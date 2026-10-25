@@ -2,6 +2,7 @@ import { agendaRunning, closePhase, extendPhase, MIN, newAgenda } from './agenda
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate } from './board'
+import { emptyTalk } from './talk'
 
 type FacilitationCommand = 'board.init' | 'template.apply' | 'settings.update'
   | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset'
@@ -46,6 +47,9 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       openFacilitation: c.openFacilitation ?? s.settings.openFacilitation,
       actionMode: c.actionMode ?? s.settings.actionMode,
       themeId: c.themeId ?? s.settings.themeId,
+      talkMode: c.talkMode ?? s.settings.talkMode,
+      talkBudgetMs: c.talkBudgetSec !== undefined ? c.talkBudgetSec * 1000 : s.settings.talkBudgetMs,
+      talkSelfStart: c.talkSelfStart ?? s.settings.talkSelfStart,
     }
     return done({ ...s, settings }, { meta: true })
   },
@@ -72,6 +76,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
     // A reset board starts its agenda over.
     agenda: s.agenda ? { ...s.agenda, current: -1, startedAt: 0, pausedAt: null } : null,
+    talk: emptyTalk(),
   }, { meta: true, wipe: true }),
 
   // Agenda (time boxes). Phases can be replaced only before the start or after the end.

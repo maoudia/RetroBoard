@@ -30,6 +30,7 @@ describe('retro report', () => {
     expect(r.actions).toHaveLength(3)
     expect(r.carried).toEqual({ total: 2, byStatus: { done: 1, doing: 1 } })
     expect(r.agenda).toBeNull()
+    expect(r.talk).toBeNull()
   })
 
   it('aggregates anonymous authors and never names who the board does not name', () => {
@@ -63,5 +64,16 @@ describe('retro report', () => {
     h.run({ t: 'agenda.next' })
     const r = buildReport(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), new Date())
     expect(r.agenda).toEqual([{ kind: 'write', plannedMs: 5 * MIN, actualMs: 7 * MIN }, { kind: 'vote', plannedMs: 3 * MIN, actualMs: null }])
+  })
+
+  it('shows talk time shares, anonymous speakers aggregated', () => {
+    const h = retro()
+    h.run({ t: 'settings.update', talkMode: 'ring' })
+    h.run({ t: 'talk.assign', speaker: 'speaker-one-key', label: 'Ana' })
+    h.tick(3 * MIN)
+    h.run({ t: 'talk.assign', speaker: 'speaker-two-key', label: null })
+    h.tick(MIN)
+    const r = buildReport(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), new Date())
+    expect(r.talk).toEqual([{ label: 'Ana', ms: 3 * MIN, share: 0.75 }, { label: null, ms: MIN, share: 0.25 }])
   })
 })

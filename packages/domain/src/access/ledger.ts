@@ -72,6 +72,7 @@ export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType
   'settings.update', 'board.init', 'template.apply', 'board.reset', 'timer.start', 'timer.pause', 'timer.reset',
   'vote.close', 'vote.reopen', 'action.import',
   'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.extend', 'agenda.end',
+  'talk.assign', 'talk.end',
 ])
 
 /** Genesis and role changes are always privileged; commands depend on their type. */

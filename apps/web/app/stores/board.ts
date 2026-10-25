@@ -66,6 +66,8 @@ export const useBoardStore = defineStore('board', () => {
   /** Encrypted boards only: export and restore of the board file (.retro). */
   /** Three words everyone sees for this board (shared boards only), in the board's language. */
   const roomCode = computed(() => (roomId.value && !roomId.value.startsWith('local-') && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
+  /** My actor id on this board (session key on encrypted boards): who I am in talk turns. */
+  const myKey = computed(() => snapshot.value?.peers.find((p) => p.me)?.key ?? null)
   const sendCursor = (c: OwnCursor) => transport?.sendCursor?.(c)
   const sendFocus = (f: OwnFocus) => transport?.sendFocus?.(f)
   const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
@@ -99,7 +101,7 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode, links,
+    snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,

@@ -48,6 +48,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     actions: Object.values(state.actions).sort((a, b) => a.createdAt - b.createdAt),
     timer: expired ? { ...t, running: false, remaining: 0, endsAt: 0 } : t,
     agenda: state.agenda,
+    talk: state.talk,
     peers,
     votesLeft: Math.max(0, state.settings.voteLimit - used),
   }

@@ -135,5 +135,7 @@ const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
 /** Phase rules: is this command allowed for a participant right now? Always true without running rules. */
 export function allowedInPhase(a: AgendaState | null, command: CommandType): boolean {
   if (!agendaRunning(a) || !a.rules) return true
+  // Taking and giving back one's own speaking turn is never a phase matter.
+  if (command === 'talk.self' || command === 'talk.done') return true
   return PHASE_COMMANDS[a.phases[a.current]!.kind].includes(command)
 }

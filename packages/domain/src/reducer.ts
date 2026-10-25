@@ -1,6 +1,7 @@
 import { actionHandlers } from './action-tracking/handlers'
 import { facilitationHandlers } from './facilitation/handlers'
 import { ideationHandlers } from './ideation/handlers'
+import { talkHandlers } from './facilitation/talk'
 import type { Command } from './shared/commands'
 import type { Handler, HandlerMap } from './shared/outcome'
 import type { Actor, BoardState, Outcome, ReduceContext } from './shared/types'
@@ -12,6 +13,7 @@ const handlers: HandlerMap<Command['t']> = {
   ...votingHandlers,
   ...actionHandlers,
   ...facilitationHandlers,
+  ...talkHandlers,
 }
 
 /** Pure: same state, command, actor and context always give the same outcome. */

@@ -87,6 +87,12 @@ export interface BoardSettings {
   templateId: string | null
   /** False until the first participant picks a template and theme (board.init). */
   initialized: boolean
+  /** Talk time: off, a ring around the speaker, or start/finish popups. */
+  talkMode: 'off' | 'ring' | 'popup'
+  /** Budget of one speaking turn. */
+  talkBudgetMs: number
+  /** Participants may take the floor themselves. */
+  talkSelfStart: boolean
   /** Language the board was created in (board.init); absent on older boards. Picks the room words. */
   locale?: 'fr' | 'en'
 }
@@ -100,6 +106,8 @@ export interface BoardState {
   timer: TimerState
   /** Time-boxed agenda, or null for a free-form retro (the plain timer). */
   agenda: AgendaState | null
+  /** Speaking turns and time spoken per participant. */
+  talk: TalkState
 }
 
 export interface Actor {
@@ -183,6 +191,8 @@ export interface Snapshot {
   actions: ActionItem[]
   timer: TimerState
   agenda: AgendaState | null
+  /** Speaking turns and time spoken per participant. */
+  talk: TalkState
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */
@@ -194,3 +204,18 @@ export interface ServerError {
   error: ErrorCode
 }
 export type ServerMessage = Snapshot | ServerError
+
+export interface TalkTurn {
+  speaker: string
+  /** Display name if the speaker shows it, else null (shown as "Anonymous"). */
+  label: string | null
+  startedAt: number
+  budgetMs: number
+}
+
+/** Talk time (change talk-time): the active turn and the time spoken per speaker. */
+export interface TalkState {
+  active: TalkTurn | null
+  /** Total time spoken per speaker, finished turns only. */
+  totals: Record<string, { label: string | null; ms: number }>
+}

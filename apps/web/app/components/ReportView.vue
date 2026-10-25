@@ -87,6 +87,12 @@ const minutes = (ms: number) => `${Math.round(ms / 60_000)} min`
         </tbody>
       </table>
     </section>
+    <section v-if="report.talk">
+      <h3>{{ t('report.talk') }}</h3>
+      <ul data-testid="report-talk">
+        <li v-for="(s, i) in report.talk" :key="i">{{ s.label ?? t('report.anonymous') }}: {{ Math.round(s.share * 100) }} % <span class="v">({{ minutes(s.ms) }})</span></li>
+      </ul>
+    </section>
   </article>
 </template>
 

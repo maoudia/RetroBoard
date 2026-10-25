@@ -11,7 +11,7 @@ describe('exports read back by the carry-over import', () => {
     h.run({ t: 'action.add', text: 'Plain, with comma', owner: '' })
     h.run({ t: 'action.status', id: Object.keys(h.state.actions)[1]!, status: 'blocked' })
     const csv = toActionsCsv(buildSnapshot(h.state, { cid: 'x' }, [], h.now))
-    expect(csv.split('\n')[0]).toBe('"Summary","Assignee","Status","Due Date","Labels"')
+    expect(csv.split('\n')[0]).toBe('"Summary","Assignee","Status","Due Date","Description","Labels"')
     expect(actionsFromCsv(csv)).toEqual([
       { text: '=SUM(A1)', owner: 'Ana', status: 'todo' },
       { text: 'Plain, with comma', owner: '', status: 'blocked' },

@@ -1,6 +1,6 @@
 /** Wire format of RetroBoard v1 (plaintext commands): valibot schemas for every message that crosses the network. */
 import * as v from 'valibot'
-import { COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_COUNT } from '@retroboard/domain'
+import { COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_COUNT, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
 
 const Id = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
 const Text = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.noteText))
@@ -61,7 +61,14 @@ export const CommandSchema = v.variant('t', [
     openFacilitation: v.optional(v.boolean()),
     actionMode: v.optional(v.picklist(['checkbox', 'workflow'])),
     themeId: v.optional(v.pipe(v.string(), v.regex(/^[a-z0-9-]{1,24}$/))),
+    talkMode: v.optional(v.picklist(['off', 'ring', 'popup'])),
+    talkBudgetSec: v.optional(v.pipe(v.number(), v.integer(), v.minValue(TALK_BUDGET_MIN_S), v.maxValue(TALK_BUDGET_MAX_S))),
+    talkSelfStart: v.optional(v.boolean()),
   }),
+  v.object({ t: v.literal('talk.assign'), speaker: v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{8,64}$/)), label: v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.displayName))) }),
+  v.object({ t: v.literal('talk.end') }),
+  v.object({ t: v.literal('talk.self') }),
+  v.object({ t: v.literal('talk.done') }),
   v.object({ t: v.literal('action.add'), text: ActionText, owner: ActionOwner, due: v.optional(DueDate) }),
   v.object({ t: v.literal('action.update'), id: Id, text: v.optional(ActionText), owner: v.optional(ActionOwner), due: v.optional(v.nullable(DueDate)) }),
   v.object({ t: v.literal('action.status'), id: Id, status: ActionStatus }),

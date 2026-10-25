@@ -64,8 +64,12 @@ const JIRA_STATUS = { todo: 'To Do', doing: 'In Progress', done: 'Done', blocked
 
 /** Actions only, with the column names Jira's CSV importer maps by default. */
 export function toActionsCsv(s: Pick<Snapshot, 'actions' | 'settings'>): string {
-  const rows = [['Summary', 'Assignee', 'Status', 'Due Date', 'Labels']]
-  for (const a of s.actions) rows.push([a.text, a.owner, JIRA_STATUS[a.status], a.due ?? '', `retro:${s.settings.title.replace(/\s+/g, '-')}`])
+  const rows = [['Summary', 'Assignee', 'Status', 'Due Date', 'Description', 'Labels']]
+  for (const a of s.actions) {
+    const description = `Retro: ${s.settings.title}${a.carriedFrom ? ` (carried over from ${a.carriedFrom})` : ''}`
+    rows.push([a.text, a.owner, JIRA_STATUS[a.status], a.due ?? '', description, `retro:${s.settings.title.replace(/\s+/g, '-')}`])
+  }
   return rows.map((r) => r.map(csvCell).join(',')).join('\n') + '\n'
 }
 export * from './report-html'
+export * from './destinations'

@@ -78,6 +78,28 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
       </section>
 
       <section class="grp">
+        <h3>{{ t('talk.title') }}</h3>
+        <div class="line">
+          <span><strong>{{ t('talk.mode') }}</strong><small class="muted">{{ t('talk.mode.hint') }}</small></span>
+          <span class="seg" role="group" :aria-label="t('talk.mode')">
+            <button v-for="m in (['off', 'ring', 'popup'] as const)" :key="m" type="button" :class="{ on: s.talkMode === m }" :aria-pressed="s.talkMode === m" :data-testid="`opt-talk-${m}`" @click="set({ talkMode: m })">{{ t(`talk.mode.${m}`) }}</button>
+          </span>
+        </div>
+        <template v-if="s.talkMode !== 'off'">
+          <div class="line">
+            <span><strong>{{ t('talk.budget') }}</strong></span>
+            <span class="seg" role="group" :aria-label="t('talk.budget')">
+              <button v-for="m in [1, 2, 3, 5]" :key="m" type="button" :class="{ on: s.talkBudgetMs === m * 60_000 }" :aria-pressed="s.talkBudgetMs === m * 60_000" :data-testid="`opt-talk-budget-${m}`" @click="set({ talkBudgetSec: m * 60 })">{{ m }} min</button>
+            </span>
+          </div>
+          <label class="line">
+            <span><strong>{{ t('talk.selfStart') }}</strong><small class="muted">{{ t('talk.selfStart.hint') }}</small></span>
+            <input type="checkbox" role="switch" class="switch" :checked="s.talkSelfStart" data-testid="opt-talk-self" @change="set({ talkSelfStart: ($event.target as HTMLInputElement).checked })" />
+          </label>
+        </template>
+      </section>
+
+      <section class="grp">
         <h3>{{ t('options.theme') }}</h3>
         <ThemePicker :model-value="s.themeId" @update:model-value="set({ themeId: $event })" />
       </section>

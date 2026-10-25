@@ -11,6 +11,13 @@ const hue = (n: string | null) => { let h = 0; for (const c of n ?? 'x') h = (h 
 const manageable = (p: Peer) => board.access.canManageRoles && !p.me && !!p.key
 const handOver = ref<Peer | null>(null)
 
+const talkOn = computed(() => (board.settings?.talkMode ?? 'off') !== 'off')
+/** Facilitators give the floor to anyone; a participant takes it when self start is allowed. */
+function giveFloor(p: Peer) {
+  const r = p.me && !board.access.canSteer ? board.commands.takeFloor() : board.commands.giveFloor(p.key!, p.name)
+  if (!r.ok) push(t('roles.failed'), 'warn')
+}
+
 /** Live status of another participant: typing (in which column) or idle. Online says nothing. */
 function statusLabel(p: Peer): string | null {
   if (p.me) return null
@@ -46,6 +53,12 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'parti
         <span v-else-if="p.role === 'co-facilitator'" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
         <span v-if="p.me" class="pill">{{ t('common.you') }}</span>
+        <span v-if="talkOn && p.key && board.snapshot?.talk.active?.speaker === p.key" class="pill talking" data-testid="badge-speaking"><Icon name="lucide:mic" /> {{ t('talk.now') }}</span>
+        <button
+          v-else-if="talkOn && p.key && (board.access.canSteer || (p.me && board.settings?.talkSelfStart))" class="mini-btn" type="button"
+          :aria-label="t(p.me ? 'talk.take' : 'talk.give', { name: p.name ?? t('common.anonymous') })" :title="t(p.me ? 'talk.take' : 'talk.give', { name: p.name ?? t('common.anonymous') })"
+          :data-testid="`talk-give-${i}`" @click="giveFloor(p)"
+        ><Icon name="lucide:mic" /></button>
         <span v-if="manageable(p)" class="acts">
           <button v-if="p.role === 'participant'" class="mini-btn" type="button" :aria-label="t('roles.promote', { name: p.name ?? t('common.anonymous') })" :title="t('roles.promote.short')" data-testid="role-promote" @click="role('role.delegate', p)"><Icon name="lucide:shield-plus" /></button>
           <button v-if="p.role === 'co-facilitator'" class="mini-btn" type="button" :aria-label="t('roles.revoke', { name: p.name ?? t('common.anonymous') })" :title="t('roles.revoke.short')" data-testid="role-revoke" @click="role('role.revoke', p)"><Icon name="lucide:shield-minus" /></button>
@@ -76,6 +89,7 @@ li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; bord
 .av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: .8rem; color: #1b1b1b; flex: none; }
 .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st { display: block; font-size: .72rem; }
+.talking { display: inline-flex; align-items: center; gap: .25rem; color: var(--accent); }
 .role { display: inline-flex; align-items: center; gap: .25rem; }
 .acts { display: inline-flex; gap: 2px; }
 .note { margin: .4rem .5rem 0; font-size: .78rem; }

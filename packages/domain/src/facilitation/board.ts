@@ -1,3 +1,4 @@
+import { DEFAULT_TALK_BUDGET_MS, emptyTalk } from './talk'
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { DEFAULT_TIMER_MS, DEFAULT_VOTE_LIMIT } from '../shared/limits'
 import { getTemplate, type RetroTemplate } from '../catalogue/templates'
@@ -32,6 +33,9 @@ export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
       themeId: DEFAULT_THEME_ID,
       templateId: template.id,
       initialized: false,
+      talkMode: 'off',
+      talkBudgetMs: DEFAULT_TALK_BUDGET_MS,
+      talkSelfStart: false,
     },
     columns: columnsFromTemplate(template, ctx.newId),
     notes: {},
@@ -39,5 +43,6 @@ export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
     actions: {},
     timer: { running: false, endsAt: 0, remaining: DEFAULT_TIMER_MS, length: DEFAULT_TIMER_MS },
     agenda: null,
+    talk: emptyTalk(),
   }
 }
