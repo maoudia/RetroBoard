@@ -61,7 +61,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.browserAgents') }}</strong><small class="muted">{{ t('options.browserAgents.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @change="set({ browserAgentsAllowed: ($event.target as HTMLInputElement).checked })" />
         </label>
-        <label v-if="board.access.canManageRoles" class="line">
+        <label v-if="board.access.role !== 'participant'" class="line">
           <span><strong>{{ t('roles.open') }}</strong><small class="muted">{{ t('roles.open.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.openFacilitation" data-testid="opt-open-facilitation" @change="set({ openFacilitation: ($event.target as HTMLInputElement).checked })" />
         </label>

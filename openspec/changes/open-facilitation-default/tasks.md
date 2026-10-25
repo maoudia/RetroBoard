@@ -8,5 +8,5 @@
 
 ## 2. Web
 
-- [ ] 2.1 Setup form choice "Everyone facilitates" / "One facilitator" with short explanations (fr/en); verify e2e (default and explicit)
-- [ ] 2.2 Options toggle for capability holders, facilitation bar for everyone, no crown or lead wording on open boards, facilitator link under "Advanced" in the share panel (fr/en); verify e2e with two contexts and axe
+- [x] 2.1 Setup form choice "Everyone facilitates" / "One facilitator" with short explanations (fr/en); verify e2e (default and explicit)
+- [x] 2.2 Options toggle for capability holders, facilitation bar for everyone, no crown or lead wording on open boards (the crown itself lands with single-facilitator), facilitator link under "Advanced" in the share panel (fr/en); verify e2e with two contexts and axe

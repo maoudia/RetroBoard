@@ -81,8 +81,8 @@ const showQr = ref(false)
       <li><Icon name="lucide:eye-off" /> {{ t('share.note.drafts') }}</li>
     </ul>
     <details v-if="facilitatorUrl" class="fac" :open="showFacilitator" @toggle="showFacilitator = ($event.target as HTMLDetailsElement).open">
-      <summary data-testid="share-facilitator-toggle">{{ t('share.facilitator') }}</summary>
-      <p class="muted small">{{ t('share.facilitator.hint') }}</p>
+      <summary data-testid="share-facilitator-toggle">{{ t(board.settings?.openFacilitation ? 'share.facilitator.advanced' : 'share.facilitator') }}</summary>
+      <p class="muted small">{{ t(board.settings?.openFacilitation ? 'share.facilitator.advanced.hint' : 'share.facilitator.hint') }}</p>
       <div v-if="showFacilitator" class="row">
         <input class="field mono" :value="facilitatorUrl" readonly :aria-label="t('share.facilitator')" data-testid="share-facilitator-url" @focus="($event.target as HTMLInputElement).select()" />
         <button class="btn" type="button" @click="copyFacilitator"><Icon name="lucide:copy" /> {{ t('share.copy') }}</button>

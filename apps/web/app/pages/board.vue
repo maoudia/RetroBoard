@@ -87,7 +87,7 @@ watch(needsSetup, (need) => {
   }
 })
 function sendSetup(s: SetupResult) {
-  board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value })
+  board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value, openFacilitation: s.facilitation !== 'one' })
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
   if (s.importActions?.length) board.commands.importActions(s.importActions)
   if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish })
