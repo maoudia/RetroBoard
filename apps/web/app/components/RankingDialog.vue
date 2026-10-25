@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { buildRanking, podium, type RankedItem } from '@retroboard/application'
+import { buildRanking, podium, type RankedItem, voteStats } from '@retroboard/application'
 import { errorLabel } from '~/utils/labels'
 const { t } = useT()
 const ui = useUiStore()
@@ -11,6 +11,14 @@ const ranking = computed(() => (board.snapshot ? buildRanking(board.snapshot) : 
 const top = computed(() => (ranking.value ? podium(ranking.value) : []))
 /** Podium order on screen: 2nd, 1st, 3rd (the classic stand), ties grouped on their step. */
 const steps = computed(() => [2, 1, 3].map((rank) => ({ rank, items: top.value.filter((i) => i.rank === rank) })).filter((s) => s.items.length))
+const stats = computed(() => (board.snapshot && ranking.value ? voteStats(board.snapshot, board.snapshot.peers.length) : null))
+const pct = (n: number) => Math.round(n * 100)
+const topRows = computed(() => (stats.value?.top ?? []).map((i) => ({
+  id: i.id, label: i.title, value: String(i.votes), ratio: i.ratio, highlight: i.rank === 1, ...(i.tied ? { hint: t('ranking.charts.tie') } : {}),
+})))
+const columnRows = computed(() => (stats.value?.perColumn ?? []).map((c) => ({
+  id: c.columnId, label: columnTitle(c.columnId), value: t('ranking.charts.share', { n: pct(c.share) }), ratio: c.share,
+})))
 const columnTitle = (id: string) => board.columns.find((c) => c.id === id)?.title ?? ''
 const done = ref(new Set<string>())
 
@@ -39,6 +47,25 @@ function toAction(item: RankedItem) {
           <span class="visually-hidden">{{ t('ranking.rank', { n: s.rank }) }}</span>
         </li>
       </ol>
+
+      <section v-if="stats && stats.totalVotes > 0" class="charts" data-testid="vote-charts">
+        <div class="chart">
+          <h3 class="list-h">{{ t('ranking.charts.top') }}</h3>
+          <ChartBars :rows="topRows" :label="t('ranking.charts.top')" />
+        </div>
+        <div class="chart">
+          <h3 class="list-h">{{ t('ranking.charts.columns') }}</h3>
+          <ChartBars :rows="columnRows" :label="t('ranking.charts.columns')" />
+        </div>
+        <div class="chart">
+          <h3 class="list-h">{{ t('ranking.charts.participation') }}</h3>
+          <ChartGauge v-if="stats.usedShare !== null" :share="stats.usedShare" :centre="`${pct(stats.usedShare)}%`" />
+          <p class="muted small" data-testid="vote-participation">
+            {{ stats.votesAvailable !== null ? t('ranking.charts.used', { used: stats.totalVotes, available: stats.votesAvailable }) : t('ranking.charts.cast', { n: stats.totalVotes }) }}
+          </p>
+          <p v-if="stats.spread" class="muted small" data-testid="vote-spread">{{ t(`ranking.charts.${stats.spread}` as never) }}</p>
+        </div>
+      </section>
 
       <h3 class="list-h">{{ t('ranking.all') }}</h3>
       <ol class="list" data-testid="ranking-list">
@@ -73,6 +100,9 @@ function toAction(item: RankedItem) {
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .winner { animation: none; } }
 .list-h { margin: 0; font-size: 1rem; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem 1.5rem; margin: 0 0 1rem; }
+.chart { display: grid; gap: .5rem; align-content: start; min-width: 0; }
+.small { margin: 0; font-size: .85rem; }
 .list { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
 .list li { display: grid; grid-template-columns: 2.2rem 1fr auto auto; align-items: center; gap: .6rem; padding: .45rem .6rem; border: 1px solid var(--border); border-radius: 10px; }
 .rank { font-weight: 800; text-align: center; }

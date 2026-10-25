@@ -130,6 +130,16 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     expect(await audit(page)).toEqual([])
   })
 
+  test('results page with charts has no axe violation', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue' })
+    await publishNote(page, 0, 'Chart me')
+    await page.locator('[data-testid^="vote-"]').first().click()
+    await page.getByTestId('close-voting').click()
+    await page.getByTestId('open-ranking').click()
+    await expect(page.getByTestId('vote-charts')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+  })
+
   test('static service pages: maintenance and busy', async ({ page }) => {
     for (const path of ['/maintenance', '/busy']) {
       await page.goto(path)

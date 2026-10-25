@@ -94,6 +94,15 @@ test.describe('voting v2', () => {
     await expect(list.locator('li', { hasText: 'Delta' })).toHaveAttribute('data-rank', '4')
     await expect(page.getByTestId('podium').locator('[data-rank="2"] .winner')).toHaveCount(2)
 
+    // Charts: bars for the voted ideas (ties flagged), column shares and participation, as text too.
+    const charts = page.getByTestId('vote-charts')
+    await expect(charts).toBeVisible()
+    await expect(charts.locator('ol').first().locator('li')).toHaveCount(3)
+    await expect(charts.locator('ol').first().locator('li').first()).toContainText('Alpha')
+    await expect(charts.locator('ol').first().locator('li', { hasText: 'Beta' })).toContainText(/égalité|tie/i)
+    await expect(charts.locator('ol').nth(1)).toContainText('100')
+    await expect(page.getByTestId('vote-participation')).toContainText('4')
+
     await list.locator('li', { hasText: 'Alpha' }).getByRole('button').click()
     await expect(list.locator('li', { hasText: 'Alpha' }).getByRole('button')).toBeDisabled()
     await page.keyboard.press('Escape')
