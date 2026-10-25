@@ -21,7 +21,8 @@ test('a column default colour is used by drafts and published notes, for everyon
   expect(await bg(noteByText(page, 'Autre colonne'))).not.toBe(blue)
 })
 
-test('recolour a note from the hover swatches and from the palette sheet, with the keyboard too', async ({ page, browser }) => {
+test('recolour a note from the hover swatches and from the palette sheet, with the keyboard too', async ({ page, browser, isMobile }) => {
+  test.skip(isMobile, 'hover swatches are a pointer feature (the phone test below covers touch)')
   await createBoard(page, { template: 'start-stop-continue' })
   const { page: bob } = await join(browser, page.url(), 'Bob')
   await publishNote(page, 0, 'Recolorable')

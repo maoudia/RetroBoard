@@ -2,7 +2,8 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { createBoard, join, noteByText, publishNote } from './helpers'
 
-test('write and publish without the mouse; typing a shortcut letter in a note does nothing', async ({ page }) => {
+test('write and publish without the mouse; typing a shortcut letter in a note does nothing', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'hardware keyboard flow; on touch the return key adds a line')
   await createBoard(page, { template: 'start-stop-continue' })
   await page.locator('body').click({ position: { x: 5, y: 300 } })
   await page.keyboard.press('2')

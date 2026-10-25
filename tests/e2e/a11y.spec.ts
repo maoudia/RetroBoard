@@ -35,12 +35,19 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     }
   })
 
-  test('palette sheet and hover swatches', async ({ page }) => {
+  test('palette sheet and hover swatches', async ({ page, isMobile }) => {
     await createBoard(page)
     await publishNote(page, 0, 'Couleur')
     const note = page.locator('article.note', { hasText: 'Couleur' })
-    await note.hover()
-    await note.getByLabel(/palette/i).click()
+    const id = (await note.getAttribute('data-testid'))!.replace('note-', '')
+    if (isMobile) {
+      // Touch: no hover swatches, the note menu opens the palette sheet.
+      await page.getByTestId(`note-menu-${id}`).tap()
+      await page.getByTestId(`palette-open-${id}`).tap()
+    } else {
+      await note.hover()
+      await note.getByLabel(/palette/i).click()
+    }
     await expect(page.getByTestId('palette')).toBeVisible()
     await page.waitForTimeout(500)
     expect(await audit(page)).toEqual([])

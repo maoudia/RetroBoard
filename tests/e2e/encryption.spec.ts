@@ -107,7 +107,7 @@ test('roles: hiding a participant hides their new notes for everyone', async ({ 
 
   const col = bob.page.locator('section[data-testid^="column-"]').nth(0)
   await col.locator('textarea').fill('After hiding')
-  await col.locator('textarea').press('Enter')
+  await col.locator('[data-testid^="compose-add-"]').click()
   await col.locator('[data-testid^="publish-"]').click()
   await page.waitForTimeout(800)
   await expect(noteByText(page, 'After hiding')).toHaveCount(0)

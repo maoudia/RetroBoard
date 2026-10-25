@@ -3,7 +3,8 @@ import { createBoard, noteByText, publishNote } from './helpers'
 
 const opacity = (loc: ReturnType<import('@playwright/test').Page['locator']>) => loc.evaluate((el) => Number(getComputedStyle(el).opacity))
 
-test('mouse: draft actions appear on hover; dismiss deletes, validate publishes', async ({ page }) => {
+test('mouse: draft actions appear on hover; dismiss deletes, validate publishes', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'touch screens always show the actions (see the touch test)')
   await createBoard(page)
   const col = page.locator('[data-testid^="column-"]').first()
   const area = col.locator('textarea')

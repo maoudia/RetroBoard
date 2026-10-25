@@ -87,7 +87,8 @@ label.lbl { display: grid; gap: .35rem; font-weight: 600; font-size: .875rem; co
 /* Surfaces */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-1); }
 .glass { background: var(--glass); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); }
-.pill { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .8rem; }
+.pill { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem; border-radius: 999px; background: var(--accent-soft); color: color-mix(in oklab, var(--accent) 80%, var(--text)); font-weight: 700; font-size: .8rem; }
+/* The pill text leans towards --text: accent on accent-soft fell under 4.5:1 on the phone sheets. */
 .muted { color: var(--muted); }
 
 .dd-item {

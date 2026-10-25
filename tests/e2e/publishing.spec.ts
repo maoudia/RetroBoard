@@ -40,10 +40,11 @@ test('keyboard: Ctrl+Enter publishes, Shift+Enter adds a line, Escape clears', a
   await expect(box).toHaveValue('')
 })
 
-test('leaving with unpublished drafts asks first', async ({ page }) => {
+test('leaving with unpublished drafts asks first', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'mobile browsers do not show the beforeunload prompt')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await column(page, 0).locator('textarea').fill('Not published')
-  await column(page, 0).locator('textarea').press('Enter')
+  await column(page, 0).locator('[data-testid^="compose-add-"]').click()
   const dialog = new Promise<string>((resolve) => page.once('dialog', (d) => { resolve(d.type()); void d.dismiss() }))
   // A user gesture is needed before browsers show the leave prompt.
   await page.getByTestId('board').click({ position: { x: 5, y: 5 } })
