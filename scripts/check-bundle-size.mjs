@@ -7,8 +7,11 @@ import { gzipSync } from 'node:zlib'
 
 const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-10-25: total raised from 220 to 245 kB for the peer-to-peer mesh, presenter mode, filter,
-// retro report, export by destination and talk time (+12 kB measured). Raise it only on purpose.
-const BUDGET = { entryKb: 40, totalKb: 245 }
+// retro report, export by destination and talk time (+12 kB measured).
+// 2026-10-25: total raised from 245 to 260 kB for sticky notes v2, board lifecycle, keyboard shortcuts
+// and the phase-end popup (246.6 kB measured). Splitting chunks does not help: the budget counts all of them.
+// Raise it only on purpose.
+const BUDGET = { entryKb: 40, totalKb: 260 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')

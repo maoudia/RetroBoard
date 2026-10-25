@@ -794,4 +794,12 @@ export const fr = {
   'profile.browserAgents.hint': 'Expose des outils WebMCP (lire le board, préparer des brouillons, proposer des actions). L\'agent de votre navigateur peut envoyer le contenu du board à son service d\'IA. Toute modification partagée vous est demandée.',
   'options.browserAgents': 'Agents IA des navigateurs',
   'options.browserAgents.hint': 'Permet aux participants qui l\'ont activé de laisser l\'agent IA de leur navigateur utiliser ce board.',
+  'phaseEnd.title': 'Le temps est écoulé pour {phase}',
+  'phaseEnd.timer': 'Le minuteur est terminé',
+  'phaseEnd.next': 'Suite : {phase}',
+  'phaseEnd.last': 'C\'était la dernière étape',
+  'phaseEnd.nextPhase': 'Étape suivante',
+  'phaseEnd.plus2': '+2 min',
+  'phaseEnd.ok': 'OK',
+  'phaseEnd.aria': 'Fin du temps',
 } as const

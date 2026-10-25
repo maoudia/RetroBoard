@@ -795,4 +795,12 @@ export const en: Record<keyof typeof fr, string> = {
   'profile.browserAgents.hint': 'Exposes WebMCP tools (read the board, prepare drafts, propose actions). Your browser\'s agent may send board content to its AI service. Every shared change asks you first.',
   'options.browserAgents': 'Browser AI agents',
   'options.browserAgents.hint': 'Lets participants who enabled it allow the AI agent in their browser to use this board.',
+  'phaseEnd.title': 'Time is up for {phase}',
+  'phaseEnd.timer': 'The timer is done',
+  'phaseEnd.next': 'Next: {phase}',
+  'phaseEnd.last': 'That was the last phase',
+  'phaseEnd.nextPhase': 'Next phase',
+  'phaseEnd.plus2': '+2 min',
+  'phaseEnd.ok': 'OK',
+  'phaseEnd.aria': 'Time is up',
 }

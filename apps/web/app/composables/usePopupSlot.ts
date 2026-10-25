@@ -14,6 +14,8 @@ export function usePopupSlot() {
       holder.value = id
       return true
     },
+    /** Urgent popups (time is up) take the slot from a calmer one, which hides itself. */
+    take(id: string) { holder.value = id },
     release(id: string) { if (holder.value === id) holder.value = null },
   }
 }
