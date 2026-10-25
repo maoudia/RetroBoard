@@ -14,6 +14,12 @@ const csp = home.headers.get('content-security-policy') ?? ''
 check(home.ok, 'landing page answers 200')
 check(csp.includes("default-src 'none'") && !csp.includes('unsafe-'), 'strict CSP on HTML')
 check(home.headers.get('x-content-type-options') === 'nosniff', 'nosniff header')
+const hsts = home.headers.get('strict-transport-security') ?? ''
+check(Number(hsts.match(/max-age=(\d+)/)?.[1] ?? 0) >= 15552000, 'HSTS with max-age of at least 6 months')
+if (base.startsWith('https://') && !/localhost|127\.0\.0\.1/.test(base)) {
+  const plain = await fetch(base.replace(/^https:/, 'http:') + '/', { redirect: 'manual' })
+  check([301, 302, 307, 308].includes(plain.status) && (plain.headers.get('location') ?? '').startsWith('https://'), 'plain HTTP redirects to HTTPS')
+}
 check((await home.text()).includes('<div id="__nuxt"'), 'Nuxt app shell served')
 
 const board = await fetch(`${base}/board`)

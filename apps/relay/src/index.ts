@@ -2,7 +2,7 @@ import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { Env } from './env'
 import { createLimiter, isMaintenance, maintenanceAction, RETRY_AFTER_SECONDS } from './guards'
 import { isUnknownAppPath, pickErrorResponse, wantsHtml } from './errors'
-import { buildCsp, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
+import { buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
 import { roomHash } from './logger'
 import { isAllowedOrigin } from './origin'
 
@@ -35,6 +35,8 @@ async function unavailable(request: Request, env: Env, url: URL, status: number,
 export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url)
+    const insecure = httpsRedirect(url)
+    if (insecure) return insecure
     if (url.pathname === '/healthz') return new Response('ok', { headers: { 'Cache-Control': 'no-store' } })
     if (isMaintenance(env.MAINTENANCE)) {
       const action = maintenanceAction(request, url.pathname)

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { ROOM_ID_RE } from '@retroboard/protocol'
-import { buildCsp, originTrialToken, withSecurityHeaders } from '../src/headers'
+import { buildCsp, HSTS, httpsRedirect, originTrialToken, withSecurityHeaders } from '../src/headers'
 import { roomHash } from '../src/logger'
 import { isUnknownAppPath, pickErrorResponse } from '../src/errors'
 import { createLimiter, isMaintenance, maintenanceAction } from '../src/guards'
@@ -50,6 +50,17 @@ describe('security headers', () => {
       expect(r.headers.get('X-Content-Type-Options')).toBe('nosniff')
       expect(r.headers.get('Referrer-Policy')).toBe('no-referrer')
       expect(r.headers.get('X-Frame-Options')).toBe('DENY')
+      expect(r.headers.get('Strict-Transport-Security')).toBe(HSTS)
+    }
+    expect(Number(HSTS.match(/max-age=(\d+)/)?.[1])).toBeGreaterThanOrEqual(15552000)
+  })
+  it('redirects plain HTTP on public hosts only', () => {
+    const res = httpsRedirect(new URL('http://retroboard.maoudia.com:80/board?x=1'))
+    expect(res?.status).toBe(308)
+    expect(res?.headers.get('Location')).toBe('https://retroboard.maoudia.com/board?x=1')
+    expect(httpsRedirect(new URL('https://retroboard.maoudia.com/'))).toBeNull()
+    for (const local of ['http://localhost:8787/', 'http://127.0.0.1:8787/', 'http://[::1]:8787/', 'http://a.localhost/']) {
+      expect(httpsRedirect(new URL(local))).toBeNull()
     }
   })
 })

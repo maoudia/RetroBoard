@@ -39,6 +39,20 @@ export function originTrialToken(host: string, tokens: Record<string, string> | 
   return tokens?.[host.toLowerCase()] ?? null
 }
 
+/** 6 months, the minimum required by the platform-security spec (browsers ignore HSTS over plain HTTP). */
+export const HSTS = 'max-age=15552000'
+
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|.+\.localhost)$/
+
+/** Plain HTTP on a public host is redirected to HTTPS; local development hosts are left alone. */
+export function httpsRedirect(url: URL): Response | null {
+  if (url.protocol !== 'http:' || LOCAL_HOST.test(url.hostname)) return null
+  const target = new URL(url)
+  target.protocol = 'https:'
+  target.port = ''
+  return new Response(null, { status: 308, headers: { Location: target.toString(), 'Cache-Control': 'no-store' } })
+}
+
 export function withSecurityHeaders(res: Response, csp: string, originTrial: string | null = null): Response {
   const out = new Response(res.body, res)
   const type = out.headers.get('content-type') ?? ''
@@ -47,6 +61,7 @@ export function withSecurityHeaders(res: Response, csp: string, originTrial: str
     out.headers.set('Cache-Control', 'no-cache')
     if (originTrial) out.headers.set('Origin-Trial', originTrial)
   }
+  out.headers.set('Strict-Transport-Security', HSTS)
   out.headers.set('X-Frame-Options', 'DENY')
   out.headers.set('X-Content-Type-Options', 'nosniff')
   out.headers.set('Referrer-Policy', 'no-referrer')
