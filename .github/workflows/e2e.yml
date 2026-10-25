@@ -20,7 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         project: [chromium, firefox, phone, tv]
-        shard: ['1/1']
+        # Three shards per project: a project took 17 minutes in one job, now about 6 in parallel.
+        shard: ['1/3', '2/3', '3/3']
         # WebKit (software rendering on Linux runners, about 3x slower) runs nightly: see nightly.yml.
     # Every browser and viewport blocks: all of them are green since the WebKit fixes.
     steps:
