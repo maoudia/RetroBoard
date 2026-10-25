@@ -37,14 +37,14 @@ test.describe('time-boxed agenda', () => {
     await expect(bob.page.getByTestId('agenda-phase')).toHaveText('Écriture')
     const col = bob.page.locator('section[data-testid^="column-"]').nth(0)
     await col.locator('textarea').fill('Published in write')
-    await col.locator('textarea').press('Enter')
+    await col.locator('[data-testid^="compose-add-"]').click()
     await col.locator('[data-testid^="publish-"]').click()
     await expect(noteByText(page, 'Published in write')).toBeVisible()
     await expect(noteByText(bob.page, 'Published in write').locator('[data-testid^="vote-"]')).toHaveCount(0)
 
     // A draft left at the end of Write is published automatically.
     await col.locator('textarea').fill('Left as a draft')
-    await col.locator('textarea').press('Enter')
+    await col.locator('[data-testid^="compose-add-"]').click()
     await next(page)
     await expect(bob.page.getByTestId('agenda-phase')).toHaveText('Regroupement')
     await expect(noteByText(page, 'Left as a draft')).toBeVisible()

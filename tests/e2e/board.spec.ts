@@ -15,7 +15,7 @@ test.describe('board lifecycle', () => {
     await expect(page.getByTestId('peer-count')).toHaveText('2')
 
     await column(page, 0).locator('textarea').fill('Plus de pair programming')
-    await column(page, 0).locator('textarea').press('Enter')
+    await column(page, 0).locator('[data-testid^="compose-add-"]').click()
     await expect(noteByText(bob, 'Plus de pair programming')).toHaveCount(0)
 
     await column(page, 0).locator('[data-testid^="publish-"]').click()
@@ -27,7 +27,7 @@ test.describe('board lifecycle', () => {
     await createBoard(page, { template: 'weather' })
     await publishNote(page, 0, 'Persistant')
     await column(page, 1).locator('textarea').fill('Brouillon local')
-    await column(page, 1).locator('textarea').press('Enter')
+    await column(page, 1).locator('[data-testid^="compose-add-"]').click()
     await page.reload()
     await expect(noteByText(page, 'Persistant')).toBeVisible()
     await expect(page.getByText('Brouillon local')).toBeVisible()

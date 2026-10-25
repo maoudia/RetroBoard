@@ -21,7 +21,8 @@ test('write and publish without the mouse; typing a shortcut letter in a note do
   await expect(page.locator('section[data-anchor-kind="column"]').nth(1).locator('article.note')).toHaveCount(1)
 })
 
-test('arrows move between notes and columns, Enter edits, v votes, c opens the palette', async ({ page }) => {
+test('arrows move between notes and columns, Enter edits, v votes, c opens the palette', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'hardware keyboard navigation')
   await createBoard(page, { template: 'start-stop-continue' })
   await publishNote(page, 0, 'Première')
   await publishNote(page, 0, 'Seconde')
