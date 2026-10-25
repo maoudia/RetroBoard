@@ -1,6 +1,6 @@
 import { allowedInPhase, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
-import { buildColumnItems, createBoardCommands, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
+import { buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
 /**
  * View model of a board: holds the latest snapshot and exposes the board use cases.
@@ -62,6 +62,8 @@ export const useBoardStore = defineStore('board', () => {
   const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, bypassesPhase: true, canManageRoles: false })
   /** Phase rules: may I do this now? Facilitators always may. */
   // Open boards: steering commands are open to all, content commands still follow the phase.
+  /** Phase cue for a command: open, closed (why, and when it opens) or open for me as facilitator. */
+  const availability = (command: CommandType) => phaseAvailability(snapshot.value?.agenda ?? null, command, access.value.bypassesPhase)
   const allowed = (command: CommandType) => access.value.bypassesPhase || (access.value.canSteer && PRIVILEGED_COMMANDS.has(command)) || allowedInPhase(snapshot.value?.agenda ?? null, command)
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
@@ -103,7 +105,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
-    connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed,
+    connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
     settings, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,
   }

@@ -131,3 +131,7 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
   :root[data-print="report"] body > :not(.report-print) { display: none !important; }
   :root[data-print="report"] .report-print { display: block; padding: 0 1rem; color: #000; background: #fff; }
 }
+
+/* Phase-gated controls (change phase-availability-cues): one look for everything a phase rule closes.
+   Derived from the theme tokens, so every theme and variant gets a matching grey. */
+:root { --gated-bg: color-mix(in oklab, var(--surface) 78%, var(--border)); --gated-line: color-mix(in oklab, var(--border) 80%, var(--muted)); }

@@ -11,6 +11,9 @@ const theme = useThemeStore()
 const { publish } = usePublish()
 const text = ref('')
 const mine = computed(() => drafts.forColumn(props.column.id))
+/** Writing closed by the current phase: greyed composer with the reason (facilitators keep it open). */
+const gate = computed(() => board.availability('note.addMany'))
+const closed = computed(() => !gate.value.allowed)
 /** Look-alike ideas already published in this column, computed on this device while I type. */
 const similar = computed(() => (text.value.trim().length >= 4 ? similarIdeas(text.value, board.snapshot?.notes ?? [], props.column.id, 1)[0] ?? null : null))
 function showSimilar(id: string) {
@@ -47,7 +50,7 @@ function onKey(e: KeyboardEvent) {
   <section class="priv" :aria-label="t('private.section', { title: column.title })">
     <header>
       <span class="title"><Icon name="lucide:eye-off" /> {{ t('private.title') }}</span>
-      <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
+      <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /> {{ t('private.publish') }} ({{ mine.length }})
       </button>
     </header>
@@ -56,17 +59,19 @@ function onKey(e: KeyboardEvent) {
       <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
         <p>{{ d.text }}</p>
         <span class="acts">
-          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked" @click="publish([d.id])"><Icon name="lucide:send" /></button>
+          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" @click="publish([d.id])"><Icon name="lucide:send" /></button>
           <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
         </span>
       </li>
     </ul>
 
-    <label class="composer" :style="{ '--c': `var(--note-${colorIndex})` }">
+    <GatedHint :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
+    <label class="composer" :class="{ gated: closed }" :style="{ '--c': `var(--note-${colorIndex})` }">
       <span class="sr-only">{{ t('private.newIn', { title: column.title }) }}</span>
       <textarea
-        v-model="text" :maxlength="LIMITS.noteText" rows="2" :disabled="board.locked" :data-testid="`draft-${column.id}`"
-        :placeholder="board.locked ? t('private.locked') : t('private.placeholder')"
+        v-model="text" :maxlength="LIMITS.noteText" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
+        :aria-describedby="gate.closedBy ? `gated-${column.id}` : undefined"
+        :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : t('private.placeholder')"
         @keydown="onKey"
       />
       <small>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></small>
@@ -94,5 +99,7 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: .7rem; opacity: .7; }
+.composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }
+.composer.gated textarea::placeholder { color: var(--muted); }
 .composer:focus-within { box-shadow: 0 0 0 3px var(--accent), var(--shadow-1); }
 </style>
