@@ -5,6 +5,7 @@ import { ROOM_ID_RE } from '@retroboard/protocol'
 import { buildCsp, originTrialToken, withSecurityHeaders } from '../src/headers'
 import { roomHash } from '../src/logger'
 import { isUnknownAppPath, pickErrorResponse } from '../src/errors'
+import { createLimiter, isMaintenance, maintenanceAction } from '../src/guards'
 import { isAllowedOrigin } from '../src/origin'
 
 describe('isAllowedOrigin', () => {
@@ -101,5 +102,26 @@ describe('error responses', () => {
   })
   it('falls back to text when the branded page is missing', async () => {
     expect(await pickErrorResponse(nav('text/html'), 404, null, 'Not found').text()).toBe('Not found')
+  })
+})
+
+describe('maintenance and rate limit', () => {
+  const nav = (path: string) => new Request(`https://x.test${path}`, { headers: { Accept: 'text/html' } })
+  it('reads the MAINTENANCE switch', () => {
+    expect([isMaintenance('1'), isMaintenance('true'), isMaintenance('0'), isMaintenance(undefined)]).toEqual([true, true, false, false])
+  })
+  it('blocks pages and sockets but spares health, legal pages and assets', () => {
+    expect(maintenanceAction(nav('/board'), '/board')).toBe('page')
+    expect(maintenanceAction(new Request('https://x.test/ws2'), '/ws2')).toBe('text')
+    expect(maintenanceAction(nav('/healthz'), '/healthz')).toBe('pass')
+    expect(maintenanceAction(nav('/legal/'), '/legal/')).toBe('pass')
+    expect(maintenanceAction(new Request('https://x.test/_nuxt/a.js'), '/_nuxt/a.js')).toBe('pass')
+  })
+  it('limits one client per window and forgets old hits', () => {
+    const allow = createLimiter(2, 1000)
+    expect([allow('a', 0), allow('a', 10), allow('a', 20)]).toEqual([true, true, false])
+    expect(allow('b', 30)).toBe(true)
+    expect(allow('a', 2000)).toBe(true)
+    expect(createLimiter(0, 1000)('a', 0)).toBe(true)
   })
 })

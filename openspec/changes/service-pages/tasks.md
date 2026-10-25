@@ -9,4 +9,4 @@
 ## 2. Worker
 
 - [x] 2.1 `pickErrorResponse` (HTML for navigations, text otherwise, same status) and static `404.html` for unknown top-level paths; verify relay unit tests and an e2e checking status codes
-- [ ] 2.2 Maintenance switch (`MAINTENANCE` variable, 503 + Retry-After, /healthz and legal pages exempt) and the too-many-requests page with a retry countdown; verify unit tests and docs/runbooks update
+- [x] 2.2 Maintenance switch (`MAINTENANCE` variable, 503 + Retry-After, /healthz and legal pages exempt) and the too-many-requests page with a retry countdown; verify unit tests and docs/runbooks update

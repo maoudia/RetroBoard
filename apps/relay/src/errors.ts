@@ -1,5 +1,5 @@
 /** Paths the single-page app answers. Anything else under the SPA fallback is a real 404. */
-export const APP_ROUTES: ReadonlySet<string> = new Set(['/', '/new', '/board', '/check', '/offline', '/unsupported', '/legal', '/privacy', '/terms'])
+export const APP_ROUTES: ReadonlySet<string> = new Set(["/", "/new", '/board', '/check', '/offline', '/unsupported', '/maintenance', '/busy', '/legal', '/privacy', '/terms'])
 
 export function normalizePath(pathname: string): string {
   return pathname.length > 1 ? pathname.replace(/\/+$/, '') || '/' : pathname
@@ -11,7 +11,7 @@ export function isUnknownAppPath(pathname: string, response: Response): boolean 
   return !APP_ROUTES.has(normalizePath(pathname))
 }
 
-function wantsHtml(request: Request): boolean {
+export function wantsHtml(request: Request): boolean {
   if (request.headers.get('Sec-Fetch-Mode') === 'navigate') return true
   const accept = request.headers.get('Accept') ?? ''
   return accept.includes('text/html')
