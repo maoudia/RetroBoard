@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SettingsPatch } from '@retroboard/application'
-import { LIMITS } from '@retroboard/domain'
+import { LIMITS, NOTE_TEXT_MIN } from '@retroboard/domain'
 const { t } = useT()
 
 const ui = useUiStore()
@@ -28,6 +28,18 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
       <label class="lbl">{{ t('options.name') }}
         <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="opt-title" @blur="saveTitle" @keydown.enter.prevent="saveTitle" />
       </label>
+
+      <section class="grp">
+        <h3>{{ t('options.notes') }}</h3>
+        <div class="line">
+          <span><strong>{{ t('options.noteMax') }}</strong><small class="muted">{{ t('options.noteMax.hint') }}</small></span>
+          <span class="stepper">
+            <button class="mini-btn" type="button" :aria-label="t('options.less')" :disabled="s.noteMaxLength <= NOTE_TEXT_MIN" data-testid="opt-note-max-less" @click="set({ noteMaxLength: Math.max(NOTE_TEXT_MIN, s.noteMaxLength - 20) })"><Icon name="lucide:minus" /></button>
+            <output class="mono" data-testid="opt-note-max">{{ s.noteMaxLength }}</output>
+            <button class="mini-btn" type="button" :aria-label="t('options.more')" :disabled="s.noteMaxLength >= LIMITS.noteText" data-testid="opt-note-max-more" @click="set({ noteMaxLength: Math.min(LIMITS.noteText, s.noteMaxLength + 20) })"><Icon name="lucide:plus" /></button>
+          </span>
+        </div>
+      </section>
 
       <section class="grp">
         <h3>{{ t('options.votes') }}</h3>

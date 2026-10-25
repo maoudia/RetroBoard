@@ -57,7 +57,10 @@ function onDrop() {
     </template>
     <div v-else class="edit">
       <textarea ref="editor" v-model="draft" :maxlength="board.noteLimit" rows="3" @keydown.enter.exact.prevent="saveEdit" @keydown.esc="editing = false" />
-      <button class="mini-btn" type="button" :aria-label="t('note.save')" @click="saveEdit"><Icon name="lucide:check" /></button>
+      <div class="edit-side">
+        <button class="mini-btn" type="button" :aria-label="t('note.save')" @click="saveEdit"><Icon name="lucide:check" /></button>
+        <NoteCounter :value="draft.length" :max="board.noteLimit" />
+      </div>
     </div>
 
     <div v-if="!editing" class="quick" role="group" :aria-label="t('note.color')" :data-testid="`quick-${note.id}`">
@@ -113,6 +116,7 @@ footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem;
 .vote.off { opacity: .45; cursor: not-allowed; }
 .thumb { display: inline-grid; }
 .plus { position: absolute; left: 50%; top: -4px; translate: -50% 0; font-weight: 800; pointer-events: none; animation: vote-float .8s ease-out forwards; }
+.edit-side { display: grid; gap: .3rem; justify-items: end; }
 .edit { display: flex; gap: .3rem; align-items: start; }
 .edit textarea { width: 100%; resize: none; border: 1.5px solid color-mix(in oklab, var(--note-ink) 40%, transparent); border-radius: 6px; background: rgb(255 255 255 / .35); padding: .3rem .4rem; color: inherit; }
 </style>

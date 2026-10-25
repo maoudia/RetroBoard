@@ -79,7 +79,7 @@ function onKey(e: KeyboardEvent) {
         :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         @keydown="onKey"
       />
-      <small>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></small>
+      <small class="hint-row"><span>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
     </label>
     <div class="compose-actions">
       <button class="btn btn-sm" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /> {{ t('private.add') }}</button>
@@ -108,6 +108,7 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: .7rem; opacity: .7; }
+.hint-row { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
 .compose-actions { display: flex; gap: .4rem; justify-content: flex-end; flex-wrap: wrap; }
 .composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }
 .composer.gated textarea::placeholder { color: var(--muted); }
