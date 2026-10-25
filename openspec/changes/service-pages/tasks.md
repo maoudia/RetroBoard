@@ -2,7 +2,7 @@
 
 ## 1. Pages
 
-- [ ] 1.1 `ServicePage` component and `error.vue` (404 with typo suggestions, 500 with error id), fr/en, light/dark, 360 px to TV; verify e2e and axe
+- [x] 1.1 `ServicePage` component and `error.vue` (404 with typo suggestions, 500 with error id), fr/en, light/dark, 360 px to TV; verify e2e and axe
 - [ ] 1.2 Offline page with locally stored boards (read-only open), unsupported-browser page reusing /check, board not found / retired / closed / moved pages; verify e2e for each state
 - [ ] 1.3 Dev-only catalogue page listing every service page; verify screenshots of each page in light and dark reviewed by the owner
 
