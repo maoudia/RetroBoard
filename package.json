@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm knip && pnpm test && openspec validate --all --strict",
+    "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm knip && pnpm adr:check && pnpm test && openspec validate --all --strict",
     "spec": "openspec",
     "postinstall": "pnpm --filter @retroboard/web prepare",
     "arch": "depcruise packages apps/relay/src --config .dependency-cruiser.cjs",
@@ -27,7 +27,10 @@
     "size": "node scripts/check-bundle-size.mjs",
     "licenses:check": "node scripts/check-licenses.mjs",
     "mutation": "stryker run",
-    "load:relay": "node scripts/load/relay-load.mjs"
+    "load:relay": "node scripts/load/relay-load.mjs",
+    "adr:new": "node scripts/adr/new.mjs",
+    "adr:index": "node scripts/adr/index.mjs",
+    "adr:check": "node scripts/adr/check.mjs && markdownlint-cli2 \"docs/adr/*.md\""
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -43,6 +46,7 @@
     "fast-check": "^4.10.2",
     "jsqr": "1.4.0",
     "knip": "^6.43.0",
+    "markdownlint-cli2": "0.24.0",
     "pngjs": "7.0.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5",

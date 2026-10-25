@@ -1,0 +1,12 @@
+// Markdown style for ADRs (markdownlint-cli2). MADR uses "*" lists and long prose lines.
+{
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD004": { "style": "asterisk" },
+    "MD024": { "siblings_only": true },
+    "MD033": false,
+    "MD041": false
+  },
+  "ignores": ["README.md"]
+}

@@ -40,24 +40,7 @@ Non-negotiables (also in `openspec/config.yaml`, so every agent sees them):
 
 ## 2. Decisions taken (ADR log)
 
-| ID | Decision | Alternatives rejected | Why |
-|---|---|---|---|
-| ADR-01 | Host on **Cloudflare Workers with static assets** at `retroboard.maoudia.com` | Cloudflare Pages + separate Worker | Pages cannot host the Durable Object; one deployable instead of two. |
-| ADR-02 | **Hybrid sync**: Durable Object in-memory relay for events and signalling + **WebRTC P2P** for cursors and presence, relay fallback at 4 Hz | DO only (cursors burn the free quota); pure P2P (fails behind strict NAT without paid TURN) | Keeps a real-time feel inside the free quota. |
-| ADR-03 | **Event-sourced board** replicated in every browser (encrypted, IndexedDB), deterministic replay through the domain | Yjs/Automerge CRDT; server-authoritative state | Reuses our tested reducer, keeps DDD invariants in the domain, and lets any peer resurrect the board. Yjs remains the fallback if convergence work grows (see section 5.6). |
-| ADR-04 | **E2E encryption** (AES-GCM 256, key in fragment) + optional passcode + facilitator capability key + Turnstile at board creation | Server-checked passcode; secret link only | Only option that is both free and storage-free with real confidentiality. |
-| ADR-05 | **Facilitator role** with delegation to co-facilitators | Everyone equal | Phases, timers, talk time and vote reveal need one owner. |
-| ADR-06 | **Theme imposed**, light/dark variant per participant | Personal theme override (current behaviour, removed) | Requested by product owner; variants keep accessibility. |
-| ADR-07 | **Integrations in the browser**: structured files, rich clipboard, deep links, user-provided webhooks | OAuth apps through the Worker | No secrets, no tokens, no storage, no app reviews. |
-| ADR-08 | **Monorepo** (pnpm workspaces, `pnpm -r`), packages per layer; Turborepo only if CI gets slow | Single Nuxt app with folders | Layer boundaries become package boundaries that tools enforce. |
-| ADR-09 | **OpenSpec** spec-driven workflow for Claude Code and OpenCode | Free-form issues | Specs are the contract agents implement and reviewers check. |
-| ADR-10 | **License AGPL-3.0-only** + commercial license on request (dual licensing), contributions under a CLA | MIT (allows closed resale); FSL-1.1-ALv2 (not OSI open source); BSL 1.1 and Elastic 2.0 (disliked by the community) | Real open source (OSI) that discourages closed resale: anyone running a modified version as a service must publish its source (AGPL section 13). Commits up to tag `last-mit` stay MIT. |
-| ADR-11 | **Payments through a Merchant of Record (Polar)** + stateless signed entitlement tokens | Own Stripe integration with a customer database | No customer database; the MoR is the system of record and handles sales tax. |
-| ADR-12 | **Local AI only** (Chrome Prompt API, Ollama/LM Studio on localhost, WebLLM) | Hosted LLM | No cost, no data leaves the participant's machine. |
-| ADR-13 | **MCP server as a local npm package** joining a board like a participant | Remote MCP on the Worker | A remote MCP would need the plaintext; a local one holds the room key like any participant. |
-| ADR-14 | Interface languages **FR + EN**, typed dictionaries, community-extensible | Five machine-translated languages | Quality first; a pseudo-locale in CI catches overflow. |
-| ADR-16 | **WebMCP tools** exposed to agents in the user's browser (`document.modelContext`, fallback `navigator.modelContext`), opt-in per participant, facilitator kill switch, human confirmation for shared writes | Ignore until the spec is final | Draft spec with a Chrome origin trial and Edge support behind a flag (July 2026); being ready early costs little because tools reuse the application use cases. |
-| ADR-15 | **Team profile kept locally** by the facilitator (team name, sprint counter, action history), exportable | Server-side team space | N2. |
+Decisions live in [docs/adr](adr/README.md), one MADR 4.0 file each (ADR-0001 to ADR-0016 come from the table that was here; later decisions such as peer-to-peer board events, no paid service and edge protection are ADR-0017 to ADR-0020). Write a new one with `pnpm adr:new "Title"`; CI checks them (`.github/workflows/adr.yml`).
 
 Sources for the cost and platform facts used above:
 - Durable Objects pricing and free limits: <https://developers.cloudflare.com/durable-objects/platform/pricing/> (100,000 requests/day, incoming WebSocket messages billed 20:1, 13,000 GB-s/day on Free).

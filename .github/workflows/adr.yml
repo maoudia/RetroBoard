@@ -1,0 +1,51 @@
+name: ADR
+
+# Architecture Decision Records (docs/adr, MADR 4.0): structure, numbering, supersession links,
+# generated index and Markdown style. Pull requests that change the architecture without an ADR
+# get a warning (not a failure): most such changes are covered by an existing decision.
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/adr/**', 'scripts/adr/**', '.github/workflows/adr.yml']
+  pull_request:
+
+concurrency:
+  group: adr-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  adr:
+    name: ADR format and index
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check ADRs (structure, numbering, links, index, markdownlint)
+        run: pnpm adr:check
+      - name: Unit tests of the ADR checker
+        run: pnpm exec vitest run scripts/adr
+      - name: Architecture changed without an ADR (warning only)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+          arch=$(printf '%s\n' "$changed" | grep -E '^(wrangler\.jsonc|apps/relay/src/|packages/protocol/src/|packages/crypto/src/|\.dependency-cruiser\.cjs|openspec/config\.yaml)' || true)
+          adr=$(printf '%s\n' "$changed" | grep -E '^docs/adr/[0-9]{4}-' || true)
+          if [ -n "$arch" ] && [ -z "$adr" ]; then
+            echo "::warning title=No ADR::This pull request changes architecture-sensitive files without adding or updating an ADR in docs/adr. Add one (pnpm adr:new) or say in the PR which ADR covers it."
+            printf '%s\n' "$arch"
+          fi

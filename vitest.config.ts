@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts'],
+    include: ['apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts', 'scripts/*/test/**/*.test.ts'],
     environment: 'node',
     environmentMatchGlobs: undefined,
     coverage: {

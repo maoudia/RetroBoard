@@ -19,6 +19,12 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 - **Board theme is imposed**; only light/dark variant is personal.
 - ASCII in code comments and docs. Conventional Commits.
 
+## Architecture decisions (ADR)
+
+- Decisions live in `docs/adr` (MADR 4.0). Read the index (`docs/adr/README.md`) before changing the architecture.
+- A change that alters a decision needs a new ADR (`pnpm adr:new "Title"`); mark the old one `superseded by ADR-NNNN`. Never rewrite an accepted ADR.
+- `pnpm adr:check` (in `pnpm verify` and CI) validates structure, numbering, links and the generated index.
+
 ## Workflow (OpenSpec)
 
 | Step | Claude Code | OpenCode |
