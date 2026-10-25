@@ -41,10 +41,22 @@ const PLAN = {
   'local-ai-companion': ['P5', 'B', ['retro-report']],
   'landing-v2-and-product-video': ['P6', 'C', ['postit-visual-system']],
   'licensing-and-monetization': ['P6', 'A', ['stateless-relay-and-replication']],
+  // Owner feedback wave of 2026-10-25.
+  'sticky-notes-v2': ['P7', 'A', []],
+  'single-facilitator': ['P7', 'A', []],
+  'board-lifecycle': ['P7', 'A', []],
+  'facilitator-moderation': ['P7', 'A', ['single-facilitator']],
+  'cluster-reveal-motion': ['P7', 'B', []],
+  'keyboard-shortcuts': ['P7', 'B', []],
+  'voting-results-charts': ['P7', 'B', []],
+  'activity-rings-timer': ['P7', 'B', []],
+  'calendar-agenda-import': ['P7', 'C', []],
+  'themes-pop-culture': ['P7', 'C', ['activity-rings-timer']],
+  'ci-toolchain-speed': ['P7', 'C', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
-  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth',
+  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25',
 }
 const LABELS = [
   ['epic', '5319e7', 'One OpenSpec change'], ['task-group', '1d76db', 'One task group of a change, one PR'],

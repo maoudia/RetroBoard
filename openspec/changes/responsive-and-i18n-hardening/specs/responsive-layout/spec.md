@@ -28,3 +28,10 @@ The system SHALL support grouping, moving and voting with touch on phones and ta
 #### Scenario: Group on a tablet
 - **WHEN** a participant long-presses a note and drops it on another note
 - **THEN** the notes are clustered
+
+### Requirement: Thumb-friendly primary actions
+On phones the primary action of a page (open or create a board, publish) SHALL be a large centred button reachable with the thumb, at least 48 px high.
+
+#### Scenario: Landing on a phone
+- **WHEN** a visitor opens the landing page on a 360 px phone
+- **THEN** the "Create a board" button spans the width at the bottom of the screen and is at least 48 px high

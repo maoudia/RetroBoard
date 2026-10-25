@@ -12,3 +12,9 @@
 - [ ] 2.1 `TeamProfile` model and IndexedDB adapter; verify unit tests
 - [ ] 2.2 Team management UI in profile (create, rename, sprint counter, defaults) fr/en; verify e2e
 - [ ] 2.3 Encrypted team file export/import; verify e2e round trip
+
+## 3. Profile page v2 (owner feedback 2026-10-25)
+
+- [ ] 3.1 Recent boards first in the profile dialog (open, forget, last opened), then identity and settings; verify e2e
+- [ ] 3.2 Identity block: avatar (persona icon, initials or Gravatar) with the name, a colour picker kept as the avatar background; verify e2e and axe
+- [ ] 3.3 Display options "how others see me": icon and name, name only, icon only, anonymous, with a live preview and readable name colours; verify e2e two contexts

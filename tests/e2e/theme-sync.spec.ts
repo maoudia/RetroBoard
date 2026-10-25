@@ -1,0 +1,26 @@
+import { expect, test } from '@playwright/test'
+import { createBoard, join } from './helpers'
+test('theme sync: a facilitator who is not the creator, then a new lead after handover, theme the board for everyone', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', theme: 'studio' })
+  await page.getByTestId('btn-share').click()
+  await page.getByTestId('share-facilitator-toggle').click()
+  const fac = await page.getByTestId('share-facilitator-url').inputValue()
+  const part = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await join(browser, fac, 'Bob')
+  const carol = await join(browser, part, 'Carol')
+  await bob.page.getByTestId('btn-options').click()
+  await bob.page.getByTestId('theme-cyber').click()
+  await bob.page.keyboard.press('Escape')
+  for (const p of [page, bob.page, carol.page]) await expect(p.getByTestId('board-title')).toContainText(/Cyber/i, { timeout: 8000 })
+  // Handover: Alice hands over to Carol, Carol changes the theme.
+  await page.getByTestId('btn-participants').click()
+  const carolRow = page.locator('li[data-testid^="peer-"]', { hasText: 'Carol' })
+  await carolRow.getByTestId('role-handover').click()
+  await page.getByTestId('confirm').click()
+  await page.keyboard.press('Escape')
+  await carol.page.getByTestId('btn-options').click()
+  await carol.page.getByTestId('theme-paper').click()
+  await carol.page.keyboard.press('Escape')
+  for (const p of [page, bob.page, carol.page]) await expect(p.getByTestId('board-title')).toContainText(/Paper|Papier/i, { timeout: 8000 })
+})

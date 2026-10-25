@@ -9,6 +9,7 @@
 
 - [ ] 2.1 Export panel grouped by destination with icons, descriptions and previews (fr/en, phone to TV); verify e2e and visual regression (done: panel, previews, e2e; pending: visual regression)
 - [x] 2.2 Rich clipboard adapter with fallback; verify e2e reading `text/html` from the clipboard in Chromium
+- [ ] 2.3 File preview before saving (owner feedback 2026-10-25): the exact file rendered as the user will see it (report and Docs HTML in a sandboxed frame, CSV and TSV as a table, Markdown rendered, JSON folded) with file name and size, then "Save"; verify e2e for each format and a CSP check of the preview frame
 
 ## 3. Slack and agents
 

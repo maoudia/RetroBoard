@@ -34,3 +34,10 @@ The JSON export SHALL follow a versioned, published JSON Schema so agents and sc
 #### Scenario: Schema validation
 - **WHEN** CI validates an exported board against the published schema
 - **THEN** validation passes
+
+### Requirement: File preview before saving
+The system SHALL show the exact file about to be saved, rendered for its format, with its name and size, before the participant saves it.
+
+#### Scenario: CSV for Jira
+- **WHEN** a participant chooses the Jira CSV of actions
+- **THEN** a table shows the rows and columns of the file with its name and size, and "Save" downloads that same file

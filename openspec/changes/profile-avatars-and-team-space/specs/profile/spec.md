@@ -20,3 +20,17 @@ The system SHALL offer Gravatar only as an explicit opt-in that explains that a 
 #### Scenario: Gravatar off
 - **WHEN** a participant has not enabled Gravatar
 - **THEN** no request is made to Gravatar's domain
+
+### Requirement: Recent boards first
+The profile SHALL list the participant's recent boards at the top.
+
+#### Scenario: Open the profile
+- **WHEN** a participant with 3 recent boards opens the profile
+- **THEN** the 3 boards are the first thing shown, most recent first
+
+### Requirement: How others see me
+The profile SHALL let a participant choose how they appear to others (icon and name, name only, icon only, anonymous), with a live preview.
+
+#### Scenario: Icon only
+- **WHEN** a participant chooses "icon only"
+- **THEN** others see their avatar icon without a name
