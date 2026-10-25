@@ -41,6 +41,9 @@ function closeLocal() {
   // The transport deletes the encrypted copy itself and stays connected on purpose: a participant who was
   // offline can still learn about the closing from the peers that are here.
 }
+watch(() => board.lastNotice, (n) => {
+  if (n) push(t(`notice.${n.kind}` as never, { name: n.by ?? t('notice.someone'), column: n.column ?? '' } as never), 'info', 5000)
+})
 watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal() }, { immediate: true })
 
 useHead({ title: computed(() => `${board.settings?.title ?? t('board.defaultTitle')} - RetroBoard`) })

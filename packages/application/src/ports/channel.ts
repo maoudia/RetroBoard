@@ -8,12 +8,23 @@ export interface Identity {
   showName: boolean
 }
 
+/** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"). */
+export interface BoardNotice {
+  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev'
+  /** Name the author chose to show, or null. */
+  by: string | null
+  /** Column title, for reset.column. */
+  column?: string
+}
+
 export interface ChannelHandlers {
   onSnapshot(snapshot: Snapshot): void
   onError(error: ErrorCode): void
   onStatus(status: ConnectionStatus): void
   /** Encrypted rooms: the board exists but nothing decrypts with these keys (wrong passcode). */
   onAccessDenied?(): void
+  /** A live (not replayed) reset or phase step made by another participant. */
+  onNotice?(notice: BoardNotice): void
   /** Live presence (never stored): a peer's cursor or focus, with the label they chose to show. */
   onCursor?(cursor: CursorFrame, name: string | null): void
   onFocus?(focus: FocusFrame, name: string | null): void

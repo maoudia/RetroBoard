@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, join, publishNote } from './helpers'
+import { createBoard, join, noteByText, publishNote } from './helpers'
 
 test('destroy: confirmed by title, closes the board for everyone, including a participant who was offline', async ({ page, browser }) => {
   await createBoard(page, { title: 'Sprint 42' })
@@ -60,4 +60,58 @@ test('destroy is offered to the facilitator only, and after an export', async ({
   await expect(page.getByTestId('export-after')).toBeVisible()
   await page.getByTestId('export-destroy').click()
   await expect(page.getByTestId('destroy-title')).toBeVisible()
+})
+
+const panel = async (page: import('@playwright/test').Page, fn: () => Promise<void>) => {
+  await page.getByTestId('agenda-ring').click()
+  await expect(page.getByTestId('agenda-panel')).toBeVisible()
+  await fn()
+  await page.keyboard.press('Escape')
+}
+
+test('reset one column: others untouched, everyone is told', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const bob = await join(browser, page.url(), 'Bob')
+  await publishNote(page, 0, 'Dans la première')
+  await publishNote(page, 1, 'Dans la seconde')
+  await expect(noteByText(bob.page, 'Dans la seconde')).toBeVisible()
+
+  await page.locator('[data-testid^="col-menu-"]').first().click()
+  await page.locator('[data-testid^="col-reset-"]').first().click()
+  await page.getByTestId('confirm').click()
+  await expect(noteByText(page, 'Dans la première')).toHaveCount(0)
+  await expect(noteByText(bob.page, 'Dans la première')).toHaveCount(0)
+  await expect(noteByText(bob.page, 'Dans la seconde')).toBeVisible()
+  await expect(bob.page.locator('[data-testid="toast"], .toast').filter({ hasText: /Alice.*vidé la colonne/ })).toBeVisible()
+})
+
+test('reset votes and clocks; step back to the previous phase', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const bob = await join(browser, page.url(), 'Bob')
+  await publishNote(page, 0, 'À voter')
+  const vote = (p: typeof page) => noteByText(p, 'À voter').locator('[data-testid^="vote-"]')
+  await vote(bob.page).click()
+  await expect(noteByText(page, 'À voter')).toContainText('1')
+
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-reset-votes').click()
+  await page.getByTestId('confirm').click()
+  await expect(bob.page.getByText(/Alice a remis les votes à zéro/)).toBeVisible()
+  await expect(noteByText(bob.page, 'À voter')).not.toContainText('1')
+
+  await panel(page, async () => {
+    await page.getByTestId('agenda-start').click()
+    await expect(page.getByTestId('agenda-prev')).toBeDisabled()
+    await page.getByTestId('agenda-next').click()
+    await expect(page.getByTestId('agenda-prev')).toBeEnabled()
+    await page.getByTestId('agenda-prev').click()
+  })
+  await expect(page.getByTestId('agenda-phase')).toHaveText('Inclusion')
+  await expect(bob.page.getByTestId('agenda-phase')).toHaveText('Inclusion')
+  await expect(bob.page.getByText(/Alice est revenu à la phase précédente/)).toBeVisible()
+
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-reset-clock').click()
+  await page.getByTestId('confirm').click()
+  await expect(bob.page.getByText(/Alice a remis les horloges à zéro/)).toBeVisible()
 })

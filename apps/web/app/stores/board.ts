@@ -1,6 +1,6 @@
 import { allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
-import { buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
+import { type BoardNotice, buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
 /**
  * View model of a board: holds the latest snapshot and exposes the board use cases.
@@ -11,6 +11,8 @@ export const useBoardStore = defineStore('board', () => {
   const status = ref<ConnectionStatus>('closed')
   const lastError = ref<{ code: ErrorCode; at: number } | null>(null)
   const roomId = ref<string | null>(null)
+  /** Last reset or phase step by another participant (the page turns it into a toast for everyone). */
+  const lastNotice = ref<(BoardNotice & { at: number }) | null>(null)
   /** Encrypted board that does not open with the keys we have (wrong passcode). */
   const accessDenied = ref(false)
   /** The board is at its participant cap; the channel retries until a seat frees up. */
@@ -39,6 +41,7 @@ export const useBoardStore = defineStore('board', () => {
       onError: (code) => { lastError.value = { code, at: Date.now() } },
       onStatus: (s) => { status.value = s },
       onAccessDenied: () => { accessDenied.value = true },
+      onNotice: (n) => { lastNotice.value = { ...n, at: Date.now() } },
       onCursor: (c, name) => live.setCursor(c, name),
       onFocus: (f, name) => live.setFocus(f, name),
       onPeerLeft: (conn) => live.drop(conn),
@@ -106,7 +109,7 @@ export const useBoardStore = defineStore('board', () => {
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
 
   return {
-    snapshot, status, lastError, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
+    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, allowed, availability,
     settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions,
     itemsFor, noteById,

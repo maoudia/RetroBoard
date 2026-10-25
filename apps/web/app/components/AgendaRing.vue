@@ -103,6 +103,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
           <Icon name="lucide:play" /> {{ t(agenda.current < 0 ? 'agenda.start' : 'agenda.resume') }}
         </button>
         <button v-else class="btn btn-sm" type="button" data-testid="agenda-pause" @click="board.commands.pauseAgenda()"><Icon name="lucide:pause" /> {{ t('agenda.pause') }}</button>
+        <button class="btn btn-sm" type="button" data-testid="agenda-prev" :disabled="agenda.current <= 0" @click="board.commands.previousPhase()"><Icon name="lucide:skip-back" /> {{ t('agenda.prev') }}</button>
         <button class="btn btn-sm" type="button" data-testid="agenda-next" :disabled="!started" @click="board.commands.nextPhase()"><Icon name="lucide:skip-forward" /> {{ t('agenda.next') }}</button>
         <span class="ext">
           <button class="btn btn-sm" type="button" data-testid="agenda-plus1" :disabled="!started" @click="board.commands.extendPhase(1, borrow)">+1</button>

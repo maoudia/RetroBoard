@@ -9,6 +9,8 @@ const open = computed({ get: () => ui.dialog === 'options', set: (v) => { if (!v
 const s = computed(() => board.settings!)
 const title = ref('')
 const resetAsk = ref(false)
+const resetVotesAsk = ref(false)
+const resetClockAsk = ref(false)
 watch(open, (v) => { if (v) title.value = board.settings?.title ?? '' })
 
 const set = (patch: SettingsPatch) => {
@@ -134,6 +136,14 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
       <section class="grp danger-zone">
         <h3>{{ t('options.danger') }}</h3>
         <div class="line">
+          <span><strong>{{ t('options.resetVotes') }}</strong><small class="muted">{{ t('options.resetVotes.hint') }}</small></span>
+          <button class="btn btn-danger btn-sm" type="button" data-testid="opt-reset-votes" @click="resetVotesAsk = true"><Icon name="lucide:rotate-ccw" /> {{ t('options.resetBtn') }}</button>
+        </div>
+        <div class="line">
+          <span><strong>{{ t('options.resetClock') }}</strong><small class="muted">{{ t('options.resetClock.hint') }}</small></span>
+          <button class="btn btn-danger btn-sm" type="button" data-testid="opt-reset-clock" @click="resetClockAsk = true"><Icon name="lucide:timer-reset" /> {{ t('options.resetBtn') }}</button>
+        </div>
+        <div class="line">
           <span><strong>{{ t('options.reset') }}</strong><small class="muted">{{ t('options.reset.hint') }}</small></span>
           <button class="btn btn-danger btn-sm" type="button" data-testid="opt-reset" @click="resetAsk = true"><Icon name="lucide:trash" /> {{ t('options.resetBtn') }}</button>
         </div>
@@ -144,6 +154,8 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
       </section>
       </fieldset>
     </template>
+    <ConfirmDialog v-model:open="resetVotesAsk" danger :title="t('options.resetVotes.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetVotes.msg')" @confirm="board.commands.resetVotes(); ui.close()" />
+    <ConfirmDialog v-model:open="resetClockAsk" danger :title="t('options.resetClock.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetClock.msg')" @confirm="board.commands.resetTimer(undefined, true); ui.close()" />
     <ConfirmDialog v-model:open="resetAsk" danger :title="t('options.resetConfirm.title')" :confirm-label="t('options.resetConfirm.ok')" :message="t('options.resetConfirm.msg')" @confirm="board.commands.resetBoard(); ui.close()" />
   </BaseDialog>
 </template>

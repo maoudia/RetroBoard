@@ -6,6 +6,7 @@ const props = defineProps<{ column: Column; index: number; count: number; noteCo
 const board = useBoardStore()
 const ui = useUiStore()
 const confirm = ref(false)
+const resetAsk = ref(false)
 const move = (to: number) => board.commands.moveColumn(props.column.id, to)
 </script>
 
@@ -21,11 +22,18 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
       <button class="dd-item" type="button" role="menuitem" :disabled="index === 0" @click="move(index - 1); close()"><Icon name="lucide:arrow-left" /> {{ t('column.left') }}</button>
       <button class="dd-item" type="button" role="menuitem" :disabled="index === count - 1" @click="move(index + 1); close()"><Icon name="lucide:arrow-right" /> {{ t('column.right') }}</button>
       <div class="dd-sep" />
+      <button v-if="board.access.canSteer" class="dd-item danger" type="button" role="menuitem" :disabled="!noteCount" :data-testid="`col-reset-${column.id}`" @click="resetAsk = true; close()">
+        <Icon name="lucide:eraser" /> {{ t('column.reset') }}
+      </button>
       <button class="dd-item danger" type="button" role="menuitem" :disabled="count <= 1" data-testid="col-delete" @click="confirm = true; close()">
         <Icon name="lucide:trash" /> {{ t('column.delete') }}
       </button>
     </template>
   </Dropdown>
+  <ConfirmDialog
+    v-model:open="resetAsk" danger :title="t('column.reset.title')" :confirm-label="t('column.reset.ok')"
+    :message="t('column.reset.msg', { n: noteCount, title: column.title })" @confirm="board.commands.resetColumn(column.id)"
+  />
   <ConfirmDialog
     v-model:open="confirm"  danger :title="t('column.delete.title')" :confirm-label="t('common.delete')"
     :message="noteCount ? t('column.delete.msgNotes', { n: noteCount, title: column.title }) : t('column.delete.msgEmpty', { title: column.title })"

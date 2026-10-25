@@ -283,6 +283,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       if (!event || event.id !== env.id || event.at !== env.hlc) continue
       const verified = await verifyEvent(this.deps.verifier, this.ring.roomId, event)
       if (verified && this.log.insert(event)) {
+        this.noticeIfLive(event)
         this.hlc.receive(event.at)
         this.sealed.set(env.id, env)
         added.push(env)
@@ -290,6 +291,20 @@ export class EncryptedRelayTransport implements BoardTransport {
       }
     }
     return added
+  }
+
+  /** Tells the page about a reset or phase step made by someone else just now (history replays stay silent). */
+  private noticeIfLive(event: SignedEvent): void {
+    const body = event.body
+    if (body.t !== 'cmd' || !this.handlers.onNotice || Date.now() - event.at > 30_000) return
+    const by = body.showName ? body.name : null
+    const c = body.cmd
+    const board = this.log.ledger.board
+    if (c.t === 'board.reset') this.handlers.onNotice({ kind: 'reset.board', by })
+    else if (c.t === 'vote.reset') this.handlers.onNotice({ kind: 'reset.votes', by })
+    else if (c.t === 'timer.reset' && c.agendaClock) this.handlers.onNotice({ kind: 'reset.clock', by })
+    else if (c.t === 'agenda.prev') this.handlers.onNotice({ kind: 'phase.prev', by })
+    else if (c.t === 'column.reset') this.handlers.onNotice({ kind: 'reset.column', by, column: c.id ? (board.columns.find((x) => x.id === c.id)?.title) : undefined })
   }
 
   /** Relay `pub` (fallback path), in frames of at most 100 envelopes. */
