@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { ROOM_ID_RE } from '@retroboard/protocol'
 import { buildCsp, originTrialToken, withSecurityHeaders } from '../src/headers'
 import { roomHash } from '../src/logger'
+import { isUnknownAppPath, pickErrorResponse } from '../src/errors'
 import { isAllowedOrigin } from '../src/origin'
 
 describe('isAllowedOrigin', () => {
@@ -79,5 +80,26 @@ describe('origin trial (WebMCP)', () => {
       expect(payload).toContain(`"origin":"https://${host}:443"`)
       expect(payload).toContain('"feature":"WebMCP"')
     }
+  })
+})
+
+describe('error responses', () => {
+  const html = new Response('<html>', { headers: { 'content-type': 'text/html' } })
+  const nav = (accept: string, extra: Record<string, string> = {}) => new Request('https://x.test/nope', { headers: { Accept: accept, ...extra } })
+  it('knows the app routes and flags only html answers for unknown ones', () => {
+    expect(isUnknownAppPath('/new/', html)).toBe(false)
+    expect(isUnknownAppPath('/nwe', html)).toBe(true)
+    expect(isUnknownAppPath('/robots.txt', new Response('x', { headers: { 'content-type': 'text/plain' } }))).toBe(false)
+  })
+  it('sends html to browsers and text to scripts with the same status', async () => {
+    const branded = pickErrorResponse(nav('text/html,*/*'), 404, new Response('<h1>404</h1>'), 'Not found')
+    const script = pickErrorResponse(nav('application/json'), 404, new Response('<h1>404</h1>'), 'Not found')
+    expect([branded.status, script.status]).toEqual([404, 404])
+    expect(branded.headers.get('content-type')).toContain('text/html')
+    expect(await script.text()).toBe('Not found')
+    expect(script.headers.get('content-type')).toContain('text/plain')
+  })
+  it('falls back to text when the branded page is missing', async () => {
+    expect(await pickErrorResponse(nav('text/html'), 404, null, 'Not found').text()).toBe('Not found')
   })
 })

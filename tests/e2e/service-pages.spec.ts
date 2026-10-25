@@ -66,3 +66,14 @@ test('the development catalogue is not part of the production site', async ({ pa
   await expect(page.getByTestId('service-404')).toBeVisible()
   await expect(page.getByTestId('service-catalogue')).toHaveCount(0)
 })
+
+test('unknown paths answer 404 for browsers and scripts, known pages answer 200', async ({ request }) => {
+  const page404 = await request.get('/nwe', { headers: { Accept: 'text/html' } })
+  expect(page404.status()).toBe(404)
+  expect(page404.headers()['content-type']).toContain('text/html')
+  const script = await request.get('/api/unknown', { headers: { Accept: 'application/json' } })
+  expect(script.status()).toBe(404)
+  expect(await script.text()).toBe('Not found')
+  expect((await request.get('/new', { headers: { Accept: 'text/html' } })).status()).toBe(200)
+  expect((await request.get('/healthz')).status()).toBe(200)
+})

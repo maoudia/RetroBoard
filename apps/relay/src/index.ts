@@ -1,5 +1,6 @@
 import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { Env } from './env'
+import { isUnknownAppPath, pickErrorResponse } from './errors'
 import { buildCsp, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
 import { roomHash } from './logger'
 import { isAllowedOrigin } from './origin'
@@ -30,7 +31,11 @@ export default {
 
     const hashes = await loadCspHashes(env.ASSETS)
     const extra = (env.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim().replace(/^http/, 'ws')).filter(Boolean)
-    const res = await env.ASSETS.fetch(request)
+    let res = await env.ASSETS.fetch(request)
+    if (isUnknownAppPath(url.pathname, res)) {
+      const shell = await env.ASSETS.fetch(new Request(new URL('/404.html', url), { headers: { Accept: 'text/html' } }))
+      res = pickErrorResponse(request, 404, shell.ok ? shell : null, 'Not found')
+    }
     return withSecurityHeaders(res, buildCsp(hashes, extra), originTrialToken(url.host, env.ORIGIN_TRIAL_TOKENS))
   },
 } satisfies ExportedHandler<Env>
