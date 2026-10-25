@@ -23,6 +23,11 @@ function hashId(s: string) { let h = 0; for (let i = 0; i < s.length; i++) h = (
 onMounted(() => { if (flightFrom && el.value) flights.fly(el.value, flightFrom) })
 
 
+watch(() => ui.editNoteId, (id) => {
+  if (id !== props.note.id) return
+  ui.editNoteId = null
+  if (props.note.mine && !board.locked && !editing.value) startEdit()
+})
 const editor = ref<HTMLTextAreaElement | null>(null)
 // autofocus only works on page load: focus the editor when it appears.
 function startEdit() { draft.value = props.note.text; editing.value = true; void nextTick(() => editor.value?.focus()) }
@@ -47,7 +52,7 @@ function onDrop() {
 
 <template>
   <article
-    ref="el" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine }" :data-testid="`note-${note.id}`" :data-anchor="note.id" data-anchor-kind="note"
+    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine }" :data-testid="`note-${note.id}`" :data-anchor="note.id" data-anchor-kind="note"
     :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
@@ -90,6 +95,7 @@ function onDrop() {
   box-shadow: var(--shadow-1), inset 0 -22px 30px -26px rgb(0 0 0 / .25); transform: rotate(var(--tilt, 0deg));
   cursor: grab; transition: box-shadow .2s, transform .25s var(--ease), outline-color .2s; outline: 2px solid transparent; min-width: 0;
 }
+.note:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .note:hover { transform: rotate(0) translateY(-3px) scale(1.015); box-shadow: var(--shadow-2); z-index: 2; }
 .note:active { cursor: grabbing; }
 .note.over { outline-color: var(--accent); transform: scale(1.04); }

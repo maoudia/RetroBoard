@@ -1,5 +1,5 @@
 import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
-export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | null
+export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | 'help' | null
 
 /** Purely visual state shared by components. */
 export const useUiStore = defineStore('ui', () => {
@@ -32,8 +32,10 @@ export const useUiStore = defineStore('ui', () => {
   const close = () => { dialog.value = null }
   /** Note whose colour is being picked in the palette sheet. */
   const paletteNoteId = ref<string | null>(null)
+  /** Note the keyboard asked to edit (Enter on a focused note). */
+  const editNoteId = ref<string | null>(null)
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, editNoteId, expandedColumns, toggleExpanded, dragGroupId }
 })

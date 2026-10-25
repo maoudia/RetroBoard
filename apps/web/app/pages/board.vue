@@ -138,12 +138,10 @@ watch(() => board.access.isLead, (now, was) => {
 watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })
 function onPresenterKey(e: KeyboardEvent) {
   if (e.key === 'Escape' && ui.presenter && ui.dialog === null) ui.presenter = false
-  // "/" opens the filter, unless typing somewhere.
-  const target = e.target as HTMLElement | null
-  if (e.key === '/' && ui.dialog === null && !(target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)))) { e.preventDefault(); ui.filterOpen = true }
 }
 // Leave guard: unpublished drafts would stay in this browser only; the browser asks first.
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
+useShortcuts()
 onMounted(() => { document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
 onBeforeUnmount(() => { document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
 const shareAfterReview = ref(false)
@@ -233,6 +231,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <ColumnEditorDialog />
       <PaletteDialog />
       <DestroyDialog />
+      <ShortcutsDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />
       <PasscodeDialog :open="needsPasscode" :wrong="board.accessDenied" @submit="unlock" />
     </template>

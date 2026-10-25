@@ -30,6 +30,8 @@ export interface LocalSettings {
   showCursors: boolean
   /** Direct links with the other participants (WebRTC). Off: relay only, my IP stays hidden from them. */
   p2p: boolean
+  /** Single-key shortcuts on the board (keyboard users). */
+  shortcuts: boolean
 }
 
 export type { ThemeVariantPref } from '~/utils/settings-migration'
@@ -39,7 +41,7 @@ export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
 const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
-  retentionDays: 30, shareCursor: true, showCursors: true, p2p: true,
+  retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true,
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

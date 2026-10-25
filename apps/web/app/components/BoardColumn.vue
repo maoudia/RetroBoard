@@ -20,7 +20,7 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>
 
 <template>
-  <section class="col" :class="{ over }" :style="{ '--col': `var(--note-${colorIndex})` }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" v-bind="bind">
+  <section tabindex="-1" class="col" :class="{ over }" :style="{ '--col': `var(--note-${colorIndex})` }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" v-bind="bind">
     <header>
       <span class="badge-ico"><Icon :name="`lucide:${column.icon}`" /></span>
       <div class="titles">

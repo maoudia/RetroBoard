@@ -43,10 +43,12 @@ function onKey(e: KeyboardEvent) {
   } else if (e.key === 'Enter' && !e.shiftKey && !coarse.value) {
     e.preventDefault()
     add()
-  } else if (e.key === 'Escape' && text.value) {
+  } else if (e.key === 'Escape') {
     e.preventDefault()
     e.stopPropagation()
-    text.value = ''
+    // First Escape clears what was typed, the next one leaves the field (so board shortcuts work again).
+    if (text.value) text.value = ''
+    else (e.target as HTMLElement).blur()
   }
 }
 </script>

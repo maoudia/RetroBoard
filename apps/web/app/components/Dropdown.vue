@@ -9,6 +9,9 @@ const trigger = ref<HTMLElement | null>(null)
 const panel = ref<HTMLElement | null>(null)
 
 const close = () => { open.value = false }
+/** The browser may scroll the focused trigger into view right after opening: that must not close the menu. */
+let openedAt = 0
+const onScroll = () => { if (performance.now() - openedAt > 250) close() }
 const toggle = () => { open.value = !open.value }
 
 function place() {
@@ -36,11 +39,12 @@ watch(open, async (v) => {
   if (!p) return
   if (v) {
     if (!p.matches(':popover-open')) p.showPopover()
+    openedAt = performance.now()
     place()
     document.addEventListener('pointerdown', onDown, true)
     document.addEventListener('keydown', onKey)
     window.addEventListener('resize', close)
-    window.addEventListener('scroll', close, true)
+    window.addEventListener('scroll', onScroll, true)
   } else {
     if (p.matches(':popover-open')) p.hidePopover()
     cleanup()
@@ -50,7 +54,7 @@ function cleanup() {
   document.removeEventListener('pointerdown', onDown, true)
   document.removeEventListener('keydown', onKey)
   window.removeEventListener('resize', close)
-  window.removeEventListener('scroll', close, true)
+  window.removeEventListener('scroll', onScroll, true)
 }
 onBeforeUnmount(cleanup)
 defineExpose({ close })

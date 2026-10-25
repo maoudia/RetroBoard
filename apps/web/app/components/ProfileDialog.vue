@@ -95,6 +95,10 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         </span>
       </div>
       <label class="line">
+        <span><strong>{{ t('profile.shortcuts') }}</strong><small class="muted">{{ t('profile.shortcuts.hint') }}</small></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.shortcuts" data-testid="set-shortcuts" @change="set({ shortcuts: ($event.target as HTMLInputElement).checked })" />
+      </label>
+      <label class="line">
         <span><strong>{{ t('profile.sound') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.sound" data-testid="set-sound" @change="set({ sound: ($event.target as HTMLInputElement).checked })" />
       </label>
