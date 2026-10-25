@@ -24,6 +24,21 @@ test.describe('time-boxed agenda', () => {
     })
   })
 
+  test('activity rings: three concentric rings follow the phase, in the theme colours', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue' })
+    const rings = page.getByTestId('activity-rings')
+    await expect(rings.locator('circle.track')).toHaveCount(3)
+    await panel(page, () => page.getByTestId('agenda-start').click())
+    await next(page)
+    await expect(rings.locator('[data-ring="outer"]')).toHaveCount(1)
+    const stroke = await rings.locator('[data-ring="outer"]').evaluate((el) => getComputedStyle(el).stroke)
+    const token = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ring-1').trim())
+    expect(token).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(stroke).not.toBe('none')
+    // The text alternative says where the team is.
+    await expect(page.getByTestId('agenda-ring')).toContainText(/%/)
+  })
+
   test('the facilitator drives phases for everyone; participants follow phase rules', async ({ page, browser }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     const bob = await join(browser, await shareLink(page), 'Bob')

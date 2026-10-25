@@ -103,6 +103,8 @@ export const fr = {
   'agenda.overtime': 'Cette étape dépasse son temps. Prolonge-la ou passe à la suite.',
   'agenda.total': '{elapsed} sur {planned} min',
   'agenda.title': 'Déroulé',
+  'rings.summary': 'Rétro à {outer} %. {phase} : {current} %{over}',
+  'rings.over': ', temps dépassé',
   'agenda.use': 'Déroulé minuté',
   'agenda.use.hint': 'Des étapes avec un anneau de temps partagé. Les participants font ce que l\'étape en cours propose.',
   'agenda.preset': '{n} min',

@@ -104,6 +104,8 @@ export const en: Record<keyof typeof fr, string> = {
   'agenda.overtime': 'This phase is over its time. Extend it or move on.',
   'agenda.total': '{elapsed} of {planned} min',
   'agenda.title': 'Agenda',
+  'rings.summary': 'Retro {outer}% done. {phase}: {current}%{over}',
+  'rings.over': ', over time',
   'agenda.use': 'Time-boxed agenda',
   'agenda.use.hint': 'Phases with a shared countdown ring. Participants only do what the current phase is about.',
   'agenda.preset': '{n} min',

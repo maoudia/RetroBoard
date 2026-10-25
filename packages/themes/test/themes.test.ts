@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, getTheme, mix, stickyColor, tokensFor } from '../src'
+import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, getTheme, mix, ringColors, stickyColor, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -20,6 +20,16 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     expect(contrast(k.accentInk, k.accent), 'ink on accent').toBeGreaterThanOrEqual(4.5)
     expect(contrast(k.accent, k.surface), 'accent on surface').toBeGreaterThanOrEqual(3)
     expect(contrast(k.danger, k.surface), 'danger on surface').toBeGreaterThanOrEqual(3)
+  })
+
+  it.each(['light', 'dark'] as const)('has ring colours at 3:1 on every ground in the %s variant (activity rings)', (variant) => {
+    const k = tokensFor(t, variant)
+    const r = ringColors(k)
+    for (const [ground, hex] of Object.entries({ bg: k.bg, bg2: k.bg2, surface: k.surface, surface2: k.surface2 })) {
+      for (const name of ['ring1', 'ring2', 'ring3', 'over'] as const) expect(contrast(r[name], hex), `${name} on ${ground}`).toBeGreaterThanOrEqual(3)
+    }
+    // The three rings must differ from each other and from the overtime colour.
+    expect(new Set([r.ring1, r.ring2, r.ring3, r.over]).size).toBe(4)
   })
 
   it.each(['light', 'dark'] as const)('keeps every text and control colour readable on every ground in the %s variant (WCAG 2.2 AA)', (variant) => {

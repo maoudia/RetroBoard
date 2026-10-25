@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ringProgress } from '@retroboard/application'
 import { type AgendaState, phaseClock } from '@retroboard/domain'
 const { t } = useT()
 
@@ -15,25 +16,11 @@ onBeforeUnmount(() => clearInterval(tick))
 
 const agenda = computed(() => board.snapshot?.agenda as AgendaState)
 const clock = computed(() => phaseClock(agenda.value, now.value + board.skew))
-const R = 22
-const C = 2 * Math.PI * R
-const GAP_DEG = 4
-
-/** Arcs in degrees (start, sweep) for each phase; the fill ratio of each arc. */
-const arcs = computed(() => {
-  const a = agenda.value
-  const total = clock.value.totalPlannedMs || 1
-  const usable = 360 - GAP_DEG * a.phases.length
-  let start = -90
-  return a.phases.map((p, i) => {
-    const sweep = Math.max(2, (p.plannedMs / total) * usable)
-    const fill = i < a.current ? 1 : i === a.current ? Math.min(1, clock.value.elapsedMs / p.plannedMs) : 0
-    const arc = { id: p.id, start, sweep, fill, current: i === a.current, overtime: i === a.current && clock.value.overtime }
-    start += sweep + GAP_DEG
-    return arc
-  })
-})
-const dash = (deg: number) => `${(deg / 360) * C} ${C}`
+const rings = computed(() => ringProgress(agenda.value, now.value + board.skew))
+const pct = (n: number) => Math.round(n * 100)
+const summary = computed(() => t('rings.summary', {
+  outer: pct(rings.value.outer.fill), phase: caption.value, current: pct(rings.value.current?.fill ?? 0), over: rings.value.overtime ? t('rings.over') : '',
+}))
 
 const fmt = (ms: number) => {
   const s = Math.ceil(Math.abs(ms) / 1000)
@@ -75,14 +62,9 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
         class="ring" type="button" :aria-expanded="open"
         :class="{ over: clock.overtime, paused: clock.paused }" data-testid="agenda-ring" @click="toggle"
       >
-        <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">
-          <g v-for="a in arcs" :key="a.id" :transform="`rotate(${a.start} 28 28)`">
-            <circle class="track" cx="28" cy="28" :r="R" :stroke-dasharray="dash(a.sweep)" />
-            <circle v-if="a.fill > 0" class="fill" :class="{ current: a.current, overtime: a.overtime }" cx="28" cy="28" :r="R" :stroke-dasharray="dash(a.sweep * a.fill)" />
-          </g>
-        </svg>
+        <ActivityRings :progress="rings" />
         <span class="txt">
-          <span class="visually-hidden">{{ t('agenda.title') }}: </span>
+          <span class="visually-hidden">{{ t('agenda.title') }}: {{ summary }} </span>
           <strong class="mono" data-testid="agenda-time">{{ centre }}</strong>
           <small data-testid="agenda-phase">{{ caption }}</small>
         </span>
@@ -120,12 +102,6 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 
 <style scoped>
 .ring { display: inline-flex; align-items: center; gap: .5rem; padding: .2rem .7rem .2rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); cursor: pointer; }
-svg { flex: none; }
-circle { fill: none; stroke-width: 6; stroke-linecap: butt; }
-.track { stroke: var(--border); }
-.fill { stroke: var(--accent); opacity: .55; }
-.fill.current { opacity: 1; }
-.fill.overtime { stroke: var(--danger); }
 .txt { display: grid; line-height: 1.1; text-align: left; }
 .txt strong { font-size: 1.15rem; }
 .txt small { font-size: .75rem; color: var(--muted); }

@@ -43,3 +43,21 @@ export function controlColor(k: { text: string; bg: string; bg2: string; surface
   }
   return k.text
 }
+
+export interface RingColors {
+  /** Outer ring (whole retro), current phase, next phase, overtime, empty track. */
+  ring1: string
+  ring2: string
+  ring3: string
+  over: string
+  track: string
+}
+
+/**
+ * Activity ring colours of a variant (change activity-rings-timer): the theme's own accent,
+ * secondary accent and success colours, so every theme has rings in its palette. The colour
+ * tests keep each of them at 3:1 or more against every background of the theme.
+ */
+export function ringColors(k: { accent: string; accent2: string; muted: string; danger: string; border: string }): RingColors {
+  return { ring1: k.accent, ring2: k.accent2, ring3: k.muted, over: k.danger, track: k.border }
+}
