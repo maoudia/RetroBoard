@@ -8,10 +8,21 @@ export const useDraftsStore = defineStore('drafts', () => {
   const room = ref('')
   const drafts = ref<Draft[]>([])
   const key = () => `retroboard:drafts:${room.value}`
+  const composeKey = () => `retroboard:compose:${room.value}`
+  /** Text being typed in each column composer: survives switching fields and reloads, never leaves this browser. */
+  const composing = ref<Record<string, string>>({})
+  const compose = (columnId: string) => composing.value[columnId] ?? ''
+  function setCompose(columnId: string, text: string) {
+    const next = { ...composing.value }
+    if (text) next[columnId] = text; else Reflect.deleteProperty(next, columnId)
+    composing.value = next
+    if (room.value) safeStorage.set(composeKey(), next)
+  }
 
   function load(roomId: string) {
     room.value = roomId
     drafts.value = safeStorage.get<Draft[]>(key(), [])
+    composing.value = safeStorage.get<Record<string, string>>(composeKey(), {})
   }
   function persist() { if (room.value) safeStorage.set(key(), drafts.value) }
 
@@ -39,5 +50,5 @@ export const useDraftsStore = defineStore('drafts', () => {
   const forColumn = (columnId: string) => drafts.value.filter((d) => d.columnId === columnId)
   const count = computed(() => drafts.value.length)
 
-  return { drafts, load, add, restore, remove, removeMany, prune, forColumn, count }
+  return { drafts, composing, compose, setCompose, load, add, restore, remove, removeMany, prune, forColumn, count }
 })

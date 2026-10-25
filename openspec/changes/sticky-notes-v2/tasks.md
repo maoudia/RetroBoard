@@ -8,7 +8,7 @@
 
 ## 2. Composer and limits
 
-- [ ] 2.1 Composer with "Add" and "Publish now" buttons, text kept in the draft store while typing, mobile return key adds a line; verify e2e at 360 px without pressing Enter
+- [x] 2.1 Composer with "Add" and "Publish now" buttons, text kept in the draft store while typing, mobile return key adds a line; verify e2e at 360 px without pressing Enter
 - [ ] 2.2 `settings.noteMaxLength` (40..500, default 280) as a privileged setting, enforced by the fold; verify unit tests including a modified client
 - [ ] 2.3 Live counter in the composer and the note editor (SMS style, warning near the limit) and the setting in Options (fr/en); verify e2e
 - [ ] 2.4 Hover validate and dismiss actions on drafts and on notes being edited, menu fallback on touch; verify e2e (mouse and touch) and axe

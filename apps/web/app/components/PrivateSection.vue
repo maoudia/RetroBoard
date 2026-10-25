@@ -9,7 +9,10 @@ const board = useBoardStore()
 const drafts = useDraftsStore()
 const theme = useThemeStore()
 const { publish } = usePublish()
-const text = ref('')
+const text = computed({ get: () => drafts.compose(props.column.id), set: (v: string) => drafts.setCompose(props.column.id, v) })
+/** On touch screens the keyboard's return key adds a line; the buttons act. */
+const coarse = ref(false)
+onMounted(() => { coarse.value = window.matchMedia('(pointer: coarse)').matches })
 const mine = computed(() => drafts.forColumn(props.column.id))
 /** Writing closed by the current phase: greyed composer with the reason (facilitators keep it open). */
 const gate = computed(() => board.availability('note.addMany'))
@@ -28,14 +31,17 @@ function showSimilar(id: string) {
 function add() {
   if (drafts.add(props.column.id, text.value, props.colorIndex)) text.value = ''
 }
+function publishNow() {
+  const d = drafts.add(props.column.id, text.value, props.colorIndex)
+  if (d) { text.value = ''; publish([d.id]) }
+}
 /** Enter: draft. Shift+Enter: new line. Ctrl/Cmd+Enter: publish now. Escape: clear. */
 function onKey(e: KeyboardEvent) {
   if (e.isComposing) return
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault()
-    const d = drafts.add(props.column.id, text.value, props.colorIndex)
-    if (d) { text.value = ''; publish([d.id]) }
-  } else if (e.key === 'Enter' && !e.shiftKey) {
+    publishNow()
+  } else if (e.key === 'Enter' && !e.shiftKey && !coarse.value) {
     e.preventDefault()
     add()
   } else if (e.key === 'Escape' && text.value) {
@@ -71,11 +77,15 @@ function onKey(e: KeyboardEvent) {
       <textarea
         v-model="text" :maxlength="LIMITS.noteText" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
         :aria-describedby="gate.closedBy ? `gated-${column.id}` : undefined"
-        :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : t('private.placeholder')"
+        :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         @keydown="onKey"
       />
       <small>{{ themeText(theme.theme).privateHint }} <span class="keys">{{ t('private.keys') }}</span></small>
     </label>
+    <div class="compose-actions">
+      <button class="btn btn-sm" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /> {{ t('private.add') }}</button>
+      <button class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /> {{ t('private.publishNow') }}</button>
+    </div>
     <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
       <button class="link" type="button" @click="showSimilar(similar.id)">« {{ similar.text }} »</button>
@@ -99,6 +109,7 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: .7rem; opacity: .7; }
+.compose-actions { display: flex; gap: .4rem; justify-content: flex-end; flex-wrap: wrap; }
 .composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }
 .composer.gated textarea::placeholder { color: var(--muted); }
 .composer:focus-within { box-shadow: 0 0 0 3px var(--accent), var(--shadow-1); }
