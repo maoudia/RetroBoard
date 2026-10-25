@@ -67,6 +67,26 @@ Inbound events from either path go through `ingest`, which drops ids already in 
 
 Transports are real `EncryptedRelayTransport` instances with real WebCrypto and Ed25519. Each field failure becomes a scenario that must converge: every participant ends with the same snapshot hash.
 
+### D9. Local events never sort before what the log holds
+
+`HybridClock.receive` caps what a peer learns at wall + 60 s (so a clock running far ahead cannot drag everyone's timers). The side effect, found by the harness: a device whose clock is more than a minute *behind* stamps its events before the genesis. They sort first in the total order, every replica ignores them (`no-genesis`), and nothing tells the author, because `EventLog.preview` only checks the head of the log. The same cap breaks causality for anything that references events from a clock more than a minute ahead (votes and edits on its notes sort before the note and are dropped).
+
+Rule: `publishLocal` stamps `at = max(clock.tick(), log.lastAt + 1)`, so a local event always sorts after everything already in the local log. The cap stays for `receive` (timers keep following the wall clock in the normal case). Timer values derived from an outlier clock are accepted as a known cost; data loss is not.
+
+## Findings of the harness (task 1.3)
+
+Seven scenarios in `apps/web/test/sync-field.test.ts`, each failing for the stated reason:
+
+1. Partial mesh: a note does not reach a participant with no direct link to its author.
+2. Hibernation (sockets kept, buffer gone) then a relay-only joiner: the bridge announced itself once and never pushes again, the joiner sees nothing.
+3. A command sent during a WebSocket blip is refused (`send()` is false until the re-sync).
+4. A reload within the 250 ms write batch loses genesis, `board.init` and notes when nobody else is online.
+5. A facilitator link on a second device builds its own board when it finds an empty relay.
+6. A device with a clock one hour behind: its notes vanish for everyone, silently.
+7. A failing IndexedDB write is swallowed: the participant is never told the board is not saved.
+
+The owner's exact loss ("same URL, same browser, my notes gone") is explained by 4 or 7, and by 5 combined with a setup dialog; the log cannot tell which one happened. Task 4.3 (field re-test) closes it, and 3.2 makes any future storage failure visible.
+
 ## Where code lives
 
 - Application: the unchanged `EventLog` and ports. The `ReplicaStorePort` gains `flush` semantics through the adapter only.
