@@ -2,7 +2,7 @@
 
 ## 1. Timer events
 
-- [ ] 1.1 `timerEvents(prev, next, now)` (warning at 60 s, ended once per run, idempotent across reconnects and clock skew); verify unit tests and mutation score
+- [x] 1.1 `timerEvents(prev, next, now)` (warning at 60 s, ended once per run, idempotent across reconnects and clock skew); verify unit tests and mutation score
 
 ## 2. Popups and notifications
 
