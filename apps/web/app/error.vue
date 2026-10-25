@@ -6,7 +6,7 @@ const props = defineProps<{ error: NuxtError }>()
 const { t } = useT()
 const route = useRoute()
 
-const KNOWN = ['/', '/new', '/check', '/legal', '/privacy', '/terms']
+const KNOWN = ['/', '/new', '/check', '/offline', '/legal', '/privacy', '/terms']
 const notFound = computed(() => props.error.statusCode === 404)
 const suggestions = computed(() => (notFound.value ? suggestRoutes(route.path, KNOWN) : []))
 /** Shown to the visitor and logged in this console only: nothing is sent anywhere. */

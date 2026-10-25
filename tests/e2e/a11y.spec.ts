@@ -21,6 +21,14 @@ test.describe('accessibility (axe)', () => {
     expect(await audit(page)).toEqual([])
   })
 
+  test('service pages: 404, offline, unsupported, invalid link', async ({ page }) => {
+    for (const path of ['/nope-nope', '/offline', '/unsupported', '/board#x']) {
+      await page.goto(path)
+      await page.waitForTimeout(300)
+      expect(await audit(page), path).toEqual([])
+    }
+  })
+
   test('legal, privacy and terms pages', async ({ page }) => {
     for (const path of ['/legal', '/privacy', '/terms']) {
       await page.goto(path)

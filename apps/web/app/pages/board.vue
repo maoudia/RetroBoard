@@ -166,12 +166,12 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   <div class="page" :data-locked="board.locked">
     <AmbientLayer />
 
-    <main v-if="!validRoom" class="invalid card" :data-testid="retiredLink ? 'retired-link' : 'invalid-link'">
-      <Icon name="lucide:triangle-alert" class="big" />
-      <h1>{{ t(retiredLink ? 'board.retired.h' : 'board.invalid.h') }}</h1>
-      <p class="muted">{{ t(retiredLink ? 'board.retired.p' : 'board.invalid.p') }}</p>
-      <NuxtLink class="btn btn-primary" to="/">{{ t('board.invalid.cta') }}</NuxtLink>
-    </main>
+    <ServicePage
+      v-if="!validRoom" icon="lucide:link-2-off" :title="t(retiredLink ? 'board.retired.h' : 'board.invalid.h')"
+      :lead="t(retiredLink ? 'board.retired.p' : 'board.invalid.p')" :testid="retiredLink ? 'retired-link' : 'invalid-link'"
+    >
+      <template #actions><NuxtLink class="btn btn-primary" to="/">{{ t('board.invalid.cta') }}</NuxtLink></template>
+    </ServicePage>
 
     <template v-else>
       <AppToolbar v-if="board.ready" />
