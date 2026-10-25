@@ -47,7 +47,7 @@ watch(() => agent.setupDraft, (draft) => {
       <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="everyone" data-testid="setup-fac-everyone" />
         <span><strong>{{ t('setup.fac.everyone') }}</strong><small class="muted">{{ t('setup.fac.everyone.hint') }}</small></span></label>
       <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="one" data-testid="setup-fac-one" />
-        <span><strong>{{ t('setup.fac.one') }}</strong><small class="muted">{{ t('setup.fac.one.hint') }}</small></span></label>
+        <span><strong>{{ t('setup.fac.single') }}</strong><small class="muted">{{ t('setup.fac.single.hint') }}</small></span></label>
     </fieldset>
 
     <label v-if="withPasscode" class="pass">
