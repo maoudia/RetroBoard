@@ -3,7 +3,7 @@
  * Menu rendered in the browser top layer (Popover API) and positioned against its trigger.
  * Being in the top layer, it is never clipped by a scrolling column or a transformed note.
  */
-const props = withDefaults(defineProps<{ align?: 'start' | 'end'; width?: string }>(), { align: 'end', width: '' })
+const props = withDefaults(defineProps<{ align?: 'start' | 'end'; width?: string; menu?: boolean }>(), { align: 'end', width: '', menu: false })
 const open = ref(false)
 const trigger = ref<HTMLElement | null>(null)
 const panel = ref<HTMLElement | null>(null)
@@ -63,7 +63,7 @@ defineExpose({ close })
 <template>
   <span ref="trigger" class="dd">
     <slot name="trigger" :open="open" :toggle="toggle" />
-    <div ref="panel" popover="manual" class="dd-panel" :style="width ? { minWidth: width } : undefined">
+    <div ref="panel" popover="manual" class="dd-panel" :role="menu ? 'menu' : undefined" :style="width ? { minWidth: width } : undefined">
       <slot v-if="open" :close="close" />
     </div>
   </span>

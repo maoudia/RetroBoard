@@ -837,4 +837,7 @@ export const fr = {
   'a11y.newNotes.other': '{n} nouvelles idées dans {column}',
   'a11y.phase': 'Maintenant : {phase}',
   'a11y.revealed': 'Les votes sont révélés',
+  'note.groupWith': 'Regrouper avec...',
+  'note.groupWithList': 'Idées de la colonne',
+  'note.groupWithGroup': 'Groupe : {title}',
 } as const

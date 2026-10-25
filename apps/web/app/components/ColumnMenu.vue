@@ -11,7 +11,7 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
 </script>
 
 <template>
-  <Dropdown>
+  <Dropdown menu>
     <template #trigger="{ toggle, open }">
       <button class="mini-btn" type="button" :aria-label="t('column.options')" aria-haspopup="menu" :aria-expanded="open" :data-testid="`col-menu-${column.id}`" @click="toggle">
         <Icon name="lucide:ellipsis-vertical" />

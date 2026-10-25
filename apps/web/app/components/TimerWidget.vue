@@ -51,7 +51,7 @@ const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.commands
     <button class="mini-btn go" type="button" :aria-label="running ? t('timer.pause') : t('timer.start')" data-testid="timer-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="toggle">
       <Icon :name="running ? 'lucide:pause' : 'lucide:play'" />
     </button>
-    <Dropdown align="start" width="150px">
+    <Dropdown align="start" width="150px" menu>
       <template #trigger="{ toggle: tg, open }">
         <button class="mini-btn" type="button" :aria-label="t('timer.menu')" :aria-expanded="open" data-testid="timer-menu" :disabled="!board.access.canSteer" @click="tg"><Icon name="lucide:rotate-ccw" /></button>
       </template>

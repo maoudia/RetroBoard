@@ -9,7 +9,8 @@
 ## 2. Board criteria
 
 - [x] 2.1 `useAnnouncer()` with merged polite messages and assertive timer end; new notes, phase change, vote reveal wired; verify unit tests and e2e reading the live region
-- [ ] 2.2 Drag alternatives ("Group with...", "Move up", "Move down") in note and group menus (fr/en); verify e2e keyboard only
+- [x] 2.2 Drag alternatives ("Group with...", "Move up", "Move down") in note and group menus (fr/en); verify e2e keyboard only
+  - Note: "Group with..." is in the note menu (onto a note or a group). "Move up/down" does not apply (notes are ordered by time or votes); column left/right is in the column menu and "move to column" in the note menu. Keyboard-only e2e in `drag-alternatives.spec.ts`. Menus now carry `role="menu"`.
 - [ ] 2.3 Skip links, 24 px minimum targets, focus not obscured by toolbar and popups (scroll padding), reduced-motion versions; verify e2e and axe
 
 ## 3. Statement and process

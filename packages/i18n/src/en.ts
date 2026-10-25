@@ -837,5 +837,8 @@ export const en: Record<keyof typeof fr, string> = {
   'a11y.newNotes.other': '{n} new ideas in {column}',
   'a11y.phase': 'Now: {phase}',
   'a11y.revealed': 'Votes are revealed',
+  'note.groupWith': 'Group with...',
+  'note.groupWithList': 'Ideas in this column',
+  'note.groupWithGroup': 'Group: {title}',
 
 }
