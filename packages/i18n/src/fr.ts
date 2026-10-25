@@ -809,4 +809,7 @@ export const fr = {
   'profile.systemNotify.hint': 'Seulement quand l\'onglet est en arrière-plan. Aucun service de push : tout reste dans votre navigateur.',
   'profile.systemNotify.denied': 'Notifications refusées par le navigateur',
   'notice.phase.next': '{name} a démarré {phase}',
+  'note.toAction': 'Créer une action',
+  'actions.fromNote': 'À partir de : {text}',
+  'actions.detach': 'Détacher de la note',
 } as const

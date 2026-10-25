@@ -42,8 +42,10 @@ test('arrows move between notes and columns, Enter edits, v votes, c opens the p
   await page.keyboard.press('c')
   await expect(page.getByTestId('palette')).toBeVisible()
   await page.keyboard.press('Escape')
+  await expect(page.getByTestId('palette')).toBeHidden()
 
   await page.keyboard.press('1')
+  await expect(page.locator('article.note').first()).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page.locator('article.note textarea')).toBeVisible()
   await page.keyboard.press('Escape')

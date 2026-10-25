@@ -19,6 +19,8 @@ function useSuggestion(s: string) { title.value = s; board.commands.renameGroup(
 /** Touch-friendly alternative to dropping a cluster on another: other clusters of the same column. */
 const others = computed(() => board.itemsFor(props.item.group.columnId, 'time').filter((i) => i.kind === 'group' && i.group.id !== props.item.group.id) as Extract<ColumnItem, { kind: 'group' }>[])
 function mergeInto(target: string) { board.commands.mergeGroups(props.item.group.id, target); ui.openGroupId = target }
+const gate = computed(() => board.availability('action.add'))
+function toAction() { const id = props.item.group.id; const text = props.item.title; close(); ui.openActionFrom({ sourceId: id, text, owner: '' }) }
 function dissolve() { board.commands.dissolveGroup(props.item.group.id); close() }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
 onMounted(() => document.addEventListener('keydown', onKey))
@@ -52,6 +54,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
             <button v-for="o in others" :key="o.group.id" class="dd-item" type="button" :data-testid="`merge-into-${o.group.id}`" @click="mergeInto(o.group.id)">{{ o.title }} ({{ o.notes.length }})</button>
           </div>
         </details>
+        <button class="btn btn-sm btn-ghost" type="button" :disabled="!gate.allowed" data-testid="group-create-action" @click="toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>
         <button class="btn btn-sm btn-ghost" type="button" data-testid="group-dissolve" @click="dissolve"><Icon name="lucide:ungroup" /> {{ t('group.dissolve') }}</button>
       </footer>
     </section>

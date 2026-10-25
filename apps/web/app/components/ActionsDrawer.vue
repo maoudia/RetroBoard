@@ -13,7 +13,20 @@ const open = computed({ get: () => ui.dialog === 'actions', set: (v) => { if (!v
 const text = ref('')
 const owner = ref('')
 const due = ref('')
-watch(open, (v) => { if (v && !owner.value) owner.value = identity.name })
+/** Note or group the next action comes from (set by the note and group menus). */
+const source = ref<{ sourceId: string; text: string } | null>(null)
+watch(open, (v) => {
+  if (!v) return
+  const from = ui.actionFrom
+  if (from) {
+    text.value = from.text.slice(0, LIMITS.actionText)
+    owner.value = from.owner
+    source.value = { sourceId: from.sourceId, text: from.text }
+    ui.actionFrom = null
+    return
+  }
+  if (!owner.value) owner.value = identity.name
+}, { immediate: true, flush: 'post' })
 
 const gate = computed(() => board.availability('action.add'))
 const STATUSES: ActionStatus[] = ['todo', 'doing', 'done', 'blocked', 'dropped']
@@ -23,10 +36,11 @@ const fresh = computed(() => board.actions.filter((a) => a.carriedFrom === null)
 
 function add() {
   if (!text.value.trim() || !gate.value.allowed) return
-  board.commands.addAction(text.value, owner.value, due.value || undefined)
+  board.commands.addAction(text.value, owner.value, due.value || undefined, source.value?.sourceId)
   team.rememberOwner(owner.value)
   text.value = ''
   due.value = ''
+  source.value = null
 }
 function celebrate(e: Event) {
   const r = (e.target as HTMLElement).getBoundingClientRect()
@@ -53,6 +67,11 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
       <input v-model="text" class="field" :maxlength="LIMITS.actionText" :placeholder="t('actions.placeholder')" :aria-label="t('actions.newLabel')" data-testid="action-text" />
       <OwnerCombobox v-model="owner" />
       <input v-model="due" class="field due" type="date" :aria-label="t('actions.due')" :title="t('actions.due')" data-testid="action-due" />
+      <p v-if="source" class="src" data-testid="action-source">
+        <Icon name="lucide:sticky-note" aria-hidden="true" />
+        <span>{{ t('actions.fromNote', { text: source.text.length > 80 ? `${source.text.slice(0, 80)}...` : source.text }) }}</span>
+        <button class="mini-btn" type="button" :aria-label="t('actions.detach')" data-testid="action-source-clear" @click="source = null"><Icon name="lucide:x" /></button>
+      </p>
       <GatedHint :availability="gate" what="gated.actions" testid="gated-actions" />
       <button class="btn btn-primary" type="submit" :disabled="!gate.allowed" data-testid="action-add"><Icon name="lucide:plus" /> {{ t('actions.add') }}</button>
     </form>
@@ -101,6 +120,7 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 
 <style scoped>
 .add { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: .5rem; }
+.src { grid-column: 1 / -1; margin: 0; display: flex; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
 .sec { display: grid; gap: .25rem; margin-top: .75rem; }
 .sec-h { display: flex; gap: .4rem; align-items: center; margin: 0; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .list { list-style: none; margin: 0; padding: 0; display: grid; }

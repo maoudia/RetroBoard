@@ -7,6 +7,10 @@ const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()
 const emit = defineEmits<{ edit: [] }>()
 const board = useBoardStore()
 const ui = useUiStore()
+const gate = computed(() => board.availability('action.add'))
+function toAction() {
+  ui.openActionFrom({ sourceId: props.note.id, text: props.note.text, owner: props.note.author ?? '' })
+}
 const others = computed(() => board.columns.filter((c) => c.id !== props.note.columnId))
 </script>
 
@@ -25,6 +29,9 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
         />
       </div>
       <button class="dd-item" type="button" role="menuitem" :data-testid="`palette-open-${note.id}`" @click="ui.openPalette(note.id); close()"><Icon name="lucide:palette" /> {{ t('note.palette') }}</button>
+      <button class="dd-item" type="button" role="menuitem" :disabled="!gate.allowed" :title="gate.allowed ? undefined : t('gated.actions.closed', { phase: gate.closedBy ? t(`agenda.phase.${gate.closedBy}` as never) : '' })" :data-testid="`create-action-${note.id}`" @click="toAction(); close()">
+        <Icon name="lucide:list-checks" /> {{ t('note.toAction') }}
+      </button>
       <div class="dd-sep" />
       <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.commands.ungroupNote(note.id); close()">
         <Icon name="lucide:ungroup" /> {{ t('note.ungroup') }}

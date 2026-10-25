@@ -809,5 +809,8 @@ export const en: Record<keyof typeof fr, string> = {
   'profile.systemNotify.hint': 'Only while the tab is in the background. No push service: everything stays in your browser.',
   'profile.systemNotify.denied': 'Notifications blocked by the browser',
   'notice.phase.next': '{name} started {phase}',
+  'note.toAction': 'Create an action',
+  'actions.fromNote': 'From: {text}',
+  'actions.detach': 'Detach from the note',
 
 }
