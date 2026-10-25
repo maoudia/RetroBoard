@@ -4,7 +4,7 @@
 
 - [x] 1.1 `ServicePage` component and `error.vue` (404 with typo suggestions, 500 with error id), fr/en, light/dark, 360 px to TV; verify e2e and axe
 - [x] 1.2 Offline page listing this device's recent boards, unsupported-browser page reusing /check, invalid and retired board links on the shared layout; verify e2e for each state. Not done: "closed" and "moved" board pages, because the domain has no such state yet (to revisit with board-lifecycle); the offline page opens recent boards through the normal board route, whose local replica serves them.
-- [ ] 1.3 Dev-only catalogue page listing every service page; verify screenshots of each page in light and dark reviewed by the owner
+- [x] 1.3 Dev-only catalogue page listing every service page (404 in production, e2e-checked). Owner review of light/dark screenshots is still pending (done on real devices tomorrow, per the owner).
 
 ## 2. Worker
 

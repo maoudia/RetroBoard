@@ -60,3 +60,9 @@ test('an incomplete board link shows the invalid-link service page', async ({ pa
   await expect(page.getByTestId('invalid-link')).toBeVisible()
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
 })
+
+test('the development catalogue is not part of the production site', async ({ page }) => {
+  await page.goto('/dev/service-pages')
+  await expect(page.getByTestId('service-404')).toBeVisible()
+  await expect(page.getByTestId('service-catalogue')).toHaveCount(0)
+})
