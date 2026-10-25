@@ -14,6 +14,7 @@ Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 th
 ## Roadmap and contributing with agents
 
 - Master plan, decisions and business model: [docs/PLAN.md](docs/PLAN.md)
+- Roadmap (release milestones R1 to R4, GitHub project): [docs/roadmap.md](docs/roadmap.md); decisions: [docs/adr](docs/adr/README.md)
 - Quality reports (tests, coverage, e2e per browser, mutation score) for every commit on main: [maoudia.github.io/RetroBoard](https://maoudia.github.io/RetroBoard/), see [docs/quality.md](docs/quality.md)
 - Specs and planned changes ([OpenSpec](https://www.npmjs.com/package/@fission-ai/openspec)): `openspec/specs`, `openspec/changes`
 - Agent instructions: [AGENTS.md](AGENTS.md), skill `.claude/skills/retroboard-stack`

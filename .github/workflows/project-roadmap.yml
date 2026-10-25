@@ -1,0 +1,41 @@
+name: Project roadmap
+
+# Keeps the organisation project (https://github.com/orgs/maoudia/projects/7) in sync with the
+# epic and task-group issues: adds them and fills Release, Target, Kind, Lane and Status.
+# Needs the secret PROJECT_TOKEN (the default GITHUB_TOKEN cannot write organisation projects).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
+  issues:
+    types: [opened, closed, reopened, milestoned, demilestoned, labeled]
+
+concurrency:
+  group: project-roadmap
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync issues to the project
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Sync
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [ -z "$PROJECT_TOKEN" ]; then
+            echo "::warning title=PROJECT_TOKEN missing::Add a PROJECT_TOKEN secret (see docs/roadmap.md) to sync the project."
+            exit 0
+          fi
+          node scripts/github/project-roadmap.mjs --org maoudia --project 7 --repo "$GITHUB_REPOSITORY"
