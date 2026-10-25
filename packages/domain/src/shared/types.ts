@@ -54,6 +54,8 @@ export interface ActionItem {
   due: string | null
   /** Carried over from a previous retro: its title, else null. */
   carriedFrom: string | null
+  /** Note or group the action was created from; cleared when that note or group is gone. */
+  sourceNote?: string
   createdAt: number
 }
 

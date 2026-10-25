@@ -75,3 +75,57 @@ describe('action workflow', () => {
     expect([s.settings.actionMode, s.actions[0]!.status]).toEqual(['workflow', 'todo'])
   })
 })
+
+describe('action from a note', () => {
+  const setup = () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'Release notes are late' })
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'Second' })
+    const [a, b] = Object.keys(h.state.notes)
+    return { h, a: a!, b: b! }
+  }
+
+  it('keeps the link to the source note and shows it in the snapshot', () => {
+    const { h, a } = setup()
+    expect(h.run({ t: 'action.add', text: 'Write them', owner: 'Bob', sourceNote: a }).ok).toBe(true)
+    expect(first(h).sourceNote).toBe(a)
+    expect(buildSnapshot(h.state, { cid: 'x' }, [], 0).actions[0]!.sourceNote).toBe(a)
+  })
+
+  it('accepts a group as the source and rejects an unknown id', () => {
+    const { h, a, b } = setup()
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    const group = Object.keys(h.state.groups)[0]!
+    expect(h.run({ t: 'action.add', text: 'From group', owner: '', sourceNote: group }).ok).toBe(true)
+    expect(h.run({ t: 'action.add', text: 'Nope', owner: '', sourceNote: 'unknown-id-1' })).toEqual({ ok: false, error: 'not-found' })
+    expect(h.run({ t: 'action.add', text: 'Bad id', owner: '', sourceNote: '!' })).toEqual({ ok: false, error: 'invalid' })
+  })
+
+  it('actions without a source stay as they were', () => {
+    const { h } = setup()
+    h.run({ t: 'action.add', text: 'Plain', owner: '' })
+    expect('sourceNote' in first(h)).toBe(false)
+  })
+
+  it('clears the link when the note is deleted, the action stays', () => {
+    const { h, a, b } = setup()
+    h.run({ t: 'action.add', text: 'One', owner: '', sourceNote: a })
+    h.run({ t: 'action.add', text: 'Two', owner: '', sourceNote: b })
+    h.run({ t: 'note.delete', id: a })
+    const actions = Object.values(h.state.actions)
+    expect(actions.map((x) => x.sourceNote)).toEqual([undefined, b])
+    expect(actions).toHaveLength(2)
+  })
+
+  it('clears the link when the group disappears or the board is reset', () => {
+    const { h, a, b } = setup()
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    const group = Object.keys(h.state.groups)[0]!
+    h.run({ t: 'action.add', text: 'G', owner: '', sourceNote: group })
+    h.run({ t: 'note.ungroup', id: a })
+    expect(first(h).sourceNote).toBeUndefined()
+    h.run({ t: 'action.add', text: 'N', owner: '', sourceNote: b })
+    h.run({ t: 'board.reset' })
+    expect(Object.values(h.state.actions).every((x) => x.sourceNote === undefined)).toBe(true)
+  })
+})

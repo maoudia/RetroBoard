@@ -26,7 +26,8 @@ const room = (s: BoardState, n: number) => Object.keys(s.actions).length + n <= 
 export const actionHandlers: HandlerMap<'action.add' | 'action.update' | 'action.status' | 'action.import' | 'action.toggle' | 'action.delete'> = {
   'action.add': (s, c, _a, ctx) => {
     if (!room(s, 1)) return fail('limit-reached')
-    const item = newAction(ctx, c.text, c.owner, 'todo', c.due ?? null, null)
+    if (c.sourceNote && !s.notes[c.sourceNote] && !s.groups[c.sourceNote]) return fail('not-found')
+    const item = { ...newAction(ctx, c.text, c.owner, 'todo', c.due ?? null, null), ...(c.sourceNote ? { sourceNote: c.sourceNote } : {}) }
     return done({ ...s, actions: { ...s.actions, [item.id]: item } }, { actions: [item.id] })
   },
 

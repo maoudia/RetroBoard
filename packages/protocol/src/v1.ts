@@ -71,7 +71,7 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('talk.end') }),
   v.object({ t: v.literal('talk.self') }),
   v.object({ t: v.literal('talk.done') }),
-  v.object({ t: v.literal('action.add'), text: ActionText, owner: ActionOwner, due: v.optional(DueDate) }),
+  v.object({ t: v.literal('action.add'), text: ActionText, owner: ActionOwner, due: v.optional(DueDate), sourceNote: v.optional(Id) }),
   v.object({ t: v.literal('action.update'), id: Id, text: v.optional(ActionText), owner: v.optional(ActionOwner), due: v.optional(v.nullable(DueDate)) }),
   v.object({ t: v.literal('action.status'), id: Id, status: ActionStatus }),
   v.object({

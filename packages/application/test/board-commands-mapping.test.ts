@@ -48,6 +48,7 @@ describe('every use case sends the matching protocol command', () => {
     ['updateSettings', (c) => c.updateSettings({ voteLimit: 5 }), { t: 'settings.update', voteLimit: 5 }],
     ['resetBoard', (c) => c.resetBoard(), { t: 'board.reset' }],
     ['addAction', (c) => c.addAction('Fix', 'Bob'), { t: 'action.add', text: 'Fix', owner: 'Bob' }],
+    ['addAction with a source note', (c) => c.addAction('Fix', 'Bob', undefined, 'n1'), { t: 'action.add', text: 'Fix', owner: 'Bob', sourceNote: 'n1' }],
     ['setActionDone', (c) => c.setActionDone('a1', true), { t: 'action.toggle', id: 'a1', done: true }],
     ['deleteAction', (c) => c.deleteAction('a1'), { t: 'action.delete', id: 'a1' }],
     ['startTimer', (c) => c.startTimer(), { t: 'timer.start' }],

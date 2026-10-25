@@ -19,5 +19,19 @@ const handlers: HandlerMap<Command['t']> = {
 /** Pure: same state, command, actor and context always give the same outcome. */
 export function reduce(state: BoardState, cmd: Command, actor: Actor, ctx: ReduceContext): Outcome {
   const handler = handlers[cmd.t] as Handler<typeof cmd.t>
-  return handler(state, cmd as never, actor, ctx)
+  return clearOrphanSources(handler(state, cmd as never, actor, ctx))
+}
+
+/** An action whose source note or group no longer exists loses the link (replicas fold the same way). */
+function clearOrphanSources(out: Outcome): Outcome {
+  if (!out.ok) return out
+  const { notes, groups, actions } = out.state
+  const orphans = Object.values(actions).filter((a) => a.sourceNote && !notes[a.sourceNote] && !groups[a.sourceNote])
+  if (!orphans.length) return out
+  const next = { ...actions }
+  for (const a of orphans) {
+    const { sourceNote: _gone, ...rest } = a
+    next[a.id] = rest
+  }
+  return { ...out, state: { ...out.state, actions: next }, dirty: { ...out.dirty, actions: [...new Set([...out.dirty.actions, ...orphans.map((a) => a.id)])] } }
 }

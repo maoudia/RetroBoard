@@ -93,7 +93,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     resetBoard: () => send({ t: 'board.reset' }),
     destroyBoard: () => send({ t: 'board.destroy' }),
 
-    addAction: (text: string, owner: string, due?: string) => send({ t: 'action.add', text, owner, ...(due ? { due } : {}) }),
+    addAction: (text: string, owner: string, due?: string, sourceNote?: string) => send({ t: 'action.add', text, owner, ...(due ? { due } : {}), ...(sourceNote ? { sourceNote } : {}) }),
     updateAction: (id: string, patch: { text?: string; owner?: string; due?: string | null }) => send({ t: 'action.update', id, ...patch }),
     setActionStatus: (id: string, status: ActionStatusName) => send({ t: 'action.status', id, status }),
     importActions: (items: ImportedAction[]) => (items.length ? send({ t: 'action.import', items: items.slice(0, LIMITS.maxImport) }) : ok()),
