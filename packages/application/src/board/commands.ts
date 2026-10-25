@@ -87,7 +87,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     deleteColumn: (id: string) => ((deps.view()?.columns.length ?? 2) <= 1 ? err('last-column') : send({ t: 'column.delete', id })),
     moveColumn: (id: string, toIndex: number) => send({ t: 'column.move', id, toIndex }),
 
-    initBoard: (c: Omit<Extract<Command, { t: 'board.init' }>, 't'>) => send({ t: 'board.init', ...c }),
+    initBoard: (c: Omit<Extract<Command, { t: 'board.init' }>, 't'>) => send({ t: 'board.init', openFacilitation: true, ...c }), // "Everyone facilitates" unless the setup says otherwise
     applyTemplate: (templateId: string, locale?: 'fr' | 'en') => send({ t: 'template.apply', templateId, wipe: true, locale }),
     updateSettings: (patch: SettingsPatch) => send({ t: 'settings.update', ...patch }),
     resetBoard: () => send({ t: 'board.reset' }),

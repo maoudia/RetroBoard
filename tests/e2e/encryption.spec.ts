@@ -46,7 +46,7 @@ test('the relay only sees ciphertext; the key never leaves the fragment', async 
 })
 
 test('roles: participants are read-only; the facilitator promotes, hands over and hides', async ({ page, browser }) => {
-  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
   await page.getByTestId('btn-share').click()
   const bob = await join(browser, await page.getByTestId('share-url').inputValue(), 'Bob')
   await page.keyboard.press('Escape')

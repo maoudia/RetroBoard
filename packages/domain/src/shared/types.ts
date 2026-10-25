@@ -196,7 +196,7 @@ export interface Snapshot {
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */
-  access?: { role: 'facilitator' | 'co-facilitator' | 'participant'; canSteer: boolean; canManageRoles: boolean }
+  access?: { role: 'facilitator' | 'co-facilitator' | 'participant'; canSteer: boolean; bypassesPhase: boolean; canManageRoles: boolean }
 }
 
 export interface ServerError {

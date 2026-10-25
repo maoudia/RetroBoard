@@ -12,7 +12,7 @@
  */
 import { EventLog, type OwnCursor, type OwnFocus, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
-import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
+import { buildSnapshot, bypassesPhaseRules, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
 import { bridgeOf, chunks, HybridClock, isFullMesh, SeenSet } from '@retroboard/sync'
 import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseSignal, parseSignedEvent, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal } from '@retroboard/protocol'
 import type { BoardTransport, Identity, TransportHandlers } from './types'
@@ -638,7 +638,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     const ledger = this.log.ledger
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
-    const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), canManageRoles: lead }
+    const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: bypassesPhaseRules(ledger, this.deps.session.publicKey), canManageRoles: lead }
     this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now()), access })
   }
 

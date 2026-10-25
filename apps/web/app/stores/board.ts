@@ -1,4 +1,4 @@
-import { allowedInPhase, type CommandType, type ErrorCode, roomWords, type Snapshot } from '@retroboard/domain'
+import { allowedInPhase, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { buildColumnItems, createBoardCommands, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
@@ -59,9 +59,10 @@ export const useBoardStore = defineStore('board', () => {
 
   function updateIdentity(identity: Identity) { transport?.updateIdentity(identity) }
   /** Encrypted boards: my access. Legacy boards have no roles: everybody may steer. */
-  const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, canManageRoles: false })
+  const access = computed(() => snapshot.value?.access ?? { role: 'facilitator' as const, canSteer: true, bypassesPhase: true, canManageRoles: false })
   /** Phase rules: may I do this now? Facilitators always may. */
-  const allowed = (command: CommandType) => access.value.canSteer || allowedInPhase(snapshot.value?.agenda ?? null, command)
+  // Open boards: steering commands are open to all, content commands still follow the phase.
+  const allowed = (command: CommandType) => access.value.bypassesPhase || (access.value.canSteer && PRIVILEGED_COMMANDS.has(command)) || allowedInPhase(snapshot.value?.agenda ?? null, command)
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'participant.hide' | 'participant.unhide', key: string) => transport?.sendRole?.(change, key) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
   /** Three words everyone sees for this board (shared boards only), in the board's language. */

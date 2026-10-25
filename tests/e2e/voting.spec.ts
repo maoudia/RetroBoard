@@ -34,7 +34,7 @@ test.describe('voting v2', () => {
   })
 
   test('hidden counts appear for everyone at the same time when the facilitator closes voting', async ({ page, browser }) => {
-    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
     await publishNote(page, 0, 'Flaky tests')
     const bob = await join(browser, await shareLink(page), 'Bob')
     await page.getByTestId('secret-toggle').click()

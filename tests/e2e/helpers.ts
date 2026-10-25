@@ -6,7 +6,7 @@ export async function enterName(page: Page, name: string, show = true) {
   await page.getByTestId('name-save').click()
 }
 
-export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean } = {}) {
+export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean; oneFacilitator?: boolean } = {}) {
   await page.goto('/new')
   if (opts.title) await page.getByTestId('setup-title').fill(opts.title)
   await page.getByTestId(`theme-${opts.theme ?? 'studio'}`).click()
@@ -16,6 +16,18 @@ export async function createBoard(page: Page, opts: { theme?: string; template?:
   await enterName(page, opts.name ?? 'Alice')
   await expect(page.getByTestId('board')).toBeVisible()
   if (!opts.keepShare) await closeShare(page)
+  if (opts.oneFacilitator) await setOneFacilitator(page)
+}
+
+/** Boards are open ("Everyone facilitates") by default; role tests switch to "One facilitator" first. */
+export async function setOneFacilitator(page: Page) {
+  const share = await page.getByTestId('share-url').isVisible()
+  if (share) await page.keyboard.press('Escape')
+  await page.getByTestId('btn-options').click()
+  const toggle = page.getByTestId('opt-open-facilitation')
+  await toggle.uncheck()
+  await expect(toggle).not.toBeChecked()
+  await page.keyboard.press('Escape')
 }
 
 /** A new board opens the invite panel: close it so tests start from the board. */

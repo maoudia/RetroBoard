@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canSteer, type Command, emptyLedger, type EventBody, foldAll, foldEvent, isPrivileged, type Ledger, roleOf, type VerifiedEvent } from '../src'
+import { bypassesPhaseRules, canSteer, type Command, emptyLedger, type EventBody, foldAll, foldEvent, isPrivileged, type Ledger, roleOf, type VerifiedEvent } from '../src'
 
 const roomId = 'Ab3dEfGhIjKlMnOpQrStUv'
 const key = (c: string) => c.repeat(42) + 'A'
@@ -197,5 +197,45 @@ describe('board theme is imposed', () => {
     expect(forged).toMatchObject({ ok: false, reason: 'not-facilitator' })
     expect(forged.ledger.board.settings.themeId).toBe(l.board.settings.themeId)
     expect(foldAll(l, [cmd(FAC, { t: 'settings.update', themeId: 'halloween' })]).board.settings.themeId).toBe('halloween')
+  })
+})
+
+describe('everyone facilitates (open boards)', () => {
+  const openBoard = () => foldAll(started(), [cmd(FAC, { t: 'settings.update', openFacilitation: true })])
+  const running = (l: Ledger) => foldAll(l, [
+    cmd(FAC, { t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }, { kind: 'vote', minutes: 3 }], rules: true }),
+    cmd(FAC, { t: 'agenda.start' }),
+  ])
+
+  it('board.init carries the mode; a log without the flag keeps the stored value', () => {
+    const base = started()
+    const init = (extra: object) => foldAll(base, [cmd(FAC, { t: 'board.init', templateId: 'start-stop-continue', themeId: 'studio', ...extra } as Command)])
+    expect(init({ openFacilitation: true }).board.settings.openFacilitation).toBe(true)
+    expect(init({ openFacilitation: false }).board.settings.openFacilitation).toBe(false)
+    expect(init({}).board.settings.openFacilitation).toBe(false)
+  })
+
+  it('participants steer (next phase) but phase rules still apply to them', () => {
+    const l = running(openBoard())
+    const col = l.board.columns[0]!.id
+    expect(bypassesPhaseRules(l, ALICE)).toBe(false)
+    expect(bypassesPhaseRules(l, FAC)).toBe(true)
+    // Write phase: a participant writes, then moves everyone to the Vote phase.
+    const written = foldAll(l, [cmd(ALICE, { t: 'note.add', columnId: col, text: 'idea' })])
+    const voting = foldAll(written, [cmd(ALICE, { t: 'agenda.next' })])
+    expect(voting.board.agenda!.current).toBe(1)
+    // Vote phase: writing is closed for participants, still open to the facilitator.
+    expect(foldEvent(voting, cmd(ALICE, { t: 'note.add', columnId: col, text: 'late' }))).toMatchObject({ ok: false, reason: 'phase' })
+    expect(foldEvent(voting, cmd(FAC, { t: 'note.add', columnId: col, text: 'late' })).ok).toBe(true)
+  })
+
+  it('only the facilitator capability switches the mode, in both directions', () => {
+    const open = openBoard()
+    expect(foldEvent(open, cmd(ALICE, { t: 'settings.update', openFacilitation: false }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    const closed = foldAll(open, [cmd(FAC, { t: 'settings.update', openFacilitation: false })])
+    expect(closed.board.settings.openFacilitation).toBe(false)
+    expect(foldEvent(closed, cmd(ALICE, { t: 'settings.update', openFacilitation: true }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    // Other settings stay open to everyone on an open board.
+    expect(foldEvent(open, cmd(ALICE, { t: 'settings.update', locked: true })).ok).toBe(true)
   })
 })

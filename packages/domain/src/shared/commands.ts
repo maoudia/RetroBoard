@@ -35,7 +35,7 @@ export type Command =
   | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
-  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale }
+  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean }
   | { t: 'template.apply'; templateId: string; wipe?: boolean; locale?: Locale }
   | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean }
   | { t: 'action.add'; text: string; owner: string; due?: string }

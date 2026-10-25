@@ -90,9 +90,12 @@ export function roleOf(ledger: Ledger, key: string): Role {
   return ledger.facilitators.includes(key) ? 'co-facilitator' : 'participant'
 }
 
-/** May this key run privileged commands right now? */
+/** May this key run privileged commands right now? (everyone on an "Everyone facilitates" board) */
 export const canSteer = (ledger: Ledger, key: string): boolean =>
   roleOf(ledger, key) !== 'participant' || ledger.board.settings.openFacilitation
+
+/** Phase rules are skipped for facilitators only, never because the board is open. */
+export const bypassesPhaseRules = (ledger: Ledger, key: string): boolean => roleOf(ledger, key) !== 'participant'
 
 /** Ids derived from the event id, identical on every replica. */
 const idsFrom = (eventId: string) => {
@@ -134,8 +137,12 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
   } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
     return ignore(ledger, 'not-facilitator')
-  } else if (body.t === 'cmd' && !canSteer(ledger, author) && !allowedInPhase(ledger.board.agenda, body.cmd.t)) {
-    // Phase rules: participants only do what the current phase is about.
+  } else if (body.t === 'cmd' && body.cmd.t === 'settings.update' && body.cmd.openFacilitation !== undefined && !ledger.facilitators.includes(author)) {
+    // Switching between "Everyone facilitates" and "One facilitator" needs the facilitator capability, even on an open board.
+    return ignore(ledger, 'not-facilitator')
+  } else if (body.t === 'cmd' && !bypassesPhaseRules(ledger, author) && !(isPrivileged(body) && canSteer(ledger, author)) && !allowedInPhase(ledger.board.agenda, body.cmd.t)) {
+    // Phase rules: participants only do what the current phase is about. Steering commands
+    // (next phase, timers) stay open to everyone on an open board.
     return ignore(ledger, 'phase')
   }
 

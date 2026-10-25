@@ -71,7 +71,7 @@ test.describe('profile and local settings', () => {
   })
 
   test('only the facilitator changes the board theme', async ({ page, browser }) => {
-    await createBoard(page, { theme: 'studio', template: 'start-stop-continue', name: 'Alice' })
+    await createBoard(page, { theme: 'studio', template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
     await page.getByTestId('btn-share').click()
     const bob = await join(browser, await page.getByTestId('share-url').inputValue(), 'Bob')
     await page.keyboard.press('Escape')

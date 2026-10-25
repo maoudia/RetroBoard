@@ -2,9 +2,9 @@
 
 ## 1. Domain
 
-- [ ] 1.1 `openFacilitation` defaults to true in `board.create` with a setup flag for "One facilitator"; existing boards replay unchanged; verify unit tests (fold of an old event log)
-- [ ] 1.2 Split `canRunPrivileged` and `bypassesPhaseRules` in the ledger; phase rules apply to participants on open boards; verify unit tests and mutation score of packages/domain
-- [ ] 1.3 `settings.update.openFacilitation` accepted only from the facilitator capability key; verify unit tests with a modified client
+- [x] 1.1 `openFacilitation` defaults to true in `board.create` with a setup flag for "One facilitator"; existing boards replay unchanged; verify unit tests (fold of an old event log)
+- [x] 1.2 Split `canRunPrivileged` and `bypassesPhaseRules` in the ledger; phase rules apply to participants on open boards; verify unit tests and mutation score of packages/domain
+- [x] 1.3 `settings.update.openFacilitation` accepted only from the facilitator capability key; verify unit tests with a modified client
 
 ## 2. Web
 
