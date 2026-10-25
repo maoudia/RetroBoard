@@ -525,6 +525,10 @@ export const fr = {
   'name.placeholder': 'Ton nom ou un pseudo',
   'name.label': 'Ton nom',
   'name.show': 'Afficher mon nom sur les post-its que je publie (sinon ils restent anonymes)',
+  'nudge.name.title': 'Ajoute ton nom pour que les autres sachent qui écrit quoi',
+  'nudge.name.choose': 'Choisir un nom',
+  'nudge.name.later': 'Pas maintenant',
+  'nudge.name.never': 'Ne plus demander',
   'name.enter': 'Entrer',
 
   'actions.title': 'Plan d\'action',

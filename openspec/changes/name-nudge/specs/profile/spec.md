@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Name nudge
-A participant without a name who has not hidden their name on purpose SHALL be invited once per board, by a dismissible floating popup, to choose a name.
+A participant without a name SHALL be invited once per board, by a dismissible floating popup, to choose a name.
 
 #### Scenario: Join without a name
 - **WHEN** Bob joins a board with no name and keeps the default "show my name" option
@@ -15,6 +15,6 @@ A participant without a name who has not hidden their name on purpose SHALL be i
 - **WHEN** Bob clicks "Don't ask again"
 - **THEN** no board in this browser shows the popup again
 
-#### Scenario: Anonymous on purpose
-- **WHEN** a participant turned "show my name" off
+#### Scenario: Already has a name
+- **WHEN** a participant has a name, whether or not their notes show it
 - **THEN** the popup is never shown

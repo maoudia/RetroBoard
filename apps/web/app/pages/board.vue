@@ -185,6 +185,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <ActionsReviewDialog />
       <OptionsDialog />
       <NameDialog />
+      <NameNudge />
       <TemplateDialog />
       <ColumnEditorDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />

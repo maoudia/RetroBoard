@@ -526,6 +526,10 @@ export const en: Record<keyof typeof fr, string> = {
   'name.placeholder': 'Your name or a nickname',
   'name.label': 'Your name',
   'name.show': 'Show my name on the notes I publish (otherwise they stay anonymous)',
+  'nudge.name.title': 'Add your name so others know who wrote what',
+  'nudge.name.choose': 'Choose a name',
+  'nudge.name.later': 'Not now',
+  'nudge.name.never': 'Don\'t ask again',
   'name.enter': 'Enter',
 
   'actions.title': 'Action plan',
