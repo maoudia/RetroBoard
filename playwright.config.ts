@@ -6,8 +6,9 @@ export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 45_000,
   expect: { timeout: 8_000 },
+  // Files run in parallel (every test uses its own room, so none shares state). E2E_WORKERS=1 for debugging.
   fullyParallel: false,
-  workers: 1,
+  workers: Number(process.env.E2E_WORKERS ?? 2),
   retries: process.env.CI ? 1 : 0,
   // CI keeps everything for the quality site (GitHub Pages) and the run artifacts.
   reporter: process.env.CI
