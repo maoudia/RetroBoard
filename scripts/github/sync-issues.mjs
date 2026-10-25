@@ -152,7 +152,7 @@ for (const name of ordered) {
   const c = readChange(name)
   const [phase, lane, deps] = PLAN[name]
   // A dependency is done once its change is archived (no longer in openspec/changes).
-  const ready = deps.every((d) => !changes.includes(d))
+  const ready = deps.every((d) => !changes.includes(d)) && ROADMAP[name] !== 'PARKED'
   plan.push({ kind: 'epic', c, title: `[epic] ${name}`, body: epicBody(c, deps), labels: ['epic', `phase:${phase}`, `lane:${lane}`, ready ? 'agent:ready' : 'blocked'], phase })
   for (const g of c.groups.filter((x) => x.tasks.length)) plan.push({ kind: 'group', c, g, title: `[${name}] ${g.n}. ${g.title}`, body: groupBody(c, g), labels: ['task-group', `phase:${phase}`, `lane:${lane}`, ready && g.n === '1' ? 'agent:ready' : 'blocked'], phase, parent: `[epic] ${name}` })
 }
