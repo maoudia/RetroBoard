@@ -6,8 +6,8 @@ import { columnsFromTemplate } from './board'
 import { emptyTalk } from './talk'
 
 type FacilitationCommand = 'board.init' | 'template.apply' | 'settings.update'
-  | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset'
-  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.extend' | 'agenda.end'
+  | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset' | 'board.destroy' | 'column.reset' | 'vote.reset'
+  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.prev' | 'agenda.extend' | 'agenda.end'
 
 /** Facilitation context: board setup, settings and the shared timer. */
 export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
@@ -69,9 +69,13 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     return done({ ...s, timer: { ...s.timer, running: false, remaining, endsAt: 0 } }, { meta: true })
   },
 
-  'timer.reset': (s, c) => {
+  'timer.reset': (s, c, _a, ctx) => {
     const length = c.minutes ? c.minutes * 60_000 : s.timer.length
-    return done({ ...s, timer: { running: false, endsAt: 0, remaining: length, length } }, { meta: true })
+    // Optionally restart the clock of the running phase too (a paused phase stays paused, at zero).
+    const agenda = c.agendaClock && agendaRunning(s.agenda)
+      ? { ...s.agenda, startedAt: ctx.now, pausedAt: s.agenda.pausedAt === null ? null : ctx.now }
+      : s.agenda
+    return done({ ...s, agenda, timer: { running: false, endsAt: 0, remaining: length, length } }, { meta: true })
   },
 
   'board.reset': (s) => done({
@@ -80,6 +84,30 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     // A reset board starts its agenda over.
     agenda: s.agenda ? { ...s.agenda, current: -1, startedAt: 0, pausedAt: null } : null,
     talk: emptyTalk(),
+  }, { meta: true, wipe: true }),
+
+  /** Empties one column: its notes and clusters. Other columns, votes and actions elsewhere stay. */
+  'column.reset': (s, c) => {
+    if (!s.columns.some((x) => x.id === c.id)) return fail('not-found')
+    const notes = Object.fromEntries(Object.entries(s.notes).filter(([, n]) => n.columnId !== c.id))
+    const groups = Object.fromEntries(Object.entries(s.groups).filter(([, g]) => g.columnId !== c.id))
+    return done({ ...s, notes, groups }, { meta: true, wipe: true })
+  },
+
+  /** Clears every vote (notes and clusters) and reopens voting. */
+  'vote.reset': (s) => done({
+    ...s,
+    notes: Object.fromEntries(Object.entries(s.notes).map(([id, n]) => [id, { ...n, voters: [] }])),
+    groups: Object.fromEntries(Object.entries(s.groups).map(([id, g]) => [id, { ...g, voters: [] }])),
+    settings: { ...s.settings, votingClosed: false },
+  }, { meta: true, wipe: true }),
+
+  /** Closes the board for good: content wiped, clock stopped, and the ledger ignores everything after it. */
+  'board.destroy': (s) => done({
+    ...s, notes: {}, groups: {}, actions: {},
+    timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
+    agenda: null, talk: emptyTalk(),
+    settings: { ...s.settings, locked: true, destroyed: true },
   }, { meta: true, wipe: true }),
 
   // Agenda (time boxes). Phases can be replaced only before the start or after the end.
@@ -110,6 +138,20 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     const a = s.agenda
     if (!a || a.current >= a.phases.length) return fail('invalid')
     return done({ ...s, agenda: { ...a, phases: closePhase(a, ctx.now), current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
+  },
+  /** Back to the previous phase, which resumes with the time it had left. */
+  'agenda.prev': (s, _c, _a, ctx) => {
+    const a = s.agenda
+    if (!a || a.current <= 0) return fail('invalid')
+    const index = Math.min(a.current, a.phases.length) - 1
+    const target = a.phases[index]!
+    // The phase left behind loses its recorded time; the one we return to continues from what it had spent.
+    const phases = a.phases.map((p, i) => {
+      if (i !== index && i !== a.current) return p
+      const { actualMs: _drop, ...rest } = p
+      return rest
+    })
+    return done({ ...s, agenda: { ...a, phases, current: index, startedAt: ctx.now - Math.min(target.actualMs ?? 0, target.plannedMs), pausedAt: null } }, { meta: true })
   },
   'agenda.extend': (s, c) => {
     if (!agendaRunning(s.agenda)) return fail('invalid')

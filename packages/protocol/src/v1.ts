@@ -85,8 +85,11 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('action.delete'), id: Id }),
   v.object({ t: v.literal('timer.start') }),
   v.object({ t: v.literal('timer.pause') }),
-  v.object({ t: v.literal('timer.reset'), minutes: v.optional(v.picklist(LIMITS.timerMinutes)) }),
+  v.object({ t: v.literal('timer.reset'), minutes: v.optional(v.picklist(LIMITS.timerMinutes)), agendaClock: v.optional(v.boolean()) }),
   v.object({ t: v.literal('board.reset') }),
+  v.object({ t: v.literal('board.destroy') }),
+  v.object({ t: v.literal('column.reset'), id: Id }),
+  v.object({ t: v.literal('vote.reset') }),
   v.object({
     t: v.literal('agenda.set'),
     phases: v.pipe(v.array(v.object({
@@ -101,6 +104,7 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('agenda.start') }),
   v.object({ t: v.literal('agenda.pause') }),
   v.object({ t: v.literal('agenda.next') }),
+  v.object({ t: v.literal('agenda.prev') }),
   v.object({ t: v.literal('agenda.extend'), minutes: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(30)), borrow: v.boolean() }),
   v.object({ t: v.literal('agenda.end') }),
 ])

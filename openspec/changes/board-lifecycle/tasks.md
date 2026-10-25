@@ -2,8 +2,8 @@
 
 ## 1. Domain
 
-- [ ] 1.1 `board.destroy` (privileged) and the fold rule ignoring later events; verify unit tests including a stale peer re-seeding
-- [ ] 1.2 `column.reset`, `vote.reset`, `timer.reset` extension and `agenda.prev` (time left restored); verify unit tests
+- [x] 1.1 `board.destroy` (privileged) and the fold rule ignoring later events; verify unit tests including a stale peer re-seeding
+- [x] 1.2 `column.reset`, `vote.reset`, `timer.reset` extension and `agenda.prev` (time left restored); verify unit tests
 
 ## 2. Product
 

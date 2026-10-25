@@ -60,7 +60,7 @@ export interface Ledger {
   readonly recent: Readonly<Record<string, readonly number[]>>
 }
 
-export type IgnoreReason = 'no-genesis' | 'bad-genesis' | 'duplicate-genesis' | 'not-facilitator' | 'rate-limited' | 'hidden' | ErrorCode
+export type IgnoreReason = 'no-genesis' | 'bad-genesis' | 'duplicate-genesis' | 'not-facilitator' | 'rate-limited' | 'hidden' | 'closed' | ErrorCode
 
 export type FoldResult =
   | { readonly ok: true; readonly ledger: Ledger }
@@ -71,9 +71,9 @@ export type FoldResult =
  * reveal and agent policy), board set-up and reset, and the timebox (phases).
  */
 export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType>([
-  'settings.update', 'board.init', 'template.apply', 'board.reset', 'timer.start', 'timer.pause', 'timer.reset',
+  'settings.update', 'board.init', 'template.apply', 'board.reset', 'board.destroy', 'column.reset', 'vote.reset', 'timer.start', 'timer.pause', 'timer.reset',
   'vote.close', 'vote.reopen', 'action.import',
-  'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.extend', 'agenda.end',
+  'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.prev', 'agenda.extend', 'agenda.end',
   'talk.assign', 'talk.end',
 ])
 
@@ -134,11 +134,16 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
   }
   if (ledger.facilitatorKey === null) return ignore(ledger, 'no-genesis')
   if (ledger.hidden.includes(author)) return ignore(ledger, 'hidden')
+  // A destroyed board is closed for good: whatever arrives after it, from anyone, is ignored by every replica.
+  if (ledger.board.settings.destroyed) return ignore(ledger, 'closed')
   if (isRoleChange(body)) {
     if (author !== ledger.lead && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
     // A takeover is the facilitator link at work: signed by the capability key, never by a co-facilitator's session key.
     if (body.t === 'role.claim' && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
+  } else if (body.t === 'cmd' && body.cmd.t === 'board.destroy' && !ledger.facilitators.includes(author)) {
+    // Closing the board is never delegated to "everyone": it needs the facilitator capability even on an open board.
+    return ignore(ledger, 'not-facilitator')
   } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
     return ignore(ledger, 'not-facilitator')
   } else if (body.t === 'cmd' && body.cmd.t === 'settings.update' && body.cmd.openFacilitation !== undefined && !ledger.facilitators.includes(author)) {

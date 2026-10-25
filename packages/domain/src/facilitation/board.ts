@@ -38,6 +38,7 @@ export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
       talkBudgetMs: DEFAULT_TALK_BUDGET_MS,
       talkSelfStart: false,
       noteMaxLength: DEFAULT_NOTE_MAX_LENGTH,
+      destroyed: false,
     },
     columns: columnsFromTemplate(template, ctx.newId),
     notes: {},

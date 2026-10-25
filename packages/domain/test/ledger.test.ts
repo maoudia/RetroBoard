@@ -270,3 +270,40 @@ describe('takeover with the facilitator link (role.claim)', () => {
     expect(foldEvent(started(), ev(FAC, { t: 'role.claim', key: 'short' }))).toMatchObject({ ok: false, reason: 'invalid' })
   })
 })
+
+describe('board.destroy', () => {
+  const withNote = () => {
+    const l0 = started()
+    const col = l0.board.columns[0]!.id
+    return { col, l: foldAll(l0, [cmd(ALICE, { t: 'note.add', columnId: col, text: 'idée' })]) }
+  }
+  it('wipes the board and ignores every later event from anyone, even the facilitator', () => {
+    const { col, l } = withNote()
+    expect(Object.keys(l.board.notes)).toHaveLength(1)
+    const closed = foldEvent(l, cmd(FAC, { t: 'board.destroy' }))
+    expect(closed.ok).toBe(true)
+    expect(Object.keys(closed.ledger.board.notes)).toHaveLength(0)
+    expect(closed.ledger.board.settings.destroyed).toBe(true)
+    for (const e of [cmd(ALICE, { t: 'note.add', columnId: col, text: 'trop tard' }), cmd(FAC, { t: 'settings.update', locked: false }), ev(FAC, { t: 'role.delegate', key: BOB })]) {
+      expect(foldEvent(closed.ledger, e)).toMatchObject({ ok: false, reason: 'closed' })
+    }
+  })
+  it('is refused from a participant, even on a board where everyone facilitates', () => {
+    const open = foldAll(withNote().l, [cmd(FAC, { t: 'settings.update', openFacilitation: true })])
+    expect(open.board.settings.openFacilitation).toBe(true)
+    expect(foldEvent(open, cmd(ALICE, { t: 'board.destroy' }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+  })
+  it('a stale peer replaying older events cannot reopen the board', () => {
+    const { col, l } = withNote()
+    const closed = foldEvent(l, cmd(FAC, { t: 'board.destroy' })).ledger
+    const replay = foldAll(closed, [cmd(BOB, { t: 'note.add', columnId: col, text: 'rejoué' })])
+    expect(Object.keys(replay.board.notes)).toHaveLength(0)
+    expect(replay.board.settings.destroyed).toBe(true)
+  })
+})
+
+describe('reset and previous-phase commands are privileged', () => {
+  it.each([{ t: 'column.reset', id: 'x' }, { t: 'vote.reset' }, { t: 'agenda.prev' }, { t: 'board.destroy' }] as Command[])('%j needs the facilitator', (c) => {
+    expect(isPrivileged({ t: 'cmd', cmd: c, name: null, showName: false })).toBe(true)
+  })
+})

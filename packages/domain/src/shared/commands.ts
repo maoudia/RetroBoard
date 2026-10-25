@@ -46,8 +46,11 @@ export type Command =
   | { t: 'action.delete'; id: string }
   | { t: 'timer.start' }
   | { t: 'timer.pause' }
-  | { t: 'timer.reset'; minutes?: TimerMinutes }
+  | { t: 'timer.reset'; minutes?: TimerMinutes; agendaClock?: boolean }
   | { t: 'board.reset' }
+  | { t: 'board.destroy' }
+  | { t: 'column.reset'; id: string }
+  | { t: 'vote.reset' }
   | { t: 'talk.assign'; speaker: string; label: string | null }
   | { t: 'talk.end' }
   | { t: 'talk.self' }
@@ -58,6 +61,7 @@ export type Command =
   | { t: 'agenda.start' }
   | { t: 'agenda.pause' }
   | { t: 'agenda.next' }
+  | { t: 'agenda.prev' }
   | { t: 'agenda.extend'; minutes: number; borrow: boolean }
   | { t: 'agenda.end' }
 

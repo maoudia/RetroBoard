@@ -91,6 +91,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     applyTemplate: (templateId: string, locale?: 'fr' | 'en') => send({ t: 'template.apply', templateId, wipe: true, locale }),
     updateSettings: (patch: SettingsPatch) => send({ t: 'settings.update', ...patch }),
     resetBoard: () => send({ t: 'board.reset' }),
+    destroyBoard: () => send({ t: 'board.destroy' }),
 
     addAction: (text: string, owner: string, due?: string) => send({ t: 'action.add', text, owner, ...(due ? { due } : {}) }),
     updateAction: (id: string, patch: { text?: string; owner?: string; due?: string | null }) => send({ t: 'action.update', id, ...patch }),
@@ -106,12 +107,15 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     startAgenda: () => send({ t: 'agenda.start' }),
     pauseAgenda: () => send({ t: 'agenda.pause' }),
     nextPhase: () => send({ t: 'agenda.next' }),
+    previousPhase: () => send({ t: 'agenda.prev' }),
     extendPhase: (minutes: number, borrow: boolean) => send({ t: 'agenda.extend', minutes, borrow }),
     endAgenda: () => send({ t: 'agenda.end' }),
 
     startTimer: () => send({ t: 'timer.start' }),
     pauseTimer: () => send({ t: 'timer.pause' }),
-    resetTimer: (minutes?: TimerMinutes) => send({ t: 'timer.reset', minutes }),
+    resetTimer: (minutes?: TimerMinutes, agendaClock?: boolean) => send({ t: 'timer.reset', minutes, agendaClock }),
+    resetColumn: (id: string) => send({ t: 'column.reset', id }),
+    resetVotes: () => send({ t: 'vote.reset' }),
   }
 }
 
