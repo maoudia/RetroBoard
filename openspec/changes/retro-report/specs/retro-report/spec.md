@@ -24,3 +24,14 @@ The system SHALL export the report as a single self-contained HTML file that wor
 #### Scenario: Encrypted report
 - **WHEN** the facilitator exports the report with a passphrase and a colleague opens the file
 - **THEN** the colleague must enter the passphrase to read it
+
+### Requirement: ROTI
+The system SHALL let every participant rate the retro from 1 to 5 (return on time invested), keep one score per participant and show only the distribution and the average in the report, never who gave which score. The score is open in the close phase.
+
+#### Scenario: Two scores
+- **WHEN** one participant rates 5 and another rates 4
+- **THEN** the report shows an average of 4.5 from 2 scores and one score each for 4 and 5, without names
+
+#### Scenario: Changing one's mind
+- **WHEN** a participant rates again
+- **THEN** only the last score counts

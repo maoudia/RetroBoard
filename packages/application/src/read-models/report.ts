@@ -34,6 +34,8 @@ export interface Report {
   agenda: ReportPhase[] | null
   /** Talk time shares per shown name (anonymous aggregated), null when nobody had a turn. */
   talk: { label: string | null; ms: number; share: number }[] | null
+  /** ROTI scores (1 to 5) of the team; null when nobody rated. */
+  roti: { counts: number[]; total: number; average: number } | null
 }
 
 const sumVotes = (notes: readonly SnapshotNote[], s: Pick<Snapshot, 'groups'>): number =>
@@ -72,5 +74,6 @@ export function buildReport(s: Snapshot, date: Date): Report {
     carried: { total: carriedList.length, byStatus },
     agenda: s.agenda ? s.agenda.phases.map((p) => ({ kind: p.kind, plannedMs: p.plannedMs, actualMs: p.actualMs ?? null })) : null,
     talk: (() => { const shares = talkShares(s.talk, s.now); return shares.length ? shares : null })(),
+    roti: s.roti && s.roti.total > 0 && s.roti.average !== null ? { counts: s.roti.counts, total: s.roti.total, average: s.roti.average } : null,
   }
 }

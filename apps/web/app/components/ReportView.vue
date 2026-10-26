@@ -93,6 +93,13 @@ const minutes = (ms: number) => `${Math.round(ms / 60_000)} min`
         <li v-for="(s, i) in report.talk" :key="i">{{ s.label ?? t('report.anonymous') }}: {{ Math.round(s.share * 100) }} % <span class="v">({{ minutes(s.ms) }})</span></li>
       </ul>
     </section>
+    <section v-if="report.roti" data-testid="report-roti">
+      <h3>{{ t('report.roti') }}</h3>
+      <p>{{ t('report.roti.average', { avg: report.roti.average.toFixed(1), n: report.roti.total }) }}</p>
+      <ul>
+        <li v-for="(n, i) in report.roti.counts" :key="i">{{ i + 1 }} / 5: {{ n }}</li>
+      </ul>
+    </section>
   </article>
 </template>
 

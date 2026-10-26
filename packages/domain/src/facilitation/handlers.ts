@@ -89,7 +89,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
     // A reset board starts its agenda over.
     agenda: s.agenda ? { ...s.agenda, current: -1, startedAt: 0, pausedAt: null } : null,
-    talk: emptyTalk(), reveal: null,
+    talk: emptyTalk(), reveal: null, roti: {},
   }, { meta: true, wipe: true }),
 
   /** Empties one column: its notes and clusters. Other columns, votes and actions elsewhere stay. */

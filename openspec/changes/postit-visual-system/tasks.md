@@ -2,7 +2,7 @@
 
 ## 1. Palette and layout
 
-- [ ] 1.1 Define sticky-note palettes per theme variant with contrast tests; verify the theme suite
+- [x] 1.1 Define sticky-note palettes per theme variant with contrast tests; verify the theme suite
 - [ ] 1.2 Masonry column layout, text fitting with min size and "read more"; verify e2e with a 60-note fixture and visual regression
 - [ ] 1.3 Density levels, zoom shortcuts and column focus mode; verify e2e
 

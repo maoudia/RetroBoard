@@ -80,6 +80,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     },
     giveBackFloor: () => send({ t: 'talk.done' }),
     revealDrafts: (seconds?: number) => send({ t: 'drafts.reveal', ...(seconds ? { seconds } : {}) }),
+    setRoti: (score: number) => send({ t: 'roti.set', score }),
     closeVoting: () => send({ t: 'vote.close' }),
     reopenVoting: () => send({ t: 'vote.reopen' }),
 

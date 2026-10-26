@@ -30,6 +30,7 @@ async function print() {
 
 <template>
   <BaseDialog v-model:open="open" :title="t('report.title')" width="820px">
+    <RotiVote v-if="report" />
     <ReportView v-if="report" :report="report" />
     <template #footer>
       <button class="btn" type="button" data-testid="report-print" @click="print"><Icon name="lucide:printer" /> {{ t('report.print') }}</button>

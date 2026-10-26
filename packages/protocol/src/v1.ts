@@ -36,6 +36,7 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('vote.add'), kind: v.picklist(['note', 'cluster']), id: Id }),
   v.object({ t: v.literal('vote.remove'), kind: v.picklist(['note', 'cluster']), id: Id }),
   v.object({ t: v.literal('drafts.reveal'), seconds: v.optional(v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(30))) }),
+  v.object({ t: v.literal('roti.set'), score: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5)) }),
   v.object({ t: v.literal('vote.close') }),
   v.object({ t: v.literal('vote.reopen') }),
   v.object({ t: v.literal('column.add'), title: ColumnTitle, subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color) }),

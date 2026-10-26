@@ -118,6 +118,8 @@ export interface BoardState {
   talk: TalkState
   /** "Reveal all": every client publishes its own drafts when the clock passes `endsAt`. */
   reveal?: { endsAt: number } | null
+  /** ROTI scores 1..5 by participant id (change retro-report). */
+  roti?: Record<string, number>
 }
 
 export interface Actor {
@@ -207,6 +209,8 @@ export interface Snapshot {
   talk: TalkState
   /** A "reveal all" countdown in progress or just over (server clock), or null. */
   reveal?: { endsAt: number } | null
+  /** ROTI distribution and my own score (counts only, never who). */
+  roti?: { counts: number[]; total: number; average: number | null; mine: number | null }
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */

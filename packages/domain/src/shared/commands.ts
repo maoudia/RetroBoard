@@ -52,6 +52,7 @@ export type Command =
   | { t: 'board.destroy' }
   | { t: 'column.reset'; id: string }
   | { t: 'vote.reset' }
+  | { t: 'roti.set'; score: number }
   | { t: 'talk.assign'; speaker: string; label: string | null }
   | { t: 'talk.end' }
   | { t: 'talk.self' }

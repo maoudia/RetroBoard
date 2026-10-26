@@ -86,6 +86,11 @@ export function toReportHtml(r: Report, t: ReportLabels): string {
     for (const s of r.talk) out.push(`<li>${e(s.label ?? t('report.anonymous'))}: ${Math.round(s.share * 100)} % <span class="v">(${minutes(s.ms)})</span></li>`)
     out.push('</ul>')
   }
+  if (r.roti) {
+    out.push(`<h2>${e(t('report.roti'))}</h2><p>${e(t('report.roti.average', { avg: r.roti.average.toFixed(1), n: r.roti.total }))}</p><ul>`)
+    r.roti.counts.forEach((n, i) => out.push(`<li>${i + 1} / 5: ${n}</li>`))
+    out.push('</ul>')
+  }
   out.push(`<p class="muted">${e(t('report.footer'))}</p></body></html>`)
   return out.join('\n')
 }

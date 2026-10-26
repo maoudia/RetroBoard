@@ -140,6 +140,15 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     expect(await audit(page)).toEqual([])
   })
 
+  test('report dialog with the ROTI vote has no axe violation', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue' })
+    await page.getByTestId('btn-export').click()
+    await page.getByTestId('export-report').click()
+    await page.getByTestId('roti-4').click()
+    await expect(page.getByTestId('report-roti')).toBeVisible()
+    expect(await audit(page)).toEqual([])
+  })
+
   test('static service pages: maintenance and busy', async ({ page }) => {
     for (const path of ['/maintenance', '/busy']) {
       await page.goto(path)

@@ -1,4 +1,5 @@
 import type { BoardState, Peer, Snapshot, SnapshotGroup, SnapshotNote } from './shared/types'
+import { rotiSummary } from './facilitation/roti'
 import { clusterVoters, countOf, votability, votesUsedBy } from './voting/policy'
 
 export interface Viewer {
@@ -51,6 +52,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     agenda: state.agenda,
     talk: state.talk,
     reveal: state.reveal ?? null,
+    roti: rotiSummary(state, viewer.cid),
     peers,
     votesLeft: Math.max(0, state.settings.voteLimit - used),
   }

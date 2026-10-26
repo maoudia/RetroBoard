@@ -50,4 +50,12 @@ describe('report as a standalone HTML file', () => {
     expect(html).toContain('report.votesHidden')
     expect(html).not.toContain('report.votesN')
   })
+
+  it('prints the ROTI distribution when the team rated', () => {
+    const r = board()
+    expect(toReportHtml(r, t)).not.toContain('report.roti')
+    const html = toReportHtml({ ...r, roti: { counts: [0, 0, 1, 2, 0], total: 3, average: 3.7 } }, t)
+    expect(html).toContain('report.roti.average(3.7,3)')
+    expect(html).toContain('<li>4 / 5: 2</li>')
+  })
 })

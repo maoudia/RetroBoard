@@ -129,7 +129,7 @@ const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
   vote: ['vote.add', 'vote.remove', 'vote.toggle'],
   rank: ['action.add'],
   actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
-  close: [],
+  close: ['roti.set'],
 }
 
 /** Does a phase of this kind allow a participant to run the command? */

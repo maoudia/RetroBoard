@@ -76,4 +76,13 @@ describe('retro report', () => {
     const r = buildReport(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), new Date())
     expect(r.talk).toEqual([{ label: 'Ana', ms: 3 * MIN, share: 0.75 }, { label: null, ms: MIN, share: 0.25 }])
   })
+
+  it('carries the ROTI distribution, and null when nobody rated', () => {
+    const h = harness()
+    const rep = () => buildReport(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), new Date())
+    expect(rep().roti).toBeNull()
+    h.run({ t: 'roti.set', score: 4 }, alice)
+    h.run({ t: 'roti.set', score: 2 }, bob)
+    expect(rep().roti).toEqual({ counts: [0, 1, 0, 1, 0], total: 2, average: 3 })
+  })
 })
