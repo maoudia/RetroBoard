@@ -43,6 +43,50 @@ test.describe('clusters as merged ideas', () => {
     await expect(peek).toHaveCount(0)
   })
 
+  async function twoNoteCluster(page: import('@playwright/test').Page) {
+    await createBoard(page, { template: 'start-stop-continue' })
+    await publishNote(page, 0, 'Motion one')
+    await publishNote(page, 0, 'Motion two')
+    await noteByText(page, 'Motion two').dragTo(noteByText(page, 'Motion one'))
+    await settle(page)
+  }
+
+  test('spring open and close: the panel animates in under 400 ms and closes back into the stack', async ({ page }) => {
+    await twoNoteCluster(page)
+    await page.evaluate(() => {
+      const w = window as unknown as { longTasks: number[] }
+      w.longTasks = []
+      new PerformanceObserver((l) => l.getEntries().forEach((e) => w.longTasks.push(e.duration))).observe({ entryTypes: ['longtask'] })
+    })
+    await clusters(page).first().locator('.stack').click()
+    const panel = page.getByTestId('group-panel')
+    await expect(panel).toBeVisible()
+    const total = await panel.evaluate((el) => el.getAnimations().reduce((n, a) => Math.max(n, Number(a.effect?.getComputedTiming().endTime ?? 0)), 0))
+    expect(total).toBeGreaterThan(0)
+    expect(total).toBeLessThan(400)
+    await page.waitForTimeout(500)
+    expect(await page.evaluate(() => (window as unknown as { longTasks: number[] }).longTasks.filter((d) => d >= 50))).toEqual([])
+    await page.getByTestId('group-close').click()
+    await expect(panel).toHaveCount(0)
+    // A second Escape or click during the close never throws or reopens anything.
+    await clusters(page).first().locator('.stack').click()
+    await expect(panel).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await expect(panel).toHaveCount(0)
+  })
+
+  test('reduced motion: the cluster opens and closes without any animation', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await twoNoteCluster(page)
+    await clusters(page).first().locator('.stack').click()
+    const panel = page.getByTestId('group-panel')
+    await expect(panel).toBeVisible()
+    expect(await panel.evaluate((el) => el.getAnimations().length)).toBe(0)
+    await page.getByTestId('group-close').click()
+    await expect(panel).toHaveCount(0)
+  })
+
   test('expand all shows notes inline for me; collapse brings stacks back', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     for (const t of ['A1', 'A2']) await publishNote(page, 0, t)

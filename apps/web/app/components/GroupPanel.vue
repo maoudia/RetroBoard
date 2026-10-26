@@ -9,7 +9,38 @@ const ui = useUiStore()
 const title = ref(props.item.group.title ?? '')
 watch(() => props.item.group.title, (t) => { title.value = t ?? '' })
 
-const close = () => { ui.openGroupId = null }
+const closeNow = () => { ui.openGroupId = null }
+
+// Spring open and close (change cluster-reveal-motion): the panel grows out of the stack and shrinks back
+// into it (FLIP with the Web Animations API, under 400 ms). Reduced motion: no animation at all.
+const panelEl = ref<HTMLElement | null>(null)
+const SPRING = 'linear(0, 0.42 12%, 0.86 28%, 1.06 44%, 1.02 62%, 1 80%, 1)'
+const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+const stackRect = () => document.querySelector(`[data-source-id="${props.item.group.id}"]`)?.getBoundingClientRect() ?? null
+function flip(toStack: boolean): Animation | null {
+  const el = panelEl.value
+  const from = stackRect()
+  if (!el || !from || reduced()) return null
+  const to = el.getBoundingClientRect()
+  if (!to.width || !to.height) return null
+  const dx = from.left + from.width / 2 - (to.left + to.width / 2)
+  const dy = from.top + from.height / 2 - (to.top + to.height / 2)
+  const small = `translate(${dx}px, ${dy}px) scale(${Math.min(1, from.width / to.width)}, ${Math.min(1, from.height / to.height)})`
+  return el.animate(
+    toStack ? [{ transform: 'none', opacity: 1 }, { transform: small, opacity: 0 }] : [{ transform: small, opacity: 0.4 }, { transform: 'none', opacity: 1 }],
+    toStack ? { duration: 180, easing: 'ease-in', fill: 'forwards' } : { duration: 340, easing: SPRING },
+  )
+}
+let closing = false
+function close() {
+  if (closing) return
+  const a = flip(true)
+  if (!a) return closeNow()
+  closing = true
+  a.onfinish = closeNow
+  a.oncancel = closeNow
+}
+onMounted(() => { flip(false) })
 function saveTitle() {
   if (title.value.trim() !== (props.item.group.title ?? '')) board.commands.renameGroup(props.item.group.id, title.value)
 }
@@ -20,8 +51,8 @@ function useSuggestion(s: string) { title.value = s; board.commands.renameGroup(
 const others = computed(() => board.itemsFor(props.item.group.columnId, 'time').filter((i) => i.kind === 'group' && i.group.id !== props.item.group.id) as Extract<ColumnItem, { kind: 'group' }>[])
 function mergeInto(target: string) { board.commands.mergeGroups(props.item.group.id, target); ui.openGroupId = target }
 const gate = computed(() => board.availability('action.add'))
-function toAction() { const id = props.item.group.id; const text = props.item.title; close(); ui.openActionFrom({ sourceId: id, text, owner: '' }) }
-function dissolve() { board.commands.dissolveGroup(props.item.group.id); close() }
+function toAction() { const id = props.item.group.id; const text = props.item.title; closeNow(); ui.openActionFrom({ sourceId: id, text, owner: '' }) }
+function dissolve() { board.commands.dissolveGroup(props.item.group.id); closeNow() }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
 onMounted(() => document.addEventListener('keydown', onKey))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
@@ -29,7 +60,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 
 <template>
   <div class="scrim" @click.self="close">
-    <section class="panel" role="dialog" :aria-label="t('group.panel')" data-testid="group-panel">
+    <section ref="panelEl" class="panel" role="dialog" :aria-label="t('group.panel')" data-testid="group-panel">
       <header>
         <Icon name="lucide:layers" class="gi" />
         <label class="sr-only" for="gtitle">{{ t('group.titleLabel') }}</label>
@@ -63,7 +94,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 
 <style scoped>
 .scrim { position: absolute; inset: 0; z-index: 20; display: grid; align-items: start; padding: .6rem; background: color-mix(in oklab, var(--bg) 62%, transparent); backdrop-filter: blur(2px); border-radius: inherit; animation: fade-in .2s; }
-.panel { position: relative; display: grid; gap: .8rem; padding: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2); max-height: 100%; overflow: auto; animation: pop-in .25s var(--ease); }
+.panel { position: relative; display: grid; gap: .8rem; padding: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2); max-height: 100%; overflow: auto; }
 header { display: flex; align-items: center; gap: .5rem; }
 .gi { color: var(--accent); font-size: 1.2rem; flex: none; }
 .gtitle { flex: 1; min-width: 0; padding: .3rem .4rem; border: 1px solid transparent; border-radius: 8px; background: transparent; font-family: var(--f-display); font-size: 1.15rem; font-weight: 600; color: var(--text); text-overflow: ellipsis; }
