@@ -2,7 +2,7 @@
 
 ## 1. Interaction
 
-- [ ] 1.1 Hover peek (300 ms delay, pointer devices) and tap open (touch) with keyboard access (Enter, Escape); verify e2e on chromium and phone and axe
+- [x] 1.1 Hover peek (300 ms delay, pointer devices) and tap open (touch) with keyboard access (Enter, Escape); verify e2e on chromium and phone and axe
 - [ ] 1.2 Spring open/close animation (FLIP from stack to notes) with reduced-motion fallback; verify e2e with reduced motion and a long-task check (< 50 ms)
 
 ## 2. Trial of variants

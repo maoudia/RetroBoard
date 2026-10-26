@@ -739,6 +739,7 @@ export const fr = {
   'note.delete': 'Supprimer',
 
   'group.label': 'Groupe: {title}, {n} post-its',
+  'group.peek.more': '+{n} de plus',
   'group.panel': 'Groupe de post-its',
   'group.titleLabel': 'Titre du groupe',
   'group.closeLabel': 'Fermer le groupe',

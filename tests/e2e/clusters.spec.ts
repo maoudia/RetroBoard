@@ -16,6 +16,33 @@ test.describe('clusters as merged ideas', () => {
     await expect(page.getByTestId('group-title')).toHaveValue('Tests lents')
   })
 
+  test('hover peek: resting the mouse on a cluster lists its notes, leaving or Escape hides them', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'touch devices open the cluster with a tap, they never peek')
+    await createBoard(page, { template: 'start-stop-continue' })
+    await publishNote(page, 0, 'Peek one')
+    await publishNote(page, 0, 'Peek two')
+    await noteByText(page, 'Peek two').dragTo(noteByText(page, 'Peek one'))
+    await settle(page)
+    const stack = clusters(page).first().locator('.stack')
+    const peek = page.locator('[data-testid^="peek-"]')
+    await page.mouse.move(0, 0)
+    await expect(peek).toHaveCount(0)
+    await stack.hover()
+    await expect(peek).toBeVisible()
+    await expect(peek).toContainText('Peek one')
+    await expect(peek).toContainText('Peek two')
+    await page.mouse.move(0, 0)
+    await expect(peek).toHaveCount(0)
+    await stack.hover()
+    await expect(peek).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(peek).toHaveCount(0)
+    // A click opens the cluster and no peek stays behind.
+    await stack.click()
+    await expect(page.getByTestId('group-panel')).toBeVisible()
+    await expect(peek).toHaveCount(0)
+  })
+
   test('expand all shows notes inline for me; collapse brings stacks back', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     for (const t of ['A1', 'A2']) await publishNote(page, 0, t)

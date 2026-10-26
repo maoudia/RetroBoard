@@ -740,6 +740,7 @@ export const en: Record<keyof typeof fr, string> = {
   'note.delete': 'Delete',
 
   'group.label': 'Group: {title}, {n} notes',
+  'group.peek.more': '+{n} more',
   'group.panel': 'Note group',
   'group.titleLabel': 'Group title',
   'group.closeLabel': 'Close group',

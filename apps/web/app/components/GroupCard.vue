@@ -24,7 +24,36 @@ function onDragStart(e: DragEvent) {
   e.dataTransfer?.setData('text/plain', props.item.group.id)
   if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
 }
-const open = () => { ui.openGroupId = props.item.group.id }
+const open = () => { cancelPeek(); ui.openGroupId = props.item.group.id }
+
+// Peek (change cluster-reveal-motion): resting a mouse or pen on the stack for 300 ms lists its notes.
+// Touch never peeks (a tap opens the cluster); keyboard users open it with Enter.
+const PEEK_DELAY_MS = 300
+const peekAt = ref<{ left: number; top: number; width: number } | null>(null)
+const stackEl = ref<HTMLElement | null>(null)
+let peekTimer: ReturnType<typeof setTimeout> | undefined
+function cancelPeek() {
+  clearTimeout(peekTimer)
+  peekAt.value = null
+  document.removeEventListener('keydown', onPeekKey)
+}
+const onPeekKey = (e: KeyboardEvent) => { if (e.key === 'Escape') cancelPeek() }
+function schedulePeek(e: PointerEvent) {
+  if (e.pointerType === 'touch' || ui.dragNoteId || ui.dragGroupId) return
+  clearTimeout(peekTimer)
+  peekTimer = setTimeout(() => {
+    const r = stackEl.value?.getBoundingClientRect()
+    if (!r || ui.dragNoteId || ui.dragGroupId) return
+    const width = Math.min(Math.max(r.width, 240), window.innerWidth - 16)
+    const left = Math.min(Math.max(8, r.left), window.innerWidth - width - 8)
+    const below = r.bottom + 6
+    const top = below + 180 > window.innerHeight ? Math.max(8, r.top - 6 - 180) : below
+    peekAt.value = { left, top, width }
+    document.addEventListener('keydown', onPeekKey)
+  }, PEEK_DELAY_MS)
+}
+const PEEK_MAX = 6
+onBeforeUnmount(cancelPeek)
 </script>
 
 <template>
@@ -39,9 +68,10 @@ const open = () => { ui.openGroupId = props.item.group.id }
   </section>
   <button
     v-else
-    type="button" class="stack" :class="{ over }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
+    ref="stackEl" type="button" class="stack" :class="{ over }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
     :style="{ '--c': `var(--note-${top.color})`, '--c2': `var(--note-${item.notes[1]?.color ?? top.color})` }"
-    draggable="true" @dragstart="onDragStart" @dragend="ui.dragGroupId = null"
+    draggable="true" @dragstart="cancelPeek(); onDragStart($event)" @dragend="ui.dragGroupId = null"
+    @pointerenter="schedulePeek" @pointerleave="cancelPeek"
     @click="open" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop"
   >
     <span class="layer l2" aria-hidden="true" />
@@ -55,6 +85,13 @@ const open = () => { ui.openGroupId = props.item.group.id }
       </span>
     </span>
   </button>
+  <Teleport to="body">
+    <!-- Pointer-only preview: keyboard and screen reader users open the cluster itself. -->
+    <ul v-if="peekAt" class="peek" aria-hidden="true" :style="{ left: `${peekAt.left}px`, top: `${peekAt.top}px`, width: `${peekAt.width}px` }" :data-testid="`peek-${item.group.id}`">
+      <li v-for="n in item.notes.slice(0, PEEK_MAX)" :key="n.id" :style="{ '--c': `var(--note-${n.color})` }">{{ n.text }}</li>
+      <li v-if="item.notes.length > PEEK_MAX" class="more">{{ t('group.peek.more', { n: item.notes.length - PEEK_MAX }) }}</li>
+    </ul>
+  </Teleport>
   <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${item.group.id}`" @click.stop="ui.openActionsFor(item.group.id)">
     <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
   </button>
@@ -89,4 +126,12 @@ const open = () => { ui.openGroupId = props.item.group.id }
 .text { overflow-wrap: anywhere; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; padding-right: 14px; }
 .meta { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; font-weight: 800; }
 .count, .votes { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 999px; background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
+</style>
+
+<style>
+.peek { position: fixed; z-index: 60; display: grid; gap: .3rem; margin: 0; padding: .5rem; list-style: none; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / .25)); pointer-events: none; max-height: 180px; overflow: hidden; animation: peek-in .15s ease-out; }
+.peek li { padding: .3rem .5rem; border-radius: 6px; background: var(--c, var(--surface2)); color: var(--note-ink); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.peek li.more { background: none; color: var(--muted); }
+@keyframes peek-in { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .peek { animation: none; } }
 </style>
