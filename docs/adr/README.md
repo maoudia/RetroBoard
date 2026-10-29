@@ -35,3 +35,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0022](0022-wcag-2-2-aa-as-the-accessibility-target.md) | WCAG 2.2 AA as the accessibility target | proposed | 2026-10-25 |
 | [0023](0023-in-app-and-local-notifications-only.md) | In-app and local notifications only | proposed | 2026-10-25 |
 | [0024](0024-board-events-on-two-paths-anti-entropy-on-every-connection.md) | Board events on two paths, anti-entropy on every connection | accepted | 2026-10-25 |
+| [0025](0025-automatic-semantic-releases-from-conventional-commits-github.md) | Automatic semantic releases from Conventional Commits, GitHub Release and GHCR image | accepted | 2026-10-29 |

@@ -23,6 +23,7 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 * `p2p-presence-and-cursors` ([proposal](../openspec/changes/p2p-presence-and-cursors/proposal.md))
 * `keyboard-shortcuts` ([proposal](../openspec/changes/keyboard-shortcuts/proposal.md))
 * `ci-toolchain-speed` ([proposal](../openspec/changes/ci-toolchain-speed/proposal.md))
+* `automated-semver-release` ([proposal](../openspec/changes/automated-semver-release/proposal.md))
 * `phase-availability-cues` ([proposal](../openspec/changes/phase-availability-cues/proposal.md))
 * `name-nudge` ([proposal](../openspec/changes/name-nudge/proposal.md))
 
