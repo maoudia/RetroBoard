@@ -4,7 +4,7 @@
 
 - [x] 1.1 Define sticky-note palettes per theme variant with contrast tests; verify the theme suite
 - [ ] 1.2 Masonry column layout, text fitting with min size and "read more"; verify e2e with a 60-note fixture and visual regression
-- [ ] 1.3 Density levels, zoom shortcuts and column focus mode; verify e2e
+- [ ] 1.3 Density levels and zoom shortcuts (column focus moved to `presenter-mode-v2`, column sizes to `column-tools`, 2026-10-29); verify e2e
 
 ## 2. Discovery
 

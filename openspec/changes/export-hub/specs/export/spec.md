@@ -41,3 +41,10 @@ The system SHALL show the exact file about to be saved, rendered for its format,
 #### Scenario: CSV for Jira
 - **WHEN** a participant chooses the Jira CSV of actions
 - **THEN** a table shows the rows and columns of the file with its name and size, and "Save" downloads that same file
+
+### Requirement: RAG-friendly export
+The system SHALL export a board as JSON Lines with one self-describing chunk per idea, cluster and action, and as Markdown with front matter per section, so a retrieval pipeline can index it without post-processing.
+
+#### Scenario: Index a retro
+- **WHEN** a facilitator exports a board in the RAG format
+- **THEN** every line is a valid JSON object with an id, a type, the column, the vote count and the text, and clusters link to their ideas

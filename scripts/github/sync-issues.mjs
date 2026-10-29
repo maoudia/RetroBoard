@@ -29,7 +29,8 @@ const PLAN = {
   'voting-v2-and-ranking': ['P2', 'B', ['stateless-relay-and-replication']],
   'clusters-as-merged-ideas': ['P2', 'B', ['stateless-relay-and-replication']],
   'actions-v2-and-carry-over': ['P2', 'C', ['stateless-relay-and-replication']],
-  'board-creation-v2': ['P2', 'A', ['timeboxed-agenda', 'voting-v2-and-ranking', 'actions-v2-and-carry-over']],
+  // Dependencies relaxed on 2026-10-29: the voting and action settings it needs have shipped; only sealed ballot and carry-over sources remain.
+  'board-creation-v2': ['P2', 'A', []],
   'publishing-ux-redesign': ['P3', 'B', ['restructure-ddd-monorepo']],
   'postit-visual-system': ['P3', 'C', ['theme-policy-and-variants']],
   'profile-avatars-and-team-space': ['P3', 'B', ['restructure-ddd-monorepo']],
@@ -66,10 +67,25 @@ const PLAN = {
   'reliable-board-sync': ['P7', 'A', []],
   'author-name-by-default': ['P7', 'B', []],
   'draft-first-composer': ['P7', 'B', []],
+  // Owner feedback wave of 2026-10-29: design value first, then quality.
+  'composer-and-colour-v3': ['P8', 'B', []],
+  'facilitator-controls-v2': ['P8', 'A', []],
+  'board-activity-feed': ['P8', 'B', []],
+  'design-system-components': ['P8', 'C', []],
+  'short-links-and-join': ['P8', 'A', []],
+  'presenter-mode-v2': ['P8', 'C', []],
+  'column-voting-scope': ['P8', 'B', []],
+  'identity-conflicts': ['P8', 'B', []],
+  'column-tools': ['P8', 'B', []],
+  'note-freeze': ['P8', 'C', []],
+  'talk-time-v2': ['P8', 'A', []],
+  'keyboard-shortcuts-v2': ['P8', 'B', []],
+  'agents-first-class': ['P8', 'C', []],
+  'quality-gates-v2': ['P8', 'C', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
-  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25',
+  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29',
 }
 // Roadmap: every change belongs to one release milestone (the GitHub roadmap is built from these).
 // Target dates are planning targets, revisited at each release review.
@@ -89,12 +105,37 @@ const ROADMAP = {
   'facilitator-moderation': 'R2', 'activity-rings-timer': 'R2', 'cluster-reveal-motion': 'R2', 'voting-results-charts': 'R2', 'voting-v2-and-ranking': 'R2',
   'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2', 'profile-avatars-and-team-space': 'R2',
   'export-hub': 'R2', 'retro-report': 'R2',
-  'calendar-agenda-import': 'R3', 'themes-pop-culture': 'R3', 'board-creation-v2': 'R3', 'actions-v2-and-carry-over': 'R3',
+  'composer-and-colour-v3': 'R2', 'facilitator-controls-v2': 'R2', 'board-activity-feed': 'R2', 'design-system-components': 'R2',
+  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2',
+  // Onboarding is the first thing users see (owner, 2026-10-29): smart default creation moves to R2.
+  'board-creation-v2': 'R2',
+  'column-tools': 'R3', 'note-freeze': 'R3', 'talk-time-v2': 'R3', 'keyboard-shortcuts-v2': 'R3', 'agents-first-class': 'R3',
+  'calendar-agenda-import': 'R3', 'themes-pop-culture': 'R3', 'actions-v2-and-carry-over': 'R3',
   'agentic-delivery-harness': 'R3', 'webmcp-browser-agents': 'R3',
   'retro-mcp-and-agent-sessions': 'R4', 'local-ai-companion': 'R4', 'landing-v2-and-product-video': 'R4',
   'licensing-and-monetization': 'PARKED',
 }
+// Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
+// Bugs are standalone `bug` issues labelled priority:1-urgent; every change gets one of the other levels.
+const PRIORITY_LEVELS = [
+  ['priority:1-urgent', 'b60205', 'Bugs and anything blocking the beta: fix first'],
+  ['priority:2-design', '5319e7', 'Design value users see first'],
+  ['priority:3-quality', '0e8a16', 'CI/CD and quality that protect delivery'],
+  ['priority:4-later', 'c5def5', 'Valuable, after the levels above'],
+]
+const PRIORITY = {
+  'reliable-board-sync': 1,
+  'composer-and-colour-v3': 2, 'facilitator-controls-v2': 2, 'board-activity-feed': 2, 'design-system-components': 2, 'short-links-and-join': 2,
+  'board-creation-v2': 2, 'presenter-mode-v2': 2, 'column-voting-scope': 2, 'identity-conflicts': 2, 'publishing-ux-redesign': 2,
+  'postit-visual-system': 2, 'responsive-and-i18n-hardening': 2, 'profile-avatars-and-team-space': 2, 'activity-rings-timer': 2,
+  'voting-results-charts': 2, 'cluster-reveal-motion': 2, 'column-tools': 2,
+  'quality-gates-v2': 3, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
+}
+const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]
+// A change with every task ticked needs no priority (its issues only wait to be closed).
+const prioLabels = (c) => (c.groups.some((g) => g.tasks.length) ? [priorityOf(c.name)] : [])
 const LABELS = [
+  ...PRIORITY_LEVELS,
   ['epic', '5319e7', 'One OpenSpec change'], ['task-group', '1d76db', 'One task group of a change, one PR'],
   ['agent:ready', '0e8a16', 'Dependencies done, an agent can start'], ['agent:claude', 'd4a373', 'Run Claude Code on this issue'],
   ['agent:opencode', 'b7b7b7', 'Run OpenCode on this issue'], ['needs:human', 'b60205', 'Needs a human decision or review'],
@@ -168,8 +209,8 @@ for (const name of ordered) {
   const [phase, lane, deps] = PLAN[name]
   // A dependency is done once its change is archived (no longer in openspec/changes).
   const ready = deps.every((d) => !changes.includes(d)) && ROADMAP[name] !== 'PARKED'
-  plan.push({ kind: 'epic', c, title: `[epic] ${name}`, body: epicBody(c, deps), labels: ['epic', `phase:${phase}`, `lane:${lane}`, ready ? 'agent:ready' : 'blocked'], phase })
-  for (const g of c.groups.filter((x) => x.tasks.length)) plan.push({ kind: 'group', c, g, title: `[${name}] ${g.n}. ${g.title}`, body: groupBody(c, g), labels: ['task-group', `phase:${phase}`, `lane:${lane}`, ready && g.n === '1' ? 'agent:ready' : 'blocked'], phase, parent: `[epic] ${name}` })
+  plan.push({ kind: 'epic', c, title: `[epic] ${name}`, body: epicBody(c, deps), labels: ['epic', `phase:${phase}`, `lane:${lane}`, ...prioLabels(c), ready ? 'agent:ready' : 'blocked'], phase })
+  for (const g of c.groups.filter((x) => x.tasks.length)) plan.push({ kind: 'group', c, g, title: `[${name}] ${g.n}. ${g.title}`, body: groupBody(c, g), labels: ['task-group', `phase:${phase}`, `lane:${lane}`, ...prioLabels(c), ready && g.n === '1' ? 'agent:ready' : 'blocked'], phase, parent: `[epic] ${name}` })
 }
 
 console.log(`${APPLY ? 'Applying' : 'Dry run'} on ${REPO}: ${Object.keys(RELEASES).length} release milestones, ${LABELS.length} labels, ${plan.filter((p) => p.kind === 'epic').length} epics, ${plan.filter((p) => p.kind === 'group').length} task-group issues`)
@@ -186,7 +227,7 @@ const issues = Object.fromEntries(ghAll(`repos/${REPO}/issues?state=all&per_page
 for (const p of plan) {
   const payload = { title: p.title, body: p.body, labels: p.labels, milestone: milestones[RELEASES[ROADMAP[p.c.name]].title] }
   const found = issues[p.title]
-  issues[p.title] = found ? gh('PATCH', `repos/${REPO}/issues/${found.number}`, { body: p.body, milestone: payload.milestone, labels: [...new Set([...found.labels.map((l) => l.name).filter((l) => !/^(agent:ready|blocked)$/.test(l)), ...p.labels])] }) : gh('POST', `repos/${REPO}/issues`, payload)
+  issues[p.title] = found ? gh('PATCH', `repos/${REPO}/issues/${found.number}`, { body: p.body, milestone: payload.milestone, labels: [...new Set([...found.labels.map((l) => l.name).filter((l) => !/^(agent:ready|blocked|priority:.+)$/.test(l)), ...p.labels])] }) : gh('POST', `repos/${REPO}/issues`, payload)
   console.log(`${found ? 'updated' : 'created'} #${issues[p.title].number} ${p.title}`)
 }
 for (const p of plan.filter((x) => x.kind === 'group')) {

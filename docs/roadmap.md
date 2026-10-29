@@ -5,6 +5,10 @@ The roadmap lives in GitHub: release milestones in the repository and the organi
 release; each task group of a change is one sub-issue (one pull request). Target dates are planning targets,
 reviewed at each release.
 
+Priority (owner rule, 2026-10-29): bugs first (`priority:1-urgent`, standalone `bug` issues), then the design value
+users see first (`priority:2-design`), then CI/CD quality (`priority:3-quality`), then the rest (`priority:4-later`).
+Within a release, take the lowest priority number first.
+
 Source of truth: `scripts/github/sync-issues.mjs` (`ROADMAP` and `RELEASES`). Run it with `--apply` after
 adding or re-planning a change; the `Project roadmap` workflow then puts the issues on the project.
 
@@ -39,15 +43,29 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 * `profile-avatars-and-team-space` ([proposal](../openspec/changes/profile-avatars-and-team-space/proposal.md))
 * `export-hub` ([proposal](../openspec/changes/export-hub/proposal.md))
 * `retro-report` ([proposal](../openspec/changes/retro-report/proposal.md))
+* `composer-and-colour-v3` ([proposal](../openspec/changes/composer-and-colour-v3/proposal.md))
+* `facilitator-controls-v2` ([proposal](../openspec/changes/facilitator-controls-v2/proposal.md))
+* `board-activity-feed` ([proposal](../openspec/changes/board-activity-feed/proposal.md))
+* `design-system-components` ([proposal](../openspec/changes/design-system-components/proposal.md))
+* `short-links-and-join` ([proposal](../openspec/changes/short-links-and-join/proposal.md))
+* `board-creation-v2` ([proposal](../openspec/changes/board-creation-v2/proposal.md))
+* `presenter-mode-v2` ([proposal](../openspec/changes/presenter-mode-v2/proposal.md))
+* `column-voting-scope` ([proposal](../openspec/changes/column-voting-scope/proposal.md))
+* `identity-conflicts` ([proposal](../openspec/changes/identity-conflicts/proposal.md))
+* `quality-gates-v2` ([proposal](../openspec/changes/quality-gates-v2/proposal.md))
 
 ## R3 Teams and themes (target 2026-12-20)
 
 * `calendar-agenda-import` ([proposal](../openspec/changes/calendar-agenda-import/proposal.md))
 * `themes-pop-culture` ([proposal](../openspec/changes/themes-pop-culture/proposal.md))
-* `board-creation-v2` ([proposal](../openspec/changes/board-creation-v2/proposal.md))
 * `actions-v2-and-carry-over` ([proposal](../openspec/changes/actions-v2-and-carry-over/proposal.md))
 * `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md))
 * `webmcp-browser-agents` ([proposal](../openspec/changes/webmcp-browser-agents/proposal.md))
+* `column-tools` ([proposal](../openspec/changes/column-tools/proposal.md))
+* `note-freeze` ([proposal](../openspec/changes/note-freeze/proposal.md))
+* `talk-time-v2` ([proposal](../openspec/changes/talk-time-v2/proposal.md))
+* `keyboard-shortcuts-v2` ([proposal](../openspec/changes/keyboard-shortcuts-v2/proposal.md))
+* `agents-first-class` ([proposal](../openspec/changes/agents-first-class/proposal.md))
 
 ## R4 Agents and growth (target 2027-01-31)
 
@@ -68,4 +86,4 @@ The API cannot create project views, so these three are made by hand once:
 3. View "Board": layout Board, column field Status, group by Release (swimlanes), filter `is:open`.
 4. View "Ready for agents": layout Table, filter `label:agent:ready is:open`, group by Release.
 
-Labels: `epic`, `task-group`, `agent:ready` (dependencies done), `blocked`, `lane:A|B|C` (parallel lanes), `phase:P0..P7` (history of the original plan).
+Labels: `epic`, `task-group`, `agent:ready` (dependencies done), `blocked`, `lane:A|B|C` (parallel lanes), `phase:P0..P8` (history of the original plan and the owner feedback waves), `priority:1..4`.
