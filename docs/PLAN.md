@@ -290,7 +290,7 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 
 ### 10.2 Release and deploy
 
-- Conventional Commits + release-please for versions and changelog.
+- Conventional Commits (enforced by hook and CI) + release-please for the SemVer version and `CHANGELOG.md`. The release is automatic: when `Checks` and `Quality` are green on main, the workflow merges the release PR, tags `vX.Y.Z`, publishes the GitHub Release and pushes the image `ghcr.io/maoudia/retroboard` (ADR-0025, `docs/self-hosting.md`).
 - Main is deployed by Workers Builds (already connected) with build `npm run generate` (or `pnpm generate`; was going to be `pnpm turbo run build --filter=web`), then smoke tests against production, then `wrangler rollback` if smoke fails.
 - `@retroboard/mcp` is published on npm with provenance on release tags.
 

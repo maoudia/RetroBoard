@@ -44,9 +44,12 @@ export const HSTS = 'max-age=15552000'
 
 const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|.+\.localhost)$/
 
-/** Plain HTTP on a public host is redirected to HTTPS; local development hosts are left alone. */
-export function httpsRedirect(url: URL): Response | null {
-  if (url.protocol !== 'http:' || LOCAL_HOST.test(url.hostname)) return null
+/**
+ * Plain HTTP on a public host is redirected to HTTPS; local development hosts are left alone.
+ * A self-hosted container sits behind a TLS-terminating proxy and sees plain HTTP: it sets SELF_HOSTED to skip the redirect.
+ */
+export function httpsRedirect(url: URL, selfHosted = false): Response | null {
+  if (selfHosted || url.protocol !== 'http:' || LOCAL_HOST.test(url.hostname)) return null
   const target = new URL(url)
   target.protocol = 'https:'
   target.port = ''

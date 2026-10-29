@@ -35,7 +35,7 @@ async function unavailable(request: Request, env: Env, url: URL, status: number,
 export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url)
-    const insecure = httpsRedirect(url)
+    const insecure = httpsRedirect(url, env.SELF_HOSTED === '1')
     if (insecure) return insecure
     if (url.pathname === '/healthz') return new Response('ok', { headers: { 'Cache-Control': 'no-store' } })
     if (isMaintenance(env.MAINTENANCE)) {

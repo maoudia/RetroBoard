@@ -59,6 +59,7 @@ describe('security headers', () => {
     expect(res?.status).toBe(308)
     expect(res?.headers.get('Location')).toBe('https://retroboard.maoudia.com/board?x=1')
     expect(httpsRedirect(new URL('https://retroboard.maoudia.com/'))).toBeNull()
+    expect(httpsRedirect(new URL('http://retro.example.com/'), true)).toBeNull()
     for (const local of ['http://localhost:8787/', 'http://127.0.0.1:8787/', 'http://[::1]:8787/', 'http://a.localhost/']) {
       expect(httpsRedirect(new URL(local))).toBeNull()
     }

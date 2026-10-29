@@ -1,19 +1,156 @@
 name: Release
 
+# Automatic SemVer release from Conventional Commits (openspec/changes/automated-semver-release, ADR-0025).
+# 1. Runs when Checks or Quality finishes on main (or by hand).
+# 2. Gate: the current main commit must have a green Checks and a green Quality run; otherwise it stops quietly.
+# 3. release-please opens or updates the release PR (version bump + CHANGELOG.md); this workflow merges it.
+# 4. release-please runs again: tag vX.Y.Z and the GitHub Release with the changelog section.
+# 5. The container image is built and pushed to GHCR for that tag.
+# Events created with GITHUB_TOKEN do not start other workflows, so every step lives in this file.
 on:
-  push:
+  workflow_run:
+    workflows: [Checks, Quality]
+    types: [completed]
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+
+env:
+  IMAGE: ghcr.io/maoudia/retroboard
 
 jobs:
-  release-please:
+  release:
+    name: Version, changelog and GitHub Release
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+    outputs:
+      created: ${{ steps.publish.outputs.release_created || steps.prepare.outputs.release_created }}
+      tag: ${{ steps.publish.outputs.tag_name || steps.prepare.outputs.tag_name }}
+      version: ${{ steps.publish.outputs.version || steps.prepare.outputs.version }}
+      major: ${{ steps.publish.outputs.major || steps.prepare.outputs.major }}
+      minor: ${{ steps.publish.outputs.minor || steps.prepare.outputs.minor }}
     steps:
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - name: Gate on a green main
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sha=$(gh api "repos/$REPO/commits/main" --jq .sha)
+          subject=$(gh api "repos/$REPO/commits/$sha" --jq '.commit.message | split("\n")[0]')
+          # The release commit itself is not rebuilt (GITHUB_TOKEN pushes start no workflow): judge its parent.
+          if [[ "$subject" == "chore(main): release "* ]]; then
+            sha=$(gh api "repos/$REPO/commits/$sha" --jq '.parents[0].sha')
+          fi
+          echo "main commit under test: $sha"
+          ok=true
+          for name in Checks Quality; do
+            result=$(gh api "repos/$REPO/actions/runs?head_sha=$sha&event=push&per_page=50" \
+              --jq "[.workflow_runs[] | select(.name == \"$name\")] | sort_by(.created_at) | last | (.status + \"/\" + (.conclusion // \"none\"))")
+            echo "$name: ${result:-missing}"
+            [[ "$result" == "completed/success" ]] || ok=false
+          done
+          echo "ready=$ok" >> "$GITHUB_OUTPUT"
+          if [[ "$ok" != true ]]; then echo "::notice::Main is not green yet for $sha, no release (the next finished run retries)."; fi
+
+      - name: Open or update the release PR
+        id: prepare
+        if: steps.gate.outputs.ready == 'true'
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      - name: Merge the release PR
+        if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ fromJSON(steps.prepare.outputs.pr).number }}
+        run: |
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+          sleep 5
+
+      - name: Tag and publish the GitHub Release
+        id: publish
+        if: steps.gate.outputs.ready == 'true'
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  image:
+    name: Container image on GHCR
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Tags and labels
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=${{ needs.release.outputs.version }}
+            type=raw,value=${{ needs.release.outputs.major }}.${{ needs.release.outputs.minor }}
+            type=raw,value=${{ needs.release.outputs.major }}
+            type=raw,value=latest
+      - name: Build and push (amd64, arm64)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.release.outputs.version }}
+            REVISION=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Add the image to the release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          gh release view "$TAG" --json body --jq .body > notes.md
+          cat >> notes.md <<NOTES
+
+          ### Container image
+
+              docker pull $IMAGE:$VERSION
+
+          Self-hosting: https://github.com/$GITHUB_REPOSITORY/blob/$TAG/docs/self-hosting.md
+          NOTES
+          gh release edit "$TAG" --notes-file notes.md

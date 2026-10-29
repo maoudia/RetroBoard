@@ -1,0 +1,26 @@
+{
+  // Runtime config of the container image (docs/self-hosting.md). Same Worker code as production,
+  // run by the local workerd runtime of Wrangler. Nothing is stored: the relay only forwards encrypted envelopes.
+  "name": "retroboard",
+  "main": "./worker/index.js",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  },
+  "durable_objects": { "bindings": [{ "name": "RELAY", "class_name": "RelayRoom" }] },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Room"] },
+    { "tag": "v2", "new_sqlite_classes": ["RelayRoom"] },
+    { "tag": "v3", "deleted_classes": ["Room"] }
+  ],
+  "vars": {
+    "ALLOWED_ORIGINS": "",
+    // TLS ends at the reverse proxy in front of the container.
+    "SELF_HOSTED": "1",
+    // All clients share one address behind the proxy: the per-address page limit would block everyone.
+    "RATE_LIMIT_PER_MIN": "0"
+  }
+}

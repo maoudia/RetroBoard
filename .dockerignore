@@ -1,0 +1,13 @@
+.git
+.github
+**/node_modules
+**/.nuxt
+**/.output
+.wrangler
+coverage
+reports
+playwright-report
+test-results
+.stryker-tmp
+tests
+quality

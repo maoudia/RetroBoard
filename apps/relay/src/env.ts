@@ -10,6 +10,8 @@ export interface Env {
   /** HTML navigations allowed per client and minute before the "too many requests" page. 0 disables. Default 300. */
   RATE_LIMIT_PER_MIN?: string
   ALLOWED_ORIGINS?: string
+  /** "1" in the container image: TLS ends at a reverse proxy, so plain HTTP is not redirected to HTTPS. */
+  SELF_HOSTED?: string
   /** Chrome origin trial tokens keyed by host (WebMCP). Public values, not secrets. */
   ORIGIN_TRIAL_TOKENS?: Record<string, string>
 }
