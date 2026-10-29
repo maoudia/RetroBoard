@@ -17,7 +17,7 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 - **Every user-facing string** goes through i18n with `fr` and `en` keys. No hard-coded text.
 - **Strict CSP**: no inline scripts or styles, no `eval`, no third-party origins. Constant `:style` bindings are fine (static hoisting is off).
 - **Board theme is imposed**; only light/dark variant is personal.
-- ASCII in code comments and docs. Conventional Commits.
+- ASCII in code comments and docs. **Conventional Commits are enforced** (`type(scope): subject`, hook and CI, also for PR titles): `feat` = minor, `fix`/`perf` = patch, `!` or `BREAKING CHANGE` = major. Versions, `CHANGELOG.md` and releases are automatic (ADR-0025): never edit them by hand.
 
 ## Architecture decisions (ADR)
 
@@ -49,6 +49,7 @@ pnpm generate      # static site + CSP hashes
 pnpm dev:worker    # http://localhost:8787 (site + relay)
 pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), about 7 minutes
 pnpm e2e           # the full suite, about 18 minutes (nightly on every browser)
+pnpm commits:check # Conventional Commits of the unpushed commits
 npx openspec list     # in-flight changes
 npx openspec show <change>
 ```
@@ -62,6 +63,7 @@ The repository is a pnpm workspace (apps/*, packages/*); `pnpm arch` checks the 
 - No CSP violation, no console error (`tests/e2e` has a guard test).
 - `pnpm verify` green; e2e green for touched flows.
 - Docs updated when behaviour or commands change.
+- Commit messages pass `pnpm commits:check`. Release only through the automatic workflow, which waits for a green main.
 
 ## Things agents must not do
 

@@ -48,6 +48,32 @@ jobs:
           path: coverage
           retention-days: 7
 
+  commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Commits of the push
+        if: github.event_name == 'push'
+        env:
+          RANGE: ${{ github.event.before }}..${{ github.sha }}
+        run: node scripts/commits/check.mjs --range "$RANGE"
+      - name: Commits and title of the pull request
+        if: github.event_name == 'pull_request'
+        env:
+          RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node scripts/commits/check.mjs --range "$RANGE"
+          node scripts/commits/check.mjs --title "$TITLE"
+
   build:
     name: Static build, bundle budget, Worker dry run
     runs-on: ubuntu-latest

@@ -21,7 +21,7 @@
     "e2e:core": "node scripts/e2e-core.mjs",
     "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm knip && pnpm adr:check && pnpm test && openspec validate --all --strict",
     "spec": "openspec",
-    "postinstall": "pnpm --filter @retroboard/web prepare",
+    "postinstall": "pnpm --filter @retroboard/web prepare && node scripts/commits/install-hooks.mjs",
     "arch": "depcruise packages apps/relay/src --config .dependency-cruiser.cjs",
     "knip": "knip",
     "test:coverage": "vitest run --coverage",
@@ -31,7 +31,8 @@
     "load:relay": "node scripts/load/relay-load.mjs",
     "adr:new": "node scripts/adr/new.mjs",
     "adr:index": "node scripts/adr/index.mjs",
-    "adr:check": "node scripts/adr/check.mjs && markdownlint-cli2 \"docs/adr/*.md\""
+    "adr:check": "node scripts/adr/check.mjs && markdownlint-cli2 \"docs/adr/*.md\"",
+    "commits:check": "node scripts/commits/check.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

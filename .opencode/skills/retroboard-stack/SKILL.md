@@ -80,6 +80,13 @@ Also check:
 - Reduced motion respected for any animation.
 - Free-plan budget note in the proposal if relay traffic changes.
 
+## 5b. Commits and releases (ADR-0025)
+
+- Every commit message is a Conventional Commit: `type(scope): subject`, types `feat fix perf refactor docs test build ci chore revert style`, header up to 120 characters, no final period. The `commit-msg` hook (`.githooks`, installed by `pnpm install`) and CI refuse anything else. Check with `pnpm commits:check`.
+- The type decides the SemVer bump: `feat` minor, `fix` and `perf` patch, `!` after the type or a `BREAKING CHANGE:` footer major. Pick the type for the user-visible effect, not the file touched.
+- Never edit `package.json` version, `CHANGELOG.md` or `.release-please-manifest.json`, never tag by hand. The Release workflow merges the release PR, tags, publishes the GitHub Release and the `ghcr.io/maoudia/retroboard` image once `Checks` and `Quality` are green on main.
+- PR titles use the same format (squash merge uses the title).
+
 ## 6. Pitfalls already met in this repo
 
 - Vue static hoisting turned constant `:style` into `style="..."` attributes blocked by CSP: keep `vue.compilerOptions.hoistStatic: false`.
