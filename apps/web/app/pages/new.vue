@@ -25,7 +25,7 @@ const agendaEdited = ref(false)
 function onAgenda(next: AgendaDraft) { agenda.value = next; agendaEdited.value = true }
 function onMinutes(minutes: number) {
   if (agendaEdited.value) return
-  const preset = [30, 45, 60, 90].find((n) => n >= minutes) ?? 90
+  const preset = ([30, 45, 60, 90] as const).find((n) => n >= minutes) ?? 90
   agenda.value = { ...agenda.value, phases: presetPhases(preset) }
 }
 function create({ passcode, ...form }: SetupResult) {

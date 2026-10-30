@@ -35,13 +35,12 @@ test.describe('time-boxed agenda', () => {
     const token = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ring-1').trim())
     expect(token).toMatch(/^#[0-9a-f]{6}$/i)
     expect(stroke).not.toBe('none')
-    // Large rings in the panel, and bigger toolbar rings in presenter mode.
+    // Large rings in the panel; the toolbar rings do not change in presenter mode.
     await panel(page, async () => { await expect(page.getByTestId('agenda-panel').getByTestId('activity-rings')).toHaveAttribute('width', '96') })
     const small = (await rings.first().boundingBox())!.width
     await page.getByTestId('btn-presenter').click()
-    // Presenter mode sets the toolbar rings to 96 px; on a wide screen (tv) they are already 96 px.
-    await expect.poll(async () => (await rings.first().boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(small, 96))
-    await expect.poll(async () => Math.round((await rings.first().boundingBox())!.width)).toBe(96)
+    // Presenter mode zooms the columns, never the toolbar: the rings keep their size.
+    await expect.poll(async () => Math.round((await rings.first().boundingBox())!.width)).toBe(Math.round(small))
     await page.keyboard.press('Escape')
     // The text alternative says where the team is.
     await expect(page.getByTestId('agenda-ring')).toContainText(/%/)

@@ -122,9 +122,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 </style>
 
 <style>
-/* Presenter mode and TV: the toolbar rings grow so they read from the back of the room. */
-:root[data-presenter] .ring .rings { width: 96px; height: 96px; }
-:root[data-presenter] .ring .txt strong { font-size: 1.8rem; }
+/* TV screens: the toolbar rings grow. Presenter mode zooms the columns only, never the toolbar (#228). */
 @media (min-width: 2200px) { .ring .rings { width: 96px; height: 96px; } }
 .panel .big { display: grid; justify-items: center; }
 </style>

@@ -56,7 +56,7 @@ onMounted(() => {
         <div class="right">
           <LocaleSwitch />
           <ProfileButton />
-          <NuxtLink to="/new" class="cta sm" data-testid="nav-create">{{ t('landing.nav.create') }}</NuxtLink>
+          <NuxtLink to="/new" class="cta sm" :aria-label="t('landing.nav.createLabel')" data-testid="nav-create">{{ t('landing.nav.create') }}</NuxtLink>
         </div>
       </div>
     </header>
@@ -179,7 +179,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .right { display: flex; align-items: center; gap: .8rem; }
 .cta { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .85rem 1.6rem; border-radius: 999px; background: var(--blue); color: #fff; font-size: 1.05rem; font-weight: 600; text-decoration: none; transition: background .2s, transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; box-shadow: 0 10px 24px -10px rgb(0 113 227 / .6); }
 .cta:hover { background: var(--blue-d); transform: translateY(-2px) scale(1.02); } .cta:active { transform: scale(.98); }
-.cta.sm { padding: .45rem 1rem; font-size: .88rem; box-shadow: none; } .cta.big { padding: 1rem 2rem; font-size: 1.15rem; }
+.cta.sm { padding: .45rem 1rem; font-size: .88rem; box-shadow: none; white-space: nowrap; flex: none; } .cta.big { padding: 1rem 2rem; font-size: 1.15rem; }
 .ghost { padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: background .2s; }
 .ghost:hover { background: rgb(0 113 227 / .08); }
 
