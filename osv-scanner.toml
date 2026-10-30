@@ -9,3 +9,8 @@ reason = "node-forge is only used by listhen (Nuxt dev server HTTPS). Not shippe
 id = "GHSA-vjh5-4x84-xrqp"
 ignoreUntil = 2026-12-31
 reason = "CVE-2026-114132, Nuxt server-side route rules skipped for case-variant paths. RetroBoard is a static export (nuxt generate, Nitro static preset): no Nuxt server and no route rules at runtime; headers come from the Worker. No fixed release yet (latest 4.6.2, checked 2026-10-24). Upgrade as soon as one ships."
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2027-01-31
+reason = "CVE-2026-93753, deepmerge mergeObject() prototype poisoning. deepmerge 4.3.1 comes in through nitropack > @rollup/plugin-node-resolve, build time only (nuxt generate); nothing of it ships in the static site or the Worker, and it merges our own config, not user input. No fixed release exists (4.3.1 is the latest, checked 2026-10-30)."

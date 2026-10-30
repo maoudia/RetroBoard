@@ -15,3 +15,5 @@ overrides:
   'qs@<6.16.0': ^6.16.0
   # GHSA-238p-pmpm-9mq7 (low), via markdownlint > micromark-extension-math; markdownlint only parses math.
   'katex@<0.18.2': ^0.18.2
+  # GHSA-gg6h-894w-4m9c (quadratic-time DoS), via markdownlint, dev only. 2.9.1 is the latest release (patched version a verifier in the OSV run).
+  're2js@<2.9.1': ^2.9.1
