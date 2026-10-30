@@ -85,6 +85,8 @@ const PLAN = {
   'automated-semver-release': ['P8', 'C', []],
   'clusters-v2': ['P8', 'A', []],
   'board-type-migration': ['P8', 'B', []],
+  'allure-report-aggregation': ['P8', 'C', []],
+  'self-rename-event': ['P8', 'A', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
@@ -109,7 +111,7 @@ const ROADMAP = {
   'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2', 'profile-avatars-and-team-space': 'R2',
   'export-hub': 'R2', 'retro-report': 'R2',
   'composer-and-colour-v3': 'R2', 'facilitator-controls-v2': 'R2', 'board-activity-feed': 'R2', 'design-system-components': 'R2',
-  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'automated-semver-release': 'R1', 'clusters-v2': 'R2', 'board-type-migration': 'R2',
+  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'automated-semver-release': 'R1', 'clusters-v2': 'R2', 'board-type-migration': 'R2', 'allure-report-aggregation': 'R2', 'self-rename-event': 'R1',
   // Onboarding is the first thing users see (owner, 2026-10-29): smart default creation moves to R2.
   'board-creation-v2': 'R2',
   'column-tools': 'R3', 'note-freeze': 'R3', 'talk-time-v2': 'R3', 'keyboard-shortcuts-v2': 'R3', 'agents-first-class': 'R3',
@@ -133,7 +135,7 @@ const PRIORITY = {
   'postit-visual-system': 2, 'responsive-and-i18n-hardening': 2, 'profile-avatars-and-team-space': 2, 'activity-rings-timer': 2,
   'voting-results-charts': 2, 'cluster-reveal-motion': 2, 'column-tools': 2,
   'clusters-v2': 2, 'board-type-migration': 2,
-  'quality-gates-v2': 3, 'automated-semver-release': 3, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
+  'quality-gates-v2': 3, 'automated-semver-release': 3, 'allure-report-aggregation': 3, 'self-rename-event': 1, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
 }
 const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]
 // A change with every task ticked needs no priority (its issues only wait to be closed).
