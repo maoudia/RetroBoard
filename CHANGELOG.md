@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/maoudia/RetroBoard/compare/v1.4.0...v1.5.0) (2026-10-30)
+
+
+### Features
+
+* **templates:** change the board format and keep the notes, with a preview of where they land ([3993a2d](https://github.com/maoudia/RetroBoard/commit/3993a2d3c4c01aa0a4b8868c3b33aaab58aa2fef))
+
 ## [1.4.0](https://github.com/maoudia/RetroBoard/compare/v1.3.1...v1.4.0) (2026-10-30)
 
 
