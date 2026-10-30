@@ -7,5 +7,5 @@
 
 ## 2. Better titles
 
-- [ ] 2.1 Golden corpus (at least 20 clusters, fr and en) and the new suggestion rules (phrases, plural folding, 4-letter content words, word-boundary cut); verify the corpus test and that no suggestion is two unrelated words
-- [ ] 2.2 Default title from the shortest idea cut on a word boundary (read model only, no stored title); spec delta; verify unit tests and the cluster e2e
+- [x] 2.1 Golden corpus (at least 20 clusters, fr and en) and the new suggestion rules (phrases, plural folding, 4-letter content words, word-boundary cut); verify the corpus test and that no suggestion is two unrelated words
+- [x] 2.2 Default title from the shortest idea cut on a word boundary (read model only, no stored title); spec delta; verify unit tests and the cluster e2e

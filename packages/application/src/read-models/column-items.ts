@@ -1,4 +1,5 @@
 import type { Snapshot, SnapshotGroup, SnapshotNote } from '@retroboard/domain'
+import { cutOnWord } from '../clusters/title-suggestions'
 
 export type ColumnItem =
   | { kind: 'note'; key: string; note: SnapshotNote; votes: number }
@@ -6,8 +7,13 @@ export type ColumnItem =
 
 export type SortMode = 'time' | 'votes'
 
-/** First note's text, used when a group has no title yet (same behaviour as RetroTool). */
-export const groupTitle = (g: Pick<SnapshotGroup, 'title'>, notes: SnapshotNote[]): string => g.title ?? notes[0]?.text ?? ''
+const DEFAULT_TITLE_MAX = 40
+/** Named title, else the shortest idea cut to 40 characters on a word boundary (read model only, nothing stored). */
+export const groupTitle = (g: Pick<SnapshotGroup, 'title'>, notes: SnapshotNote[]): string => {
+  if (g.title) return g.title
+  const shortest = notes.map((n) => n.text.trim()).filter(Boolean).sort((a, b) => a.length - b.length)[0]
+  return shortest ? cutOnWord(shortest, DEFAULT_TITLE_MAX) : ''
+}
 
 /**
  * Turns a snapshot into what a column renders: loose notes and stacks.

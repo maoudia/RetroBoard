@@ -9,7 +9,7 @@ A participant SHALL be able to move a whole cluster to another column by drag an
 
 #### Scenario: Keyboard alternative
 - **WHEN** a keyboard user opens the cluster menu and chooses "Move to column..." then "To improve"
-- **THEN** the cluster moves as with drag and drop and focus stays on the cluster
+- **THEN** the cluster moves as with drag and drop and the cluster panel closes
 
 #### Scenario: Locked board
 - **WHEN** the board is locked
@@ -25,5 +25,9 @@ A cluster SHALL have a title that defaults to its shortest idea cut on a word bo
 - **THEN** the cluster is titled "Slow CI" until someone renames it
 
 #### Scenario: Shared phrase first
-- **WHEN** a cluster holds "Slow CI pipeline", "The CI pipeline fails on Fridays" and "Flaky tests"
-- **THEN** the first suggestion is "CI pipeline"
+- **WHEN** a cluster holds "Slow pipeline", "The pipeline is slow on Fridays" and "Flaky tests"
+- **THEN** the first suggestion is "Slow pipeline"
+
+#### Scenario: Content words only
+- **WHEN** a cluster holds "bug in CI" and "CI bug"
+- **THEN** only the shortest idea "CI bug" is suggested (words shorter than 4 letters are never suggested alone), and "test" and "tests" count as the same word elsewhere

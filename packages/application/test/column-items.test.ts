@@ -29,8 +29,13 @@ describe('column items read model', () => {
     expect(items.map((i) => i.votes)).toEqual([0, 0])
   })
 
-  it('uses the group title, else the first note text', () => {
+  it('uses the group title, else the shortest idea cut to 40 characters on a word boundary', () => {
     expect(groupTitle({ title: 'Named' }, [])).toBe('Named')
     expect(groupTitle({ title: null }, [])).toBe('')
+    const long = { ...note('l', 0, { groupId: 'g' }), text: 'Les deploiements du vendredi soir bloquent toute la release suivante' }
+    const short = { ...note('s', 0, { groupId: 'g' }), text: 'Deploiements du vendredi' }
+    expect(groupTitle({ title: null }, [long, short])).toBe('Deploiements du vendredi')
+    expect(groupTitle({ title: null }, [long])).toBe('Les deploiements du vendredi soir')
+    expect(groupTitle({ title: null }, [{ ...long, text: '   ' }])).toBe('')
   })
 })
