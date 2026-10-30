@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.0](https://github.com/maoudia/RetroBoard/compare/v1.2.0...v1.3.0) (2026-10-30)
+
+
+### Features
+
+* **report:** ROTI vote (1 to 5) and its distribution in the report ([c1ef1c0](https://github.com/maoudia/RetroBoard/commit/c1ef1c0866c3f06ad343b5d85e9c61c3c725b685))
+* **web:** hover peek into a cluster (300 ms, pointer devices only) ([7811488](https://github.com/maoudia/RetroBoard/commit/78114886ae218a1b05e8a0846da27faf180ec7e7))
+* **web:** spring open and close for clusters (FLIP, reduced-motion safe) ([6a855bf](https://github.com/maoudia/RetroBoard/commit/6a855bfb6708b39df4dafdddfbc4d39b12636d65))
+
+
+### Bug Fixes
+
+* **web:** avatar stays round, presenter mode zooms columns only, one-word landing call to action ([4f53cda](https://github.com/maoudia/RetroBoard/commit/4f53cdab2ba3706ce1733e6a249cc9a530595b2e))
+* **web:** drafts come back when the board refuses their publication ([cf5af9f](https://github.com/maoudia/RetroBoard/commit/cf5af9f2bc1aaf565a2c13b62d6abb90247a9b20))
+* **web:** no vote buttons and a disabled Close voting outside the vote phase ([329d8ea](https://github.com/maoudia/RetroBoard/commit/329d8eaaca30df8b7fbab1386ccc77b19c8262f9))
+* **web:** scroll padding follows the real toolbar height, budget 270 kB, browser-aware e2e checks ([c267548](https://github.com/maoudia/RetroBoard/commit/c2675486e3c14261f27a02d763e1790d73ee58f3))
+* **web:** the time available at board creation picks the agenda preset ([d48b3ed](https://github.com/maoudia/RetroBoard/commit/d48b3ed0d39711ceef3a8027960a5e3a5c0b8951))
+
 ## [1.2.0](https://github.com/maoudia/RetroBoard/compare/v1.1.0...v1.2.0) (2026-10-25)
 
 
