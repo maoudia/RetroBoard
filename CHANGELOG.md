@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/maoudia/RetroBoard/compare/v1.6.0...v1.6.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **web:** phone toolbar and vote bar fit 360 px, readable disabled buttons, no spurious takeover toast ([d86f0fc](https://github.com/maoudia/RetroBoard/commit/d86f0fcce8203f37fc202d37da8a7576a6042e11))
+
 ## [1.6.0](https://github.com/maoudia/RetroBoard/compare/v1.5.0...v1.6.0) (2026-10-30)
 
 
