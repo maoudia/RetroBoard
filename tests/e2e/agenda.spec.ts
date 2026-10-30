@@ -108,6 +108,19 @@ test.describe('time-boxed agenda', () => {
     })
   })
 
+  test('creation: the time available picks the agenda preset until the agenda is edited by hand (#224)', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('tp-time-45').click()
+    await expect(page.getByTestId('agenda-total')).toContainText('45')
+    await page.getByTestId('tp-time-15').click()
+    await expect(page.getByTestId('agenda-total')).toContainText('30') // the shortest preset
+    await page.getByTestId('agenda-minutes-2').fill('10')
+    await page.getByTestId('agenda-minutes-2').blur()
+    await page.getByTestId('tp-time-60').click()
+    await expect(page.getByTestId('agenda-total')).not.toContainText(/^60$/)
+    await expect(page.getByTestId('agenda-minutes-2')).toHaveValue('10') // the manual edit is kept
+  })
+
   test('creation: presets, durations and turning the agenda off', async ({ page }) => {
     await page.goto('/new')
     await page.getByTestId('agenda-preset-30').click()

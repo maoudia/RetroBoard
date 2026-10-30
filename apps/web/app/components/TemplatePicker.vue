@@ -4,7 +4,7 @@ import { GOAL_DEFS, MOOD_VALUES, goalHint, goalLabel, moodLabel, reasonLabel } f
 const { t } = useT()
 
 const props = defineProps<{ modelValue: string | null; themeId?: string }>()
-const emit = defineEmits<{ 'update:modelValue': [id: string] }>()
+const emit = defineEmits<{ 'update:modelValue': [id: string]; 'update:minutes': [minutes: number] }>()
 
 const tab = ref<'suggest' | 'all'>('suggest')
 const goal = ref<Goal>('fix')
@@ -46,7 +46,7 @@ const reasonText = (list: Reason[]) => list.map((x) => reasonLabel(x))
         <fieldset>
           <legend>{{ t('tp.time') }}</legend>
           <div class="seg">
-            <button v-for="tm in TIMES" :key="tm" type="button" :class="{ on: minutes === tm }" :aria-pressed="minutes === tm" @click="minutes = tm">{{ t('timer.minutes', { n: tm }) }}</button>
+            <button v-for="tm in TIMES" :key="tm" type="button" :class="{ on: minutes === tm }" :aria-pressed="minutes === tm" :data-testid="`tp-time-${tm}`" @click="minutes = tm; emit('update:minutes', tm)">{{ t('timer.minutes', { n: tm }) }}</button>
           </div>
         </fieldset>
       </div>

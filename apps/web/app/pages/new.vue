@@ -20,6 +20,14 @@ onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(
 const carry = ref<ImportedAction[]>([])
 /** Default: the one-hour agenda (spec: 8 phases, 60 minutes) unless the facilitator edits it. */
 const agenda = ref<AgendaDraft>({ enabled: true, phases: presetPhases(60), rules: true, autoPublish: true })
+/** The time available in the format picker picks the closest agenda preset, until the agenda is edited by hand (#224). */
+const agendaEdited = ref(false)
+function onAgenda(next: AgendaDraft) { agenda.value = next; agendaEdited.value = true }
+function onMinutes(minutes: number) {
+  if (agendaEdited.value) return
+  const preset = [30, 45, 60, 90].find((n) => n >= minutes) ?? 90
+  agenda.value = { ...agenda.value, phases: presetPhases(preset) }
+}
 function create({ passcode, ...form }: SetupResult) {
   const a = agenda.value
   const setup: SetupResult = {
@@ -53,10 +61,10 @@ function solo() {
       <h1 data-testid="new-title">{{ t('new.title') }}</h1>
       <p class="lede">{{ themeText(theme.theme).hero }}</p>
       <section class="card panel">
-        <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @submit="create" />
+        <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
       <section class="card panel">
-        <AgendaEditor v-model="agenda" />
+        <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
       </section>
       <section class="card panel">
         <CarryOverPicker v-model="carry" />

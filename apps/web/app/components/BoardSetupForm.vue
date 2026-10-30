@@ -6,7 +6,7 @@ export interface SetupResult { templateId: string; themeId: string; title: strin
 const { t, locale } = useT()
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
 const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean }>()
-const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult] }>()
+const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult]; 'update:minutes': [minutes: number] }>()
 
 const d = new Date()
 const title = ref(t('setup.defaultTitle', { date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }))
@@ -39,7 +39,7 @@ watch(() => agent.setupDraft, (draft) => {
 
     <section class="block">
       <h3><span class="n">2</span> {{ t('setup.step2') }}</h3>
-      <TemplatePicker v-model="templateId" :theme-id="themeId" />
+      <TemplatePicker v-model="templateId" :theme-id="themeId" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
     <fieldset class="fac" data-testid="setup-facilitation">
