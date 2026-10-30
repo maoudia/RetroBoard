@@ -28,10 +28,25 @@ export function usePublish() {
         return sent
       }
       drafts.removeMany(slice.map((d) => d.id))
+      keepIfRefused(slice)
       items.push(...slice.map((d) => ({ columnId: d.columnId, text: d.text, color: d.color })))
     }
     push(t('publish.done', { n: items.length }), 'ok', UNDO_WINDOW_MS, { label: t('publish.undo'), testid: 'undo-publish', run: () => undo(items, since) })
     return { ok: true }
+  }
+
+  /**
+   * The board may refuse a publication after it left this tab (the phase moved on, the board got locked).
+   * Drafts are private work: when a refusal for those reasons arrives right after sending, they come back.
+   */
+  function keepIfRefused(slice: { columnId: string; text: string; color: number }[]) {
+    const sentAt = Date.now()
+    const stop = watch(() => board.lastError, (e) => {
+      if (!e || e.at < sentAt || (e.code !== 'phase' && e.code !== 'locked')) return
+      stop()
+      drafts.restore(slice.map((d) => ({ columnId: d.columnId, text: d.text, color: d.color })))
+    })
+    setTimeout(stop, 3000)
   }
 
   /** Takes a publication back: the notes leave the board for everyone and return to my drafts. */
