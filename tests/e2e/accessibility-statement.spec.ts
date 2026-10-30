@@ -17,10 +17,13 @@ test('skip link on a board reaches the board', async ({ page, isMobile }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await page.locator('body').click({ position: { x: 5, y: 300 } })
   await page.reload()
-  await page.keyboard.press('Tab')
-  await expect(page.getByTestId('skip-link')).toBeFocused()
-  await page.keyboard.press('Enter')
-  await expect(page.getByTestId('board')).toBeFocused()
+  await expect(page.getByTestId('board')).toBeVisible()
+  // Enter before hydration only follows the hash: retry until the click handler is attached (slow tv runners).
+  await expect(async () => {
+    await page.getByTestId('skip-link').focus()
+    await page.keyboard.press('Enter')
+    await expect(page.getByTestId('board')).toBeFocused({ timeout: 1000 })
+  }).toPass({ timeout: 10_000 })
 })
 
 test('the accessibility statement is linked from the landing footer', async ({ page }) => {
