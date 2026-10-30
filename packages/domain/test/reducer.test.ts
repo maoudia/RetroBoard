@@ -182,6 +182,41 @@ describe('templates and init', () => {
     expect(h.state.settings.templateId).toBe('weather')
   })
 
+  it('template.apply migrate keeps notes, clusters and votes and collapses extra columns into the last one', () => {
+    const h = harness()
+    const before = h.state.columns.map((c) => c.id)
+    expect(before.length).toBeGreaterThanOrEqual(3)
+    const lastOld = before.length - 1
+    h.run({ t: 'note.add', columnId: before[0]!, text: 'first' })
+    h.run({ t: 'note.add', columnId: before[lastOld]!, text: 'last a' })
+    h.run({ t: 'note.add', columnId: before[lastOld]!, text: 'last b' })
+    const [first, a, b] = ['first', 'last a', 'last b'].map((t) => Object.values(h.state.notes).find((n) => n.text === t)!.id) as [string, string, string]
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    const g = h.state.notes[a]!.groupId!
+    h.run({ t: 'vote.add', kind: 'note', id: first })
+    h.run({ t: 'vote.add', kind: 'cluster', id: g })
+    const tplId = ['weather', 'daki', 'start-stop-continue'].find((id) => id !== h.state.settings.templateId)!
+    const out = h.run({ t: 'template.apply', templateId: tplId, mode: 'migrate' })
+    expect(out.ok).toBe(true)
+    const cols = h.state.columns.map((c) => c.id)
+    expect(Object.keys(h.state.notes).sort()).toEqual([first, a, b].sort())
+    // Same ids by position; anything beyond the new column count lands in the last new column.
+    expect(h.state.notes[first]!.columnId).toBe(cols[0])
+    expect(h.state.notes[a]!.columnId).toBe(cols[Math.min(lastOld, cols.length - 1)])
+    expect(h.state.notes[a]!.groupId).toBe(g)
+    expect(h.state.groups[g]!.columnId).toBe(h.state.notes[a]!.columnId)
+    expect(h.state.groups[g]!.voters).toHaveLength(1)
+    expect(h.state.notes[first]!.voters).toHaveLength(1)
+    expect(h.state.settings.templateId).toBe(tplId)
+    expect(out.ok && out.dirty.wipe).toBe(false)
+  })
+
+  it('template.apply migrate on an empty board just applies the format; unknown template is refused', () => {
+    const h = harness()
+    expect(h.run({ t: 'template.apply', templateId: 'weather', mode: 'migrate' }).ok).toBe(true)
+    expect(h.run({ t: 'template.apply', templateId: 'nope', mode: 'migrate' })).toEqual({ ok: false, error: 'not-found' })
+  })
+
   it('unknown template is rejected', () => {
     expect(harness().run({ t: 'template.apply', templateId: 'nope' })).toEqual({ ok: false, error: 'not-found' })
   })

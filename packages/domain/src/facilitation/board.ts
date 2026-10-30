@@ -17,6 +17,16 @@ export function columnsFromTemplate(template: RetroTemplate, newId: () => string
   }))
 }
 
+/**
+ * Column mapping of a format change that keeps the notes: old column i goes to new column i;
+ * when the new format has fewer columns the extra old columns go to the last new column.
+ * Pure and deterministic, so every peer reaches the same state.
+ */
+export function mapColumns(oldIds: readonly string[], newIds: readonly string[]): Record<string, string> {
+  const last = newIds.length - 1
+  return Object.fromEntries(oldIds.map((id, i) => [id, newIds[Math.min(i, last)]!]))
+}
+
 export function createBoard(ctx: Pick<ReduceContext, 'newId'>): BoardState {
   const template = getTemplate(DEFAULT_TEMPLATE_ID)!
   return {

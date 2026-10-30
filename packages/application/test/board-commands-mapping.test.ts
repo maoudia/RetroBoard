@@ -46,6 +46,7 @@ describe('every use case sends the matching protocol command', () => {
     ['moveColumn', (c) => c.moveColumn('c1', 1), { t: 'column.move', id: 'c1', toIndex: 1 }],
     ['initBoard', (c) => c.initBoard({ templateId: 'daki', themeId: 'studio', title: 'T', locale: 'en' }), { t: 'board.init', openFacilitation: true, templateId: 'daki', themeId: 'studio', title: 'T', locale: 'en' }],
     ['applyTemplate', (c) => c.applyTemplate('daki', 'fr'), { t: 'template.apply', templateId: 'daki', wipe: true, locale: 'fr' }],
+    ['applyTemplate migrate', (c) => c.applyTemplate('daki', 'fr', 'migrate'), { t: 'template.apply', templateId: 'daki', mode: 'migrate', locale: 'fr' }],
     ['updateSettings', (c) => c.updateSettings({ voteLimit: 5 }), { t: 'settings.update', voteLimit: 5 }],
     ['resetBoard', (c) => c.resetBoard(), { t: 'board.reset' }],
     ['addAction', (c) => c.addAction('Fix', 'Bob'), { t: 'action.add', text: 'Fix', owner: 'Bob' }],

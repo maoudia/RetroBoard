@@ -91,7 +91,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     moveColumn: (id: string, toIndex: number) => send({ t: 'column.move', id, toIndex }),
 
     initBoard: (c: Omit<Extract<Command, { t: 'board.init' }>, 't'>) => send({ t: 'board.init', openFacilitation: true, ...c }), // "Everyone facilitates" unless the setup says otherwise
-    applyTemplate: (templateId: string, locale?: 'fr' | 'en') => send({ t: 'template.apply', templateId, wipe: true, locale }),
+    // `wipe: true` stays for peers that predate `mode`; migrate is refused by them (not-empty), never destructive.
+    applyTemplate: (templateId: string, locale?: 'fr' | 'en', mode: 'wipe' | 'migrate' = 'wipe') => send(mode === 'wipe' ? { t: 'template.apply', templateId, wipe: true, locale } : { t: 'template.apply', templateId, mode, locale }),
     updateSettings: (patch: SettingsPatch) => send({ t: 'settings.update', ...patch }),
     resetBoard: () => send({ t: 'board.reset' }),
     destroyBoard: () => send({ t: 'board.destroy' }),

@@ -636,6 +636,11 @@ export const en: Record<keyof typeof fr, string> = {
   'template.confirm.title': 'Replace the columns?',
   'template.confirm.msg': 'The columns change and the board notes are deleted for the whole team. Actions are kept.',
   'template.confirm.ok': 'Replace and clear',
+  'template.choice.title': 'Change the board format',
+  'template.choice.msg': 'Keep every note and file it in the new columns, or replace everything and clear the board for the whole team.',
+  'template.choice.mapping': 'Where the notes go',
+  'template.choice.empty': 'New empty column',
+  'template.choice.migrate': 'Change and keep notes',
 
   'column.options': 'Column options',
   'column.rename': 'Rename / icon',

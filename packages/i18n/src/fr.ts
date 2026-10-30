@@ -635,6 +635,11 @@ export const fr = {
   'template.confirm.title': 'Remplacer les colonnes ?',
   'template.confirm.msg': 'Les colonnes changent et les post-its du board sont supprimés pour toute l\'équipe. Les actions sont conservées.',
   'template.confirm.ok': 'Remplacer et vider',
+  'template.choice.title': 'Changer le format du board',
+  'template.choice.msg': 'Garde tous les post-its en les rangeant dans les nouvelles colonnes, ou remplace tout et vide le board pour toute l\'équipe.',
+  'template.choice.mapping': 'Où vont les post-its',
+  'template.choice.empty': 'Nouvelle colonne vide',
+  'template.choice.migrate': 'Changer et garder les post-its',
 
   'column.options': 'Options de la colonne',
   'column.rename': 'Renommer / icône',

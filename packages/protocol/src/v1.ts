@@ -52,7 +52,7 @@ export const CommandSchema = v.variant('t', [
     locale: v.optional(v.picklist(['fr', 'en'])),
     openFacilitation: v.optional(v.boolean()),
   }),
-  v.object({ t: v.literal('template.apply'), templateId: v.pipe(v.string(), v.maxLength(40)), wipe: v.optional(v.boolean()), locale: v.optional(v.picklist(['fr', 'en'])) }),
+  v.object({ t: v.literal('template.apply'), templateId: v.pipe(v.string(), v.maxLength(40)), wipe: v.optional(v.boolean()), mode: v.optional(v.picklist(['wipe', 'migrate'])), locale: v.optional(v.picklist(['fr', 'en'])) }),
   v.object({
     t: v.literal('settings.update'),
     title: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.boardTitle))),

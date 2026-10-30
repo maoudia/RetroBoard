@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { collectProblems, column, createBoard, join, noteByText, publishNote } from './helpers'
 
@@ -173,6 +174,34 @@ test.describe('retro suggestions', () => {
     await page.getByTestId('confirm').click()
     await expect(page.getByTestId('column-title')).toHaveText(['Vent', 'Ancres', 'Rochers', 'Île'])
     await expect(noteByText(page, 'Sera effacé')).toHaveCount(0)
+  })
+
+  test('changing the format can keep the notes: the 4th column lands in the 3rd, everyone sees it (#242)', async ({ page, browser }) => {
+    await createBoard(page, { template: 'sailboat' })
+    if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
+    const url = await page.getByTestId('share-url').inputValue()
+    await page.keyboard.press('Escape')
+    const bob = await join(browser, url, 'Bob')
+    await publishNote(page, 0, 'Reste premier')
+    await publishNote(page, 2, 'Troisieme')
+    await publishNote(page, 3, 'Quatrieme')
+    await page.getByTestId('btn-options').click()
+    await page.getByTestId('opt-template').click()
+    await page.getByTestId('tab-all').click()
+    await page.getByTestId('template-start-stop-continue').click()
+    await page.getByTestId('template-apply').click()
+    const preview = page.getByTestId('template-mapping')
+    await expect(preview).toContainText('Rochers + Île')
+    const axe = await new AxeBuilder({ page }).include('[data-testid="template-mapping"]').analyze()
+    expect(axe.violations).toEqual([])
+    await page.getByTestId('template-migrate').click()
+    for (const p of [page, bob.page]) {
+      await expect(p.getByTestId('column-title')).toHaveText(['Start', 'Stop', 'Continue'])
+      await expect(column(p, 0)).toContainText('Reste premier')
+      await expect(column(p, 2)).toContainText('Troisieme')
+      await expect(column(p, 2)).toContainText('Quatrieme')
+    }
+    await bob.ctx.close()
   })
 })
 

@@ -1,8 +1,8 @@
 import { agendaRunning, closePhase, extendPhase, MIN, newAgenda } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
-import { done, fail, type HandlerMap, noteCount } from '../shared/outcome'
-import { columnsFromTemplate } from './board'
+import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
+import { columnsFromTemplate, mapColumns } from './board'
 import { emptyTalk } from './talk'
 
 type FacilitationCommand = 'drafts.reveal' | 'board.init' | 'template.apply' | 'settings.update'
@@ -25,7 +25,29 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   'template.apply': (s, c, _a, ctx) => {
     const tpl = getTemplate(c.templateId)
     if (!tpl) return fail('not-found')
-    if (noteCount(s) > 0 && !c.wipe) return fail('not-empty')
+    const mode = c.mode ?? (c.wipe ? 'wipe' : null)
+    if (noteCount(s) > 0 && !mode) return fail('not-empty')
+    if (mode === 'migrate' && noteCount(s) > 0) {
+      // New columns reuse the ids of the old ones by position (drafts and links stay valid); extra old columns collapse into the last.
+      const fresh = columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId).map((col, i) => ({ ...col, id: s.columns[i]?.id ?? col.id }))
+      const map = mapColumns(s.columns.map((x) => x.id), fresh.map((x) => x.id))
+      const notes = { ...s.notes }
+      const groups = { ...s.groups }
+      const dirty = clean()
+      for (const n of Object.values(s.notes)) {
+        const to = map[n.columnId] ?? fresh[fresh.length - 1]!.id
+        if (to === n.columnId) continue
+        notes[n.id] = { ...n, columnId: to }
+        dirty.notes.push(n.id)
+      }
+      for (const g of Object.values(s.groups)) {
+        const to = map[g.columnId] ?? fresh[fresh.length - 1]!.id
+        if (to === g.columnId) continue
+        groups[g.id] = { ...g, columnId: to }
+        dirty.groups.push(g.id)
+      }
+      return done({ ...s, columns: fresh, notes, groups, settings: { ...s.settings, templateId: tpl.id } }, { ...dirty, meta: true })
+    }
     return done({
       ...s,
       columns: columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId),
