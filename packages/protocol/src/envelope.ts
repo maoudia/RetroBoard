@@ -74,6 +74,7 @@ const EventBodySchema = v.variant('t', [
   v.strictObject({ t: v.literal('cmd'), cmd: CommandSchema, name: Name, showName: v.boolean() }),
   v.strictObject({ t: v.picklist(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide', 'participant.remove']), key: Key }),
   v.strictObject({ t: v.literal('participant.rename'), key: Key, name: v.pipe(v.string(), v.maxLength(LIMITS.displayName)) }),
+  v.strictObject({ t: v.literal('participant.self'), name: v.pipe(v.string(), v.maxLength(LIMITS.displayName)) }),
 ])
 
 /** Plaintext inside a `pub` envelope. */

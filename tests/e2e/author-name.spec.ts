@@ -72,3 +72,19 @@ test('a saved choice to stay anonymous is kept when the name is edited later', a
   await page.getByTestId('profile-name').blur()
   await expect(page.getByTestId('profile-show')).not.toBeChecked()
 })
+
+test('renaming the profile updates earlier signed notes for everyone; anonymous notes stay anonymous (#229)', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alex' })
+  const bob = await join(browser, await link(page), 'Bob')
+  await publishNote(page, 0, 'Signed idea')
+  await expect(noteByText(bob.page, 'Signed idea')).toContainText('Alex')
+
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('profile-name').fill('Alexandre')
+  await page.getByTestId('profile-name').blur()
+  await page.keyboard.press('Escape')
+
+  await expect(noteByText(bob.page, 'Signed idea')).toContainText('Alexandre')
+  await expect(noteByText(page, 'Signed idea')).toContainText('Alexandre')
+  await bob.ctx.close()
+})

@@ -156,6 +156,13 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   updateIdentity(identity: Identity): void {
+    // A renamed participant: the signed notes already on the board follow the new name (#229).
+    const before = this.identity
+    const nameOf = (i: Identity | null | undefined) => (i?.showName ? i.name.trim() : '')
+    if (before && this.known && !this.closed && nameOf(before) && nameOf(identity) && nameOf(before) !== nameOf(identity)) {
+      const name = nameOf(identity)
+      this.enqueue(() => this.publishLocal({ t: 'participant.self', name }))
+    }
     this.identity = identity
     this.enqueue(() => this.announce())
     this.emit()
@@ -789,7 +796,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
     const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey }
-    this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now(), ledger.names), access })
+    this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now(), { ...ledger.selfNames, ...ledger.names }), access })
   }
 
   private open(): void {

@@ -76,6 +76,9 @@ describe('board file and v2 payload details', () => {
     expect(signed({ t: 'participant.rename', key, name: 'Sam' })).not.toBeNull()
     expect(signed({ t: 'participant.rename', key, name: '' })).not.toBeNull()
     expect(signed({ t: 'participant.rename', key, name: 'x'.repeat(500) })).toBeNull()
+    expect(signed({ t: 'participant.self', name: 'Alex' })).not.toBeNull()
+    expect(signed({ t: 'participant.self', name: 'x'.repeat(500) })).toBeNull()
+    expect(signed({ t: 'participant.self', name: 'Alex', key })).toBeNull()
     expect(signed({ t: 'participant.rename', key })).toBeNull()
   })
 

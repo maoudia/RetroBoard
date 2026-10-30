@@ -190,6 +190,23 @@ describe('facilitation roles', () => {
     expect(l.names).toEqual({})
   })
 
+  it('a participant renames themselves (#229); a facilitator-set name wins; an empty name clears it', () => {
+    let l = started()
+    l = foldAll(l, [ev(ALICE, { t: 'participant.self', name: '  Alexandre  ' })])
+    expect(l.selfNames).toEqual({ [ALICE]: 'Alexandre' })
+    // Everyone may rename themselves, on any board, and only themselves (the author is the signing key).
+    expect(foldEvent(l, ev(BOB, { t: 'participant.self', name: 'Bobby' }))).toMatchObject({ ok: true })
+    l = foldAll(l, [ev(ALICE, { t: 'participant.self', name: 'Alex2' })])
+    expect(l.selfNames[ALICE]).toBe('Alex2')
+    l = foldAll(l, [ev(ALICE, { t: 'participant.self', name: '   ' })])
+    expect(l.selfNames).toEqual({})
+  })
+
+  it('a hidden participant cannot rename themselves', () => {
+    const l = foldAll(started(), [ev(FAC, { t: 'participant.hide', key: ALICE })])
+    expect(foldEvent(l, ev(ALICE, { t: 'participant.self', name: 'x' }))).toMatchObject({ ok: false, reason: 'hidden' })
+  })
+
   it('boards without a genesis (legacy) have no roles', () => {
     expect(roleOf(emptyLedger(roomId), ALICE)).toBe('facilitator')
   })
