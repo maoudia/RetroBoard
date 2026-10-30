@@ -103,3 +103,14 @@ test('three browsers, one without WebRTC, converge on the same board', async ({ 
   await bob.ctx.close()
   await carol.ctx.close()
 })
+
+test('history: back to the creation page and forward again reopens the board from this browser (#222)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Still here')
+  const board = page.url()
+  await page.goBack()
+  await expect(page).not.toHaveURL(board)
+  await page.goForward()
+  await expect(page.getByTestId('board-waiting')).toHaveCount(0)
+  await expect(noteByText(page, 'Still here')).toBeVisible()
+})
