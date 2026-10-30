@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/maoudia/RetroBoard/compare/v1.5.0...v1.6.0) (2026-10-30)
+
+
+### Features
+
+* **composer:** colour swatches, 160 character default, compact counter, help popover and signature toggles ([e43e1fb](https://github.com/maoudia/RetroBoard/commit/e43e1fb67f790acba3db92f9e8b96c7df1696822))
+* **voting:** segmented voting state control and go-to-closing ([e4c3fcf](https://github.com/maoudia/RetroBoard/commit/e4c3fcf4b56cbccac2dbe47ecd147c311f023170))
+
 ## [1.5.0](https://github.com/maoudia/RetroBoard/compare/v1.4.0...v1.5.0) (2026-10-30)
 
 
