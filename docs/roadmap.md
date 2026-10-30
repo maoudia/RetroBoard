@@ -54,6 +54,8 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 * `column-voting-scope` ([proposal](../openspec/changes/column-voting-scope/proposal.md))
 * `identity-conflicts` ([proposal](../openspec/changes/identity-conflicts/proposal.md))
 * `quality-gates-v2` ([proposal](../openspec/changes/quality-gates-v2/proposal.md))
+* `clusters-v2` ([proposal](../openspec/changes/clusters-v2/proposal.md))
+* `board-type-migration` ([proposal](../openspec/changes/board-type-migration/proposal.md))
 
 ## R3 Teams and themes (target 2026-12-20)
 

@@ -2,7 +2,8 @@
 
 ## 1. Decision
 
-- [ ] 1.1 ADR (MADR) on the design system, including the Hallmark evaluation; verify `pnpm adr:check`
+- [ ] 1.1 Spike: Dropdown and Dialog built with Nuxt UI v4, Reka UI alone and PrimeVue unstyled, measured on bundle size, CSP (no console violation in e2e), axe and theme switching; verify the measurements table in the ADR
+- [ ] 1.2 ADR (MADR) choosing the base library, including the Hallmark evaluation; verify `pnpm adr:check`
 
 ## 2. Primitives
 
