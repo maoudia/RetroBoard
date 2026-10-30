@@ -736,6 +736,7 @@ export const fr = {
   'note.colorN': 'Couleur {n}',
   'note.ungroup': 'Retirer du groupe',
   'note.moveTo': 'Déplacer vers',
+  'cluster.moveTo': 'Déplacer vers la colonne...',
   'note.edit': 'Modifier',
   'note.delete': 'Supprimer',
 

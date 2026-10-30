@@ -18,6 +18,7 @@ describe('every use case sends the matching protocol command', () => {
     ['editNote', (c) => c.editNote('n1', 'text'), { t: 'note.edit', id: 'n1', text: 'text' }],
     ['deleteNote', (c) => c.deleteNote('n1'), { t: 'note.delete', id: 'n1' }],
     ['moveNote', (c) => c.moveNote('n1', 'c2'), { t: 'note.move', id: 'n1', columnId: 'c2' }],
+    ['moveGroup', (c) => c.moveGroup('g1', 'c2'), { t: 'group.move', id: 'g1', columnId: 'c2' }],
     ['recolorNote', (c) => c.recolorNote('n1', 3), { t: 'note.color', id: 'n1', color: 3 }],
     ['groupNotes', (c) => c.groupNotes('n1', 'n2'), { t: 'note.group', id: 'n1', ontoId: 'n2' }],
     ['ungroupNote', (c) => c.ungroupNote('n1'), { t: 'note.ungroup', id: 'n1' }],

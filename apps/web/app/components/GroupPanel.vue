@@ -50,6 +50,9 @@ function useSuggestion(s: string) { title.value = s; board.commands.renameGroup(
 /** Touch-friendly alternative to dropping a cluster on another: other clusters of the same column. */
 const others = computed(() => board.itemsFor(props.item.group.columnId, 'time').filter((i) => i.kind === 'group' && i.group.id !== props.item.group.id) as Extract<ColumnItem, { kind: 'group' }>[])
 function mergeInto(target: string) { board.commands.mergeGroups(props.item.group.id, target); ui.openGroupId = target }
+/** Keyboard and touch alternative to dragging the cluster to another column (WCAG 2.5.7). */
+const otherColumns = computed(() => board.columns.filter((c) => c.id !== props.item.group.columnId))
+function moveTo(columnId: string) { board.commands.moveGroup(props.item.group.id, columnId); closeNow() }
 const gate = computed(() => board.availability('action.add'))
 function toAction() { const id = props.item.group.id; const text = props.item.title; closeNow(); ui.openActionFrom({ sourceId: id, text, owner: '' }) }
 function dissolve() { board.commands.dissolveGroup(props.item.group.id); closeNow() }
@@ -83,6 +86,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-merge"><Icon name="lucide:combine" /> {{ t('cluster.mergeInto') }}</summary>
           <div class="merge-list" role="group" :aria-label="t('cluster.mergeInto')">
             <button v-for="o in others" :key="o.group.id" class="dd-item" type="button" :data-testid="`merge-into-${o.group.id}`" @click="mergeInto(o.group.id)">{{ o.title }} ({{ o.notes.length }})</button>
+          </div>
+        </details>
+        <details v-if="otherColumns.length && !board.locked" class="merge">
+          <summary class="btn btn-sm btn-ghost" data-testid="cluster-move"><Icon name="lucide:arrow-right-left" /> {{ t('cluster.moveTo') }}</summary>
+          <div class="merge-list" role="group" :aria-label="t('cluster.moveTo')">
+            <button v-for="c in otherColumns" :key="c.id" class="dd-item" type="button" :data-testid="`move-group-to-${c.id}`" @click="moveTo(c.id)"><Icon :name="`lucide:${c.icon}`" /> {{ c.title }}</button>
           </div>
         </details>
         <button class="btn btn-sm btn-ghost" type="button" :disabled="!gate.allowed" data-testid="group-create-action" @click="toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>

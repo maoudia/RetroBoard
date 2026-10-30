@@ -125,7 +125,7 @@ const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
   review: ['action.status', 'action.update', 'action.toggle'],
   write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
   // note.addMany: drafts auto-published when Write ends land at the start of Group.
-  group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.dissolve', 'group.merge', 'note.edit', 'note.color', 'note.addMany'],
+  group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.dissolve', 'group.merge', 'group.move', 'note.edit', 'note.color', 'note.addMany'],
   vote: ['vote.add', 'vote.remove', 'vote.toggle'],
   rank: ['action.add'],
   actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],

@@ -160,3 +160,29 @@ describe('merging clusters', () => {
     expect(h.run({ t: 'group.merge', id: h.state.notes[a]!.groupId!, ontoId: h.state.notes[x]!.groupId! })).toEqual({ ok: false, error: 'locked' })
   })
 })
+
+describe('moving a cluster to another column', () => {
+  it('moves every note with the title and votes; same column is a no-op', () => {
+    const { h, a, b } = board()
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    const g = h.state.notes[a]!.groupId!
+    h.run({ t: 'group.rename', id: g, title: 'Pipeline' })
+    h.run({ t: 'vote.add', kind: 'cluster', id: g })
+    expect(h.run({ t: 'group.move', id: g, columnId: h.col(0) }).ok).toBe(true)
+    expect(h.run({ t: 'group.move', id: g, columnId: h.col(1) }).ok).toBe(true)
+    expect(h.state.groups[g]).toMatchObject({ columnId: h.col(1), title: 'Pipeline', voters: [alice.cid] })
+    expect([a, b].map((id) => [h.state.notes[id]!.columnId, h.state.notes[id]!.groupId])).toEqual([[h.col(1), g], [h.col(1), g]])
+    expect(h.state.notes[Object.keys(h.state.notes).find((id) => ![a, b].includes(id))!]!.columnId).toBe(h.col(0))
+  })
+
+  it('ignores unknown clusters and columns, and a locked board', () => {
+    const { h, a, b } = board()
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    const g = h.state.notes[a]!.groupId!
+    expect(h.run({ t: 'group.move', id: 'ghost-gr', columnId: h.col(1) })).toEqual({ ok: false, error: 'not-found' })
+    expect(h.run({ t: 'group.move', id: g, columnId: 'ghost-col' })).toEqual({ ok: false, error: 'not-found' })
+    h.run({ t: 'settings.update', locked: true })
+    expect(h.run({ t: 'group.move', id: g, columnId: h.col(1) })).toEqual({ ok: false, error: 'locked' })
+    expect(h.state.groups[g]!.columnId).toBe(h.col(0))
+  })
+})

@@ -2,8 +2,8 @@
 
 ## 1. Move a cluster
 
-- [ ] 1.1 `group.move` in domain (handler, invariants, locked and unknown column refused), protocol schema and application command; verify unit tests including "invalid move is ignored" and the golden snapshot
-- [ ] 1.2 Drag a cluster card onto another column (drop zones, ghost, FLIP) and "Move to column..." in the cluster menu; verify e2e on chromium and phone (drag and menu), two participants see the move, axe on the menu
+- [x] 1.1 `group.move` in domain (handler, invariants, locked and unknown column refused), protocol schema and application command; verify unit tests including "invalid move is ignored" and the golden snapshot
+- [x] 1.2 Drag a cluster card onto another column (drop zones, ghost, FLIP) and "Move to column..." in the cluster menu; verify e2e on chromium and phone (drag and menu), two participants see the move, axe on the menu
 
 ## 2. Better titles
 

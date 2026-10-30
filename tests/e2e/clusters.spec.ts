@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard, noteByText, publishNote, settle } from './helpers'
+import { column, createBoard, join, noteByText, publishNote, settle } from './helpers'
+
+async function shareLink(page: import('@playwright/test').Page) {
+  if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
+  const url = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  return url
+}
 
 const clusters = (page: import('@playwright/test').Page) => page.locator('.cluster')
 
@@ -121,5 +128,23 @@ test.describe('clusters as merged ideas', () => {
     await expect(clusters(page)).toHaveCount(1)
     await expect(clusters(page).first()).toContainText('Target')
     await expect(clusters(page).first()).toContainText('4')
+  })
+  test('a cluster dragged to another column moves with its notes for everyone (#239)', async ({ page, browser, isMobile }) => {
+    test.skip(isMobile, 'touch moves a cluster from its menu (drag-alternatives.spec)')
+    await createBoard(page, { template: 'start-stop-continue' })
+    const bob = await join(browser, await shareLink(page), 'Bob')
+    await publishNote(page, 0, 'Drag one')
+    await publishNote(page, 0, 'Drag two')
+    await noteByText(page, 'Drag two').dragTo(noteByText(page, 'Drag one'))
+    await settle(page)
+    await expect(column(page, 0).locator('.cluster')).toHaveCount(1)
+    await expect(async () => {
+      await column(page, 0).locator('.cluster .stack').dragTo(column(page, 1))
+      await expect(column(page, 1).locator('.cluster')).toHaveCount(1, { timeout: 1500 })
+    }).toPass({ timeout: 10_000 })
+    await expect(column(page, 0).locator('.cluster')).toHaveCount(0)
+    await expect(column(bob.page, 1).locator('.cluster')).toHaveCount(1)
+    await expect(column(bob.page, 0).locator('.cluster')).toHaveCount(0)
+    await bob.ctx.close()
   })
 })

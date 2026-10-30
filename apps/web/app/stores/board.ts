@@ -122,11 +122,12 @@ export const useBoardStore = defineStore('board', () => {
     return snapshot.value ? buildColumnItems(snapshot.value, columnId, sort) : []
   }
   const noteById = (id: string) => snapshot.value?.notes.find((n) => n.id === id)
+  const groupById = (id: string) => snapshot.value?.groups.find((g) => g.id === id)
 
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
     settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
-    itemsFor, noteById,
+    itemsFor, noteById, groupById,
   }
 })

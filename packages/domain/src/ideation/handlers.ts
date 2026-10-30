@@ -4,7 +4,7 @@ import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome
 import { makeNote, normalizeGroups } from './notes'
 
 type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.move' | 'note.color'
-  | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge'
+  | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge' | 'group.move'
   | 'column.add' | 'column.update' | 'column.delete' | 'column.move'
 
 /** A peer that ignores the board's note length limit is refused by everyone. */
@@ -133,6 +133,22 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     const groups = { ...s.groups, [onto.id]: { ...onto, voters: [...onto.voters, ...from.voters] } }
     Reflect.deleteProperty(groups, from.id)
     return done({ ...s, notes, groups }, { notes: moved, groups: [onto.id, from.id] })
+  },
+
+  /** Moves a whole cluster (its notes, title, votes) to another column. Locked board and unknown ids are refused. */
+  'group.move': (s, c) => {
+    if (s.settings.locked) return fail('locked')
+    const g = s.groups[c.id]
+    if (!g || !s.columns.some((x) => x.id === c.columnId)) return fail('not-found')
+    if (g.columnId === c.columnId) return done(s, {})
+    const notes = { ...s.notes }
+    const moved: string[] = []
+    for (const n of Object.values(notes)) {
+      if (n.groupId !== g.id) continue
+      notes[n.id] = { ...n, columnId: c.columnId }
+      moved.push(n.id)
+    }
+    return done({ ...s, notes, groups: { ...s.groups, [g.id]: { ...g, columnId: c.columnId } } }, { notes: moved, groups: [g.id] })
   },
 
   'group.rename': (s, c) => {
