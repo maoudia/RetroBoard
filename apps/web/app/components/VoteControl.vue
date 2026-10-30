@@ -42,7 +42,8 @@ watch(() => props.votes, (n, o) => {
       <span class="thumb"><Icon name="lucide:lock" /></span>
     </button>
   </span>
-  <span v-else-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
+  <!-- A facilitator who could override the phase sees no vote buttons outside the vote phase either (#231). -->
+  <span v-else-if="board.allowed('vote.add') && !gate.bypassed" class="vc" :data-testid="`votes-${id}`">
     <button
       v-if="!single && voted && !closed" class="vote undo" type="button"
       :aria-label="t('vote.undo', { label })" :data-testid="`unvote-${id}`" @click="remove"

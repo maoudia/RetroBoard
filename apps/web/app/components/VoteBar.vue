@@ -5,6 +5,10 @@ const drafts = useDraftsStore()
 const { publish } = usePublish()
 const limit = computed(() => board.settings?.voteLimit ?? 0)
 const ui = useUiStore()
+/** Voting is not available in this phase (agenda rules): the voting buttons say so instead of staying active. */
+const gate = computed(() => board.availability('vote.add'))
+const votingOff = computed(() => !!gate.value.closedBy)
+const votingOffTitle = computed(() => (gate.value.closedBy ? t('gated.vote.closed', { phase: t(`agenda.phase.${gate.value.closedBy}`) }) : undefined))
 const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reveal.endsAt > Date.now() + board.skew)
 </script>
 
@@ -22,10 +26,10 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
       <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span>
     </div>
     <div class="right">
-      <button v-if="board.access.canSteer && !board.votingClosed" class="btn btn-sm" type="button" data-testid="close-voting" @click="board.commands.closeVoting()">
+      <button v-if="board.access.canSteer && !board.votingClosed" class="btn btn-sm" type="button" :disabled="votingOff" :title="votingOffTitle" data-testid="close-voting" @click="board.commands.closeVoting()">
         <Icon name="lucide:flag" /> {{ t(board.secretVoting ? 'votebar.closeReveal' : 'votebar.close') }}
       </button>
-      <button v-if="board.access.canSteer && board.votingClosed" class="btn btn-sm" type="button" data-testid="reopen-voting" @click="board.commands.reopenVoting()">
+      <button v-if="board.access.canSteer && board.votingClosed" class="btn btn-sm" type="button" :disabled="votingOff" :title="votingOffTitle" data-testid="reopen-voting" @click="board.commands.reopenVoting()">
         <Icon name="lucide:rotate-ccw" /> {{ t('votebar.reopen') }}
       </button>
       <button v-if="board.votingClosed" class="btn btn-sm" type="button" data-testid="open-ranking" @click="ui.open('ranking')">

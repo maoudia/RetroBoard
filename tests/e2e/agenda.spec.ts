@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText } from './helpers'
+import { createBoard, join, noteByText, publishNote } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -76,6 +76,22 @@ test.describe('time-boxed agenda', () => {
     await next(page)
     await expect(noteByText(bob.page, 'Published in write').locator('[data-testid^="vote-"]')).toHaveCount(1)
     await bob.ctx.close()
+  })
+
+  test('voting controls follow the phase: no vote buttons and a disabled Close voting outside Vote (#231)', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'Votable idea')
+    await panel(page, () => page.getByTestId('agenda-start').click())
+    await next(page)
+    await next(page)
+    await expect(page.getByTestId('agenda-phase')).toHaveText('Écriture')
+    await expect(noteByText(page, 'Votable idea').locator('[data-testid^="vote-"]')).toHaveCount(0)
+    await expect(page.getByTestId('close-voting')).toBeDisabled()
+    await next(page)
+    await next(page)
+    await expect(page.getByTestId('agenda-phase')).toHaveText('Vote')
+    await expect(noteByText(page, 'Votable idea').locator('[data-testid^="vote-"]')).toHaveCount(1)
+    await expect(page.getByTestId('close-voting')).toBeEnabled()
   })
 
   test('extending a phase borrows from later phases and keeps the total', async ({ page }) => {
