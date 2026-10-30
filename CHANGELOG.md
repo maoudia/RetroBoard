@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/maoudia/RetroBoard/compare/v1.3.0...v1.3.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **access:** a profile rename updates the earlier signed notes for everyone ([#229](https://github.com/maoudia/RetroBoard/issues/229)) ([a98fe45](https://github.com/maoudia/RetroBoard/commit/a98fe451c71567065ab610bebf1cd3664f76f846))
+
 ## [1.3.0](https://github.com/maoudia/RetroBoard/compare/v1.2.0...v1.3.0) (2026-10-30)
 
 
