@@ -13,3 +13,4 @@ coverage/
 dist-worker
 .stryker-tmp/
 reports/
+allure-results/

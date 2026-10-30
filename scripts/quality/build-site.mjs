@@ -4,6 +4,7 @@
 //   <in>/unit/results.json   vitest JSON results
 //   <in>/playwright-<proj>/  Playwright HTML report (+ results.json) per project
 //   <in>/mutation/           Stryker HTML report, mutation.json, summary.json
+//   <in>/allure/             aggregated Allure report (unit + every Playwright shard) and history.jsonl
 // Output: <out>/index.html, summary.json, history.json (last 200 commits, fetched from Pages).
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -32,6 +33,10 @@ for (const dir of existsSync(inDir) ? readdirSync(inDir) : []) {
   const s = read(join(root, 'results.json'))?.stats
   e2e[project] = s ? { passed: s.expected, failed: s.unexpected, flaky: s.flaky, skipped: s.skipped, durationS: Math.round(s.duration / 1000) } : { passed: null }
 }
+
+// Allure: one report aggregating the unit and Playwright raw results (change allure-report-aggregation).
+const hasAllure = existsSync(join(inDir, 'allure/index.html'))
+if (hasAllure) cpSync(join(inDir, 'allure'), join(outDir, 'allure'), { recursive: true })
 
 // Mutation.
 const mutation = read(join(inDir, 'mutation/summary.json'))
@@ -90,7 +95,7 @@ table { width: 100%; border-collapse: collapse; } th, td { padding: 6px 8px; bor
   <div class="card"><small>Mutation score</small><b>${pct(mutation?.score)}</b>${spark('mutation', pct)}</div>
   <div class="card"><small>E2E failures</small><b>${Object.keys(e2e).length ? Object.values(e2e).reduce((n, p) => n + (p.failed ?? 0), 0) : '-'}</b>${spark('e2eFailed')}</div>
 </div>
-<h2>End-to-end (Playwright)</h2>
+${hasAllure ? '<h2>Allure report</h2>\n<p>Unit and end-to-end results of this commit in one report, with history and flaky detection. <a href="allure/index.html">Open the Allure report</a></p>\n' : ''}<h2>End-to-end (Playwright)</h2>
 <div class="wrap"><table><thead><tr><th>Project</th><th>Status</th><th>Passed</th><th>Failed</th><th>Flaky</th><th>Duration</th></tr></thead><tbody>${e2eRows || '<tr><td colspan="6">No report</td></tr>'}</tbody></table></div>
 <h2>Unit tests and coverage</h2>
 <p>${coverage ? `Lines ${pct(coverage.lines)}, statements ${pct(coverage.statements)}, functions ${pct(coverage.functions)}, branches ${pct(coverage.branches)}.` : 'No coverage report.'} <a href="coverage/index.html">Coverage report</a> - <a href="unit/results.json">raw results</a></p>

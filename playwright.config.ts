@@ -13,7 +13,11 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   // CI keeps everything for the quality site (GitHub Pages) and the run artifacts.
   reporter: process.env.CI
-    ? [['github'], ['html', { open: 'never' }], ['json', { outputFile: 'playwright-report/results.json' }], ['junit', { outputFile: 'playwright-report/junit.xml' }]]
+    ? [
+        ['github'], ['html', { open: 'never' }], ['json', { outputFile: 'playwright-report/results.json' }], ['junit', { outputFile: 'playwright-report/junit.xml' }],
+        // Raw Allure results, aggregated with the unit results into one report (quality.yml, change allure-report-aggregation).
+        ...(process.env.ALLURE_RESULTS_DIR ? [['allure-playwright', { resultsDir: process.env.ALLURE_RESULTS_DIR, detail: false, suiteTitle: false }] as const] : []),
+      ]
     : 'list',
   use: {
     locale: 'fr-FR',

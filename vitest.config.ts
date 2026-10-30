@@ -15,6 +15,8 @@ export default defineConfig({
     },
   },
   test: {
+    // Raw Allure results for the aggregated report; off unless the CI sets ALLURE_RESULTS_DIR (Stryker runs untouched).
+    ...(process.env.ALLURE_RESULTS_DIR ? { setupFiles: ['allure-vitest/setup'], reporters: ['default', ['allure-vitest/reporter', { resultsDir: process.env.ALLURE_RESULTS_DIR }]] } : {}),
     include: ['apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts', 'scripts/*/test/**/*.test.ts'],
     environment: 'node',
     environmentMatchGlobs: undefined,

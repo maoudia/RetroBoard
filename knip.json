@@ -4,7 +4,12 @@
     ".": {
       "entry": [
         "tests/e2e/**/*.ts",
-        "scripts/**/*.mjs"
+        "scripts/**/*.mjs",
+        "allurerc.mjs"
+      ],
+      "ignoreDependencies": [
+        "allure-playwright",
+        "allure-vitest"
       ]
     },
     "apps/web": {
