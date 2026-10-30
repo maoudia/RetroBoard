@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { votingState } from '@retroboard/application'
 const { t } = useT()
 const board = useBoardStore()
 const drafts = useDraftsStore()
@@ -7,8 +8,19 @@ const limit = computed(() => board.settings?.voteLimit ?? 0)
 const ui = useUiStore()
 /** Voting is not available in this phase (agenda rules): the voting buttons say so instead of staying active. */
 const gate = computed(() => board.availability('vote.add'))
-const votingOff = computed(() => !!gate.value.closedBy)
 const votingOffTitle = computed(() => (gate.value.closedBy ? t('gated.vote.closed', { phase: t(`agenda.phase.${gate.value.closedBy}`) }) : undefined))
+const vstate = computed(() => (board.snapshot ? votingState(board.snapshot) : 'open'))
+const stateText = computed(() => {
+  if (vstate.value === 'closed') return t('votebar.stateClosed')
+  if (vstate.value === 'overridden') return t('votebar.stateOverridden')
+  if (vstate.value === 'phase-closed') return t('votebar.statePhase')
+  return t('votebar.stateOpen')
+})
+/** Open voting: reopen after a close, or open it now outside the Vote phase (until the next phase change). */
+function openVoting() {
+  if (vstate.value === 'closed') board.commands.reopenVoting()
+  else if (vstate.value === 'phase-closed') board.commands.openVotingNow(true)
+}
 const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reveal.endsAt > Date.now() + board.skew)
 </script>
 
@@ -26,10 +38,21 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
       <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span>
     </div>
     <div class="right">
-      <button v-if="board.access.canSteer && !board.votingClosed" class="btn btn-sm" type="button" :disabled="votingOff" :title="votingOffTitle" data-testid="close-voting" @click="board.commands.closeVoting()">
-        <Icon name="lucide:flag" /> {{ t(board.secretVoting ? 'votebar.closeReveal' : 'votebar.close') }}
-      </button>
-      <button v-if="board.access.canSteer && board.votingClosed" class="btn btn-sm" type="button" :disabled="votingOff" :title="votingOffTitle" data-testid="reopen-voting" @click="board.commands.reopenVoting()">
+      <!-- Voting state, in words (change facilitator-controls-v2): facilitators switch it, everyone reads it. -->
+      <div class="seg" role="group" :aria-label="t('votebar.state')" data-testid="voting-state" :data-state="vstate">
+        <button
+          type="button" class="segb" :class="{ on: vstate !== 'closed' && vstate !== 'phase-closed' }" :aria-pressed="vstate === 'open' || vstate === 'overridden'"
+          :disabled="!board.access.canSteer || vstate === 'open' || vstate === 'overridden'" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')"
+          data-testid="voting-open" @click="openVoting"
+        ><Icon name="lucide:lock-open" /> {{ t(vstate === 'phase-closed' && board.access.canSteer ? 'votebar.openNow' : 'votebar.open') }}</button>
+        <button
+          type="button" class="segb" :class="{ on: vstate === 'closed' || vstate === 'phase-closed' }" :aria-pressed="vstate === 'closed' || vstate === 'phase-closed'"
+          :disabled="!board.access.canSteer || vstate === 'closed' || vstate === 'phase-closed'" :title="votingOffTitle"
+          data-testid="close-voting" @click="board.commands.closeVoting()"
+        ><Icon name="lucide:flag" /> {{ t(board.secretVoting && vstate !== 'closed' && vstate !== 'phase-closed' ? 'votebar.closeReveal' : 'votebar.closedSeg') }}</button>
+      </div>
+      <span class="state-text" role="status" data-testid="voting-state-text">{{ stateText }}</span>
+      <button v-if="board.access.canSteer && board.votingClosed" class="btn btn-sm" type="button" data-testid="reopen-voting" @click="board.commands.reopenVoting()">
         <Icon name="lucide:rotate-ccw" /> {{ t('votebar.reopen') }}
       </button>
       <button v-if="board.votingClosed" class="btn btn-sm" type="button" data-testid="open-ranking" @click="ui.open('ranking')">
@@ -57,5 +80,12 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 .d.used { background: var(--border); box-shadow: none; transform: scale(.75); }
 .closed { background: var(--accent-soft); color: var(--accent); }
 .lock { background: color-mix(in oklab, var(--danger) 18%, transparent); color: var(--danger); }
+.seg { display: inline-flex; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
+.segb { display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: .2rem .75rem; border: 0; background: transparent; color: var(--text); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+.segb:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 12%, transparent); }
+.segb.on { background: var(--accent-soft); color: var(--accent); }
+.segb:disabled { cursor: default; }
+.segb:disabled:not(.on) { opacity: .6; }
+.state-text { font-size: .82rem; color: var(--muted); }
 .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>

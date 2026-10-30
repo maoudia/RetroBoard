@@ -62,6 +62,8 @@ export type Command =
   | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number }[]; rules?: boolean; autoPublish?: boolean }
   | { t: 'agenda.options'; rules?: boolean; autoPublish?: boolean }
   | { t: 'agenda.clear' }
+  | { t: 'agenda.voteOpen'; on: boolean }
+  | { t: 'agenda.toClose' }
   | { t: 'agenda.start' }
   | { t: 'agenda.pause' }
   | { t: 'agenda.next' }

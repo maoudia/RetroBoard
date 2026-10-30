@@ -1,4 +1,4 @@
-import { agendaRunning, closePhase, extendPhase, MIN, newAgenda } from './agenda'
+import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, withoutOverride } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
@@ -7,7 +7,7 @@ import { emptyTalk } from './talk'
 
 type FacilitationCommand = 'drafts.reveal' | 'board.init' | 'template.apply' | 'settings.update'
   | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset' | 'board.destroy' | 'column.reset' | 'vote.reset'
-  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.prev' | 'agenda.extend' | 'agenda.end'
+  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.prev' | 'agenda.extend' | 'agenda.end' | 'agenda.voteOpen' | 'agenda.toClose'
 
 /** Facilitation context: board setup, settings and the shared timer. */
 export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
@@ -165,7 +165,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   'agenda.next': (s, _c, _a, ctx) => {
     const a = s.agenda
     if (!a || a.current >= a.phases.length) return fail('invalid')
-    return done({ ...s, agenda: { ...a, phases: closePhase(a, ctx.now), current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
+    return done({ ...s, agenda: { ...withoutOverride(a), phases: closePhase(a, ctx.now), current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
   },
   /** Back to the previous phase, which resumes with the time it had left. */
   'agenda.prev': (s, _c, _a, ctx) => {
@@ -179,7 +179,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       const { actualMs: _drop, ...rest } = p
       return rest
     })
-    return done({ ...s, agenda: { ...a, phases, current: index, startedAt: ctx.now - Math.min(target.actualMs ?? 0, target.plannedMs), pausedAt: null } }, { meta: true })
+    return done({ ...s, agenda: { ...withoutOverride(a), phases, current: index, startedAt: ctx.now - Math.min(target.actualMs ?? 0, target.plannedMs), pausedAt: null } }, { meta: true })
   },
   'agenda.extend': (s, c) => {
     if (!agendaRunning(s.agenda)) return fail('invalid')
@@ -187,6 +187,24 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   },
   'agenda.end': (s, _c, _a, ctx) => {
     if (!s.agenda) return fail('not-found')
-    return done({ ...s, agenda: { ...s.agenda, phases: closePhase(s.agenda, ctx.now), current: s.agenda.phases.length, pausedAt: null } }, { meta: true })
+    return done({ ...s, agenda: { ...withoutOverride(s.agenda), phases: closePhase(s.agenda, ctx.now), current: s.agenda.phases.length, pausedAt: null } }, { meta: true })
+  },
+
+  /** Open (or end) voting outside the Vote phase. Explicit, and cleared at the next phase change. */
+  'agenda.voteOpen': (s, c) => {
+    const a = s.agenda
+    if (!agendaRunning(a)) return fail('invalid')
+    if (!!a.voteOpen === c.on) return done(s, {})
+    return done({ ...s, agenda: c.on ? { ...a, voteOpen: true } : withoutOverride(a) }, { meta: true })
+  },
+
+  /** Jump to the close phase from any earlier phase; skipped phases keep no actual time. */
+  'agenda.toClose': (s, _c, _a, ctx) => {
+    const a = s.agenda
+    if (!agendaRunning(a)) return fail('invalid')
+    const index = a.phases.findIndex((p) => p.kind === 'close')
+    if (index < 0) return fail('not-found')
+    if (index <= a.current) return done(s, {})
+    return done({ ...s, agenda: { ...withoutOverride(a), phases: closePhase(a, ctx.now), current: index, startedAt: ctx.now, pausedAt: null } }, { meta: true })
   },
 }

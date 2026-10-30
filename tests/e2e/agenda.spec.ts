@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
 import { createBoard, join, noteByText, publishNote } from './helpers'
 
@@ -91,6 +92,33 @@ test.describe('time-boxed agenda', () => {
     await expect(page.getByTestId('agenda-phase')).toHaveText('Vote')
     await expect(noteByText(page, 'Votable idea').locator('[data-testid^="vote-"]')).toHaveCount(1)
     await expect(page.getByTestId('close-voting')).toBeEnabled()
+  })
+
+  test('the facilitator opens voting now outside the Vote phase and goes straight to closing (facilitator-controls-v2)', async ({ page, browser }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'Votable idea')
+    const url = await shareLink(page)
+    await panel(page, () => page.getByTestId('agenda-start').click())
+    await next(page)
+    await next(page)
+    await expect(page.getByTestId('agenda-phase')).toHaveText('Écriture')
+    const bob = await join(browser, url, 'Bob')
+    await expect(page.getByTestId('voting-state-text')).toHaveText('Ouvre à la phase Vote')
+    await expect(bob.page.getByTestId('voting-state-text')).toHaveText('Ouvre à la phase Vote')
+    await page.getByTestId('voting-open').click()
+    await expect(page.getByTestId('voting-state-text')).toHaveText('Ouvert par l\'animateur jusqu\'au prochain changement de phase')
+    await expect(noteByText(bob.page, 'Votable idea').locator('[data-testid^="vote-"]')).toHaveCount(1)
+    const found = (await new AxeBuilder({ page }).include('[data-testid="votebar"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    expect(found).toEqual([])
+    // Changing phase drops the override.
+    await next(page)
+    await expect(page.getByTestId('voting-state-text')).not.toHaveText(/animateur/)
+    // Jump to closing, with a confirmation.
+    await page.getByTestId('agenda-ring').click()
+    await page.getByTestId('agenda-to-close').click()
+    await page.getByTestId('confirm').click()
+    await expect(bob.page.getByTestId('agenda-phase')).toHaveText('Clôture')
+    await bob.ctx.close()
   })
 
   test('extending a phase borrows from later phases and keeps the total', async ({ page }) => {

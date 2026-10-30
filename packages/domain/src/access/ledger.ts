@@ -83,7 +83,7 @@ export type FoldResult =
 export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType>([
   'settings.update', 'board.init', 'template.apply', 'board.reset', 'board.destroy', 'column.reset', 'vote.reset', 'timer.start', 'timer.pause', 'timer.reset',
   'vote.close', 'vote.reopen', 'action.import', 'drafts.reveal',
-  'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.prev', 'agenda.extend', 'agenda.end',
+  'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.prev', 'agenda.extend', 'agenda.end', 'agenda.voteOpen', 'agenda.toClose',
   'talk.assign', 'talk.end',
 ])
 

@@ -124,3 +124,62 @@ describe('phase rules', () => {
     expect(allowedInPhase(null, 'vote.add')).toBe(true)
   })
 })
+
+describe('voting override and go to closing (facilitator-controls-v2)', () => {
+  const setup = () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'idea' })
+    h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }, { kind: 'group', minutes: 5 }, { kind: 'vote', minutes: 5 }, { kind: 'close', minutes: 5 }], rules: true })
+    h.run({ t: 'agenda.start' })
+    return { h }
+  }
+
+  it('closes voting by phase, opens it under the override, and drops the override at the next phase change', () => {
+    const { h } = setup()
+    const voting = () => allowedInPhase(h.state.agenda, 'vote.add')
+    expect(voting()).toBe(false)
+    expect(h.run({ t: 'agenda.voteOpen', on: true }).ok).toBe(true)
+    expect(voting()).toBe(true)
+    expect(allowedInPhase(h.state.agenda, 'note.add')).toBe(true)
+    h.run({ t: 'agenda.next' })
+    expect(h.state.agenda!.voteOpen).toBeUndefined()
+    expect(voting()).toBe(false)
+    h.run({ t: 'agenda.voteOpen', on: true })
+    h.run({ t: 'agenda.prev' })
+    expect(h.state.agenda!.voteOpen).toBeUndefined()
+    h.run({ t: 'agenda.voteOpen', on: true })
+    h.run({ t: 'agenda.voteOpen', on: false })
+    expect(h.state.agenda!.voteOpen).toBeUndefined()
+    expect(voting()).toBe(false)
+    h.run({ t: 'agenda.voteOpen', on: true })
+    h.run({ t: 'agenda.end' })
+    expect(h.state.agenda!.voteOpen).toBeUndefined()
+  })
+
+  it('the override needs a running agenda', () => {
+    const h = harness()
+    expect(h.run({ t: 'agenda.voteOpen', on: true })).toEqual({ ok: false, error: 'invalid' })
+  })
+
+  it('go to closing jumps forward, records the time of the phase left and keeps skipped phases without time', () => {
+    const { h } = setup()
+    h.tick(2 * MIN)
+    expect(h.run({ t: 'agenda.toClose' }).ok).toBe(true)
+    const a = h.state.agenda!
+    expect(a.current).toBe(3)
+    expect(a.phases[0]!.actualMs).toBe(2 * MIN)
+    expect(a.phases[1]!.actualMs).toBeUndefined()
+    expect(a.phases[2]!.actualMs).toBeUndefined()
+    // Already there: nothing changes. Not running: refused.
+    expect(h.run({ t: 'agenda.toClose' }).ok).toBe(true)
+    expect(h.state.agenda!.current).toBe(3)
+    expect(harness().run({ t: 'agenda.toClose' })).toEqual({ ok: false, error: 'invalid' })
+  })
+
+  it('go to closing needs a close phase', () => {
+    const h = harness()
+    h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }, { kind: 'vote', minutes: 5 }], rules: true })
+    h.run({ t: 'agenda.start' })
+    expect(h.run({ t: 'agenda.toClose' })).toEqual({ ok: false, error: 'not-found' })
+  })
+})

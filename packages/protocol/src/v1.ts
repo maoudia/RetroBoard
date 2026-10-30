@@ -104,6 +104,8 @@ export const CommandSchema = v.variant('t', [
   }),
   v.object({ t: v.literal('agenda.options'), rules: v.optional(v.boolean()), autoPublish: v.optional(v.boolean()) }),
   v.object({ t: v.literal('agenda.clear') }),
+  v.object({ t: v.literal('agenda.voteOpen'), on: v.boolean() }),
+  v.object({ t: v.literal('agenda.toClose') }),
   v.object({ t: v.literal('agenda.start') }),
   v.object({ t: v.literal('agenda.pause') }),
   v.object({ t: v.literal('agenda.next') }),

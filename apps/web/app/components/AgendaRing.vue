@@ -9,6 +9,7 @@ const { t } = useT()
  * passes and turns to the danger colour in overtime. Click opens the phase panel.
  */
 const board = useBoardStore()
+const ui = useUiStore()
 const now = ref(Date.now())
 let tick: ReturnType<typeof setInterval> | undefined
 onMounted(() => { tick = setInterval(() => { now.value = Date.now() }, 500) })
@@ -17,6 +18,11 @@ onBeforeUnmount(() => clearInterval(tick))
 const agenda = computed(() => board.snapshot?.agenda as AgendaState)
 const clock = computed(() => phaseClock(agenda.value, now.value + board.skew))
 const rings = computed(() => ringProgress(agenda.value, now.value + board.skew))
+/** Already in (or past) the close phase, or no close phase at all: nothing to jump to. */
+const closing = computed(() => {
+  const i = agenda.value.phases.findIndex((p) => p.kind === 'close')
+  return i < 0 || agenda.value.current >= i
+})
 const pct = (n: number) => Math.round(n * 100)
 const summary = computed(() => t('rings.summary', {
   outer: pct(rings.value.outer.fill), phase: caption.value, current: pct(rings.value.current?.fill ?? 0), over: rings.value.overtime ? t('rings.over') : '',
@@ -94,6 +100,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
           <button class="btn btn-sm" type="button" data-testid="agenda-plus3" :disabled="!started" @click="board.commands.extendPhase(3, borrow)">+3</button>
         </span>
         <label class="borrow"><input v-model="borrow" type="checkbox" data-testid="agenda-borrow" /> {{ t('agenda.borrow') }}</label>
+        <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : undefined" @click="ui.open('toClose')"><Icon name="lucide:flag" /> {{ t('agenda.toClose.label') }}</button>
         <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()">{{ t('agenda.end') }}</button>
       </div>
       <p class="muted small">{{ t('agenda.total', { planned: minutes(clock.totalPlannedMs), elapsed: minutes(clock.totalElapsedMs) }) }}</p>

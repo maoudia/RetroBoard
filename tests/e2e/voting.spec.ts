@@ -44,7 +44,7 @@ test.describe('voting v2', () => {
     await expect(noteByText(page, 'Flaky tests').locator('.vote .n')).toHaveCount(0)
     await expect(noteByText(bob.page, 'Flaky tests').locator('.vote .n')).toHaveCount(0)
     // Participants cannot close voting.
-    await expect(bob.page.getByTestId('close-voting')).toHaveCount(0)
+    await expect(bob.page.getByTestId('close-voting')).toBeDisabled()
 
     await page.getByTestId('close-voting').click()
     await expect(noteByText(page, 'Flaky tests').locator('.vote .n')).toHaveText('1')

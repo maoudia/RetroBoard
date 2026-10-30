@@ -34,6 +34,14 @@ export interface AgendaState {
   rules: boolean
   /** Publish everyone's drafts when the Write phase ends. */
   autoPublish: boolean
+  /** Facilitator override: voting is open outside the Vote phase. Cleared at the next phase change. */
+  voteOpen?: boolean
+}
+
+/** The agenda without the voting override (every phase change drops it). */
+export function withoutOverride(a: AgendaState): AgendaState {
+  const { voteOpen: _gone, ...rest } = a
+  return rest
 }
 
 export const MIN = 60_000
@@ -140,5 +148,6 @@ export function allowedInPhase(a: AgendaState | null, command: CommandType): boo
   if (!agendaRunning(a) || !a.rules) return true
   // Taking and giving back one's own speaking turn is never a phase matter.
   if (command === 'talk.self' || command === 'talk.done') return true
+  if (a.voteOpen && (command === 'vote.add' || command === 'vote.remove' || command === 'vote.toggle')) return true
   return phaseAllows(a.phases[a.current]!.kind, command)
 }

@@ -84,6 +84,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     setRoti: (score: number) => send({ t: 'roti.set', score }),
     closeVoting: () => send({ t: 'vote.close' }),
     reopenVoting: () => send({ t: 'vote.reopen' }),
+    openVotingNow: (on = true) => send({ t: 'agenda.voteOpen', on }),
+    goToClosing: () => send({ t: 'agenda.toClose' }),
 
     addColumn: (c: ColumnInput) => ((deps.view()?.columns.length ?? 0) >= LIMITS.maxColumns ? err('limit-reached') : send({ t: 'column.add', ...c })),
     updateColumn: (id: string, c: Partial<ColumnInput>) => send({ t: 'column.update', id, ...c }),
