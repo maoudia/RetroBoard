@@ -21,8 +21,8 @@ test('a column default colour is used by drafts and published notes, for everyon
   expect(await bg(noteByText(page, 'Autre colonne'))).not.toBe(blue)
 })
 
-test('recolour a note from the hover swatches and from the palette sheet, with the keyboard too', async ({ page, browser, isMobile }) => {
-  test.skip(isMobile, 'hover swatches are a pointer feature (the phone test below covers touch)')
+test('recolour a note from its menu and the palette sheet, with the keyboard too; hovering shows no palette (#179)', async ({ page, browser, isMobile }) => {
+  test.skip(isMobile, 'hover is a pointer feature (the phone test below covers touch)')
   await createBoard(page, { template: 'start-stop-continue' })
   const { page: bob } = await join(browser, page.url(), 'Bob')
   await publishNote(page, 0, 'Recolorable')
@@ -31,13 +31,16 @@ test('recolour a note from the hover swatches and from the palette sheet, with t
   const before = await bg(note)
 
   await note.hover()
-  await page.getByTestId(`quick-color-${id}-3`).click()
+  await expect(page.getByTestId(`quick-${id}`)).toHaveCount(0)
+  await page.getByTestId(`note-menu-${id}`).click()
+  await page.getByTestId(`palette-open-${id}`).click()
+  await page.getByTestId('palette-3').click()
   await expect.poll(() => bg(note)).not.toBe(before)
   const blue = await bg(note)
   await expect.poll(() => bg(noteByText(bob, 'Recolorable'))).toBe(blue)
 
-  await note.hover()
-  await page.getByTestId(`quick-palette-${id}`).click()
+  await page.getByTestId(`note-menu-${id}`).click()
+  await page.getByTestId(`palette-open-${id}`).click()
   await expect(page.getByTestId('palette')).toBeVisible()
   await expect(page.getByTestId('palette-3')).toBeFocused()
   await page.keyboard.press('ArrowRight')

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { alice, bob, harness } from '@retroboard/testkit'
-import { LIMITS } from '@retroboard/domain'
+import { LIMITS, reduce } from '@retroboard/domain'
 
 describe('notes', () => {
   it('adds a note with author only when the actor shows their name', () => {
@@ -302,15 +302,23 @@ describe('column default colour', () => {
 })
 
 describe('note length limit', () => {
-  it('defaults to 280 and is a facilitator setting between 40 and 500', () => {
+  it('defaults to 160 on a new board and is a facilitator setting between 40 and 500', () => {
     const h = harness()
-    expect(h.state.settings.noteMaxLength).toBe(280)
+    expect(h.state.settings.noteMaxLength).toBe(160)
     expect(h.run({ t: 'settings.update', noteMaxLength: 100 }).ok).toBe(true)
     expect(h.state.settings.noteMaxLength).toBe(100)
     for (const bad of [39, 501, 100.5, Number.NaN]) {
       expect(h.run({ t: 'settings.update', noteMaxLength: bad })).toEqual({ ok: false, error: 'invalid' })
     }
     expect(h.state.settings.noteMaxLength).toBe(100)
+  })
+
+  it('keeps 280 for boards that never stored the setting (existing boards do not change)', () => {
+    const h = harness()
+    const legacy = { ...h.state, settings: { ...h.state.settings, noteMaxLength: undefined as unknown as number } }
+    const ok = reduce(legacy, { t: 'note.add', columnId: h.col(0), text: 'x'.repeat(280) }, alice, { now: h.now, newId: () => 'idlegacy1' })
+    expect(ok.ok).toBe(true)
+    expect(reduce(legacy, { t: 'note.add', columnId: h.col(0), text: 'x'.repeat(281) }, alice, { now: h.now, newId: () => 'idlegacy2' })).toEqual({ ok: false, error: 'invalid' })
   })
 
   it('refuses a note, a batch or an edit above the limit and accepts the limit itself', () => {
@@ -326,8 +334,8 @@ describe('note length limit', () => {
 
   it('does not rewrite notes already above a limit lowered later', () => {
     const h = harness()
-    h.run({ t: 'note.add', columnId: h.col(0), text: 'x'.repeat(200) })
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'x'.repeat(150) })
     h.run({ t: 'settings.update', noteMaxLength: 50 })
-    expect(Object.values(h.state.notes)[0]!.text).toHaveLength(200)
+    expect(Object.values(h.state.notes)[0]!.text).toHaveLength(150)
   })
 })

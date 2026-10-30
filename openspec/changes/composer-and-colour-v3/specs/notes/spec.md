@@ -20,3 +20,21 @@ The detailed palette SHALL offer a free colour as its last option and SHALL neve
 #### Scenario: Too light
 - **WHEN** a participant picks a very light yellow with light ink
 - **THEN** the ink switches to the dark ink or the colour is refused with a reason
+
+### Requirement: Compact composer
+The composer SHALL show the character counter only from 80% of the note length, SHALL keep its hint to one short line with the keyboard tips in a help popover, and SHALL offer the signature as two named toggles (my name, anonymous).
+
+#### Scenario: Counter appears late
+- **WHEN** a participant types 30 characters in a 160-character composer
+- **THEN** no counter is shown, and from 128 characters it reads "128 / 160"
+
+#### Scenario: Signature toggles
+- **WHEN** Alice presses the anonymous toggle
+- **THEN** the anonymous toggle is pressed, the next notes are anonymous and earlier notes keep their author display
+
+### Requirement: No palette on hover
+A published note SHALL NOT show a colour palette on hover; its colour stays in the note menu and the palette sheet.
+
+#### Scenario: Hover
+- **WHEN** a pointer rests on a published note
+- **THEN** no colour swatches appear

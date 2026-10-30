@@ -41,4 +41,7 @@ export const DEFAULT_VOTE_LIMIT = 3
 export const DEFAULT_TIMER_MS = 5 * 60_000
 
 export const NOTE_TEXT_MIN = 40
+/** Fallback for boards that never stored the setting (kept so existing boards do not change). */
 export const DEFAULT_NOTE_MAX_LENGTH = 280
+/** Note length of a new board (change composer-and-colour-v3): short ideas read better on the wall. */
+export const NEW_BOARD_NOTE_MAX_LENGTH = 160

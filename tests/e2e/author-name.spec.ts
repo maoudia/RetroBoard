@@ -35,12 +35,13 @@ test('a typed name is shown on notes by default and the checkbox follows the nam
 
 test('the composer shows the signature and one click switches to anonymous for the next notes only', async ({ page, browser }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
-  const chip = page.locator('[data-testid^="signature-"]').first()
-  await expect(chip).toContainText('Alice')
+  const chip = page.locator('[data-testid^="signature-"][data-signed]').first()
+  await expect(chip).toHaveAttribute('data-signed', 'true')
+  await expect(page.locator('[data-testid^="signature-named-"]').first()).toHaveAccessibleName(/Alice/)
   await publishNote(page, 0, 'Before')
-  await chip.click()
+  await page.locator('[data-testid^="signature-anon-"]').first().click()
   await expect(chip).toHaveAttribute('data-signed', 'false')
-  await expect(chip).toContainText(/Anonym/)
+  await expect(page.locator('[data-testid^="signature-anon-"]').first()).toHaveAttribute('aria-pressed', 'true')
   await publishNote(page, 0, 'After')
   const url = await link(page)
 
@@ -56,17 +57,16 @@ test('the composer shows the signature and one click switches to anonymous for t
 
 test('without a name the chip reads Anonymous and opens the name dialog', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: '' })
-  const chip = page.locator('[data-testid^="signature-"]').first()
-  await expect(chip).toContainText(/Anonym/)
-  await chip.click()
+  await expect(page.locator('[data-testid^="signature-anon-"]').first()).toHaveAttribute('aria-pressed', 'true')
+  await page.locator('[data-testid^="signature-named-"]').first().click()
   await expect(page.getByTestId('name-input')).toBeVisible()
 })
 
 test('a saved choice to stay anonymous is kept when the name is edited later', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
-  await page.locator('[data-testid^="signature-"]').first().click()
+  await page.locator('[data-testid^="signature-anon-"]').first().click()
   await page.reload()
-  await expect(page.locator('[data-testid^="signature-"]').first()).toHaveAttribute('data-signed', 'false')
+  await expect(page.locator('[data-testid^="signature-"][data-signed]').first()).toHaveAttribute('data-signed', 'false')
   await page.getByTestId('btn-profile').click()
   await page.getByTestId('profile-name').fill('Alicia')
   await page.getByTestId('profile-name').blur()
