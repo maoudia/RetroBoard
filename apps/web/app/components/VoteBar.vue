@@ -27,7 +27,7 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 <template>
   <div class="votebar glass" data-testid="votebar">
     <div class="left">
-      <span class="pill"><Icon name="lucide:thumbs-up" /> {{ t('votebar.votes', { n: limit }) }}</span>
+      <span class="pill pill-votes"><Icon name="lucide:thumbs-up" /> {{ t('votebar.votes', { n: limit }) }}</span>
       <span v-if="board.locked" class="pill lock"><Icon name="lucide:lock" /> {{ t('votebar.locked') }}</span>
       <span v-if="board.votingClosed" class="pill closed" data-testid="voting-closed"><Icon name="lucide:flag" /> {{ t('votebar.closed') }}</span>
     </div>
@@ -74,18 +74,25 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 <style scoped>
 .votebar { display: flex; align-items: center; justify-content: space-between; gap: .75rem 1.5rem; flex-wrap: wrap; padding: .5rem 1rem; border-bottom: 1px solid var(--border); }
 .left, .mid, .right { display: flex; align-items: center; gap: .6rem; }
+.right { flex-wrap: wrap; }
 .mid { font-size: .95rem; }
 .dots { display: inline-flex; gap: 5px; }
 .d { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 60%, transparent); transition: transform .3s var(--ease), background .3s, box-shadow .3s; }
 .d.used { background: var(--border); box-shadow: none; transform: scale(.75); }
 .closed { background: var(--accent-soft); color: var(--accent); }
 .lock { background: color-mix(in oklab, var(--danger) 18%, transparent); color: var(--danger); }
-.seg { display: inline-flex; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
+.seg { display: inline-flex; flex: none; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
 .segb { display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: .2rem .75rem; border: 0; background: transparent; color: var(--text); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
 .segb:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 12%, transparent); }
 .segb.on { background: var(--accent-soft); color: var(--accent); }
 .segb:disabled { cursor: default; }
 .segb:disabled:not(.on) { opacity: .6; }
 .state-text { font-size: .82rem; color: var(--muted); }
+/* Phone: the bar stays two short rows. The pill repeats the dots, the state text stays for screen readers. */
+@media (max-width: 720px) {
+  .votebar { gap: .35rem 1rem; padding: .4rem .75rem; }
+  .pill-votes { display: none; }
+  .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>

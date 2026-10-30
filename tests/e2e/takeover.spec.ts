@@ -121,3 +121,10 @@ test('the lead\'s pointer carries a crown for others, an ordinary pointer does n
   await expect(bobCursor.locator('[data-testid^="crown-"]')).toHaveCount(0)
   await bob.ctx.close()
 })
+
+test('a new board never announces a takeover to its creator', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.waitForTimeout(5000)
+  await expect(page.getByText(/a pris l'animation|took over/)).toHaveCount(0)
+})

@@ -143,8 +143,14 @@ watch(() => [board.ready, board.settings?.initialized, board.settings?.openFacil
 })
 function takeOver() { if (board.myKey) board.sendRole('role.claim', board.myKey) }
 // The lead lost the role to someone else's takeover.
+// Only a role that was really held on a one-facilitator board can be lost: the first snapshots of a new board
+// briefly say "lead" before the settings arrive, and must not announce a takeover nobody made.
+let ledOneFacilitator = false
+watch(() => [board.access.isLead, board.settings?.initialized, board.settings?.openFacilitation] as const, ([lead, init, open]) => {
+  if (lead && init && open === false) ledOneFacilitator = true
+}, { immediate: true })
 watch(() => board.access.isLead, (now, was) => {
-  if (was && !now && board.settings?.openFacilitation === false) push(t('roles.takeover.lost', { name: leadName.value }), 'info', 8000)
+  if (was && !now && ledOneFacilitator && board.settings?.openFacilitation === false) push(t('roles.takeover.lost', { name: leadName.value }), 'info', 8000)
 })
 // Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
 watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })

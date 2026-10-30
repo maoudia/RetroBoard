@@ -70,5 +70,5 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
   .tools { grid-column: 1 / -1; justify-content: space-between; }
 }
 /* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
-@media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } }
+@media (max-width: 720px) { .tools { flex-wrap: wrap; justify-content: center; } .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } }
 </style>

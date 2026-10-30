@@ -47,7 +47,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .btn:hover:not(:disabled) { border-color: color-mix(in oklab, var(--accent) 60%, var(--border)); transform: translateY(-1px); }
 .btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
 .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 22px -6px var(--accent); }
 .btn-primary:hover:not(:disabled) { border-color: var(--accent); filter: brightness(1.06); }
 .btn-danger { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 50%, var(--border)); }
