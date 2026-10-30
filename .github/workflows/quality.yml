@@ -37,7 +37,8 @@ jobs:
       - name: Unit tests with coverage
         env:
           ALLURE_RESULTS_DIR: allure-results/unit
-        run: pnpm exec vitest run --coverage --reporter=default --reporter=json --outputFile.json=reports/unit/results.json
+        # Reporters (default, json to reports/unit/results.json, Allure) come from vitest.config.ts when ALLURE_RESULTS_DIR is set.
+        run: pnpm exec vitest run --coverage
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
