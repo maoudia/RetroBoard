@@ -17,3 +17,4 @@ overrides:
   'katex@<0.18.2': ^0.18.2
   # GHSA-gg6h-894w-4m9c (quadratic-time DoS), via markdownlint, dev only. 2.9.1 is the latest release (patched version a verifier in the OSV run).
   're2js@<2.9.1': ^2.9.1
+  'dompurify@<3.4.17': ^3.4.17
