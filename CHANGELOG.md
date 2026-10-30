@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/maoudia/RetroBoard/compare/v1.3.1...v1.4.0) (2026-10-30)
+
+
+### Features
+
+* **grouping:** better cluster titles from shared phrases, folded plurals and word-boundary cuts ([df79208](https://github.com/maoudia/RetroBoard/commit/df792085893aef27a5803896dd0671718aef992c))
+* **grouping:** move a whole cluster to another column by drag or from its menu ([d3d54e3](https://github.com/maoudia/RetroBoard/commit/d3d54e3ce3048cd3a2426679a7bbbab3b4be5814))
+
 ## [1.3.1](https://github.com/maoudia/RetroBoard/compare/v1.3.0...v1.3.1) (2026-10-30)
 
 
