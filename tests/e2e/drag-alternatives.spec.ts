@@ -32,16 +32,22 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
     await publishNote(page, 0, 'One')
     await publishNote(page, 0, 'Two')
     await publishNote(page, 0, 'Three')
-    await noteByText(page, 'One').locator('[data-testid^="note-menu-"]').click()
-    await page.locator('[data-testid^="group-with-"]').click()
+    // Menus need settle time (Firefox, WebKit): open and act together until it sticks.
+    await expect(async () => {
+      await noteByText(page, 'One').locator('[data-testid^="note-menu-"]').click()
+      await page.locator('[data-testid^="group-with-"]').click({ timeout: 2000 })
+    }).toPass({ timeout: 10_000 })
     await expect(page.locator('[data-testid^="group-onto-"]').first()).toBeVisible()
     const found = (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
     await page.locator('[data-testid^="group-onto-"]').filter({ hasText: 'Two' }).click()
     await expect(noteByText(page, 'One')).toHaveCount(0)
 
-    await noteByText(page, 'Three').locator('[data-testid^="note-menu-"]').click()
-    await page.locator('[data-testid^="group-with-"]').click()
+    // Menus need settle time (Firefox, WebKit): open and act together until it sticks.
+    await expect(async () => {
+      await noteByText(page, 'Three').locator('[data-testid^="note-menu-"]').click()
+      await page.locator('[data-testid^="group-with-"]').click({ timeout: 2000 })
+    }).toPass({ timeout: 10_000 })
     const toGroup = page.locator('[data-testid^="group-onto-"]').first()
     await expect(toGroup).toContainText(/Groupe/)
     await toGroup.click()

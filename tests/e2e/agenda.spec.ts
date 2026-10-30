@@ -39,7 +39,9 @@ test.describe('time-boxed agenda', () => {
     await panel(page, async () => { await expect(page.getByTestId('agenda-panel').getByTestId('activity-rings')).toHaveAttribute('width', '96') })
     const small = (await rings.first().boundingBox())!.width
     await page.getByTestId('btn-presenter').click()
-    await expect.poll(async () => (await rings.first().boundingBox())!.width).toBeGreaterThan(small)
+    // Presenter mode sets the toolbar rings to 96 px; on a wide screen (tv) they are already 96 px.
+    await expect.poll(async () => (await rings.first().boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(small, 96))
+    await expect.poll(async () => Math.round((await rings.first().boundingBox())!.width)).toBe(96)
     await page.keyboard.press('Escape')
     // The text alternative says where the team is.
     await expect(page.getByTestId('agenda-ring')).toContainText(/%/)

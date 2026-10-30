@@ -10,8 +10,12 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // retro report, export by destination and talk time (+12 kB measured).
 // 2026-10-25: total raised from 245 to 260 kB for sticky notes v2, board lifecycle, keyboard shortcuts
 // and the phase-end popup (246.6 kB measured). Splitting chunks does not help: the budget counts all of them.
+// 2026-10-30: total raised from 260 to 270 kB for activity rings, results charts, the ROTI vote, the cluster
+// peek and the spring animation (260.7 kB measured, 9 kB of headroom kept on purpose). Lazy loading would not
+// lower this metric because every chunk is counted. A metric based on the entry's static
+// import graph (what really blocks first paint) is planned in quality-gates-v2.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 40, totalKb: 260 }
+const BUDGET = { entryKb: 40, totalKb: 270 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')

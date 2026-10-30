@@ -53,10 +53,13 @@ test.describe('clusters as merged ideas', () => {
 
   test('spring open and close: the panel animates in under 400 ms and closes back into the stack', async ({ page }) => {
     await twoNoteCluster(page)
-    await page.evaluate(() => {
+    // WebKit has no `longtask` entries: the 50 ms check only runs where the browser reports them.
+    const hasLongTasks = await page.evaluate(() => {
       const w = window as unknown as { longTasks: number[] }
       w.longTasks = []
+      if (!PerformanceObserver.supportedEntryTypes?.includes('longtask')) return false
       new PerformanceObserver((l) => l.getEntries().forEach((e) => w.longTasks.push(e.duration))).observe({ entryTypes: ['longtask'] })
+      return true
     })
     await clusters(page).first().locator('.stack').click()
     const panel = page.getByTestId('group-panel')
@@ -65,7 +68,7 @@ test.describe('clusters as merged ideas', () => {
     expect(total).toBeGreaterThan(0)
     expect(total).toBeLessThan(400)
     await page.waitForTimeout(500)
-    expect(await page.evaluate(() => (window as unknown as { longTasks: number[] }).longTasks.filter((d) => d >= 50))).toEqual([])
+    if (hasLongTasks) expect(await page.evaluate(() => (window as unknown as { longTasks: number[] }).longTasks.filter((d) => d >= 50))).toEqual([])
     await page.getByTestId('group-close').click()
     await expect(panel).toHaveCount(0)
     // A second Escape or click during the close never throws or reopens anything.

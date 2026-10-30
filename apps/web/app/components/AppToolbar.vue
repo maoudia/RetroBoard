@@ -4,10 +4,21 @@ const board = useBoardStore()
 const ui = useUiStore()
 const theme = useThemeStore()
 const settings = useSettingsStore()
+
+// The toolbar can wrap on narrow screens: keep the scroll padding (WCAG 2.4.11) equal to its real height.
+const el = useTemplateRef<HTMLElement>('toolbarEl')
+let observer: ResizeObserver | undefined
+onMounted(() => {
+  if (!el.value || typeof ResizeObserver === 'undefined') return
+  const root = document.documentElement
+  observer = new ResizeObserver(() => root.style.setProperty('--toolbar-actual', `${Math.ceil(el.value?.getBoundingClientRect().height ?? 0)}px`))
+  observer.observe(el.value)
+})
+onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.removeProperty('--toolbar-actual') })
 </script>
 
 <template>
-  <header class="toolbar glass">
+  <header ref="toolbarEl" class="toolbar glass">
     <div class="brand">
       <NuxtLink to="/" class="logo" :aria-label="t('toolbar.home')"><Icon name="lucide:sparkles" /></NuxtLink>
       <button class="title" type="button" :title="t('toolbar.rename')" data-testid="board-title" @click="ui.open('options')">
