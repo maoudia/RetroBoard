@@ -19,7 +19,9 @@ describe('device key sealer', () => {
   it('returns null for tampered or foreign data', async () => {
     const s = createLocalSealer(openReplicaDb(new IDBFactory()))
     const sealed = await s.seal('x')
-    expect(await s.open(sealed.slice(0, -2) + 'AA')).toBeNull()
+    // Always differs from the original tail, so the test never hits an unchanged payload.
+    const tail = sealed.endsWith('AA') ? 'BB' : 'AA'
+    expect(await s.open(sealed.slice(0, -2) + tail)).toBeNull()
     expect(await s.open('garbage')).toBeNull()
   })
 })
