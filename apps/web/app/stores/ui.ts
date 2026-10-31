@@ -36,6 +36,8 @@ export const useUiStore = defineStore('ui', () => {
     loadColumnSizes(room)
     writeSize.value = room ? safeStorage.get<WriteSize>(`rb.writesize.${room}`, 'normal') : 'normal'
   }
+  /** Notes grouped by "group by author" per column, kept to offer an undo. */
+  const autoGrouped = ref<Record<string, string[]>>({})
   /** Cluster being dragged (drop on another cluster to merge). */
   const dragGroupId = ref<string | null>(null)
   const openGroupId = ref<string | null>(null)
@@ -73,5 +75,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
 })
