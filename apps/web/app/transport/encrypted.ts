@@ -758,6 +758,23 @@ export class EncryptedRelayTransport implements BoardTransport {
     })
   }
 
+  private sessionDelegated = false
+  /**
+   * Content (notes, votes) is signed by the session key, so phase rules apply to it even when this tab
+   * holds the facilitator link (#270, #276). The link makes the session key a co-facilitator once, unless
+   * a one-facilitator board is led by somebody else (the takeover question decides there).
+   */
+  private delegateSessionToLink(): void {
+    const fac = this.deps.facilitator
+    const ledger = this.log.ledger
+    if (this.sessionDelegated || !fac || this.closed || ledger.facilitatorKey === null) return
+    if (roleOf(ledger, this.deps.session.publicKey) !== 'participant') { this.sessionDelegated = true; return }
+    if (!ledger.board.settings.initialized) return
+    if (!ledger.board.settings.openFacilitation && ledger.lead !== fac.publicKey) return
+    this.sessionDelegated = true
+    this.enqueue(() => this.publishLocal({ t: 'role.delegate', key: this.deps.session.publicKey }))
+  }
+
   /** My best role: as this tab's session key, or through the facilitator key of my link. */
   private myRole(): Role {
     const ledger = this.log.ledger
@@ -793,6 +810,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     if (this.lastStatus === 'waiting') this.setStatus('open')
     const ledger = this.log.ledger
     if (ledger.board.settings.destroyed) this.forgetReplica()
+    this.delegateSessionToLink()
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
     const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey }
