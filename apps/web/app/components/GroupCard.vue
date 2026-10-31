@@ -59,9 +59,13 @@ onBeforeUnmount(cancelPeek)
 <template>
   <div class="cluster" :class="{ expanded }">
   <section v-if="expanded" class="inline" :class="{ over }" tabindex="-1" :data-source-id="item.group.id" :data-testid="`cluster-inline-${item.group.id}`" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop">
-    <button class="ihead" type="button" :aria-label="t('group.label', { title: item.title, n: item.notes.length })" @click="open">
-      <Icon name="lucide:layers" /> <strong>{{ item.title }}</strong> <span class="muted">{{ item.notes.length }}</span>
-    </button>
+    <div class="ibar">
+      <button class="ihead" type="button" :aria-label="t('group.label', { title: item.title, n: item.notes.length })" @click="open">
+        <Icon name="lucide:layers" /> <strong>{{ item.title }}</strong> <span class="muted">{{ item.notes.length }}</span>
+      </button>
+      <!-- The expanded cluster keeps its vote inside its frame (#272). -->
+      <VoteControl v-if="item.group.votable" :id="item.group.id" kind="cluster" :votes="item.group.votes" :my-votes="item.group.myVotes" :label="item.title" />
+    </div>
     <div class="inotes">
       <NoteCard v-for="n in item.notes" :key="n.id" :note="n" in-group />
     </div>
@@ -105,10 +109,12 @@ onBeforeUnmount(cancelPeek)
 </template>
 
 <style scoped>
-.cluster { position: relative; min-width: 0; }
+/* start: the card is as tall as its face, so the vote (absolute) never lands below it in a stretched grid row (#272) */
+.cluster { position: relative; min-width: 0; align-self: start; }
 .cluster.expanded { grid-column: 1 / -1; }
 .inline { display: grid; gap: .5rem; padding: .5rem; border: 2px dashed color-mix(in oklab, var(--accent) 45%, transparent); border-radius: var(--r-card); }
 .inline.over { border-style: solid; border-color: var(--accent); }
+.ibar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .ihead { display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; text-align: left; }
 .inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .6rem; }
 .abadge { position: absolute; left: .55rem; bottom: .45rem; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }

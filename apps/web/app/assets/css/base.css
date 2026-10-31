@@ -50,6 +50,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--surface2); color: var(--text); font-weight: 600; line-height: 1.1;
   transition: transform .15s, background .15s, border-color .15s, box-shadow .15s;
 }
+/* An icon never shrinks away inside a tight flex row (#273: the Copy icon collapsed to 0 and pushed the label off-centre). */
+.btn > svg, .btn > .iconify { flex: none; }
 .btn:hover:not(:disabled) { border-color: color-mix(in oklab, var(--accent) 60%, var(--border)); transform: translateY(-1px); }
 .btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
 .btn:disabled { opacity: .6; cursor: not-allowed; }

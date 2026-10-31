@@ -117,6 +117,8 @@ const showQr = ref(false)
 
 <style scoped>
 .row { display: flex; gap: .5rem; }
+.row .btn { flex: none; white-space: nowrap; }
+.row .field { min-width: 0; flex: 1; }
 .code-words { margin: 0; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
 .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
 .acts a.btn { text-decoration: none; }

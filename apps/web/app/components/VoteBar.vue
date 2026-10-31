@@ -9,6 +9,10 @@ const ui = useUiStore()
 /** Voting is not available in this phase (agenda rules): the voting buttons say so instead of staying active. */
 const gate = computed(() => board.availability('vote.add'))
 const votingOffTitle = computed(() => (gate.value.closedBy ? t('gated.vote.closed', { phase: t(`agenda.phase.${gate.value.closedBy}`) }) : undefined))
+/** Publishing is closed by the phase for me (facilitators are never blocked): the button says so instead of failing (#275). */
+const publishGate = computed(() => board.availability('note.addMany'))
+const publishClosed = computed(() => !publishGate.value.allowed && !!publishGate.value.closedBy)
+const publishOffTitle = computed(() => (publishClosed.value ? t('gated.publish.closed', { phase: t(`agenda.phase.${publishGate.value.closedBy}` as never) }) : undefined))
 const vstate = computed(() => (board.snapshot ? votingState(board.snapshot) : 'open'))
 const stateText = computed(() => {
   if (vstate.value === 'closed') return t('votebar.stateClosed')
@@ -52,9 +56,6 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
         ><Icon name="lucide:flag" /> {{ t(board.secretVoting && vstate !== 'closed' && vstate !== 'phase-closed' ? 'votebar.closeReveal' : 'votebar.closedSeg') }}</button>
       </div>
       <span class="state-text" role="status" data-testid="voting-state-text">{{ stateText }}</span>
-      <button v-if="board.access.canSteer && board.votingClosed" class="btn btn-sm" type="button" data-testid="reopen-voting" @click="board.commands.reopenVoting()">
-        <Icon name="lucide:rotate-ccw" /> {{ t('votebar.reopen') }}
-      </button>
       <button v-if="board.votingClosed" class="btn btn-sm" type="button" data-testid="open-ranking" @click="ui.open('ranking')">
         <Icon name="lucide:trophy" /> {{ t('votebar.results') }}
       </button>
@@ -74,7 +75,7 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
           </button>
         </template>
       </Dropdown>
-      <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked" data-testid="publish-all" @click="publish()">
+      <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked || publishClosed" :title="publishOffTitle" data-testid="publish-all" @click="publish()">
         <Icon name="lucide:send" /> {{ t('votebar.publishAll') }}<span v-if="drafts.count"> ({{ drafts.count }})</span>
       </button>
     </div>

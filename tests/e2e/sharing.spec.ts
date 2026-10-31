@@ -76,6 +76,10 @@ test('presenter mode: no private drafts, no pointers, a QR card to join; Escape 
   await expect(page.getByText('My private draft')).toBeHidden()
   await expect(page.getByTestId('presenter-join').getByTestId('qr')).toBeVisible()
   expect(await scan(page.getByTestId('presenter-join').getByTestId('qr'))).toBe(link)
+  // The X hides the QR card only: presenter mode goes on (#271).
+  await page.getByTestId('presenter-join-close').click()
+  await expect(page.getByTestId('presenter-join')).toHaveCount(0)
+  await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'true')
 
   // Bob moves: nothing is drawn on the presenter's screen.
   const col = (await bob.page.locator('section[data-testid^="column-"]').first().boundingBox())!
