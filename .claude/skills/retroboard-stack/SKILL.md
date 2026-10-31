@@ -55,6 +55,7 @@ Bounded contexts: facilitation, ideation, voting, action-tracking, talk-time, pr
 4. **Protocol**: if a new event type travels, add it to the envelope payload union with a version bump rule.
 5. **Read model**: extend the view used by the UI; memoise per log version.
 6. **UI**: Pinia store calls the use case; component renders the read model. Strings via `t('...')`; add keys to `fr` and `en`. Use theme tokens (`var(--...)`), never hard-coded colours. Check phone (360 px) and TV (2560+) layouts.
+   Follow `docs/design-system.md`: type from `--fs-*`, radii from `--r-*`, spacing from `--sp-*`, one primary action per view, state in words. For a new screen or a visual rework, load the `frontend-design` skill first, then apply the guide; if the guide is wrong or silent, change it in the same commit. `apps/web/test/design-tokens.test.ts` fails on off-scale sizes and radii.
 7. **E2E**: Playwright test of the user flow, multi-context if collaborative. Use `data-testid`. Keep the no-console-error guard green.
 8. **Docs**: update the spec delta, README or docs when commands or behaviour change.
 
