@@ -2,7 +2,7 @@
 
 ## 1. Stepper
 
-- [ ] 1.1 Phase stepper (segments by planned time, current highlighted, next label, fr/en, 360 px to TV); verify e2e and axe
+- [x] 1.1 Phase stepper (segments by planned time, current highlighted, next label, fr/en, 360 px to TV); verify e2e and axe
 - [ ] 1.2 Remove the bottom info bar and keep announcements in the live regions; verify e2e announcements
 
 ## 2. Feed

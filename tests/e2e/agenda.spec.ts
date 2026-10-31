@@ -193,3 +193,23 @@ test.describe('time-boxed agenda', () => {
     await expect(page.getByTestId('timer-toggle')).toBeVisible()
   })
 })
+
+test.describe('phase stepper (board-activity-feed)', () => {
+  test('shows the phases, the current one with its time left and the next one', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    const stepper = page.getByTestId('stepper')
+    await expect(stepper).toBeVisible()
+    await expect(page.locator('[data-testid^="step-"]')).toHaveCount(8)
+    await expect(page.locator('[data-testid^="step-"][data-state="current"]')).toHaveCount(0)
+    await expect(page.getByTestId('stepper-line')).toContainText('Pas commencé')
+    await page.getByTestId('agenda-toggle').click()
+    await expect(page.locator('[data-testid^="step-"][data-state="current"]')).toHaveCount(1)
+    await expect(page.getByTestId('stepper-line')).toContainText('restantes')
+    await page.getByTestId('agenda-ring').click()
+    await page.getByTestId('agenda-next').click()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('[data-testid^="step-"][data-state="done"]')).toHaveCount(1)
+    const found = (await new AxeBuilder({ page }).include('[data-testid="stepper"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    expect(found).toEqual([])
+  })
+})

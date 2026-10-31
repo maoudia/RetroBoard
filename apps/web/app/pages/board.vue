@@ -240,6 +240,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
     <template v-else>
       <AppToolbar v-if="board.ready" />
+      <PhaseStepper v-if="board.ready && board.snapshot?.agenda" />
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <PresenterFocus v-if="board.ready && ui.presenter" />
