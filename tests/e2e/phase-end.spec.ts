@@ -196,3 +196,21 @@ test.describe('phase end popup placement', () => {
     await expect(popup).toHaveCount(0)
   })
 })
+
+test.describe('notification position', () => {
+  test('the time-up popup follows the personal position (right) and stays on screen', async ({ page }) => {
+    await page.clock.install()
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+    await page.getByTestId('btn-profile').click()
+    await page.getByTestId('notify-right').click()
+    await page.keyboard.press('Escape')
+    await startShortAgenda(page)
+    await page.waitForTimeout(1200)
+    await page.mouse.move(1, 1)
+    await page.clock.fastForward(61_000)
+    const box = (await page.getByTestId('phase-end').boundingBox())!
+    const vw = page.viewportSize()!.width
+    expect(box.x + box.width).toBeGreaterThan(vw - 40)
+    expect(box.x + box.width).toBeLessThanOrEqual(vw)
+  })
+})

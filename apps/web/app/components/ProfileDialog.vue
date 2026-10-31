@@ -115,6 +115,12 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         <span><strong>{{ t('profile.keyHints') }}</strong><small class="muted">{{ t('profile.keyHints.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.keyHints" :disabled="!settings.s.shortcuts" data-testid="set-key-hints" @change="set({ keyHints: ($event.target as HTMLInputElement).checked })" />
       </label>
+      <div class="line">
+        <span><strong>{{ t('profile.notifyPos') }}</strong></span>
+        <span class="seg">
+          <button v-for="p in (['left', 'center', 'right'] as const)" :key="p" type="button" :class="{ on: settings.s.notifyPos === p }" :aria-pressed="settings.s.notifyPos === p" :data-testid="`notify-${p}`" @click="set({ notifyPos: p })">{{ t(`profile.notifyPos.${p}` as never) }}</button>
+        </span>
+      </div>
       <label class="line">
         <span><strong>{{ t('profile.phaseWarning') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.phaseWarning" data-testid="set-phase-warning" @change="set({ phaseWarning: ($event.target as HTMLInputElement).checked })" />

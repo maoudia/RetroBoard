@@ -13,4 +13,4 @@
 ## 3. Notices
 
 - [x] 3.1 Sticky time-up notification (dismiss, hide after 20 s, never off screen); verify e2e at 360x640 and 1440x900
-- [ ] 3.2 Notification position preference (top centre default, left, right); verify e2e
+- [x] 3.2 Notification position preference (top centre default, left, right); verify e2e
