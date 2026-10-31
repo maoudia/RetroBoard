@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/maoudia/RetroBoard/compare/v1.17.0...v1.18.0) (2026-10-31)
+
+
+### Features
+
+* **board:** activity bell with unread badge listing phase, voting and reveal events ([90765a2](https://github.com/maoudia/RetroBoard/commit/90765a2c024e82ad5f9e81dbaf99f4339e8c44d8))
+
 ## [1.17.0](https://github.com/maoudia/RetroBoard/compare/v1.16.0...v1.17.0) (2026-10-31)
 
 
