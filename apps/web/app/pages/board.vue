@@ -127,6 +127,8 @@ function sendSetup(s: SetupResult) {
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
   if (s.importActions?.length) board.commands.importActions(s.importActions)
   if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish })
+  // The facilitator asked for the clock to run as soon as the board exists (facilitator-controls-v2).
+  if (s.agenda?.phases.length && s.agenda.autoStart) board.commands.startAgenda()
   setupOpen.value = false
   // A new shared board: the next thing the facilitator does is invite the team.
   // With carried-over actions, the review comes first and the invite panel after it.
@@ -153,9 +155,27 @@ watch(() => board.access.isLead, (now, was) => {
   if (was && !now && ledOneFacilitator && board.settings?.openFacilitation === false) push(t('roles.takeover.lost', { name: leadName.value }), 'info', 8000)
 })
 // Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
-watch(() => ui.presenter, (on) => { if (on) document.documentElement.dataset.presenter = ''; else delete document.documentElement.dataset.presenter })
+watch(() => ui.presenter, (on) => {
+  if (on) document.documentElement.dataset.presenter = ''
+  else { delete document.documentElement.dataset.presenter; ui.focusColumn = null }
+})
+watch(() => ui.focusColumn, async (i) => { if (i === null) return; await nextTick(); document.querySelector('.col[data-focused]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }) })
+// Column focus (presenter-mode-v2): the attribute drives the layout in base.css.
+watch(() => [ui.presenter, ui.focusColumn, ui.focusStyle] as const, ([on, col, style]) => {
+  const d = document.documentElement.dataset
+  if (on && col !== null) d.focus = style; else delete d.focus
+}, { immediate: true })
 function onPresenterKey(e: KeyboardEvent) {
-  if (e.key === 'Escape' && ui.presenter && ui.dialog === null) ui.presenter = false
+  if (e.key === 'Escape' && ui.presenter && ui.dialog === null) { if (ui.focusColumn !== null) ui.focusColumn = null; else ui.presenter = false; return }
+  if (ui.presenter && ui.dialog === null && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    const el = document.activeElement as HTMLElement | null
+    if (el?.matches('input, textarea, select, [contenteditable="true"]')) return
+    const n = board.columns.length
+    if (!n) return
+    e.preventDefault()
+    const step = e.key === 'ArrowRight' ? 1 : -1
+    ui.focusColumn = ui.focusColumn === null ? (step > 0 ? 0 : n - 1) : (ui.focusColumn + step + n) % n
+  }
 }
 // Leave guard: unpublished drafts would stay in this browser only; the browser asks first.
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
@@ -222,6 +242,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <AppToolbar v-if="board.ready" />
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
+      <PresenterFocus v-if="board.ready && ui.presenter" />
       <TalkBanner v-if="board.ready" />
       <VoteBar v-if="board.ready" />
       <RevealCountdown v-if="board.ready" />

@@ -118,7 +118,22 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 :root[data-density="compact"] .col { --note-w: 118px; }
 :root[data-presenter] .col { --note-w: 210px; max-width: none; }
 :root[data-presenter] .note { font-size: 1.22rem; border: 2px solid color-mix(in oklab, var(--note-ink, currentColor) 45%, transparent); }
+
 :root[data-presenter] .col h2 { font-size: 1.5rem; }
+/* Column focus (presenter-mode-v2): centre zoom shrinks the others around the focused column; accordion folds them. */
+:root[data-focus] .board { padding-bottom: 76px; }
+:root[data-focus="centre"] .board { justify-content: safe center; }
+:root[data-focus="centre"] .board > .col { transition: transform .35s var(--ease), opacity .35s; }
+:root[data-focus="centre"] .board > .col:not([data-focused]) { transform: scale(.84); opacity: .55; }
+:root[data-focus="centre"] .board > .col[data-focused] { transform: scale(1.04); z-index: 2; box-shadow: var(--shadow-2); }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) { flex: 0 0 84px; min-width: 0; overflow: hidden; opacity: .8; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) > :not(header) { display: none; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) header > :not(.badge-ico):not(.titles) { display: none; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) .titles p { display: none; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) header { flex-direction: column; align-items: center; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) h2 { writing-mode: vertical-rl; font-size: 1.25rem; }
+:root[data-focus="accordion"] .board > .col[data-focused] { flex: 1 1 0; min-width: min(520px, 70vw); max-width: none; }
+@media (prefers-reduced-motion: reduce) { :root[data-focus] .board > .col { transition: none !important; } }
 :root[data-density="compact"] .note { min-height: 80px; padding: .5rem .6rem .35rem; font-size: .92rem; }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 

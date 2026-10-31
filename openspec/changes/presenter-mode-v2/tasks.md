@@ -2,7 +2,7 @@
 
 ## 1. Focus
 
-- [ ] 1.1 Column focus layouts (centre zoom and accordion, arrow keys, fr/en, reduced motion); verify e2e at 1440 and 2560
+- [x] 1.1 Column focus layouts (centre zoom and accordion, arrow keys, fr/en, reduced motion); verify e2e at 1440 and 2560
 - [ ] 1.2 Note spotlight followed by the presenter screen; verify e2e two contexts
 
 ## 2. Discussion

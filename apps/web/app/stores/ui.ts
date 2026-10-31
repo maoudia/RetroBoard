@@ -23,6 +23,9 @@ export const useUiStore = defineStore('ui', () => {
   const takeoverAsked = ref(false)
   /** Presenter mode (screen sharing, room screen): larger type, no drafts, no pointers, QR to join. */
   const presenter = ref(false)
+  /** Presenter column focus (presenter-mode-v2): index of the focused column, null for the whole board. Local to this tab. */
+  const focusColumn = ref<number | null>(null)
+  const focusStyle = ref<'centre' | 'accordion'>('centre')
   /** My view filter (text, colours, author, has votes). Never shared. */
   const filter = ref<NoteFilter>({ ...EMPTY_FILTER })
   const filterOpen = ref(false)
@@ -43,5 +46,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, dragGroupId }
 })
