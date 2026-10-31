@@ -346,6 +346,7 @@ export const en: Record<keyof typeof fr, string> = {
   'votebar.on': 'on',
   'votebar.off': 'off',
   'votebar.publishAll': 'Publish all',
+  'votebar.more': 'More',
   'votebar.reveal': 'Reveal all',
   'votebar.reveal.title': 'Starts a countdown for everyone: at the end, each person publishes their drafts',
   'reveal.title': 'Everything is revealed in {n} s',

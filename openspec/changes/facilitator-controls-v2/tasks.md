@@ -8,7 +8,7 @@
 
 ## 2. Controls
 
-- [ ] 2.1 Facilitation menu grouping voting, reveal all and publish all (phone to TV); verify e2e and axe
+- [x] 2.1 Facilitation menu grouping voting, reveal all and publish all (phone to TV); verify e2e and axe
 - [x] 2.2 "Go to closing" with confirmation; verify unit test of the agenda jump and e2e
 
 ## 3. Timer

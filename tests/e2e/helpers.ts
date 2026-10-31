@@ -113,3 +113,9 @@ export async function collectProblems(page: Page): Promise<string[]> {
   })
   return problems
 }
+
+/** Facilitator-only vote controls live in the "More" menu: opens it, then clicks the item. */
+export async function voteMenu(page: Page, testid: 'secret-toggle' | 'reveal-all') {
+  await page.getByTestId('votebar-more').click()
+  await page.getByTestId(testid).click()
+}

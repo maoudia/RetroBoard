@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { createBoard, join, noteByText, publishNote, voteMenu } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -69,7 +69,7 @@ test.describe('voted ideas in the actions panel', () => {
   test('hidden while a secret vote is open, shown after the reveal', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await publishNote(page, 0, 'Secret one')
-    await page.getByTestId('secret-toggle').click()
+    await voteMenu(page, 'secret-toggle')
     await noteByText(page, 'Secret one').locator('.vote').click()
     await page.getByTestId('btn-actions').click()
     await expect(page.getByTestId('action-text')).toBeVisible()

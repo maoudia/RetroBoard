@@ -345,6 +345,7 @@ export const fr = {
   'votebar.on': 'activé',
   'votebar.off': 'désactivé',
   'votebar.publishAll': 'Tout publier',
+  'votebar.more': 'Plus',
   'votebar.reveal': 'Tout révéler',
   'votebar.reveal.title': 'Lance un compte à rebours pour tout le monde : à la fin, chacun publie ses brouillons',
   'reveal.title': 'Tout est révélé dans {n} s',

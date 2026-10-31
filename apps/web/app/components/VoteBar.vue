@@ -58,12 +58,22 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
       <button v-if="board.votingClosed" class="btn btn-sm" type="button" data-testid="open-ranking" @click="ui.open('ranking')">
         <Icon name="lucide:trophy" /> {{ t('votebar.results') }}
       </button>
-      <button class="btn btn-sm" type="button" :aria-pressed="board.secretVoting" data-testid="secret-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting })">
-        <Icon :name="board.secretVoting ? 'lucide:eye-off' : 'lucide:eye'" /> {{ t('votebar.secret', { state: board.secretVoting ? t('votebar.on') : t('votebar.off') }) }}
-      </button>
-      <button v-if="board.access.canSteer" class="btn btn-sm" type="button" :disabled="board.locked || revealing" :title="t('votebar.reveal.title')" data-testid="reveal-all" @click="board.commands.revealDrafts()">
-        <Icon name="lucide:sparkles" /> {{ t('votebar.reveal') }}
-      </button>
+      <!-- Facilitator-only controls grouped in one menu (change facilitator-controls-v2). -->
+      <Dropdown v-if="board.access.canSteer" menu>
+        <template #trigger="{ toggle, open }">
+          <button class="btn btn-sm" type="button" aria-haspopup="menu" :aria-expanded="open" data-testid="votebar-more" @click="toggle">
+            <Icon name="lucide:sliders-horizontal" /> {{ t('votebar.more') }}
+          </button>
+        </template>
+        <template #default="{ close }">
+          <button class="dd-item" type="button" role="menuitemcheckbox" :aria-checked="board.secretVoting" data-testid="secret-toggle" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting }); close()">
+            <Icon :name="board.secretVoting ? 'lucide:eye-off' : 'lucide:eye'" /> {{ t('votebar.secret', { state: board.secretVoting ? t('votebar.on') : t('votebar.off') }) }}
+          </button>
+          <button class="dd-item" type="button" role="menuitem" :disabled="board.locked || revealing" :title="t('votebar.reveal.title')" data-testid="reveal-all" @click="board.commands.revealDrafts(); close()">
+            <Icon name="lucide:sparkles" /> {{ t('votebar.reveal') }}
+          </button>
+        </template>
+      </Dropdown>
       <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked" data-testid="publish-all" @click="publish()">
         <Icon name="lucide:send" /> {{ t('votebar.publishAll') }}<span v-if="drafts.count"> ({{ drafts.count }})</span>
       </button>

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, publishNote, settle } from './helpers'
+import { createBoard, join, publishNote, settle, voteMenu } from './helpers'
 
 /** Target: WCAG 2.2 AA (ADR-0022). Every impact fails the build, not only serious and critical. */
 async function audit(page: Page) {
@@ -61,7 +61,7 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     await expect(page.getByTestId('rename-input')).toBeVisible()
     expect(await audit(page)).toEqual([])
     await page.keyboard.press('Escape')
-    await page.getByTestId('reveal-all').click()
+    await voteMenu(page, 'reveal-all')
     await expect(page.getByTestId('reveal-countdown')).toBeVisible()
     expect(await audit(page)).toEqual([])
     await bob.ctx.close()

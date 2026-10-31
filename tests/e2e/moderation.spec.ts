@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, enterName, join, noteByText, publishNote } from './helpers'
+import { createBoard, enterName, join, noteByText, publishNote, voteMenu } from './helpers'
 
 async function shareUrl(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -82,7 +82,7 @@ test.describe('reveal all drafts', () => {
     await draft(bob.page, 'Bob draft')
     await expect(noteByText(page, 'Alice draft')).toHaveCount(0)
 
-    await page.getByTestId('reveal-all').click()
+    await voteMenu(page, 'reveal-all')
     for (const p of [page, bob.page]) await expect(p.getByTestId('reveal-countdown')).toBeVisible()
     await bob.page.getByTestId('reveal-keep').check()
 
@@ -98,8 +98,8 @@ test.describe('reveal all drafts', () => {
   test('only a facilitator sees the button on a one-facilitator board', async ({ page, browser }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
     const bob = await join(browser, await shareUrl(page), 'Bob')
-    await expect(page.getByTestId('reveal-all')).toBeVisible()
-    await expect(bob.page.getByTestId('reveal-all')).toHaveCount(0)
+    await expect(page.getByTestId('votebar-more')).toBeVisible()
+    await expect(bob.page.getByTestId('votebar-more')).toHaveCount(0)
     await bob.ctx.close()
   })
 })

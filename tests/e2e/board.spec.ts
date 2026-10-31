@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { collectProblems, column, createBoard, join, noteByText, publishNote } from './helpers'
+import { collectProblems, column, createBoard, join, noteByText, publishNote, voteMenu } from './helpers'
 
 test.describe('board lifecycle', () => {
   test('creates a themed board from a template', async ({ page }) => {
@@ -47,7 +47,7 @@ test.describe('voting', () => {
     await expect(bob.getByText('Tu as utilisé tous tes votes.')).toBeVisible()
     await expect(noteByText(page, 'note a').locator('.vote .n')).toHaveText('1')
 
-    await page.getByTestId('secret-toggle').click()
+    await voteMenu(page, 'secret-toggle')
     await expect(noteByText(page, 'note a').locator('.vote .n')).toHaveCount(0)
     await expect(noteByText(bob, 'note a').locator('.vote .n')).toHaveCount(0)
     await expect(noteByText(bob, 'note a').locator('.vote')).toHaveAttribute('aria-pressed', 'true')

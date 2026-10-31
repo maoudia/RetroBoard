@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, publishNote } from './helpers'
+import { createBoard, join, publishNote, voteMenu } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -51,7 +51,7 @@ test.describe('live regions (WCAG 4.1.3)', () => {
     await expect(bob.page.getByTestId('live-polite')).toContainText('Maintenant : Vote')
     await expect(profile).toBeFocused()
 
-    await page.getByTestId('secret-toggle').click()
+    await voteMenu(page, 'secret-toggle')
     await page.getByTestId('close-voting').click()
     await expect(bob.page.getByTestId('live-polite')).toContainText('Les votes sont révélés')
     await bob.ctx.close()

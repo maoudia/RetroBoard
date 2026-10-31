@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { createBoard, join, noteByText, publishNote, voteMenu } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -37,7 +37,7 @@ test.describe('voting v2', () => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
     await publishNote(page, 0, 'Flaky tests')
     const bob = await join(browser, await shareLink(page), 'Bob')
-    await page.getByTestId('secret-toggle').click()
+    await voteMenu(page, 'secret-toggle')
 
     await voteBtn(bob.page, 'Flaky tests').click()
     await expect(bob.page.getByTestId('votes-left')).toContainText('2')
@@ -109,4 +109,19 @@ test.describe('voting v2', () => {
     await page.getByTestId('btn-actions').click()
     await expect(page.getByText('Alpha').last()).toBeVisible()
   })
+})
+
+test('the facilitator groups secret voting and reveal all in one menu; participants do not see it', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await page.getByTestId('btn-share').click()
+  const url = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await join(browser, url, 'Bob')
+  await expect(page.getByTestId('votebar-more')).toBeVisible()
+  await expect(page.getByTestId('secret-toggle')).toHaveCount(0)
+  await page.getByTestId('votebar-more').click()
+  await expect(page.getByTestId('secret-toggle')).toBeVisible()
+  await expect(page.getByTestId('reveal-all')).toBeVisible()
+  await expect(bob.page.getByTestId('votebar-more')).toHaveCount(0)
+  await bob.ctx.close()
 })
