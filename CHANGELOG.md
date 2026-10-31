@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.1](https://github.com/maoudia/RetroBoard/compare/v1.20.0...v1.20.1) (2026-10-31)
+
+
+### Refactoring
+
+* **ui:** shared type and radius scales, design system guide and a guard test for new off-scale values ([e149092](https://github.com/maoudia/RetroBoard/commit/e149092a54eaa0cac354d869aeb08464715ef5cc))
+
 ## [1.20.0](https://github.com/maoudia/RetroBoard/compare/v1.19.0...v1.20.0) (2026-10-31)
 
 
