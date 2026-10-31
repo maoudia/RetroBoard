@@ -175,3 +175,24 @@ test.describe('phase end popup', () => {
     expect(await page.evaluate(() => (window as unknown as { __notes: string[][] }).__notes[0]![0])).toContain('Regroupement')
   })
 })
+
+test.describe('phase end popup placement', () => {
+  test('fits a 360x640 screen and hides itself after 20 seconds', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 })
+    await page.clock.install()
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+    await startShortAgenda(page)
+    await page.waitForTimeout(1200)
+    await page.mouse.move(1, 1) // a pointer resting on the popup would pause its timer
+    await page.clock.fastForward(61_000)
+    const popup = page.getByTestId('phase-end')
+    await expect(popup).toBeVisible()
+    const box = (await popup.boundingBox())!
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.y).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(360)
+    expect(box.y + box.height).toBeLessThanOrEqual(640)
+    await page.clock.fastForward(21_000)
+    await expect(popup).toHaveCount(0)
+  })
+})

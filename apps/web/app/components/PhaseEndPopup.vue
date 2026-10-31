@@ -31,14 +31,20 @@ onMounted(async () => {
   await nextTick()
   if (!typing()) primary.value?.focus({ preventScroll: true })
 })
-onBeforeUnmount(() => slot.release(ID))
+/** Hidden by itself after 20 s (change board-activity-feed), unless the pointer is on it (the primary button takes the focus at once, so focus cannot pause it). */
+const AUTO_HIDE_MS = 20_000
+let hideTimer: ReturnType<typeof setTimeout> | undefined
+const arm = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => emit('close'), AUTO_HIDE_MS) }
+const hold = () => clearTimeout(hideTimer)
+onMounted(arm)
+onBeforeUnmount(() => { clearTimeout(hideTimer); slot.release(ID) })
 
 function next() { board.commands.nextPhase(); emit('close') }
 function more() { board.commands.extendPhase(2, true); emit('close') }
 </script>
 
 <template>
-  <aside class="end" role="alertdialog" aria-labelledby="phase-end-title" aria-describedby="phase-end-next" data-testid="phase-end" @keydown.esc="emit('close')">
+  <aside class="end" role="alertdialog" aria-labelledby="phase-end-title" aria-describedby="phase-end-next" data-testid="phase-end" @keydown.esc="emit('close')" @pointerenter="hold" @pointerleave="arm">
     <Icon name="lucide:megaphone" class="mega" aria-hidden="true" />
     <div class="txt">
       <p id="phase-end-title" class="title">{{ title }}</p>
@@ -53,11 +59,12 @@ function more() { board.commands.extendPhase(2, true); emit('close') }
 </template>
 
 <style scoped>
-.end { position: fixed; z-index: 75; left: 50%; top: 84px; translate: -50% 0; width: min(30rem, calc(100vw - 32px)); display: grid; grid-template-columns: auto 1fr; gap: .4rem .8rem; align-items: center; padding: .9rem 1rem; border-radius: var(--r-card, 12px); background: var(--surface2); color: var(--text); border: 2px solid var(--accent); box-shadow: var(--shadow-2); }
+/* Doubled: board.vue's `.page > :not(.ambient)` would otherwise make it position: relative (below the columns, off screen). */
+.end.end { position: fixed; z-index: 75; left: 50%; top: 84px; translate: -50% 0; width: min(30rem, calc(100vw - 32px)); display: grid; grid-template-columns: auto 1fr; gap: .4rem .8rem; align-items: center; padding: .9rem 1rem; max-height: calc(100dvh - 100px); overflow: auto; border-radius: var(--r-card, 12px); background: var(--surface2); color: var(--text); border: 2px solid var(--accent); box-shadow: var(--shadow-2); }
 .mega { font-size: 1.6rem; color: var(--accent); }
 .title { margin: 0; font-weight: 700; }
 .sub { margin: 0; color: var(--muted); font-size: .9rem; }
 .row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
-@media (prefers-reduced-motion: no-preference) { .end { animation: drop .25s ease-out; } }
+@media (prefers-reduced-motion: no-preference) { .end.end { animation: drop .25s ease-out; } }
 @keyframes drop { from { opacity: 0; translate: -50% -12px; } }
 </style>
