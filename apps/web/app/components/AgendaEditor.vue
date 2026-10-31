@@ -2,7 +2,7 @@
 import { AGENDA_PRESETS, LIMITS, type PhaseInput, presetPhases } from '@retroboard/domain'
 const { t } = useT()
 
-export interface AgendaDraft { enabled: boolean; phases: PhaseInput[]; rules: boolean; autoPublish: boolean }
+export interface AgendaDraft { enabled: boolean; phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }
 
 /** Board creation: the time-boxed agenda (presets 30/45/60/90, reorder, durations, rules). */
 const model = defineModel<AgendaDraft>({ required: true })
@@ -48,6 +48,7 @@ const remove = (i: number) => patch({ phases: model.value.phases.filter((_, k) =
       <p class="muted" data-testid="agenda-total">{{ t('agenda.totalPlanned', { n: total }) }}</p>
       <label class="opt"><input type="checkbox" :checked="model.rules" data-testid="agenda-rules" @change="patch({ rules: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.rules') }}</label>
       <label class="opt"><input type="checkbox" :checked="model.autoPublish" data-testid="agenda-autopublish" @change="patch({ autoPublish: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.autoPublish') }}</label>
+      <label class="opt"><input type="checkbox" :checked="!!model.autoStart" data-testid="agenda-autostart" @change="patch({ autoStart: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.autoStart') }}</label>
     </template>
   </section>
 </template>

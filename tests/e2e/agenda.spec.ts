@@ -121,6 +121,35 @@ test.describe('time-boxed agenda', () => {
     await bob.ctx.close()
   })
 
+  test('the clock starts and pauses the agenda from the toolbar (facilitator-controls-v2)', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    const toggle = page.getByTestId('agenda-toggle')
+    await expect(toggle).toHaveAccessibleName('Démarrer')
+    await toggle.click()
+    await expect(toggle).toHaveAccessibleName('Pause')
+    await expect(page.getByTestId('agenda-ring')).not.toHaveClass(/paused/)
+    await toggle.click()
+    await expect(toggle).toHaveAccessibleName('Reprendre')
+    await expect(page.getByTestId('agenda-ring')).toHaveClass(/paused/)
+    await toggle.click()
+    await expect(toggle).toHaveAccessibleName('Pause')
+  })
+
+  test('the timer can start as soon as the board is created (facilitator-controls-v2)', async ({ page }) => {
+    await page.goto('/new')
+    await page.getByTestId('theme-studio').click()
+    await page.getByTestId('tab-all').click()
+    await page.getByTestId('template-start-stop-continue').click()
+    await expect(page.getByTestId('agenda-autostart')).not.toBeChecked()
+    await page.getByTestId('agenda-autostart').check()
+    await page.getByTestId('setup-submit').click()
+    await page.getByTestId('name-input').fill('Alice')
+    await page.getByTestId('name-save').click()
+    await expect(page.getByTestId('board')).toBeVisible()
+    await expect(page.getByTestId('agenda-toggle')).toHaveAccessibleName('Pause')
+    await expect(page.getByTestId('agenda-phase')).not.toHaveText('Pas commencé')
+  })
+
   test('extending a phase borrows from later phases and keeps the total', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await panel(page, async () => {

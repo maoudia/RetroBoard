@@ -33,7 +33,7 @@ function create({ passcode, ...form }: SetupResult) {
   const setup: SetupResult = {
     ...form,
     ...(carry.value.length ? { importActions: carry.value } : {}),
-    ...(a.enabled && a.phases.length ? { agenda: { phases: a.phases, rules: a.rules, autoPublish: a.autoPublish } } : {}),
+    ...(a.enabled && a.phases.length ? { agenda: { phases: a.phases, rules: a.rules, autoPublish: a.autoPublish, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
   }
   const ring = { ...newKeyRing(), ...(passcode ? { passcode: true } : {}) }
   try {

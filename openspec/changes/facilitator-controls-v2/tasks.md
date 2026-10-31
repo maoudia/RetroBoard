@@ -13,5 +13,5 @@
 
 ## 3. Timer
 
-- [ ] 3.1 Click-to-start clock with play/pause icon; pausing it pauses the phase clock; verify e2e
-- [ ] 3.2 Board option to start the timer at creation (off by default); verify e2e
+- [x] 3.1 Click-to-start clock with play/pause icon; pausing it pauses the phase clock; verify e2e
+- [x] 3.2 Board option to start the timer at creation (off by default); verify e2e

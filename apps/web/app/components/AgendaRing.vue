@@ -58,10 +58,12 @@ watch(() => agenda.value.current, () => {
 const borrow = ref(true)
 const canSteer = computed(() => board.access.canSteer)
 const started = computed(() => agenda.value.current >= 0 && agenda.value.current < agenda.value.phases.length)
+const playing = computed(() => started.value && !clock.value.paused)
 const minutes = (ms: number) => Math.round(ms / 60_000)
 </script>
 
 <template>
+  <div class="clockrow">
   <Dropdown width="340px" align="start">
     <template #trigger="{ toggle, open }">
       <button
@@ -106,9 +108,20 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
       <p class="muted small">{{ t('agenda.total', { planned: minutes(clock.totalPlannedMs), elapsed: minutes(clock.totalElapsedMs) }) }}</p>
     </div>
   </Dropdown>
+  <!-- Start or pause from the clock itself (facilitator-controls-v2): pausing stops the phase clock too. -->
+  <button
+    v-if="canSteer && agenda.current < agenda.phases.length" class="go" type="button" data-testid="agenda-toggle"
+    :aria-label="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')"
+    :title="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')"
+    @click="playing ? board.commands.pauseAgenda() : board.commands.startAgenda()"
+  ><Icon :name="playing ? 'lucide:pause' : 'lucide:play'" /></button>
+  </div>
 </template>
 
 <style scoped>
+.clockrow { display: inline-flex; align-items: center; gap: .4rem; }
+.go { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 1.05rem; cursor: pointer; transition: transform .15s var(--ease); }
+.go:hover { transform: scale(1.08); }
 .ring { display: inline-flex; align-items: center; gap: .5rem; padding: .2rem .7rem .2rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); cursor: pointer; }
 .txt { display: grid; line-height: 1.1; text-align: left; }
 .txt strong { font-size: 1.15rem; }
