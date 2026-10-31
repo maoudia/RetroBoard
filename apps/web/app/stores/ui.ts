@@ -1,4 +1,7 @@
 import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
+import { safeStorage } from '~/utils/storage'
+export type ColumnSize = 'narrow' | 'normal' | 'wide' | 'full'
+export const COLUMN_SIZES: readonly ColumnSize[] = ['narrow', 'normal', 'wide', 'full']
 export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | 'help' | 'toClose' | null
 
 /** Purely visual state shared by components. */
@@ -10,6 +13,16 @@ export const useUiStore = defineStore('ui', () => {
     const next = new Set(expandedColumns.value)
     if (next.has(columnId)) next.delete(columnId); else next.add(columnId)
     expandedColumns.value = next
+  }
+  /** Personal column widths, remembered per board in this browser. */
+  const columnSizes = ref<Record<string, ColumnSize>>({})
+  const sizeKey = (room: string) => `rb.colsize.${room}`
+  const loadColumnSizes = (room: string | null) => { columnSizes.value = room ? safeStorage.get<Record<string, ColumnSize>>(sizeKey(room), {}) : {} }
+  const setColumnSize = (room: string | null, columnId: string, size: ColumnSize) => {
+    const rest = Object.fromEntries(Object.entries(columnSizes.value).filter(([k]) => k !== columnId))
+    const next: Record<string, ColumnSize> = size === 'normal' ? rest : { ...rest, [columnId]: size }
+    columnSizes.value = next
+    if (room) safeStorage.set(sizeKey(room), next)
   }
   /** Cluster being dragged (drop on another cluster to merge). */
   const dragGroupId = ref<string | null>(null)
@@ -48,5 +61,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, columnSizes, loadColumnSizes, setColumnSize, dragGroupId }
 })
