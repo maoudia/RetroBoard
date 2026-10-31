@@ -18,3 +18,5 @@ overrides:
   # GHSA-gg6h-894w-4m9c (quadratic-time DoS), via markdownlint, dev only. 2.9.1 is the latest release (patched version a verifier in the OSV run).
   're2js@<2.9.1': ^2.9.1
   'dompurify@<3.4.17': ^3.4.17
+  # node-forge GHSA set (<=1.4.0), via nuxt dev server (listhen) only; 1.4.1 fixes all but GHSA-86w9 (ignored in osv-scanner.toml).
+  'node-forge@<1.4.1': ^1.4.1

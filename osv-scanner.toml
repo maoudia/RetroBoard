@@ -14,3 +14,13 @@ reason = "CVE-2026-114132, Nuxt server-side route rules skipped for case-variant
 id = "GHSA-gcqx-w48m-w2h4"
 ignoreUntil = 2027-01-31
 reason = "CVE-2026-93753, deepmerge mergeObject() prototype poisoning. deepmerge 4.3.1 comes in through nitropack > @rollup/plugin-node-resolve, build time only (nuxt generate); nothing of it ships in the static site or the Worker, and it merges our own config, not user input. No fixed release exists (4.3.1 is the latest, checked 2026-10-30)."
+
+[[IgnoredVulns]]
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2027-01-31
+reason = "glob 10 to 14.0.1 ReDoS, reached through nitropack (@vercel/nft, archiver) during nuxt generate only; patterns are our own build globs, nothing ships in the static site or the Worker. The fix (14.0.2) is a major jump that breaks consumers; forcing minimatch 11 already broke eslint-plugin-import-x (checked 2026-10-31). Revisit when nitropack updates."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-01-31
+reason = "minimatch <11.0.1 ReDoS, reached through nitropack (glob, readdir-glob) during nuxt generate only; patterns are our own build globs. Overriding to 11 breaks eslint-plugin-import-x (checked 2026-10-31). Revisit when nitropack updates."
