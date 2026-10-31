@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1](https://github.com/maoudia/RetroBoard/compare/v1.18.0...v1.18.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **board:** keep the time-up popup on screen with fixed positioning and hide it after 20 seconds ([d7e44c4](https://github.com/maoudia/RetroBoard/commit/d7e44c410723ef2ebdc74d5bc0577b36111e26b6))
+
 ## [1.18.0](https://github.com/maoudia/RetroBoard/compare/v1.17.0...v1.18.0) (2026-10-31)
 
 
