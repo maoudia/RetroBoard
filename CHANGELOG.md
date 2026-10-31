@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/maoudia/RetroBoard/compare/v1.16.0...v1.17.0) (2026-10-31)
+
+
+### Features
+
+* **columns:** group similar ideas after a preview, with undo ([aaaea6f](https://github.com/maoudia/RetroBoard/commit/aaaea6f10ad0b0f6269238eef1afbf5bbc5ce289))
+
 ## [1.16.0](https://github.com/maoudia/RetroBoard/compare/v1.15.0...v1.16.0) (2026-10-31)
 
 
