@@ -2,7 +2,7 @@
 
 ## 1. Sorting
 
-- [ ] 1.1 Sort options read model (pure) and column menu entries; verify unit tests and e2e
+- [x] 1.1 Sort options read model (pure) and column menu entries; verify unit tests and e2e
 
 ## 2. Automatic grouping
 

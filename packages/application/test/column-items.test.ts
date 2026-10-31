@@ -38,4 +38,20 @@ describe('column items read model', () => {
     expect(groupTitle({ title: null }, [long])).toBe('Les deploiements du vendredi soir')
     expect(groupTitle({ title: null }, [{ ...long, text: '   ' }])).toBe('')
   })
+
+  describe('sort options', () => {
+    const ns = [
+      note('a', 0, { text: 'Banana', author: 'Zoe', color: 3 }),
+      note('b', 0, { text: 'apple', author: null, color: 1 }),
+      note('c', 0, { text: 'Cherry', author: 'Alice', color: 2, groupId: 'g' }),
+      note('d', 0, { text: 'Date', author: 'Alice', color: 2, groupId: 'g' }),
+    ]
+    const gs = [group('g', 'Fruits', 0)]
+    const keys = (m: Parameters<typeof buildColumnItems>[2]) => buildColumnItems({ notes: ns, groups: gs }, 'c1', m).map((i) => i.key)
+    it('newest reverses creation order', () => expect(keys('newest')).toEqual(['g', 'b', 'a']))
+    it('author sorts A to Z with anonymous last', () => expect(keys('author')).toEqual(['g', 'a', 'b']))
+    it('colour sorts by the first note colour', () => expect(keys('color')).toEqual(['b', 'g', 'a']))
+    it('size puts the biggest clusters first', () => expect(keys('size')).toEqual(['g', 'a', 'b']))
+    it('alpha ignores case', () => expect(keys('alpha')).toEqual(['b', 'a', 'g']))
+  })
 })

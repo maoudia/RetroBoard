@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Column } from '@retroboard/domain'
-import { filterItems, type SortMode } from '@retroboard/application'
+import { filterItems, SORT_MODES, type SortMode } from '@retroboard/application'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; index: number; total: number }>()
@@ -11,7 +11,7 @@ const theme = useThemeStore()
 const sort = ref<SortMode>('time')
 const { over, bind } = useColumnDrop(() => props.column.id)
 
-const items = computed(() => filterItems(board.itemsFor(props.column.id, board.countsHidden ? 'time' : sort.value), ui.filter))
+const items = computed(() => filterItems(board.itemsFor(props.column.id, board.countsHidden && sort.value === 'votes' ? 'time' : sort.value), ui.filter))
 const noteCount = computed(() => board.snapshot?.notes.filter((n) => n.columnId === props.column.id).length ?? 0)
 const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupId) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
 const colorIndex = computed(() => props.column.color ?? props.index % 8)
@@ -29,12 +29,21 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
       </div>
       <LiveMarkers :peers="live.inColumn.get(column.id)" :testid="`live-column-${column.id}`" />
       <span class="count mono" :title="t('column.count', { n: noteCount })">{{ noteCount }}</span>
-      <button
-        class="mini-btn" type="button" :aria-pressed="sort === 'votes'" :disabled="board.countsHidden" :title="board.countsHidden ? t('column.sortUnavailable') : t('column.sortVotes')"
-        :aria-label="sort === 'votes' ? t('column.sortTime') : t('column.sortVotes')" :class="{ on: sort === 'votes' }" @click="sort = sort === 'votes' ? 'time' : 'votes'"
-      >
-        <Icon name="lucide:arrow-up-down" />
-      </button>
+      <Dropdown menu>
+        <template #trigger="{ toggle, open }">
+          <button class="mini-btn" :class="{ on: sort !== 'time' }" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('column.sort')" :title="t('column.sort')" :data-testid="`col-sort-${column.id}`" @click="toggle">
+            <Icon name="lucide:arrow-up-down" />
+          </button>
+        </template>
+        <template #default="{ close }">
+          <button
+            v-for="m in SORT_MODES" :key="m" class="dd-item" type="button" role="menuitemradio" :aria-checked="sort === m" :disabled="m === 'votes' && board.countsHidden"
+            :title="m === 'votes' && board.countsHidden ? t('column.sortUnavailable') : undefined" :data-testid="`sort-${m}-${column.id}`" @click="sort = m; close()"
+          >
+            <Icon :name="sort === m ? 'lucide:check' : 'lucide:minus'" /> {{ t(`column.sort.${m}` as never) }}
+          </button>
+        </template>
+      </Dropdown>
  <button
         v-if="hasClusters" class="mini-btn" type="button" :aria-pressed="expanded" :data-testid="`expand-${column.id}`"
         :aria-label="expanded ? t('cluster.collapseAll') : t('cluster.expandAll')" :title="expanded ? t('cluster.collapseAll') : t('cluster.expandAll')" @click="ui.toggleExpanded(column.id)"

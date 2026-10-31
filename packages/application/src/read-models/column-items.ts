@@ -5,7 +5,9 @@ export type ColumnItem =
   | { kind: 'note'; key: string; note: SnapshotNote; votes: number }
   | { kind: 'group'; key: string; group: SnapshotGroup; notes: SnapshotNote[]; votes: number; title: string }
 
-export type SortMode = 'time' | 'votes'
+/** 'time' is oldest first (creation order), the default. */
+export type SortMode = 'time' | 'newest' | 'votes' | 'author' | 'color' | 'size' | 'alpha'
+export const SORT_MODES: readonly SortMode[] = ['time', 'newest', 'votes', 'author', 'color', 'size', 'alpha']
 
 const DEFAULT_TITLE_MAX = 40
 /** Named title, else the shortest idea cut to 40 characters on a word boundary (read model only, nothing stored). */
@@ -41,6 +43,19 @@ export function buildColumnItems(s: Pick<Snapshot, 'notes' | 'groups'>, columnId
     items.push({ kind: 'group', key: g.id, group: g, notes, votes, title: groupTitle(g, notes) })
   }
   const pos = (i: ColumnItem) => order.get(i.kind === 'note' ? i.note.id : i.notes[0]!.id) ?? 0
-  items.sort((a, b) => (sort === 'votes' ? b.votes - a.votes : 0) || pos(a) - pos(b))
+  const first = (i: ColumnItem) => (i.kind === 'note' ? i.note : i.notes[0]!)
+  const text = (i: ColumnItem) => (i.kind === 'note' ? i.note.text : i.title).trim().toLowerCase()
+  const author = (i: ColumnItem) => first(i).author?.trim().toLowerCase() ?? ''
+  const by: Record<SortMode, (a: ColumnItem, b: ColumnItem) => number> = {
+    time: () => 0,
+    newest: (a, b) => pos(b) - pos(a),
+    votes: (a, b) => b.votes - a.votes,
+    // Anonymous notes go last.
+    author: (a, b) => (author(a) === author(b) ? 0 : !author(a) ? 1 : !author(b) ? -1 : author(a).localeCompare(author(b))),
+    color: (a, b) => first(a).color - first(b).color,
+    size: (a, b) => (b.kind === 'group' ? b.notes.length : 1) - (a.kind === 'group' ? a.notes.length : 1),
+    alpha: (a, b) => text(a).localeCompare(text(b)),
+  }
+  items.sort((a, b) => by[sort](a, b) || pos(a) - pos(b))
   return items
 }
