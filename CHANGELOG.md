@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/maoudia/RetroBoard/compare/v1.9.0...v1.10.0) (2026-10-31)
+
+
+### Features
+
+* **agenda:** phase stepper under the toolbar with the current phase, time left and next step ([ac2534d](https://github.com/maoudia/RetroBoard/commit/ac2534daeaefda9e38141fb3d2f4715b7da4cb5e))
+
 ## [1.9.0](https://github.com/maoudia/RetroBoard/compare/v1.8.1...v1.9.0) (2026-10-31)
 
 
