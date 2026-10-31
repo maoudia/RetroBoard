@@ -12,4 +12,4 @@
 ## 3. Sizes
 
 - [x] 3.1 Column size menu, drag and keyboard resize, remembered per board; verify e2e and axe
-- [ ] 3.2 Writing area size; verify e2e
+- [x] 3.2 Writing area size; verify e2e

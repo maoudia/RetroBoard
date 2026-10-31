@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { similarIdeas } from '@retroboard/application'
 import { NOTE_COLOR_COUNT, type Column } from '@retroboard/domain'
+import { WRITE_SIZES } from '~/stores/ui'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; colorIndex: number }>()
@@ -67,9 +68,21 @@ function onKey(e: KeyboardEvent) {
 </script>
 
 <template>
-  <section class="priv" :aria-label="t('private.section', { title: column.title })">
+  <section class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
     <header>
       <span class="title"><Icon name="lucide:eye-off" /> {{ t('private.title') }}</span>
+      <Dropdown menu>
+        <template #trigger="{ toggle, open }">
+          <button class="mini-btn" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('private.area')" :title="t('private.area')" :data-testid="`area-menu-${column.id}`" @click="toggle">
+            <Icon name="lucide:text-cursor-input" />
+          </button>
+        </template>
+        <template #default="{ close }">
+          <button v-for="z in WRITE_SIZES" :key="z" class="dd-item" type="button" role="menuitemradio" :aria-checked="ui.writeSize === z" :data-testid="`area-${z}-${column.id}`" @click="ui.setWriteSize(board.roomId, z); close()">
+            <Icon :name="ui.writeSize === z ? 'lucide:check' : 'lucide:minus'" /> {{ t(`private.area.${z}` as never) }}
+          </button>
+        </template>
+      </Dropdown>
       <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /> {{ t('private.publish') }} ({{ mine.length }})
       </button>
@@ -145,6 +158,8 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: .92rem; }
 .acts { display: flex; flex: none; color: var(--muted); }
 .composer { display: grid; gap: .3rem; padding: .6rem; border-radius: 6px; background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
+.priv[data-area="small"] .composer textarea { min-height: 2rem; }
+.priv[data-area="large"] .composer textarea { min-height: 9rem; }
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: .7rem; font-weight: 500; color: color-mix(in oklab, var(--note-ink) 80%, transparent); }

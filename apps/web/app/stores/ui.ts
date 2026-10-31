@@ -1,6 +1,8 @@
 import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
 import { safeStorage } from '~/utils/storage'
 export type ColumnSize = 'narrow' | 'normal' | 'wide' | 'full'
+export type WriteSize = 'small' | 'normal' | 'large'
+export const WRITE_SIZES: readonly WriteSize[] = ['small', 'normal', 'large']
 export const COLUMN_SIZES: readonly ColumnSize[] = ['narrow', 'normal', 'wide', 'full']
 export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | 'help' | 'toClose' | null
 
@@ -23,6 +25,16 @@ export const useUiStore = defineStore('ui', () => {
     const next: Record<string, ColumnSize> = size === 'normal' ? rest : { ...rest, [columnId]: size }
     columnSizes.value = next
     if (room) safeStorage.set(sizeKey(room), next)
+  }
+  /** Height of the writing area, personal and remembered per board. */
+  const writeSize = ref<WriteSize>('normal')
+  const setWriteSize = (room: string | null, size: WriteSize) => {
+    writeSize.value = size
+    if (room) safeStorage.set(`rb.writesize.${room}`, size)
+  }
+  const loadColumnSizesAndWrite = (room: string | null) => {
+    loadColumnSizes(room)
+    writeSize.value = room ? safeStorage.get<WriteSize>(`rb.writesize.${room}`, 'normal') : 'normal'
   }
   /** Cluster being dragged (drop on another cluster to merge). */
   const dragGroupId = ref<string | null>(null)
@@ -61,5 +73,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, columnSizes, loadColumnSizes, setColumnSize, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
 })
