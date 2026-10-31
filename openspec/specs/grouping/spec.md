@@ -53,3 +53,10 @@ Dropping a cluster onto another cluster of the same column SHALL merge them, kee
 #### Scenario: Merge
 - **WHEN** a cluster of 2 is dropped on a cluster of 3
 - **THEN** one cluster of 5 remains with the target's title
+
+### Requirement: Automatic grouping
+A facilitator SHALL be able to group notes by author or by similar ideas after a preview, and undo it.
+
+#### Scenario: By author
+- **WHEN** the facilitator applies group by author
+- **THEN** each named author has one cluster and anonymous notes stay loose

@@ -11,3 +11,10 @@ The system MUST keep profile settings in the browser and MUST NOT send them to t
 #### Scenario: Wipe local data
 - **WHEN** a person confirms "Erase everything on this device"
 - **THEN** profile, settings, drafts and recent boards are removed from the browser
+
+### Requirement: Duplicate names
+A participant who joins with the name of someone already present SHALL be invited to choose another name or avatar.
+
+#### Scenario: Second Alex
+- **WHEN** Alex is on the board and another participant joins as alex
+- **THEN** the newcomer sees a popup suggesting another name

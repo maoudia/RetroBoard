@@ -18,3 +18,10 @@ The system MUST hide vote counts and voter identities from every participant whi
 #### Scenario: Counts hidden
 - **WHEN** secret voting is on
 - **THEN** snapshots carry no vote counts and the UI shows none
+
+### Requirement: Voting override
+A facilitator SHALL be able to open voting outside the Vote phase, and the override SHALL end at the next phase change.
+
+#### Scenario: Vote early
+- **WHEN** the facilitator opens voting during the Group phase
+- **THEN** participants can vote until the facilitator moves to another phase
