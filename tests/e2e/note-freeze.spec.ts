@@ -33,3 +33,20 @@ test('a frozen note keeps its text and votes, shows a badge to everyone, and tha
   await expect(noteByText(page, 'Frozen idea').getByTestId(`frozen-${id}`)).toHaveCount(0)
   await bob.ctx.close()
 })
+
+test('a frozen cluster shows its badge and cannot be dissolved', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await publishNote(page, 0, 'Idea one')
+  await publishNote(page, 0, 'Idea two')
+  const one = noteByText(page, 'Idea one')
+  const oneId = (await one.getAttribute('data-source-id'))!
+  const twoId = (await noteByText(page, 'Idea two').getAttribute('data-source-id'))!
+  await one.getByTestId(`note-menu-${oneId}`).click()
+  await page.getByTestId(`group-with-${oneId}`).click()
+  await page.getByTestId(`group-onto-${twoId}`).click()
+  await page.locator('[data-testid^="group-"][data-source-id]').first().click()
+  await page.getByTestId('group-freeze').click()
+  await expect(page.getByTestId('group-dissolve')).toBeDisabled()
+  await page.getByTestId('group-freeze').click()
+  await expect(page.getByTestId('group-dissolve')).toBeEnabled()
+})

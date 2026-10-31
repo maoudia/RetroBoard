@@ -95,7 +95,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
           </div>
         </details>
         <button class="btn btn-sm btn-ghost" type="button" :disabled="!gate.allowed" data-testid="group-create-action" @click="toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>
-        <button class="btn btn-sm btn-ghost" type="button" data-testid="group-dissolve" @click="dissolve"><Icon name="lucide:ungroup" /> {{ t('group.dissolve') }}</button>
+        <button v-if="board.access.canSteer" class="btn btn-sm btn-ghost" type="button" data-testid="group-freeze" @click="board.commands[item.group.frozen ? 'unfreeze' : 'freeze'](item.group.id)">
+          <Icon :name="item.group.frozen ? 'lucide:flame' : 'lucide:snowflake'" /> {{ item.group.frozen ? t('note.unfreeze') : t('note.freeze') }}
+        </button>
+        <button class="btn btn-sm btn-ghost" type="button" :disabled="item.group.frozen" :title="item.group.frozen ? t('error.frozen') : undefined" data-testid="group-dissolve" @click="dissolve"><Icon name="lucide:ungroup" /> {{ t('group.dissolve') }}</button>
       </footer>
     </section>
   </div>

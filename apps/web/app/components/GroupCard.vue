@@ -81,6 +81,7 @@ onBeforeUnmount(cancelPeek)
       <span class="text">{{ item.title }}</span>
       <span class="meta">
         <span class="count"><Icon name="lucide:layers" /> {{ item.notes.length }}</span>
+        <span v-if="item.group.frozen" class="count" :title="t('error.frozen')" :data-testid="`frozen-${item.group.id}`"><Icon name="lucide:snowflake" /> {{ t('note.frozen') }}</span>
         <span v-if="!secret && !item.group.votable" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
       </span>
     </span>
