@@ -91,3 +91,21 @@ test('? opens the help overlay (axe clean); the profile switch turns shortcuts o
   await page.keyboard.press('?')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })
+
+test('key caps show next to toolbar actions on desktop and can be turned off (keyboard-shortcuts-v2)', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'hints are for a mouse and keyboard')
+  await createBoard(page, { template: 'start-stop-continue' })
+  const caps = page.getByTestId('btn-presenter').getByTestId('keycap')
+  await expect(caps).toBeVisible()
+  await expect(page.getByTestId('btn-filter').getByTestId('keycap')).toHaveText('/')
+  // Decorative: never part of the accessible name.
+  await expect(page.getByTestId('btn-share')).toHaveAccessibleName('Partager')
+  // The composer hint no longer carries shortcut text.
+  await expect(page.locator('textarea').first()).not.toHaveAttribute('placeholder', /Entrée/)
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('set-key-hints').uncheck()
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('keycap')).toHaveCount(0)
+  await page.reload()
+  await expect(page.getByTestId('keycap')).toHaveCount(0)
+})

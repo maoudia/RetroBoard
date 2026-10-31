@@ -112,6 +112,10 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.shortcuts" data-testid="set-shortcuts" @change="set({ shortcuts: ($event.target as HTMLInputElement).checked })" />
       </label>
       <label class="line">
+        <span><strong>{{ t('profile.keyHints') }}</strong><small class="muted">{{ t('profile.keyHints.hint') }}</small></span>
+        <input type="checkbox" role="switch" class="switch" :checked="settings.s.keyHints" :disabled="!settings.s.shortcuts" data-testid="set-key-hints" @change="set({ keyHints: ($event.target as HTMLInputElement).checked })" />
+      </label>
+      <label class="line">
         <span><strong>{{ t('profile.phaseWarning') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.phaseWarning" data-testid="set-phase-warning" @change="set({ phaseWarning: ($event.target as HTMLInputElement).checked })" />
       </label>

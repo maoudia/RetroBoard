@@ -32,6 +32,8 @@ export interface LocalSettings {
   p2p: boolean
   /** Single-key shortcuts on the board (keyboard users). */
   shortcuts: boolean
+  /** Key caps next to toolbar actions (desktop with a mouse only). */
+  keyHints: boolean
   /** Toast one minute before a phase or the countdown ends. */
   phaseWarning: boolean
   /** System notification when time is up and the tab is hidden (asked on opt-in only). */
@@ -47,7 +49,7 @@ export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
 const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
-  retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true,
+  retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
   phaseWarning: true, systemNotify: false, votedSort: 'votes',
 }
 
