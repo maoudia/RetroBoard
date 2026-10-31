@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/maoudia/RetroBoard/compare/v1.19.0...v1.20.0) (2026-10-31)
+
+
+### Features
+
+* **voting:** group secret voting and reveal all in a facilitator More menu on the vote bar ([655c259](https://github.com/maoudia/RetroBoard/commit/655c25992724605e06be83f873d33b24de858cf4))
+
 ## [1.19.0](https://github.com/maoudia/RetroBoard/compare/v1.18.1...v1.19.0) (2026-10-31)
 
 
