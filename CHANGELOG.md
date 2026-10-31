@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/maoudia/RetroBoard/compare/v1.14.0...v1.15.0) (2026-10-31)
+
+
+### Features
+
+* **composer:** writing area size (small, normal, large) remembered per board ([45393de](https://github.com/maoudia/RetroBoard/commit/45393de3e7f0177d6ab5f3fe6ae3dfd15043f916))
+
 ## [1.14.0](https://github.com/maoudia/RetroBoard/compare/v1.13.0...v1.14.0) (2026-10-31)
 
 
