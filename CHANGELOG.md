@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/maoudia/RetroBoard/compare/v1.12.0...v1.13.0) (2026-10-31)
+
+
+### Features
+
+* **columns:** sort a column by newest, author, colour, cluster size or A to Z ([a924312](https://github.com/maoudia/RetroBoard/commit/a92431224ccca98d773c9a3198d42357f5207c88))
+
 ## [1.12.0](https://github.com/maoudia/RetroBoard/compare/v1.11.0...v1.12.0) (2026-10-31)
 
 
