@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/maoudia/RetroBoard/compare/v1.8.1...v1.9.0) (2026-10-31)
+
+
+### Features
+
+* **presenter:** walk through the voted ideas, one enlarged at a time ([28d4092](https://github.com/maoudia/RetroBoard/commit/28d4092dcdaded36364e025e56d829ee9a2ea45a))
+
 ## [1.8.1](https://github.com/maoudia/RetroBoard/compare/v1.8.0...v1.8.1) (2026-10-31)
 
 
