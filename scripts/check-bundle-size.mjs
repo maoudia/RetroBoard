@@ -14,8 +14,10 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // peek and the spring animation (260.7 kB measured, 9 kB of headroom kept on purpose). Lazy loading would not
 // lower this metric because every chunk is counted. A metric based on the entry's static
 // import graph (what really blocks first paint) is planned in quality-gates-v2.
+// 2026-10-31: total raised from 270 to 300 kB on the owner's request, for the facilitation and presentation
+// features of 1.6 to 1.9 (focus, voted ideas walk-through, phase stepper, key caps, name conflicts; 267.1 kB measured).
 // Raise it only on purpose.
-const BUDGET = { entryKb: 40, totalKb: 270 }
+const BUDGET = { entryKb: 40, totalKb: 300 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
