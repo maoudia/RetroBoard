@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/maoudia/RetroBoard/compare/v1.7.0...v1.8.0) (2026-10-31)
+
+
+### Features
+
+* **identity:** ask the latest joiner with a duplicate name to pick another ([9383b25](https://github.com/maoudia/RetroBoard/commit/9383b25390183506cc622cffea90a3edf36c1ae1))
+
 ## [1.7.0](https://github.com/maoudia/RetroBoard/compare/v1.6.1...v1.7.0) (2026-10-31)
 
 
