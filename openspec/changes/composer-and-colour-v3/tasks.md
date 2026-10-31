@@ -10,4 +10,5 @@
 ## 2. Colour
 
 - [x] 2.1 Remove the hover palette on published notes (menu and sheet only); verify e2e that hovering shows no palette
-- [ ] 2.2 Free colour picker as the last option of the detailed palette with a contrast guard; verify unit tests of the guard and e2e
+- [ ] 2.2 Advanced palette mode with curated sets per theme (tints, shades, harmonies), every colour checked at 4.5:1 with the note ink; no free picker (owner, 2026-11-01); verify unit tests of the sets and contrast and e2e
+- [ ] 2.3 Recolour a whole cluster from its panel (one command for all its notes); verify unit test and e2e two contexts

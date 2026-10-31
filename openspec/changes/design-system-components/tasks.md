@@ -12,6 +12,6 @@
 
 ## 3. Migration
 
-- [ ] 3.1 Migrate toolbar, vote bar and dialogs; verify the e2e suite stays green
+- [ ] 3.1 Migrate toolbar, vote bar and dialogs; every on/off control becomes the rounded Toggle switch (owner, 2026-11-01); verify the e2e suite stays green and no on/off button remains
 - [ ] 3.2 Migrate notes, columns and composer; verify the e2e suite stays green
 - [ ] 3.3 Theme files hold tokens only; verify a test that fails on component CSS in a theme

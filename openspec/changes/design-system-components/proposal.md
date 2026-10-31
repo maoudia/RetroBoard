@@ -19,6 +19,7 @@ Owner feedback (2026-10-30): do not build the design system from scratch. Start 
 - Component catalogue page in development builds, in light and dark for every theme.
 - Themes reduced to tokens (colours, radius, fonts, motion); no theme-specific component CSS.
 - Migration screen by screen with the existing e2e suite as the safety net.
+- Owner feedback (2026-11-01): every on/off control (secret voting, phase rules, auto-publish, profile switches, board options) uses the same rounded Toggle switch; old enable/disable buttons are removed.
 
 Out of scope: new themes (themes-pop-culture), notes visuals (postit-visual-system).
 

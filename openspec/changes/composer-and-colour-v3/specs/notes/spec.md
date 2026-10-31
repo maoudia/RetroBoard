@@ -14,12 +14,19 @@ A new board SHALL accept notes of up to 160 characters unless the facilitator ch
 - **WHEN** a facilitator creates a board without touching the note length
 - **THEN** notes are limited to 160 characters
 
-### Requirement: Free colour with a contrast guard
-The detailed palette SHALL offer a free colour as its last option and SHALL never produce a note whose text contrast is under 4.5:1.
+### Requirement: Advanced palette with coherent colours
+The palette SHALL offer an advanced mode with more colours that all come from curated sets derived from the board theme; it SHALL NOT offer a free colour, and every offered colour SHALL keep a text contrast of at least 4.5:1 with the note ink.
 
-#### Scenario: Too light
-- **WHEN** a participant picks a very light yellow with light ink
-- **THEN** the ink switches to the dark ink or the colour is refused with a reason
+#### Scenario: More shades
+- **WHEN** Alice opens the advanced palette on a note
+- **THEN** she sees extra shades and harmonies of the theme colours, and no free colour picker
+
+### Requirement: Cluster colour
+A participant SHALL be able to recolour a whole cluster at once from the palette, which recolours every note of the cluster.
+
+#### Scenario: Recolour a cluster
+- **WHEN** Alice picks blue for the cluster "Deploys"
+- **THEN** every note of the cluster turns blue for everyone
 
 ### Requirement: Compact composer
 The composer SHALL show the character counter only from 80% of the note length, SHALL keep its hint to one short line with the keyboard tips in a help popover, and SHALL offer the signature as two named toggles (my name, anonymous).

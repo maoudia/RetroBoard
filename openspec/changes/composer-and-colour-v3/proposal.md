@@ -12,7 +12,8 @@ Owner feedback (2026-10-29): the composer is heavy and chatty. The hint "Only vi
 - Hint: one short line in the muted token; keyboard tips move to a small help popover.
 - Signature: two explicit icon toggles (named, anonymous) with accessible names instead of the "Signed as ..." chip.
 - No colour palette on note hover; colour stays in the note menu and the palette sheet.
-- Detailed palette: a free colour picker as the last option, guarded by a contrast check against the note ink (ink switches, or the colour is refused under 4.5:1).
+- Advanced palette (owner feedback 2026-11-01, replaces the free colour picker): no free colour. An "Advanced" mode of the palette offers curated, coherent sets built from the theme (for example tints and shades of the 8 note colours and a few harmonies per theme), each one passing the 4.5:1 contrast check with the note ink.
+- Cluster colour (owner feedback 2026-11-01): the palette can recolour a whole cluster at once (every note of it), from the cluster panel.
 
 Out of scope: dark-mode contrast bugs elsewhere (bug issue), masonry and density (postit-visual-system).
 
