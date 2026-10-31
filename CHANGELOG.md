@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/maoudia/RetroBoard/compare/v1.13.0...v1.14.0) (2026-10-31)
+
+
+### Features
+
+* **columns:** personal column width (narrow, normal, wide, full) with Alt+arrows, remembered per board ([634fe23](https://github.com/maoudia/RetroBoard/commit/634fe2328023c56a42cc4bdb41c503725f8a1339))
+
 ## [1.13.0](https://github.com/maoudia/RetroBoard/compare/v1.12.0...v1.13.0) (2026-10-31)
 
 
