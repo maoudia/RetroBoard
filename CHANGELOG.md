@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.0](https://github.com/maoudia/RetroBoard/compare/v1.6.1...v1.7.0) (2026-10-31)
+
+
+### Features
+
+* **presenter:** focus one column in presenter mode, centre zoom or accordion ([92e76dc](https://github.com/maoudia/RetroBoard/commit/92e76dc3461eb19db6f5fec3d4aeaa49ee4f3881))
+* **shortcuts:** key caps next to toolbar actions, off in the profile; no shortcut text in the composer hint ([5d74b28](https://github.com/maoudia/RetroBoard/commit/5d74b28e5c681de51df8f76384f57703c7d2773a))
+* **timer:** start or pause the agenda from the clock, and an option to start it at board creation ([0e17ebc](https://github.com/maoudia/RetroBoard/commit/0e17ebc2443182dc81bb4876cb8656e73598f871))
+
 ## [1.6.1](https://github.com/maoudia/RetroBoard/compare/v1.6.0...v1.6.1) (2026-10-30)
 
 
