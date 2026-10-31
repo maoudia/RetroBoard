@@ -7,5 +7,5 @@
 
 ## 2. Discussion
 
-- [ ] 2.1 Voted ideas walk-through (next and previous through the ranking); verify e2e
+- [x] 2.1 Voted ideas walk-through (next and previous through the ranking); verify e2e
 - [ ] 2.2 Facilitator laser pointer, presenter only, peer to peer; verify e2e two contexts

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { createBoard, publishNote } from './helpers'
 
 test.describe('presenter column focus (presenter-mode-v2)', () => {
   test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
@@ -51,5 +51,35 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
     await page.getByTestId('focus-accordion').click()
     await expect(page.locator('.col[data-focused]')).toBeInViewport()
     if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/accordion-${width}.png` })
+  })
+})
+
+test.describe('voted ideas walk-through (presenter-mode-v2)', () => {
+  test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
+
+  test('next and previous go through the ranking; Escape ends the walk, then presenter mode', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'Pairing')
+    await publishNote(page, 1, 'Flaky tests')
+    await publishNote(page, 2, 'Nobody voted here')
+    for (const text of ['Pairing', 'Flaky tests']) await page.locator('article.note', { hasText: text }).locator('[data-testid^="vote-"]').click()
+    await page.getByTestId('btn-presenter').click()
+    await page.getByTestId('walk-start').click()
+    await expect(page.getByTestId('walk')).toBeVisible()
+    await expect(page.getByTestId('walk-text')).toHaveText('Pairing')
+    await expect(page.getByTestId('walk-rank')).toHaveText('#1')
+    await expect(page.getByTestId('walk-prev')).toBeDisabled()
+    await page.keyboard.press('ArrowDown')
+    await expect(page.getByTestId('walk-text')).toHaveText('Flaky tests')
+    await expect(page.getByTestId('walk-next')).toBeDisabled()
+    await page.getByTestId('walk-prev').click()
+    await expect(page.getByTestId('walk-text')).toHaveText('Pairing')
+    const found = (await new AxeBuilder({ page }).include('[data-testid="walk"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    expect(found).toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('walk')).toHaveCount(0)
+    await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'true')
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'false')
   })
 })
