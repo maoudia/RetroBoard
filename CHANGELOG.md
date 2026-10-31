@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/maoudia/RetroBoard/compare/v1.11.0...v1.12.0) (2026-10-31)
+
+
+### Features
+
+* **ideation:** freeze a whole cluster from its panel with a badge on the stack ([fbe50d4](https://github.com/maoudia/RetroBoard/commit/fbe50d4dc4de4fa9428966cbb66f3ad30dfde1f0))
+
 ## [1.11.0](https://github.com/maoudia/RetroBoard/compare/v1.10.0...v1.11.0) (2026-10-31)
 
 
