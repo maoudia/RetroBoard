@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/maoudia/RetroBoard/compare/v1.18.1...v1.19.0) (2026-10-31)
+
+
+### Features
+
+* **profile:** personal notification position (left, centre, right) for toasts and the time-up popup ([46e32ef](https://github.com/maoudia/RetroBoard/commit/46e32ef77b8a2b86f826aa6f0fb720e4fa35374d))
+
 ## [1.18.1](https://github.com/maoudia/RetroBoard/compare/v1.18.0...v1.18.1) (2026-10-31)
 
 
