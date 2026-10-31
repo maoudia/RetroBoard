@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/maoudia/RetroBoard/compare/v1.8.0...v1.8.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** nuxt 4.6.3 and node-forge 1.4.1 for the OSV findings ([8112aab](https://github.com/maoudia/RetroBoard/commit/8112aab18df1ca0965984f8be9acb40575ca8d2a))
+
 ## [1.8.0](https://github.com/maoudia/RetroBoard/compare/v1.7.0...v1.8.0) (2026-10-31)
 
 
