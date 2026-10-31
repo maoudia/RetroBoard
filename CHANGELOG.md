@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/maoudia/RetroBoard/compare/v1.10.0...v1.11.0) (2026-10-31)
+
+
+### Features
+
+* **ideation:** freeze notes and clusters so the facilitator can lock an idea ([b368366](https://github.com/maoudia/RetroBoard/commit/b368366e1cbb07f29940f9ab5ba4082f9eacd2d2))
+
 ## [1.10.0](https://github.com/maoudia/RetroBoard/compare/v1.9.0...v1.10.0) (2026-10-31)
 
 
