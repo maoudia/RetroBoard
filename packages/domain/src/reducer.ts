@@ -1,5 +1,6 @@
 import { actionHandlers } from './action-tracking/handlers'
 import { facilitationHandlers } from './facilitation/handlers'
+import { freezeHandlers, touchesFrozen } from './ideation/freeze'
 import { ideationHandlers } from './ideation/handlers'
 import { rotiHandlers } from './facilitation/roti'
 import { talkHandlers } from './facilitation/talk'
@@ -11,6 +12,7 @@ import { votingHandlers } from './voting/handlers'
 /** Every command type must have exactly one handler, owned by one bounded context. */
 const handlers: HandlerMap<Command['t']> = {
   ...ideationHandlers,
+  ...freezeHandlers,
   ...votingHandlers,
   ...actionHandlers,
   ...facilitationHandlers,
@@ -20,6 +22,7 @@ const handlers: HandlerMap<Command['t']> = {
 
 /** Pure: same state, command, actor and context always give the same outcome. */
 export function reduce(state: BoardState, cmd: Command, actor: Actor, ctx: ReduceContext): Outcome {
+  if (touchesFrozen(state, cmd)) return { ok: false, error: 'frozen' }
   const handler = handlers[cmd.t] as Handler<typeof cmd.t>
   return clearOrphanSources(handler(state, cmd as never, actor, ctx))
 }

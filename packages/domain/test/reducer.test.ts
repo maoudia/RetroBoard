@@ -339,3 +339,55 @@ describe('note length limit', () => {
     expect(Object.values(h.state.notes)[0]!.text).toHaveLength(150)
   })
 })
+
+describe('frozen notes (note-freeze)', () => {
+  const setup = () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'keep' }, alice)
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'other' }, alice)
+    const [id, other] = Object.keys(h.state.notes) as [string, string]
+    return { h, id, other }
+  }
+
+  it('freezes and unfreezes a note; the flag reaches the snapshot', () => {
+    const { h, id } = setup()
+    expect(h.run({ t: 'note.freeze', id }).ok).toBe(true)
+    expect(h.state.notes[id]!.frozen).toBe(true)
+    expect(h.run({ t: 'note.unfreeze', id }).ok).toBe(true)
+    expect(h.state.notes[id]!.frozen).toBeUndefined()
+    expect(h.run({ t: 'note.freeze', id: 'ghost' })).toEqual({ ok: false, error: 'not-found' })
+  })
+
+  it('a frozen note refuses edit, delete, move, colour, vote and grouping, for its author too', () => {
+    const { h, id, other } = setup()
+    h.run({ t: 'note.freeze', id })
+    const col2 = h.col(1)
+    for (const cmd of [
+      { t: 'note.edit', id, text: 'x' }, { t: 'note.delete', id }, { t: 'note.move', id, columnId: col2 },
+      { t: 'note.color', id, color: 1 }, { t: 'vote.toggle', id }, { t: 'vote.add', kind: 'note', id },
+      { t: 'note.group', id, ontoId: other }, { t: 'note.group', id: other, ontoId: id },
+    ] as const) expect(h.run(cmd, alice)).toEqual({ ok: false, error: 'frozen' })
+    expect(h.state.notes[id]!.text).toBe('keep')
+    // The other note is untouched by the freeze.
+    expect(h.run({ t: 'note.edit', id: other, text: 'edited' }, alice).ok).toBe(true)
+  })
+
+  it('a frozen cluster freezes the notes inside it and refuses rename, dissolve and move', () => {
+    const { h, id, other } = setup()
+    h.run({ t: 'note.group', id, ontoId: other }, alice)
+    const gid = Object.keys(h.state.groups)[0]!
+    h.run({ t: 'note.freeze', id: gid })
+    expect(h.run({ t: 'group.rename', id: gid, title: 'x' })).toEqual({ ok: false, error: 'frozen' })
+    expect(h.run({ t: 'group.dissolve', id: gid })).toEqual({ ok: false, error: 'frozen' })
+    expect(h.run({ t: 'note.edit', id, text: 'x' }, alice)).toEqual({ ok: false, error: 'frozen' })
+    expect(h.run({ t: 'note.ungroup', id }, alice)).toEqual({ ok: false, error: 'frozen' })
+    h.run({ t: 'note.unfreeze', id: gid })
+    expect(h.run({ t: 'group.rename', id: gid, title: 'ok' }).ok).toBe(true)
+  })
+
+  it('a column holding a frozen note cannot be deleted', () => {
+    const { h, id } = setup()
+    h.run({ t: 'note.freeze', id })
+    expect(h.run({ t: 'column.delete', id: h.col(0) })).toEqual({ ok: false, error: 'frozen' })
+  })
+})

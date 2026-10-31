@@ -40,6 +40,9 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
       <button class="dd-item" type="button" role="menuitem" :disabled="!gate.allowed" :title="gate.allowed ? undefined : t('gated.actions.closed', { phase: gate.closedBy ? t(`agenda.phase.${gate.closedBy}` as never) : '' })" :data-testid="`create-action-${note.id}`" @click="toAction(); close()">
         <Icon name="lucide:list-checks" /> {{ t('note.toAction') }}
       </button>
+      <button v-if="board.access.canSteer" class="dd-item" type="button" role="menuitem" :data-testid="`freeze-${note.id}`" @click="note.frozen ? board.commands.unfreeze(note.id) : board.commands.freeze(note.id); close()">
+        <Icon :name="note.frozen ? 'lucide:flame' : 'lucide:snowflake'" /> {{ note.frozen ? t('note.unfreeze') : t('note.freeze') }}
+      </button>
       <div class="dd-sep" />
       <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.commands.ungroupNote(note.id); close()">
         <Icon name="lucide:ungroup" /> {{ t('note.ungroup') }}
@@ -58,7 +61,7 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           <Icon :name="`lucide:${c.icon}`" /> {{ c.title }}
         </button>
       </template>
-      <template v-if="note.mine">
+      <template v-if="note.mine && !note.frozen">
         <div class="dd-sep" />
         <button class="dd-item" type="button" role="menuitem" @click="emit('edit'); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
         <button class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="board.commands.deleteNote(note.id); close()">

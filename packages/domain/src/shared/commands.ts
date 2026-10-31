@@ -23,6 +23,8 @@ export type Command =
   | { t: 'note.color'; id: string; color: number }
   | { t: 'note.group'; id: string; ontoId: string }
   | { t: 'note.ungroup'; id: string }
+  | { t: 'note.freeze'; id: string }
+  | { t: 'note.unfreeze'; id: string }
   | { t: 'group.rename'; id: string; title: string }
   | { t: 'group.dissolve'; id: string }
   | { t: 'group.merge'; id: string; ontoId: string }

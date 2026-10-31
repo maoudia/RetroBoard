@@ -16,6 +16,8 @@ export interface Group {
   title: string | null
   /** Votes cast on the cluster as one idea (a client id per vote; repeats allowed). Never leaves the server. */
   voters: string[]
+  /** Frozen by a facilitator: read only until unfrozen (change note-freeze). */
+  frozen?: boolean
 }
 
 export interface NoteRecord {
@@ -32,6 +34,8 @@ export interface NoteRecord {
   /** Client ids that voted. Never leaves the server. */
   voters: string[]
   createdAt: number
+  /** Frozen by a facilitator: read only until unfrozen (change note-freeze). */
+  frozen?: boolean
 }
 
 export type ActionStatus = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
@@ -145,7 +149,7 @@ export interface Dirty {
 
 export type ErrorCode =
   | 'locked' | 'not-found' | 'forbidden' | 'vote-limit' | 'limit-reached' | 'not-empty'
-  | 'last-column' | 'invalid' | 'same-column-required' | 'voting-closed' | 'not-votable' | 'item-limit' | 'phase'
+  | 'last-column' | 'invalid' | 'same-column-required' | 'voting-closed' | 'not-votable' | 'item-limit' | 'phase' | 'frozen'
 
 export type Outcome =
   | { ok: true; state: BoardState; dirty: Dirty }
@@ -168,6 +172,8 @@ export interface SnapshotNote {
   votable: boolean
   mine: boolean
   createdAt: number
+  /** Frozen on its own or through its cluster: read only (change note-freeze). Absent when not frozen. */
+  frozen?: boolean
 }
 
 /** A cluster as clients see it: counts only, never voter ids. */
@@ -179,6 +185,7 @@ export interface SnapshotGroup {
   votes: number | null
   myVotes: number
   votable: boolean
+  frozen?: boolean
 }
 
 export interface Peer {

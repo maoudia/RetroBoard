@@ -42,6 +42,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     recolorNote: (id: string, color: number) => send({ t: 'note.color', id, color }),
     groupNotes: (id: string, ontoId: string) => (id === ontoId ? ok() : whenOpen({ t: 'note.group', id, ontoId })),
     ungroupNote: (id: string) => whenOpen({ t: 'note.ungroup', id }),
+    freeze: (id: string) => send({ t: 'note.freeze', id }),
+    unfreeze: (id: string) => send({ t: 'note.unfreeze', id }),
     renameGroup: (id: string, title: string) => send({ t: 'group.rename', id, title }),
     dissolveGroup: (id: string) => whenOpen({ t: 'group.dissolve', id }),
     moveGroup: (id: string, columnId: string) => whenOpen({ t: 'group.move', id, columnId }),

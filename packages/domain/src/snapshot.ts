@@ -1,4 +1,5 @@
 import type { BoardState, Peer, Snapshot, SnapshotGroup, SnapshotNote } from './shared/types'
+import { isFrozenNote } from './ideation/freeze'
 import { rotiSummary } from './facilitation/roti'
 import { clusterVoters, countOf, votability, votesUsedBy } from './voting/policy'
 
@@ -27,6 +28,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       votable: votability(state, 'note', n.id) === null,
       mine: n.ownerCid === viewer.cid,
       createdAt: n.createdAt,
+      ...(isFrozenNote(state, n.id) ? { frozen: true } : {}),
     }))
   const groups: SnapshotGroup[] = Object.values(state.groups).map((g) => {
     const voters = clusterVoters(state, g.id)
@@ -35,6 +37,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       votes: secret ? null : voters.length,
       myVotes: countOf(g.voters, viewer.cid),
       votable: votability(state, 'cluster', g.id) === null,
+      ...(g.frozen ? { frozen: true } : {}),
     }
   })
   const used = votesUsedBy(state, viewer.cid)
