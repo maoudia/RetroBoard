@@ -55,7 +55,7 @@ nav.stepper.stepper { display: grid; gap: .25rem; padding: .3rem 1rem .35rem; bo
 .seg.current { background: color-mix(in oklab, var(--accent) 25%, var(--border)); }
 .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width .5s linear; }
 .seg.done .fill { background: color-mix(in oklab, var(--accent) 70%, var(--border)); }
-.line { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; margin: 0; font-size: .8rem; }
+.line { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; margin: 0; font-size: var(--fs-xs); }
 .now { font-weight: 700; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 720px) { .next { display: none; } }

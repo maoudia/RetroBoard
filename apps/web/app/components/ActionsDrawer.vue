@@ -170,21 +170,21 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 .add { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: .5rem; }
 .ideas-h { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .sortl { display: inline-flex; align-items: center; gap: .4rem; }
-.sortl .field { padding: .25rem .4rem; font-size: .85rem; }
+.sortl .field { padding: .25rem .4rem; font-size: var(--fs-sm); }
 .idea { grid-template-columns: auto 1fr auto auto; }
 .vcount { min-width: 2ch; text-align: center; font-weight: 800; color: var(--accent); }
 .more { justify-self: start; }
-.src { grid-column: 1 / -1; margin: 0; display: flex; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
+.src { grid-column: 1 / -1; margin: 0; display: flex; gap: .4rem; align-items: center; font-size: var(--fs-sm); color: var(--muted); }
 .sec { display: grid; gap: .25rem; margin-top: .75rem; }
-.sec-h { display: flex; gap: .4rem; align-items: center; margin: 0; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.sec-h { display: flex; gap: .4rem; align-items: center; margin: 0; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .list { list-style: none; margin: 0; padding: 0; display: grid; }
 li { display: grid; grid-template-columns: auto 1fr auto auto; gap: .7rem; align-items: center; padding: .6rem 0; border-top: 1px solid var(--border); animation: pop-in .25s var(--ease); }
 li input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
-.status { padding: .25rem .4rem; font-size: .85rem; }
+.status { padding: .25rem .4rem; font-size: var(--fs-sm); }
 .txt { display: grid; overflow-wrap: anywhere; }
-.from { font-size: .78rem; }
-.srclink { justify-self: start; display: inline-flex; gap: .3rem; align-items: center; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: .78rem; text-align: left; cursor: pointer; text-decoration: underline; }
-li.hl { background: var(--accent-soft); border-radius: 8px; }
+.from { font-size: var(--fs-xs); }
+.srclink { justify-self: start; display: inline-flex; gap: .3rem; align-items: center; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: var(--fs-xs); text-align: left; cursor: pointer; text-decoration: underline; }
+li.hl { background: var(--accent-soft); border-radius: var(--r-sm); }
 .meta { display: inline-flex; gap: .3rem; flex-wrap: wrap; justify-content: flex-end; }
 .due-pill { display: inline-flex; gap: .25rem; align-items: center; }
 .done .txt { text-decoration: line-through; color: var(--muted); }

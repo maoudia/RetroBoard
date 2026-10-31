@@ -56,6 +56,6 @@ const mapping = computed(() => {
 
 <style scoped>
 .map { display: grid; gap: .35rem; margin: .75rem 0 0; padding: 0; list-style: none; }
-.map li { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; padding: .35rem .6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); }
+.map li { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; padding: .35rem .6rem; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface2); }
 .map .from { color: var(--muted); }
 </style>

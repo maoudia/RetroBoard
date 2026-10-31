@@ -58,7 +58,7 @@ div.walk.walk { position: fixed; z-index: 65; inset: 0; display: grid; place-ite
 .scrim { position: absolute; inset: 0; background: rgb(5 5 12 / .62); backdrop-filter: blur(3px); }
 .card { position: relative; display: grid; gap: 1rem; width: min(52rem, 100%); padding: 1.6rem 2rem; border-radius: calc(var(--r-card, 12px) * 1.5); background: var(--surface2); color: var(--text); border: 3px solid var(--col); box-shadow: var(--shadow-2); }
 header { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
-.rank { font-size: 2rem; font-weight: 800; color: var(--accent); }
+.rank { font-size: var(--fs-3xl); font-weight: 800; color: var(--accent); }
 .votes { display: inline-flex; gap: .35rem; align-items: center; padding: .2rem .7rem; border-radius: 999px; background: var(--accent-soft); color: var(--text); font-weight: 700; }
 .text { margin: 0; font-size: clamp(1.6rem, 3.2vw, 3rem); line-height: 1.25; font-weight: 600; overflow-wrap: anywhere; }
 footer { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }

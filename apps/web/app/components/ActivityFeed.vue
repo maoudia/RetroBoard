@@ -28,6 +28,6 @@ const label = (e: ActivityEntry) => t(`activity.${e.kind}` as never, { phase: e.
 
 <style scoped>
 .feed { padding: .5rem .6rem; max-height: 50vh; overflow: auto; }
-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; font-size: .88rem; }
-.empty { margin: 0; font-size: .88rem; }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; font-size: var(--fs-sm); }
+.empty { margin: 0; font-size: var(--fs-sm); }
 </style>

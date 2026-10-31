@@ -50,14 +50,14 @@ onMounted(() => input.value?.focus())
 </template>
 
 <style scoped>
-.filter { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 1rem 0; padding: .4rem .6rem; border-radius: 12px; border: 1px solid var(--border); }
+.filter { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 1rem 0; padding: .4rem .6rem; border-radius: var(--r-card); border: 1px solid var(--border); }
 .field { min-width: 0; flex: 1 1 12rem; }
 .sel { flex: 0 1 12rem; }
 .swatches { display: inline-flex; gap: 4px; }
 .sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; }
 .sw[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface); }
-.chk { display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; white-space: nowrap; }
-.count { font-size: .85rem; min-width: 4rem; }
+.chk { display: inline-flex; align-items: center; gap: .3rem; font-size: var(--fs-sm); white-space: nowrap; }
+.count { font-size: var(--fs-sm); min-width: 4rem; }
 .c-0 { --c: var(--note-0); } .c-1 { --c: var(--note-1); } .c-2 { --c: var(--note-2); } .c-3 { --c: var(--note-3); }
 .c-4 { --c: var(--note-4); } .c-5 { --c: var(--note-5); } .c-6 { --c: var(--note-6); } .c-7 { --c: var(--note-7); }
 </style>

@@ -98,12 +98,12 @@ function onDrop() {
 .text { overflow-wrap: anywhere; white-space: pre-wrap; font-weight: 500; line-height: 1.3; }
 footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem; }
 .grow { flex: 1; }
-.abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
+.abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
 .abadge:hover { background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
-.by { font-size: .74rem; font-style: italic; opacity: .78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+.by { font-size: var(--fs-xs); font-style: italic; opacity: .78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
 .vote {
   position: relative; display: inline-flex; align-items: center; gap: .3rem; padding: .22rem .55rem; border-radius: 999px; cursor: pointer;
-  border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font-weight: 700; font-size: .85rem;
+  border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font-weight: 700; font-size: var(--fs-sm);
   transition: background .15s, color .15s, transform .15s;
 }
 .vote:hover { background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
@@ -117,7 +117,7 @@ footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem;
 }
 .edit-side { display: grid; gap: .3rem; justify-items: end; }
 .edit { display: flex; gap: .3rem; align-items: start; }
-.edit textarea { width: 100%; resize: none; border: 1.5px solid color-mix(in oklab, var(--note-ink) 40%, transparent); border-radius: 6px; background: rgb(255 255 255 / .35); padding: .3rem .4rem; color: inherit; }
+.edit textarea { width: 100%; resize: none; border: 1.5px solid color-mix(in oklab, var(--note-ink) 40%, transparent); border-radius: var(--r-xs); background: rgb(255 255 255 / .35); padding: .3rem .4rem; color: inherit; }
 .note.frozen { background-image: linear-gradient(135deg, rgb(255 255 255 / .35), rgb(255 255 255 / 0) 60%); cursor: default; }
-.fbadge { display: inline-flex; align-items: center; gap: .25rem; font-size: .72rem; font-weight: 700; padding: .1rem .45rem; border-radius: 999px; background: rgb(255 255 255 / .55); color: var(--note-ink); }
+.fbadge { display: inline-flex; align-items: center; gap: .25rem; font-size: var(--fs-xs); font-weight: 700; padding: .1rem .45rem; border-radius: 999px; background: rgb(255 255 255 / .55); color: var(--note-ink); }
 </style>

@@ -42,7 +42,7 @@ onMounted(async () => {
 .check { max-width: 40rem; margin: 0 auto; padding: 2rem 1rem; }
 .back { display: inline-flex; gap: .4rem; align-items: center; color: inherit; }
 ul { list-style: none; padding: 0; display: grid; gap: .5rem; }
-li { display: grid; grid-template-columns: auto 1fr auto; gap: .75rem; align-items: center; padding: .75rem 1rem; border: 1px solid var(--line, #d2d2d7); border-radius: 12px; }
+li { display: grid; grid-template-columns: auto 1fr auto; gap: .75rem; align-items: center; padding: .75rem 1rem; border: 1px solid var(--line, #d2d2d7); border-radius: var(--r-card); }
 li[data-status="fail"] { border-color: #c4281c; }
 em { font-style: normal; opacity: .8; }
 .verdict { font-weight: 600; }

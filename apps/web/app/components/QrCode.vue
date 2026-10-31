@@ -30,7 +30,7 @@ watch(() => props.value, async (value) => {
 
 <style scoped>
 /* Always dark on light, whatever the theme: phone cameras need the contrast. */
-.qr { display: block; max-width: 100%; height: auto; border-radius: 8px; }
+.qr { display: block; max-width: 100%; height: auto; border-radius: var(--r-sm); }
 .bg { fill: #fff; }
 .fg { fill: #000; }
 </style>

@@ -61,5 +61,5 @@ function never() { identity.stopNudging() }
 .nudge { position: fixed; z-index: 70; right: 18px; bottom: 18px; max-width: min(24rem, calc(100vw - 36px)); display: grid; gap: .6rem; padding: .85rem 1rem; border-radius: var(--r-card, 12px); background: var(--surface2); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-2); }
 p { margin: 0; display: flex; gap: .5rem; align-items: flex-start; font-weight: 600; }
 .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-.link { border: 0; background: none; padding: .25rem; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; }
+.link { border: 0; background: none; padding: .25rem; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: var(--fs-sm); }
 </style>

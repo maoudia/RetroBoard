@@ -120,24 +120,24 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 
 <style scoped>
 .clockrow { display: inline-flex; align-items: center; gap: .4rem; }
-.go { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 1.05rem; cursor: pointer; transition: transform .15s var(--ease); }
+.go { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-md); cursor: pointer; transition: transform .15s var(--ease); }
 .go:hover { transform: scale(1.08); }
 .ring { display: inline-flex; align-items: center; gap: .5rem; padding: .2rem .7rem .2rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); cursor: pointer; }
 .txt { display: grid; line-height: 1.1; text-align: left; }
-.txt strong { font-size: 1.15rem; }
-.txt small { font-size: .75rem; color: var(--muted); }
+.txt strong { font-size: var(--fs-lg); }
+.txt small { font-size: var(--fs-xs); color: var(--muted); }
 .over .txt strong { color: var(--danger); }
 .paused .txt strong { opacity: .6; }
 .panel { display: grid; gap: .6rem; padding: .25rem; }
 .phases { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-.phases li { display: flex; justify-content: space-between; gap: .5rem; padding: .3rem .5rem; border-radius: 8px; }
+.phases li { display: flex; justify-content: space-between; gap: .5rem; padding: .3rem .5rem; border-radius: var(--r-sm); }
 .phases li.now { background: var(--accent-soft); font-weight: 700; }
 .phases li.past .nm { text-decoration: line-through; color: var(--muted); }
 .ctl { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
 .ext { display: inline-flex; gap: .25rem; }
-.borrow { display: inline-flex; gap: .35rem; align-items: center; font-size: .85rem; }
-.note { margin: 0; padding: .4rem .6rem; border-radius: 8px; background: color-mix(in oklab, var(--danger) 14%, transparent); color: var(--danger); font-weight: 600; }
-.small { margin: 0; font-size: .8rem; }
+.borrow { display: inline-flex; gap: .35rem; align-items: center; font-size: var(--fs-sm); }
+.note { margin: 0; padding: .4rem .6rem; border-radius: var(--r-sm); background: color-mix(in oklab, var(--danger) 14%, transparent); color: var(--danger); font-weight: 600; }
+.small { margin: 0; font-size: var(--fs-xs); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 </style>
 

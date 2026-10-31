@@ -78,5 +78,5 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
 .sw:hover { transform: scale(1.2); }
 .sw.on { border-color: var(--text); }
 .gw-list { display: grid; max-height: 11rem; overflow: auto; padding-left: .6rem; }
-.lbl-sm { font-size: .72rem; font-weight: 700; padding: .3rem .65rem 0; text-transform: uppercase; letter-spacing: .05em; }
+.lbl-sm { font-size: var(--fs-xs); font-weight: 700; padding: .3rem .65rem 0; text-transform: uppercase; letter-spacing: .05em; }
 </style>

@@ -66,12 +66,12 @@ const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.commands
 
 <style scoped>
 .timer { position: relative; display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .5rem .3rem .9rem; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
-.clock { font-size: 1.55rem; font-weight: 700; min-width: 3.4ch; text-align: center; letter-spacing: .02em; }
+.clock { font-size: var(--fs-2xl); font-weight: 700; min-width: 3.4ch; text-align: center; letter-spacing: .02em; }
 .go { background: var(--accent); color: var(--accent-ink); width: 34px; height: 34px; border-radius: 50%; }
 .go:hover { background: var(--accent); filter: brightness(1.1); }
 .running .clock { color: var(--accent); }
-.low .clock { color: var(--danger); animation: pulse-ring 1s infinite; border-radius: 8px; }
+.low .clock { color: var(--danger); animation: pulse-ring 1s infinite; border-radius: var(--r-sm); }
 .bar { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--p) * 100%); background: var(--accent); transition: width .25s linear; opacity: .8; }
 .low .bar { background: var(--danger); }
-.lbl-sm { font-size: .72rem; font-weight: 700; padding: .2rem .65rem; text-transform: uppercase; letter-spacing: .05em; }
+.lbl-sm { font-size: var(--fs-xs); font-weight: 700; padding: .2rem .65rem; text-transform: uppercase; letter-spacing: .05em; }
 </style>

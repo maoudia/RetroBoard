@@ -17,7 +17,7 @@ const level = computed(() => (props.value >= props.max ? 'limit' : props.value >
 
 <style scoped>
 /* Ink-based so it reads on every paper colour in light and dark; warning tokens only when it matters. */
-.counter { font-size: .7rem; font-weight: 700; padding: 0 .35rem; border-radius: 999px; color: color-mix(in oklab, var(--note-ink) 78%, transparent); }
+.counter { font-size: var(--fs-xs); font-weight: 700; padding: 0 .35rem; border-radius: 999px; color: color-mix(in oklab, var(--note-ink) 78%, transparent); }
 .counter.ok { padding: 0; }
 .counter.warn { background: #ffb020; color: #1b1d2a; }
 .counter.limit { background: #c62828; color: #fff; }

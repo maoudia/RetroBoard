@@ -29,10 +29,10 @@ defineEmits<{ pick: [] }>()
 }
 .tc:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--accent) 55%, var(--border)); }
 .tc.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: color-mix(in oklab, var(--accent) 8%, var(--surface2)); }
-.name { font-family: var(--f-display); font-size: 1.2rem; font-weight: 600; }
-.desc { color: var(--muted); font-size: .88rem; }
+.name { font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 600; }
+.desc { color: var(--muted); font-size: var(--fs-sm); }
 .cols { display: flex; flex-wrap: wrap; gap: 6px; }
-.col { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; border-radius: 999px; font-size: .78rem; font-weight: 700; background: var(--c); color: var(--note-ink); }
-.why { display: flex; align-items: center; gap: .4rem; color: var(--success); font-size: .8rem; font-weight: 600; }
-.best { position: absolute; top: -10px; right: 12px; display: inline-flex; gap: .3rem; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: .72rem; font-weight: 800; background: var(--accent2); color: var(--accent-ink); }
+.col { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; border-radius: 999px; font-size: var(--fs-xs); font-weight: 700; background: var(--c); color: var(--note-ink); }
+.why { display: flex; align-items: center; gap: .4rem; color: var(--success); font-size: var(--fs-xs); font-weight: 600; }
+.best { position: absolute; top: -10px; right: 12px; display: inline-flex; gap: .3rem; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 800; background: var(--accent2); color: var(--accent-ink); }
 </style>

@@ -24,5 +24,5 @@ const open = computed({ get: () => agent.pending !== null, set: (v) => { if (!v)
 .lead { display: flex; align-items: center; gap: .5rem; font-weight: 600; }
 .items { margin: .75rem 0; padding: .75rem 1rem; border-radius: var(--r-control, 8px); background: var(--surface2); list-style: none; display: grid; gap: .4rem; }
 .items li { overflow-wrap: anywhere; }
-.small { font-size: .85rem; }
+.small { font-size: var(--fs-sm); }
 </style>

@@ -52,10 +52,10 @@ watch([now, endsAt], () => {
 </template>
 
 <style scoped>
-.reveal { position: fixed; z-index: 45; top: 7.5rem; left: 50%; translate: -50% 0; display: flex; align-items: center; gap: 1rem; padding: .7rem 1.2rem; border-radius: 14px; border: 1px solid var(--accent); box-shadow: var(--shadow-2); background: var(--surface2); }
-.big { font-size: 2.2rem; line-height: 1; color: var(--accent); min-width: 2ch; text-align: center; }
+.reveal { position: fixed; z-index: 45; top: 7.5rem; left: 50%; translate: -50% 0; display: flex; align-items: center; gap: 1rem; padding: .7rem 1.2rem; border-radius: var(--r-card); border: 1px solid var(--accent); box-shadow: var(--shadow-2); background: var(--surface2); }
+.big { font-size: var(--fs-3xl); line-height: 1; color: var(--accent); min-width: 2ch; text-align: center; }
 .txt { display: grid; gap: .25rem; }
 .ttl { font-weight: 700; }
-.check { display: flex; gap: .5rem; align-items: center; font-size: .9rem; }
+.check { display: flex; gap: .5rem; align-items: center; font-size: var(--fs-sm); }
 .check input { width: 18px; height: 18px; accent-color: var(--accent); }
 </style>

@@ -25,8 +25,8 @@ onMounted(() => heading.value?.focus({ preventScroll: true }))
 <style scoped>
 .service { min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: .9rem; padding: 2rem 1rem; text-align: center; max-width: 36rem; margin: 0 auto; }
 .ico { width: 56px; height: 56px; color: var(--accent); }
-.code { margin: 0; font-size: 1rem; letter-spacing: .2em; color: var(--muted); }
+.code { margin: 0; font-size: var(--fs-md); letter-spacing: .2em; color: var(--muted); }
 h1 { margin: 0; font-size: clamp(1.6rem, 5vw, 2.4rem); outline: none; }
-.lead { margin: 0; color: var(--muted); font-size: 1.05rem; }
+.lead { margin: 0; color: var(--muted); font-size: var(--fs-md); }
 .actions { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
 </style>

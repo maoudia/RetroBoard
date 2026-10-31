@@ -102,15 +102,15 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
 </template>
 
 <style scoped>
-.head { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .3rem .5rem; }
-.code { margin: 0 .5rem .35rem; font-size: .8rem; }
+.head { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .3rem .5rem; }
+.code { margin: 0 .5rem .35rem; font-size: var(--fs-xs); }
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: 8px; flex-wrap: wrap; }
-.av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: .8rem; color: #1b1b1b; flex: none; }
+li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: var(--r-sm); flex-wrap: wrap; }
+.av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: var(--fs-xs); color: #1b1b1b; flex: none; }
 .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.st { display: block; font-size: .72rem; }
+.st { display: block; font-size: var(--fs-xs); }
 .talking { display: inline-flex; align-items: center; gap: .25rem; color: var(--accent); }
 .role { display: inline-flex; align-items: center; gap: .25rem; }
 .acts { display: inline-flex; gap: 2px; }
-.note { margin: .4rem .5rem 0; font-size: .78rem; }
+.note { margin: .4rem .5rem 0; font-size: var(--fs-xs); }
 </style>

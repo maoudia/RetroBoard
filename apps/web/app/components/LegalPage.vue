@@ -32,9 +32,9 @@ useHead({ title: computed(() => `${td(`${props.doc}.title`)} - RetroBoard`) })
 .legal { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem 3rem; line-height: 1.55; }
 .back { display: inline-flex; gap: .4rem; align-items: center; color: inherit; }
 h1 { margin: 1rem 0 .5rem; }
-h2 { font-size: 1.15rem; margin: 1.6rem 0 .4rem; }
-.lead { font-size: 1.05rem; }
-.beta { display: flex; gap: .5rem; align-items: center; padding: .6rem .8rem; border-radius: 10px; border: 1px solid var(--border, #d2d2d7); }
+h2 { font-size: var(--fs-lg); margin: 1.6rem 0 .4rem; }
+.lead { font-size: var(--fs-md); }
+.beta { display: flex; gap: .5rem; align-items: center; padding: .6rem .8rem; border-radius: var(--r-control); border: 1px solid var(--border, #d2d2d7); }
 ul { padding-left: 1.2rem; display: grid; gap: .3rem; }
-.updated { margin-top: 2rem; font-size: .85rem; }
+.updated { margin-top: 2rem; font-size: var(--fs-sm); }
 </style>

@@ -32,9 +32,9 @@ const rows = (g: ShortcutGroup) => SHORTCUTS.filter((s) => s.group === g && (!s.
 
 <style scoped>
 .grp { margin-top: .9rem; }
-h3 { margin: 0 0 .4rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+h3 { margin: 0 0 .4rem; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 dl { display: grid; grid-template-columns: max-content 1fr; gap: .35rem .9rem; margin: 0; align-items: baseline; }
 dt { justify-self: end; }
 dd { margin: 0; }
-kbd { font-family: var(--f-mono); font-size: .82rem; padding: .1rem .45rem; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 6px; background: var(--surface2); }
+kbd { font-family: var(--f-mono); font-size: var(--fs-sm); padding: .1rem .45rem; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: var(--r-xs); background: var(--surface2); }
 </style>

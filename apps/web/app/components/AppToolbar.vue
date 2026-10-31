@@ -58,11 +58,11 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 <style scoped>
 .toolbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; min-height: var(--toolbar-h); padding: .35rem 1rem; border-bottom: 1px solid var(--border); }
 .brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
-.logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: 1.3rem; border-radius: 12px; background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
+.logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
 .logo:hover { transform: rotate(-8deg) scale(1.08); }
-.title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+.title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: var(--r-control); background: transparent; cursor: pointer; }
 .title:hover { background: var(--accent-soft); }
-.title strong { font-family: var(--f-display); font-size: 1.35rem; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.title strong { font-family: var(--f-display); font-size: var(--fs-xl); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tools { display: flex; justify-content: flex-end; align-items: center; gap: .1rem; }
 .me { margin-left: .5rem; }
 @media (max-width: 1100px) {

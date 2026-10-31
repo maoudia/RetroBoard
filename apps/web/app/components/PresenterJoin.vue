@@ -34,9 +34,9 @@ const folded = ref(false)
 </template>
 
 <style scoped>
-.join { position: fixed; right: 1rem; bottom: 1rem; z-index: 35; display: grid; gap: .5rem; width: 232px; padding: .75rem; border-radius: 14px; border: 1px solid var(--border); }
+.join { position: fixed; right: 1rem; bottom: 1rem; z-index: 35; display: grid; gap: .5rem; width: 232px; padding: .75rem; border-radius: var(--r-card); border: 1px solid var(--border); }
 header { display: flex; align-items: center; gap: .25rem; }
 header strong { flex: 1; }
-.words { font-weight: 700; font-size: 1rem; }
-.small { margin: 0; font-size: .85rem; display: flex; gap: .35rem; align-items: center; }
+.words { font-weight: 700; font-size: var(--fs-md); }
+.small { margin: 0; font-size: var(--fs-sm); display: flex; gap: .35rem; align-items: center; }
 </style>

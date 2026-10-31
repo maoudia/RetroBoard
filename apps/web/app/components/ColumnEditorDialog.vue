@@ -67,7 +67,7 @@ function save() {
 .form { display: grid; gap: 1rem; }
 fieldset { border: 0; padding: 0; margin: 0; }
 .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: 200px; overflow: auto; padding: 2px; }
-.ico { display: grid; place-items: center; aspect-ratio: 1; font-size: 1.25rem; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface2); cursor: pointer; transition: transform .15s; }
+.ico { display: grid; place-items: center; aspect-ratio: 1; font-size: var(--fs-xl); border: 1.5px solid var(--border); border-radius: var(--r-control); background: var(--surface2); cursor: pointer; transition: transform .15s; }
 .ico:hover { transform: scale(1.1); }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .sw { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }

@@ -123,11 +123,11 @@ const showQr = ref(false)
 .code { align-items: center; }
 .code .lbl { font-weight: 600; white-space: nowrap; }
 .qrbox { margin: 0 auto; }
-.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: .88rem; }
+.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: var(--fs-sm); }
 .notes li { display: flex; gap: .5rem; align-items: center; }
 .notes .warn { color: var(--text); font-weight: 600; }
 .fac { display: grid; gap: .5rem; padding-top: .5rem; border-top: 1px solid var(--border); }
 .fac summary { cursor: pointer; font-weight: 600; }
-.small { font-size: .85rem; margin: 0; }
-h3 { font-size: 1rem; margin: 0; }
+.small { font-size: var(--fs-sm); margin: 0; }
+h3 { font-size: var(--fs-md); margin: 0; }
 </style>

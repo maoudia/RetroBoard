@@ -72,12 +72,12 @@ const reasonText = (list: Reason[]) => list.map((x) => reasonLabel(x))
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
 .wizard { display: grid; gap: 1rem; }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: .5rem; min-width: 0; }
-legend { font-weight: 700; font-size: .85rem; color: var(--muted); padding: 0; margin-bottom: .4rem; }
+legend { font-weight: 700; font-size: var(--fs-sm); color: var(--muted); padding: 0; margin-bottom: .4rem; }
 .goals { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: .5rem; }
 .opt { display: flex; gap: .6rem; align-items: center; padding: .6rem .75rem; text-align: left; cursor: pointer; border: 1.5px solid var(--border); border-radius: var(--r-control); background: var(--surface2); }
-.opt :deep(.iconify) { font-size: 1.3rem; color: var(--accent); flex: none; }
+.opt :deep(.iconify) { font-size: var(--fs-xl); color: var(--accent); flex: none; }
 .opt span { display: grid; }
-.opt small { color: var(--muted); font-size: .75rem; }
+.opt small { color: var(--muted); font-size: var(--fs-xs); }
 .opt.on { border-color: var(--accent); background: var(--accent-soft); }
 .row { display: flex; flex-wrap: wrap; gap: 1.5rem; }
 .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; width: fit-content; }

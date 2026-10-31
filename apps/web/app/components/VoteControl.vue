@@ -76,7 +76,7 @@ watch(() => props.votes, (n, o) => {
 .vote.undo { padding: .2rem .4rem; }
 .mine { display: inline-flex; gap: 3px; }
 .mine i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.plus { position: absolute; right: -4px; top: -14px; font-size: .75rem; font-weight: 800; animation: rise .8s ease-out forwards; pointer-events: none; }
+.plus { position: absolute; right: -4px; top: -14px; font-size: var(--fs-xs); font-weight: 800; animation: rise .8s ease-out forwards; pointer-events: none; }
 @keyframes rise { to { transform: translateY(-14px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .plus { display: none; } }
 </style>

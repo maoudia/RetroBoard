@@ -19,5 +19,5 @@ const dash = computed(() => `${half * Math.max(0, Math.min(1, props.share))} ${h
 path { fill: none; stroke-width: 9; stroke-linecap: round; }
 .track { stroke: var(--ring-track); }
 .fill { stroke: var(--ring-1); }
-text { fill: var(--text); font-size: 14px; font-weight: 800; }
+text { fill: var(--text); font-size: var(--fs-sm); font-weight: 800; }
 </style>

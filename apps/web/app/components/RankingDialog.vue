@@ -92,19 +92,19 @@ function toAction(item: RankedItem) {
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: .75rem; margin: .5rem 0 1rem; padding: 0; list-style: none; }
 .step { display: grid; justify-items: center; gap: .5rem; width: min(33%, 220px); }
 .on-step { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; width: 100%; }
-.winner { display: grid; gap: .1rem; padding: .5rem .6rem; border-radius: 10px; background: var(--surface2); text-align: center; animation: rise .6s var(--ease) both; }
+.winner { display: grid; gap: .1rem; padding: .5rem .6rem; border-radius: var(--r-control); background: var(--surface2); text-align: center; animation: rise .6s var(--ease) both; }
 .ttl { overflow-wrap: anywhere; }
-.block { display: grid; place-items: center; width: 100%; border-radius: 10px 10px 0 0; background: var(--accent); color: var(--accent-ink); font-size: 1.6rem; font-weight: 800; }
+.block { display: grid; place-items: center; width: 100%; border-radius: var(--r-control) var(--r-control) 0 0; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-2xl); font-weight: 800; }
 .r1 .block { height: 110px; } .r2 .block { height: 80px; } .r3 .block { height: 56px; }
 .r1 .winner { animation-delay: .3s; } .r2 .winner { animation-delay: .15s; }
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .winner { animation: none; } }
-.list-h { margin: 0; font-size: 1rem; }
+.list-h { margin: 0; font-size: var(--fs-md); }
 .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem 1.5rem; margin: 0 0 1rem; }
 .chart { display: grid; gap: .5rem; align-content: start; min-width: 0; }
-.small { margin: 0; font-size: .85rem; }
+.small { margin: 0; font-size: var(--fs-sm); }
 .list { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
-.list li { display: grid; grid-template-columns: 2.2rem 1fr auto auto; align-items: center; gap: .6rem; padding: .45rem .6rem; border: 1px solid var(--border); border-radius: 10px; }
+.list li { display: grid; grid-template-columns: 2.2rem 1fr auto auto; align-items: center; gap: .6rem; padding: .45rem .6rem; border: 1px solid var(--border); border-radius: var(--r-control); }
 .rank { font-weight: 800; text-align: center; }
 .what { display: grid; min-width: 0; }
 .n { font-weight: 800; }

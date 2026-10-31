@@ -25,9 +25,9 @@ onBeforeUnmount(() => { window.removeEventListener('online', sync); window.remov
 
 <style scoped>
 .local { width: 100%; text-align: left; }
-.local h2 { font-size: 1rem; margin: 0 0 .4rem; }
+.local h2 { font-size: var(--fs-md); margin: 0 0 .4rem; }
 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
-li a { display: flex; gap: .5rem; align-items: center; padding: .6rem .8rem; border: 1px solid var(--line, #d2d2d7); border-radius: 10px; color: inherit; text-decoration: none; }
+li a { display: flex; gap: .5rem; align-items: center; padding: .6rem .8rem; border: 1px solid var(--line, #d2d2d7); border-radius: var(--r-control); color: inherit; text-decoration: none; }
 .back { margin: 0; font-weight: 600; color: var(--accent); }
 .none { margin: 0; color: var(--muted); }
 </style>

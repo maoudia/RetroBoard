@@ -301,5 +301,5 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { rotate: 360deg; } }
 .invalid { display: grid; gap: .8rem; justify-items: center; text-align: center; margin: auto; padding: 2.5rem; max-width: 420px; }
-.big { font-size: 2.5rem; color: var(--danger); }
+.big { font-size: var(--fs-3xl); color: var(--danger); }
 </style>

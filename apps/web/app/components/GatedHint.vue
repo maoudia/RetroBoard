@@ -16,6 +16,6 @@ const opens = computed(() => (!props.availability.allowed && props.availability.
 </template>
 
 <style scoped>
-.gated { margin: 0; display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--muted); }
+.gated { margin: 0; display: flex; align-items: center; gap: .4rem; font-size: var(--fs-xs); color: var(--muted); }
 .gated.bypass { color: var(--accent); }
 </style>

@@ -20,7 +20,7 @@ const title = computed(() => t('live.here', { names: (props.peers ?? []).map((p)
 
 <style scoped>
 .markers { display: inline-flex; align-items: center; }
-.dot { display: grid; place-items: center; width: 20px; height: 20px; margin-left: -5px; font-size: .65rem; font-weight: 700; border-radius: 50%; border: 2px solid var(--surface); background: var(--c); color: var(--ink); }
+.dot { display: grid; place-items: center; width: 20px; height: 20px; margin-left: -5px; font-size: var(--fs-xs); font-weight: 700; border-radius: 50%; border: 2px solid var(--surface); background: var(--c); color: var(--ink); }
 .dot { position: relative; }
 .crown { position: absolute; top: -9px; left: 3px; width: 11px; height: 11px; color: var(--text); }
 .dot:first-child { margin-left: 0; }

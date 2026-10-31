@@ -145,24 +145,24 @@ function onKey(e: KeyboardEvent) {
 <style scoped>
 .priv { display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); border-radius: 0 0 var(--r-card) var(--r-card); }
 header { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
-.title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.similar { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font-size: .85rem; color: var(--muted); }
+.title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.similar { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font-size: var(--fs-sm); color: var(--muted); }
 .similar .link { overflow-wrap: anywhere; text-align: left; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
-.draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: 8px; animation: pop-in .25s var(--ease); }
+.draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: var(--r-sm); animation: pop-in .25s var(--ease); }
 /* Pointer devices reveal the actions on hover or focus; touch screens always show them. */
 @media (hover: hover) {
   .draft .acts { opacity: 0; transition: opacity .15s; }
   .draft:hover .acts, .draft:focus-within .acts { opacity: 1; }
 }
-.draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: .92rem; }
+.draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: var(--fs-sm); }
 .acts { display: flex; flex: none; color: var(--muted); }
-.composer { display: grid; gap: .3rem; padding: .6rem; border-radius: 6px; background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
+.composer { display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
-.composer small { font-size: .7rem; font-weight: 500; color: color-mix(in oklab, var(--note-ink) 80%, transparent); }
+.composer small { font-size: var(--fs-xs); font-weight: 500; color: color-mix(in oklab, var(--note-ink) 80%, transparent); }
 .hint-row { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
 .compose-actions { display: flex; gap: .4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
 .sig-group { display: inline-flex; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
@@ -171,7 +171,7 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .sig.on { background: var(--accent); color: var(--accent-ink, #fff); }
 .colour-btn { position: relative; }
 .colour-btn .dot { position: absolute; right: 3px; bottom: 3px; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px var(--border); }
-.help-text { margin: 0; padding: .5rem .65rem; font-size: .85rem; color: var(--text); }
+.help-text { margin: 0; padding: .5rem .65rem; font-size: var(--fs-sm); color: var(--text); }
 .compose-actions > .sig-group { margin-right: 0; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(24px, 1fr)); gap: 5px; padding: 0 .2rem; }
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }

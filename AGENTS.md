@@ -17,6 +17,7 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 - **Every user-facing string** goes through i18n with `fr` and `en` keys. No hard-coded text.
 - **Strict CSP**: no inline scripts or styles, no `eval`, no third-party origins. Constant `:style` bindings are fine (static hoisting is off).
 - **Board theme is imposed**; only light/dark variant is personal.
+- **UI follows `docs/design-system.md`**: font sizes, radii and spacing come from the shared tokens (`--fs-*`, `--r-*`, `--sp-*`); `apps/web/test/design-tokens.test.ts` enforces it.
 - ASCII in code comments and docs. **Conventional Commits are enforced** (`type(scope): subject`, hook and CI, also for PR titles): `feat` = minor, `fix`/`perf` = patch, `!` or `BREAKING CHANGE` = major. Versions, `CHANGELOG.md` and releases are automatic (ADR-0025): never edit them by hand.
 
 ## Architecture decisions (ADR)

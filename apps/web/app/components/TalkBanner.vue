@@ -56,7 +56,7 @@ const end = () => (mine.value ? board.commands.giveBackFloor() : board.commands.
 .left { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transition: stroke-dasharray .5s linear; }
 .over .left { stroke: var(--danger); }
 .over { border-color: var(--danger); }
-.ini { transform: rotate(90deg); transform-origin: 20px 20px; font-size: 14px; font-weight: 800; fill: var(--text); }
+.ini { transform: rotate(90deg); transform-origin: 20px 20px; font-size: var(--fs-sm); font-weight: 800; fill: var(--text); }
 .who { display: grid; line-height: 1.2; }
 .who small { color: var(--muted); }
 .over .who small { color: var(--danger); font-weight: 700; }

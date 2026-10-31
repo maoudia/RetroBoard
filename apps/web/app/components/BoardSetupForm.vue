@@ -62,9 +62,9 @@ watch(() => agent.setupDraft, (draft) => {
 <style scoped>
 .setup { display: grid; gap: 1.6rem; }
 .block { display: grid; gap: .8rem; }
-h3 { display: flex; align-items: center; gap: .6rem; font-size: 1.25rem; }
-.n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-family: var(--f-body); font-size: .9rem; font-weight: 800; }
-.go { justify-self: start; padding: .8rem 1.5rem; font-size: 1.05rem; }
+h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
+.n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-family: var(--f-body); font-size: var(--fs-sm); font-weight: 800; }
+.go { justify-self: start; padding: .8rem 1.5rem; font-size: var(--fs-md); }
 .pass { display: grid; gap: .35rem; }
 .fac { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; }
 .opt { display: flex; gap: .6rem; align-items: flex-start; cursor: pointer; }

@@ -14,7 +14,7 @@ function pick(id: 'fr' | 'en') { settings.patch({ locale: id }) }
 
 <style scoped>
 .loc { display: inline-flex; padding: 2px; border-radius: 999px; background: color-mix(in srgb, currentColor 8%, transparent); }
-.loc button { padding: .22rem .6rem; border: 0; border-radius: 999px; background: transparent; color: #48484c; font: inherit; font-size: .78rem; font-weight: 600; letter-spacing: .02em; cursor: pointer; transition: background .2s, color .2s; }
+.loc button { padding: .22rem .6rem; border: 0; border-radius: 999px; background: transparent; color: #48484c; font: inherit; font-size: var(--fs-xs); font-weight: 600; letter-spacing: .02em; cursor: pointer; transition: background .2s, color .2s; }
 .loc button:hover { color: #1d1d1f; }
 .loc button.on { background: #fff; color: #1d1d1f; box-shadow: 0 1px 4px rgb(0 0 0 / .15); }
 </style>

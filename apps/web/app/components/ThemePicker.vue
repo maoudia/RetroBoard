@@ -35,7 +35,7 @@ const suggestion = suggestThemeForDate(new Date())
 
 <style scoped>
 .themes { display: grid; gap: 1.1rem; }
-h4 { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .5rem; font-size: 1rem; font-family: var(--f-body); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+h4 { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .5rem; font-size: var(--fs-md); font-family: var(--f-body); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 h4 small { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: .75rem; }
 .theme {
@@ -49,6 +49,6 @@ h4 small { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .chip { width: 26px; height: 30px; border-radius: 3px; box-shadow: 0 3px 8px rgb(0 0 0 / .25); }
 .dot { position: absolute; right: 10px; top: 10px; width: 10px; height: 10px; border-radius: 50%; }
 .meta { display: grid; gap: 2px; padding: 0 .35rem; }
-.meta small { color: var(--muted); font-size: .78rem; line-height: 1.25; }
-.tip { position: absolute; top: 10px; left: 10px; padding: 2px 8px; border-radius: 999px; font-size: .68rem; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+.meta small { color: var(--muted); font-size: var(--fs-xs); line-height: 1.25; }
+.tip { position: absolute; top: 10px; left: 10px; padding: 2px 8px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 700; background: var(--accent); color: var(--accent-ink); }
 </style>

@@ -143,16 +143,16 @@ async function restoreBoardFile(e: Event) {
 .hub { display: grid; grid-template-columns: minmax(12rem, 16rem) 1fr; gap: 1rem; min-height: 0; }
 @media (max-width: 720px) { .hub { grid-template-columns: 1fr; } }
 .dests { display: grid; gap: .3rem; align-content: start; }
-.dest { display: flex; gap: .6rem; align-items: flex-start; padding: .55rem .65rem; text-align: left; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: inherit; cursor: pointer; font: inherit; }
+.dest { display: flex; gap: .6rem; align-items: flex-start; padding: .55rem .65rem; text-align: left; border: 1px solid var(--border); border-radius: var(--r-control); background: var(--surface); color: inherit; cursor: pointer; font: inherit; }
 .dest span { display: grid; }
-.dest small { font-size: .78rem; }
+.dest small { font-size: var(--fs-xs); }
 .dest[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .pane { display: grid; gap: .7rem; align-content: start; min-width: 0; }
 .only { display: inline-flex; gap: .4rem; align-items: center; font-weight: 600; }
 .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
-.small { font-size: .85rem; margin: 0; }
-.preview { max-height: 34vh; overflow: auto; margin: 0; padding: .7rem .8rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-.preview.doc { white-space: normal; font-size: .88rem; }
+.small { font-size: var(--fs-sm); margin: 0; }
+.preview { max-height: 34vh; overflow: auto; margin: 0; padding: .7rem .8rem; border: 1px solid var(--border); border-radius: var(--r-control); background: var(--bg); font-size: var(--fs-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
+.preview.doc { white-space: normal; font-size: var(--fs-sm); }
 .after { padding-top: .6rem; border-top: 1px solid var(--border); }
 .link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
 .boardfile { display: grid; gap: .4rem; padding-top: .7rem; border-top: 1px solid var(--border); }

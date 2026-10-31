@@ -103,11 +103,11 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 .col[data-size="full"] { flex: 0 0 100%; min-width: 0; max-width: none; }
 .col.over { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-1); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
 header { display: flex; align-items: center; gap: .5rem; padding: .8rem .8rem .5rem; }
-.badge-ico { display: grid; place-items: center; width: 38px; height: 38px; flex: none; font-size: 1.2rem; border-radius: 12px; background: var(--col); color: var(--note-ink); }
+.badge-ico { display: grid; place-items: center; width: 38px; height: 38px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--col); color: var(--note-ink); }
 .titles { flex: 1; min-width: 0; display: grid; }
-h2 { font-size: 1.3rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.titles p { font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.count { padding: .1rem .55rem; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); font-size: .8rem; font-weight: 700; }
+h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titles p { font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.count { padding: .1rem .55rem; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); font-size: var(--fs-xs); font-weight: 700; }
 .mini-btn.on { color: var(--accent); background: var(--accent-soft); }
 .notes { position: relative; flex: 1; min-height: 120px; overflow-y: auto; overflow-x: hidden; padding: .6rem .8rem 1rem; scrollbar-width: thin; }
 .grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w), 1fr)); gap: .9rem; align-items: start; }

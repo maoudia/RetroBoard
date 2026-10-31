@@ -61,9 +61,9 @@ function more() { board.commands.extendPhase(2, true); emit('close') }
 <style scoped>
 /* Doubled: board.vue's `.page > :not(.ambient)` would otherwise make it position: relative (below the columns, off screen). */
 .end.end { position: fixed; z-index: 75; left: 50%; top: 84px; translate: -50% 0; width: min(30rem, calc(100vw - 32px)); display: grid; grid-template-columns: auto 1fr; gap: .4rem .8rem; align-items: center; padding: .9rem 1rem; max-height: calc(100dvh - 100px); overflow: auto; border-radius: var(--r-card, 12px); background: var(--surface2); color: var(--text); border: 2px solid var(--accent); box-shadow: var(--shadow-2); }
-.mega { font-size: 1.6rem; color: var(--accent); }
+.mega { font-size: var(--fs-2xl); color: var(--accent); }
 .title { margin: 0; font-weight: 700; }
-.sub { margin: 0; color: var(--muted); font-size: .9rem; }
+.sub { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
 .row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
 @media (prefers-reduced-motion: no-preference) { .end.end { animation: drop .25s ease-out; } }
 @keyframes drop { from { opacity: 0; translate: -50% -12px; } }

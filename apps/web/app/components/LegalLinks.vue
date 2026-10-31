@@ -12,6 +12,6 @@ const { t } = useT()
 </template>
 
 <style scoped>
-.legal-links { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .85rem; }
+.legal-links { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: var(--fs-sm); }
 .legal-links a { color: inherit; }
 </style>

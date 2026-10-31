@@ -108,16 +108,16 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 .scrim { position: absolute; inset: 0; z-index: 20; display: grid; align-items: start; padding: .6rem; background: color-mix(in oklab, var(--bg) 62%, transparent); backdrop-filter: blur(2px); border-radius: inherit; animation: fade-in .2s; }
 .panel { position: relative; display: grid; gap: .8rem; padding: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2); max-height: 100%; overflow: auto; }
 header { display: flex; align-items: center; gap: .5rem; }
-.gi { color: var(--accent); font-size: 1.2rem; flex: none; }
-.gtitle { flex: 1; min-width: 0; padding: .3rem .4rem; border: 1px solid transparent; border-radius: 8px; background: transparent; font-family: var(--f-display); font-size: 1.15rem; font-weight: 600; color: var(--text); text-overflow: ellipsis; }
+.gi { color: var(--accent); font-size: var(--fs-xl); flex: none; }
+.gtitle { flex: 1; min-width: 0; padding: .3rem .4rem; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; font-family: var(--f-display); font-size: var(--fs-lg); font-weight: 600; color: var(--text); text-overflow: ellipsis; }
 .gtitle:hover, .gtitle:focus { border-color: var(--border); background: var(--surface2); outline: none; }
 .grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .75rem; }
 footer { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .sugg { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
-.small { font-size: .8rem; }
+.small { font-size: var(--fs-xs); }
 .merge summary { list-style: none; cursor: pointer; }
 .merge summary::-webkit-details-marker { display: none; }
 .merge-list { display: grid; gap: 2px; margin-top: .35rem; }
-.chip { padding: .2rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); cursor: pointer; font: inherit; font-size: .85rem; }
+.chip { padding: .2rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-sm); }
 .chip:hover { border-color: var(--accent); }
 </style>

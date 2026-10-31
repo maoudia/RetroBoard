@@ -16,6 +16,6 @@ function skip(e: Event) {
 </template>
 
 <style scoped>
-.skip-link { position: fixed; z-index: 100; top: .5rem; left: .5rem; padding: .6rem 1rem; border-radius: 8px; background: var(--accent, #0066cc); color: var(--accent-ink, #fff); font-weight: 700; transform: translateY(-200%); }
+.skip-link { position: fixed; z-index: 100; top: .5rem; left: .5rem; padding: .6rem 1rem; border-radius: var(--r-sm); background: var(--accent, #0066cc); color: var(--accent-ink, #fff); font-weight: 700; transform: translateY(-200%); }
 .skip-link:focus { transform: none; }
 </style>

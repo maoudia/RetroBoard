@@ -40,7 +40,7 @@ watch(open, (v) => { if (v) void nextTick(() => group.value?.querySelector<HTMLE
 <style scoped>
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; justify-items: center; padding: .5rem 0; }
 .sw {
-  display: grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; cursor: pointer; color: var(--note-ink); font-size: 1.6rem;
+  display: grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; cursor: pointer; color: var(--note-ink); font-size: var(--fs-2xl);
   border: 3px solid transparent; box-shadow: 0 0 0 1px var(--border), var(--shadow-1);
   transition: transform .35s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s;
 }

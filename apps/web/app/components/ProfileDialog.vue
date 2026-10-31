@@ -191,9 +191,9 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
 </template>
 
 <style scoped>
-.intro { display: flex; gap: .5rem; align-items: center; font-size: .9rem; }
+.intro { display: flex; gap: .5rem; align-items: center; font-size: var(--fs-sm); }
 .grp { display: grid; gap: .8rem; padding-top: .9rem; border-top: 1px solid var(--border); }
-h3 { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
+h3 { font-size: var(--fs-sm); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .id { display: flex; gap: .75rem; align-items: center; }
 .av { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; font-weight: 800; color: #1b1b1b; transition: background .2s; }
@@ -203,23 +203,23 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .hue.on { border-color: var(--text); }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line > span:first-child { display: grid; gap: 2px; min-width: 0; }
-.line small { font-size: .82rem; }
+.line small { font-size: var(--fs-sm); }
 .seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
-.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-weight: 600; font-size: .85rem; }
+.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
 .seg button:last-child { border-right: 0; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); }
 .sel { width: auto; min-width: 170px; }
 .mine { display: grid; gap: .4rem; padding: .7rem; border-radius: var(--r-control); background: var(--surface2); }
-.lbl-sm { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.lbl-sm { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
-.chip { padding: .3rem .7rem; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: .85rem; }
+.chip { padding: .3rem .7rem; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
 .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .switch { appearance: none; flex: none; width: 46px; height: 26px; border-radius: 999px; background: var(--border); position: relative; cursor: pointer; transition: background .2s; }
 .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
 .switch:checked { background: var(--accent); }
 .switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
 .recents { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 190px; overflow: auto; }
-.recents li { display: flex; align-items: center; gap: .5rem; padding: .3rem .5rem; border-radius: 8px; }
+.recents li { display: flex; align-items: center; gap: .5rem; padding: .3rem .5rem; border-radius: var(--r-sm); }
 .recents li:hover { background: var(--accent-soft); }
 .recents a { flex: 1; display: flex; justify-content: space-between; gap: 1rem; color: inherit; text-decoration: none; min-width: 0; }
 .recents strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -28,8 +28,8 @@ function rate(n: number) {
 </template>
 
 <style scoped>
-.roti { display: grid; gap: .5rem; padding: .75rem; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; }
+.roti { display: grid; gap: .5rem; padding: .75rem; border: 1px solid var(--border); border-radius: var(--r-card); margin-bottom: 1rem; }
 .ask { margin: 0; font-weight: 600; }
 .scores { display: flex; gap: .4rem; flex-wrap: wrap; }
-.small { margin: 0; font-size: .85rem; }
+.small { margin: 0; font-size: var(--fs-sm); }
 </style>

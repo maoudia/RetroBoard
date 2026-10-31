@@ -163,16 +163,16 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 <style scoped>
 .steer { display: contents; border: 0; margin: 0; padding: 0; min-width: 0; }
 .steer:disabled :is(.line, .lbl) { opacity: .6; }
-.readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: 10px; background: var(--surface2); font-weight: 600; }
+.readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: var(--r-control); background: var(--surface2); font-weight: 600; }
 .seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
-.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: .85rem; }
+.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
 .seg button:last-child { border-right: 0; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
-h3 { font-size: 1.05rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
+h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
-.line small { font-size: .82rem; }
+.line small { font-size: var(--fs-sm); }
 .stepper { display: inline-flex; align-items: center; gap: .3rem; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 800; }
 .btns { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }

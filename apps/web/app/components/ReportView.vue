@@ -106,14 +106,14 @@ const minutes = (ms: number) => `${Math.round(ms / 60_000)} min`
 <style scoped>
 .report { display: grid; gap: 1rem; }
 .ttl { margin: 0; }
-h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
-h4 { margin: .6rem 0 .2rem; font-size: .95rem; }
+h3 { margin: 0 0 .5rem; font-size: var(--fs-md); }
+h4 { margin: .6rem 0 .2rem; font-size: var(--fs-md); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: .5rem; }
-.kpi { border: 1px solid var(--border); border-radius: 10px; padding: .5rem .7rem; font-size: .85rem; }
-.kpi b { display: block; font-size: 1.4rem; }
+.kpi { border: 1px solid var(--border); border-radius: var(--r-control); padding: .5rem .7rem; font-size: var(--fs-sm); }
+.kpi b { display: block; font-size: var(--fs-2xl); }
 ul, ol { margin: 0; padding-left: 1.2rem; display: grid; gap: .15rem; }
-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 th, td { text-align: left; padding: .3rem .4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-.v { color: var(--muted); white-space: nowrap; font-size: .85rem; }
-.small { font-size: .85rem; margin: .4rem 0 0; }
+.v { color: var(--muted); white-space: nowrap; font-size: var(--fs-sm); }
+.small { font-size: var(--fs-sm); margin: .4rem 0 0; }
 </style>

@@ -50,7 +50,7 @@ const QUICK: ActionStatus[] = ['done', 'doing', 'blocked', 'dropped']
 
 <style scoped>
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
-li { display: grid; grid-template-columns: 1fr auto; gap: .6rem; align-items: center; padding: .55rem .6rem; border: 1px solid var(--border); border-radius: 10px; }
+li { display: grid; grid-template-columns: 1fr auto; gap: .6rem; align-items: center; padding: .55rem .6rem; border: 1px solid var(--border); border-radius: var(--r-control); }
 .txt { display: grid; min-width: 0; overflow-wrap: anywhere; }
 .quick { display: flex; gap: .25rem; flex-wrap: wrap; }
 .quick .on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }

@@ -84,8 +84,8 @@ function solo() {
 .back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text); font-weight: 700; text-decoration: none; }
 .wrap { position: relative; z-index: 1; display: grid; gap: 1.4rem; width: min(1040px, 100% - 2rem); margin: 0 auto; padding: 1rem 0 3rem; }
 h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
-.lede { max-width: 56ch; font-size: 1.15rem; color: var(--muted); }
+.lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }
 .panel { padding: clamp(1rem, 3vw, 2rem); }
-.foot { display: grid; gap: .4rem; font-size: .9rem; }
+.foot { display: grid; gap: .4rem; font-size: var(--fs-sm); }
 .link { justify-self: start; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-weight: 600; }
 </style>

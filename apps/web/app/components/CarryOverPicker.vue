@@ -56,7 +56,7 @@ async function fromFile(e: Event) {
 
 <style scoped>
 .carry { display: grid; gap: .5rem; }
-.h { display: flex; gap: .5rem; align-items: center; margin: 0; font-size: 1.15rem; }
+.h { display: flex; gap: .5rem; align-items: center; margin: 0; font-size: var(--fs-lg); }
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; max-height: 260px; overflow: auto; }
 label { display: flex; gap: .55rem; align-items: center; }
 .txt { flex: 1; min-width: 0; overflow-wrap: anywhere; }

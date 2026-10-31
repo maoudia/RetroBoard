@@ -71,11 +71,11 @@ const label = (o: { name: string; source: string }) => (o.source === 'custom' ? 
 
 <style scoped>
 .combo { position: relative; min-width: 0; }
-.list { position: absolute; z-index: 5; inset: calc(100% + 4px) 0 auto; margin: 0; padding: .25rem; list-style: none; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow-2); max-height: 240px; overflow: auto; }
-li { display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; border-radius: 8px; cursor: pointer; }
+.list { position: absolute; z-index: 5; inset: calc(100% + 4px) 0 auto; margin: 0; padding: .25rem; list-style: none; border: 1px solid var(--border); border-radius: var(--r-control); background: var(--surface); box-shadow: var(--shadow-2); max-height: 240px; overflow: auto; }
+li { display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; border-radius: var(--r-sm); cursor: pointer; }
 li small { margin-left: auto; }
 li.active, li:hover { background: var(--accent-soft); }
-li.sec { padding: .35rem .5rem .1rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); cursor: default; }
+li.sec { padding: .35rem .5rem .1rem; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); cursor: default; }
 li.sec:hover { background: none; }
 li.custom { border-top: 1px solid var(--border); font-style: italic; }
 </style>

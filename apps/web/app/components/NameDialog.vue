@@ -41,6 +41,6 @@ function save() {
 
 <style scoped>
 .form { display: grid; gap: .9rem; }
-.check { display: flex; gap: .6rem; align-items: flex-start; font-size: .92rem; }
+.check { display: flex; gap: .6rem; align-items: flex-start; font-size: var(--fs-sm); }
 .check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); flex: none; }
 </style>

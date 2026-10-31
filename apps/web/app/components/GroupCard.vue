@@ -111,11 +111,11 @@ onBeforeUnmount(cancelPeek)
 .inline.over { border-style: solid; border-color: var(--accent); }
 .ihead { display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; text-align: left; }
 .inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .6rem; }
-.abadge { position: absolute; left: .55rem; bottom: .45rem; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
+.abadge { position: absolute; left: .55rem; bottom: .45rem; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
 .gvote { position: absolute; right: .55rem; bottom: .45rem; color: var(--note-ink); }
 .stack { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
 .stack:hover { transform: translateY(-3px) scale(1.015); }
-.stack.over { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.stack.over { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--r-xs); }
 .layer { position: absolute; inset: 0; border-radius: calc(var(--r-card) / 3 + 2px); box-shadow: var(--shadow-1); }
 .l2 { background: var(--c2); transform: translate(7px, -7px) rotate(2.2deg); filter: brightness(.94); }
 .l1 { background: var(--c); transform: translate(3px, -3px) rotate(-1.4deg); filter: brightness(.97); }
@@ -125,13 +125,13 @@ onBeforeUnmount(cancelPeek)
 }
 .fold { position: absolute; top: 0; right: 0; width: 26px; height: 26px; border-top-right-radius: calc(var(--r-card) / 3 + 2px); background: linear-gradient(225deg, var(--bg) 0 50%, color-mix(in oklab, var(--c) 70%, #000) 50%); }
 .text { overflow-wrap: anywhere; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; padding-right: 14px; }
-.meta { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; font-weight: 800; }
+.meta { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 800; }
 .count, .votes { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 999px; background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
 </style>
 
 <style>
 .peek { position: fixed; z-index: 60; display: grid; gap: .3rem; margin: 0; padding: .5rem; list-style: none; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / .25)); pointer-events: none; max-height: 180px; overflow: hidden; animation: peek-in .15s ease-out; }
-.peek li { padding: .3rem .5rem; border-radius: 6px; background: var(--c, var(--surface2)); color: var(--note-ink); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.peek li { padding: .3rem .5rem; border-radius: var(--r-xs); background: var(--c, var(--surface2)); color: var(--note-ink); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .peek li.more { background: none; color: var(--muted); }
 @keyframes peek-in { from { opacity: 0; transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .peek { animation: none; } }
