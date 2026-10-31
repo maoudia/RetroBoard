@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/maoudia/RetroBoard/compare/v1.15.0...v1.16.0) (2026-10-31)
+
+
+### Features
+
+* **columns:** group a column by author after a preview, with undo ([787a221](https://github.com/maoudia/RetroBoard/commit/787a221a5eccd443e34f6e5c73086db4dc23d478))
+
 ## [1.15.0](https://github.com/maoudia/RetroBoard/compare/v1.14.0...v1.15.0) (2026-10-31)
 
 
