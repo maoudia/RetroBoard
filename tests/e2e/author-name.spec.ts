@@ -88,3 +88,18 @@ test('renaming the profile updates earlier signed notes for everyone; anonymous 
   await expect(noteByText(page, 'Signed idea')).toContainText('Alexandre')
   await bob.ctx.close()
 })
+
+test('the latest joiner with an already used name is asked to pick another; the first one is not (identity-conflicts)', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alex' })
+  const bob = await join(browser, await link(page), 'alex')
+  await expect(bob.page.getByTestId('name-conflict')).toBeVisible()
+  await expect(page.getByTestId('name-conflict')).toHaveCount(0)
+  const found = (await new AxeBuilder({ page: bob.page }).include('[data-testid="name-conflict"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+  expect(found).toEqual([])
+  await bob.page.getByTestId('conflict-choose').click()
+  await expect(bob.page.getByTestId('name-input')).toBeVisible()
+  await bob.page.getByTestId('name-input').fill('Alexandra')
+  await bob.page.getByTestId('name-save').click()
+  await expect(bob.page.getByTestId('name-conflict')).toHaveCount(0)
+  await bob.ctx.close()
+})

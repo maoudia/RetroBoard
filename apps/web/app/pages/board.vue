@@ -271,6 +271,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <NameDialog />
       <LiveRegions />
       <NameNudge />
+      <NameConflict />
       <LazyPhaseEndPopup v-if="phaseEnd.ended.value" :key="phaseEnd.ended.value.id" :ended="phaseEnd.ended.value" @close="phaseEnd.dismiss" />
       <ConfirmDialog v-model:open="takeoverOpen" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />
       <TemplateDialog />

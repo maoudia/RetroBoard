@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nameKey } from '@retroboard/application'
 import type { Peer } from '@retroboard/domain'
 const { t } = useT()
 const board = useBoardStore()
@@ -6,6 +7,19 @@ const live = useLiveStore()
 const { push } = useToasts()
 const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
 const hue = (n: string | null) => { let h = 0; for (const c of n ?? 'x') h = (h * 31 + c.charCodeAt(0)) % 360; return h }
+
+/** Two people with the same name: a small rank tells them apart (identity-conflicts). */
+const sameName = computed(() => {
+  const count = new Map<string, number>()
+  for (const p of board.peers) { const k = nameKey(p.name); if (k) count.set(k, (count.get(k) ?? 0) + 1) }
+  const seen = new Map<string, number>()
+  return board.peers.map((p) => {
+    const k = nameKey(p.name)
+    if (!k || (count.get(k) ?? 0) < 2) return 0
+    seen.set(k, (seen.get(k) ?? 0) + 1)
+    return seen.get(k)!
+  })
+})
 
 /** Role changes need the peer's session key (encrypted boards) and the facilitator's rights. */
 const manageable = (p: Peer) => board.access.canManageRoles && !p.me && !!p.key
@@ -52,7 +66,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     <ul class="list" data-testid="peers">
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
         <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}</span>
-        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
+        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="sameName[i]" class="st muted" :data-testid="`peer-rank-${i}`">#{{ sameName[i] }}</small><small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
         <span v-if="p.role === 'facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
         <span v-else-if="p.role === 'co-facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
