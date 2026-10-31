@@ -7,7 +7,7 @@
 ## 2. Automatic grouping
 
 - [x] 2.1 Group by author with preview and undo; verify unit tests and e2e two contexts
-- [ ] 2.2 Group similar ideas with preview and accept; verify unit tests and e2e
+- [x] 2.2 Group similar ideas with preview and accept; verify unit tests and e2e
 
 ## 3. Sizes
 
