@@ -68,8 +68,16 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 @media (max-width: 1100px) {
   .toolbar { grid-template-columns: 1fr auto; }
   .timer-slot { grid-column: 2; grid-row: 1; }
-  .tools { grid-column: 1 / -1; justify-content: space-between; }
+  /* One row that slides sideways instead of wrapping: the columns keep their space (change toolbar-mobile-scroll). */
+  .tools {
+    grid-column: 1 / -1; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none;
+    padding-inline: 1rem; margin-inline: -1rem;
+    mask-image: linear-gradient(to right, transparent 0, #000 .9rem, #000 calc(100% - .9rem), transparent 100%);
+  }
+  .tools::-webkit-scrollbar { display: none; }
+  .tools > * { flex: none; scroll-snap-align: center; }
 }
+@media (prefers-reduced-motion: no-preference) { .tools { scroll-behavior: smooth; } }
 /* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
-@media (max-width: 720px) { .tools { flex-wrap: wrap; justify-content: center; } .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } }
+@media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } .toolbar { padding-inline: 1rem; row-gap: .15rem; } }
 </style>
