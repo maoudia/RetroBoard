@@ -2,9 +2,15 @@
 const { t } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
-const n = computed(() => board.columns.length)
+/** Indexes of the columns on screen: hidden ones are skipped (change column-visibility). */
+const shown = computed(() => board.columns.flatMap((c, i) => (c.hidden ? [] : [i])))
 const label = computed(() => (ui.focusColumn === null ? t('presenter.focus.all') : board.columns[ui.focusColumn]?.title ?? ''))
-function step(d: 1 | -1) { if (!n.value) return; ui.focusColumn = ui.focusColumn === null ? (d > 0 ? 0 : n.value - 1) : (ui.focusColumn + d + n.value) % n.value }
+function step(d: 1 | -1) {
+  const list = shown.value
+  if (!list.length) return
+  const at = ui.focusColumn === null ? -1 : list.indexOf(ui.focusColumn)
+  ui.focusColumn = at < 0 ? (d > 0 ? list[0]! : list[list.length - 1]!) : list[(at + d + list.length) % list.length]!
+}
 </script>
 
 <template>

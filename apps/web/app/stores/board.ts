@@ -97,6 +97,8 @@ export const useBoardStore = defineStore('board', () => {
 
   const settings = computed(() => snapshot.value?.settings ?? null)
   const columns = computed(() => snapshot.value?.columns ?? [])
+  /** Columns on screen: the facilitator may hide some for a while (change column-visibility). */
+  const hiddenColumns = computed(() => columns.value.filter((c) => c.hidden))
   const peers = computed(() => snapshot.value?.peers ?? [])
   const actions = computed(() => snapshot.value?.actions ?? [])
   const timer = computed(() => snapshot.value?.timer ?? null)
@@ -127,7 +129,7 @@ export const useBoardStore = defineStore('board', () => {
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
-    settings, noteLimit, columns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
+    settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,
   }
 })

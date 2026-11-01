@@ -1,3 +1,4 @@
+import type { AgendaState } from './facilitation/agenda'
 import type { BoardState, Peer, Snapshot, SnapshotGroup, SnapshotNote } from './shared/types'
 import { isFrozenNote } from './ideation/freeze'
 import { rotiSummary } from './facilitation/roti'
@@ -6,6 +7,9 @@ import { clusterVoters, countOf, votability, votesUsedBy } from './voting/policy
 export interface Viewer {
   cid: string
 }
+
+/** Hidden columns come back when the agenda reaches the closing phase (or has ended). */
+const closing = (a: AgendaState | null): boolean => !!a && a.current >= 0 && (a.current >= a.phases.length || a.phases[a.current]?.kind === 'close')
 
 /** The only place where server state is turned into what a client may see. */
 export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], now: number, names: Readonly<Record<string, string>> = {}): Snapshot {
@@ -47,7 +51,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     t: 'snapshot',
     now,
     settings: state.settings,
-    columns: state.columns,
+    columns: closing(state.agenda) ? state.columns.map(({ hidden: _h, ...c }) => c) : state.columns,
     notes,
     groups,
     actions: Object.values(state.actions).sort((a, b) => a.createdAt - b.createdAt),

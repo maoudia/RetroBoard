@@ -7,6 +7,8 @@ export interface Column {
   icon: string
   /** Default sticky colour (index into the palette) of the notes written in this column. */
   color?: number
+  /** Hidden by a facilitator for a while (change column-visibility). Shown again by the closing phase in the snapshot. */
+  hidden?: boolean
 }
 
 export interface Group {

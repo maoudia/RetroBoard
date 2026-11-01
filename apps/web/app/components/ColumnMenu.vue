@@ -27,6 +27,7 @@ function undoGrouping() {
   for (const id of applied.value) if (board.noteById(id)?.groupId) board.commands.ungroupNote(id)
   ui.autoGrouped = { ...ui.autoGrouped, [props.column.id]: [] }
 }
+const visibleCount = computed(() => board.columns.filter((c) => !c.hidden).length)
 const move = (to: number) => board.commands.moveColumn(props.column.id, to)
 </script>
 
@@ -43,6 +44,9 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
       <button class="dd-item" type="button" role="menuitem" :disabled="index === count - 1" @click="move(index + 1); close()"><Icon name="lucide:arrow-right" /> {{ t('column.right') }}</button>
       <div class="dd-sep" />
       <template v-if="board.access.canSteer">
+        <button class="dd-item" type="button" role="menuitem" :disabled="visibleCount <= 1" :title="visibleCount <= 1 ? t('column.hide.last') : undefined" :data-testid="`col-hide-${column.id}`" @click="board.commands.hideColumn(column.id); close()">
+          <Icon name="lucide:eye-off" /> {{ t('column.hide') }}
+        </button>
         <button class="dd-item" type="button" role="menuitem" :disabled="!authorPlan.length" :title="authorPlan.length ? undefined : t('column.groupAuthor.none')" :data-testid="`col-group-author-${column.id}`" @click="ask('author'); close()">
           <Icon name="lucide:users" /> {{ t('column.groupAuthor') }}
         </button>

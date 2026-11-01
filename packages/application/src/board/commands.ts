@@ -92,6 +92,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     addColumn: (c: ColumnInput) => ((deps.view()?.columns.length ?? 0) >= LIMITS.maxColumns ? err('limit-reached') : send({ t: 'column.add', ...c })),
     updateColumn: (id: string, c: Partial<ColumnInput>) => send({ t: 'column.update', id, ...c }),
     deleteColumn: (id: string) => ((deps.view()?.columns.length ?? 2) <= 1 ? err('last-column') : send({ t: 'column.delete', id })),
+    hideColumn: (id: string) => send({ t: 'column.hide', id }),
+    showColumn: (id: string | null) => send({ t: 'column.show', id }),
     moveColumn: (id: string, toIndex: number) => send({ t: 'column.move', id, toIndex }),
 
     initBoard: (c: Omit<Extract<Command, { t: 'board.init' }>, 't'>) => send({ t: 'board.init', openFacilitation: true, ...c }), // "Everyone facilitates" unless the setup says otherwise

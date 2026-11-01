@@ -391,3 +391,33 @@ describe('frozen notes (note-freeze)', () => {
     expect(h.run({ t: 'column.delete', id: h.col(0) })).toEqual({ ok: false, error: 'frozen' })
   })
 })
+
+describe('hidden columns (column-visibility)', () => {
+  it('hides and shows a column, keeping its notes', () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'kept' })
+    expect(h.run({ t: 'column.hide', id: h.col(0) }).ok).toBe(true)
+    expect(h.state.columns[0]?.hidden).toBe(true)
+    expect(Object.values(h.state.notes)).toHaveLength(1)
+    expect(h.run({ t: 'column.show', id: h.col(0) }).ok).toBe(true)
+    expect(h.state.columns[0]?.hidden).toBeUndefined()
+  })
+
+  it('is idempotent, refuses unknown columns and never hides the last visible one', () => {
+    const h = harness()
+    h.run({ t: 'column.hide', id: h.col(0) })
+    expect(h.run({ t: 'column.hide', id: h.col(0) }).ok).toBe(true)
+    expect(h.run({ t: 'column.hide', id: 'ghost-col' })).toEqual({ ok: false, error: 'not-found' })
+    expect(h.run({ t: 'column.show', id: 'ghost-col' })).toEqual({ ok: false, error: 'not-found' })
+    for (let i = 1; i < h.state.columns.length - 1; i++) h.run({ t: 'column.hide', id: h.col(i) })
+    expect(h.run({ t: 'column.hide', id: h.col(h.state.columns.length - 1) })).toEqual({ ok: false, error: 'last-column' })
+  })
+
+  it('"show all" restores every hidden column', () => {
+    const h = harness()
+    h.run({ t: 'column.hide', id: h.col(0) })
+    h.run({ t: 'column.hide', id: h.col(1) })
+    expect(h.run({ t: 'column.show', id: null }).ok).toBe(true)
+    expect(h.state.columns.some((c) => c.hidden)).toBe(false)
+  })
+})

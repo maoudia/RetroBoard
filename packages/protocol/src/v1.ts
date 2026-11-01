@@ -45,6 +45,8 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('column.add'), title: ColumnTitle, subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color) }),
   v.object({ t: v.literal('column.update'), id: Id, title: v.optional(ColumnTitle), subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color) }),
   v.object({ t: v.literal('column.delete'), id: Id }),
+  v.object({ t: v.literal('column.hide'), id: Id }),
+  v.object({ t: v.literal('column.show'), id: v.nullable(Id) }),
   v.object({ t: v.literal('column.move'), id: Id, toIndex: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(LIMITS.maxColumns - 1)) }),
   v.object({
     t: v.literal('board.init'),

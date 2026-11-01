@@ -5,7 +5,7 @@ import { makeNote, normalizeGroups } from './notes'
 
 type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.move' | 'note.color'
   | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge' | 'group.move'
-  | 'column.add' | 'column.update' | 'column.delete' | 'column.move'
+  | 'column.add' | 'column.hide' | 'column.show' | 'column.update' | 'column.delete' | 'column.move'
 
 /** A peer that ignores the board's note length limit is refused by everyone. */
 const tooLong = (s: { settings: { noteMaxLength?: number } }, text: string) => text.length > (s.settings.noteMaxLength ?? DEFAULT_NOTE_MAX_LENGTH)
@@ -178,6 +178,24 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     if (c.color !== undefined && !validColor(c.color)) return fail('invalid')
     const col = { id: ctx.newId(), title: c.title, subtitle: c.subtitle ?? '', icon: c.icon ?? DEFAULT_COLUMN_ICON, ...(c.color === undefined ? {} : { color: c.color }) }
     return done({ ...s, columns: [...s.columns, col], settings: { ...s.settings, templateId: null } }, { meta: true })
+  },
+
+  /** A hidden column keeps its notes, votes and actions; it only leaves the board (change column-visibility). */
+  'column.hide': (s, c) => {
+    const col = s.columns.find((x) => x.id === c.id)
+    if (!col) return fail('not-found')
+    if (col.hidden) return done(s, {})
+    // The board always keeps one column on screen.
+    if (s.columns.filter((x) => !x.hidden).length <= 1) return fail('last-column')
+    return done({ ...s, columns: s.columns.map((x) => (x.id === c.id ? { ...x, hidden: true } : x)) }, { meta: true })
+  },
+
+  /** `id: null` shows every hidden column ("Show all"). */
+  'column.show': (s, c) => {
+    if (c.id !== null && !s.columns.some((x) => x.id === c.id)) return fail('not-found')
+    const shown = (x: (typeof s.columns)[number]) => { const { hidden: _h, ...rest } = x; return rest }
+    if (!s.columns.some((x) => x.hidden && (c.id === null || x.id === c.id))) return done(s, {})
+    return done({ ...s, columns: s.columns.map((x) => (x.hidden && (c.id === null || x.id === c.id) ? shown(x) : x)) }, { meta: true })
   },
 
   'column.update': (s, c) => {

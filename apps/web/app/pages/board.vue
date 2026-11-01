@@ -253,11 +253,14 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
       <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
 
+      <HiddenColumns v-if="board.ready && board.hiddenColumns.length" />
       <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" />
       <div v-else-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 
       <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board">
-        <BoardColumn v-for="(c, i) in board.columns" :key="c.id" :column="c" :index="i" :total="board.columns.length" />
+        <template v-for="(c, i) in board.columns" :key="c.id">
+          <BoardColumn v-if="!c.hidden" :column="c" :index="i" :total="board.columns.length" />
+        </template>
         <button v-if="board.columns.length < 8" class="add-col" type="button" data-testid="add-column" @click="ui.editColumn(null)">
           <Icon name="lucide:plus" /> {{ t('board.addColumn') }}
         </button>
