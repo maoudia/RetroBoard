@@ -15,6 +15,10 @@ test.describe('live regions (WCAG 4.1.3)', () => {
     await expect(page.getByTestId('live-polite')).toHaveAttribute('aria-live', 'polite')
     await expect(page.getByTestId('live-assertive')).toHaveAttribute('aria-live', 'assertive')
     await expect(page.getByTestId('live-polite')).toHaveText('')
+    // Screen readers only: nothing of it is drawn on the page (the history lives in the activity feed).
+    const box = await page.getByTestId('live-polite').evaluate((el) => { const r = (el.parentElement as HTMLElement).getBoundingClientRect(); return { w: r.width, h: r.height } })
+    expect(box.w).toBeLessThanOrEqual(1)
+    expect(box.h).toBeLessThanOrEqual(1)
     const bob = await join(browser, await shareLink(page), 'Bob')
 
     await publishNote(page, 0, 'My own note')
