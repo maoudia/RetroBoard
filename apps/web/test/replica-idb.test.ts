@@ -18,14 +18,34 @@ describe('IndexedDB replica store', () => {
 
   it('purges rooms not used since the retention limit, keeps the others', async () => {
     const clock = { t: 1_000 }
-    const store = make(clock)
-    await store.append('old', [{ id: '1', data: 'x' }])
+    const db = openReplicaDb(new IDBFactory())
+    const before = createIdbReplicaStore(db, () => clock.t)
+    await before.append('old', [{ id: '1', data: 'x' }])
     clock.t = 50_000
-    await store.append('fresh', [{ id: '1', data: 'y' }])
+    await before.append('fresh', [{ id: '1', data: 'y' }])
+    // A later tab (start-up sweep): nothing it opened yet is in use.
+    const store = createIdbReplicaStore(db, () => clock.t)
     expect(await store.purge(10_000)).toBe(1)
     expect(await store.load('old')).toEqual([])
     expect(await store.load('fresh')).toHaveLength(1)
     await store.delete('fresh')
     expect(await store.load('fresh')).toEqual([])
+  })
+
+  it('opening a board counts as use, and a board opened in this tab is never swept', async () => {
+    const clock = { t: 1_000 }
+    const db = openReplicaDb(new IDBFactory())
+    const first = createIdbReplicaStore(db, () => clock.t)
+    await first.append('read-often', [{ id: '1', data: 'x' }])
+    await first.append('opening-now', [{ id: '1', data: 'y' }])
+    clock.t = 50_000
+    const tab = createIdbReplicaStore(db, () => clock.t)
+    await tab.load('read-often') // reading bumps usedAt to 50_000
+    // "Until I leave" sweeps everything at start-up, but not what this tab is opening.
+    const sweeper = createIdbReplicaStore(db, () => clock.t)
+    await sweeper.load('opening-now')
+    expect(await sweeper.purge(10_000)).toBe(0)
+    expect(await sweeper.purge(Number.MAX_SAFE_INTEGER)).toBe(1)
+    expect(await tab.load('opening-now')).toHaveLength(1)
   })
 })

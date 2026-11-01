@@ -211,6 +211,9 @@ test('board file: export, then restore into the same link after the board is gon
   // Nobody holds the board: the facilitator's new browser waits instead of inventing a second board.
   await expect(fresh.getByTestId('board-waiting')).toBeVisible()
   await expect(fresh.getByTestId('board')).toHaveCount(0)
+  // "Try again" reconnects without leaving the page (change board-recovery).
+  await fresh.getByTestId('waiting-retry').click()
+  await expect(fresh.getByTestId('board-waiting')).toBeVisible()
   await fresh.getByTestId('waiting-restore-input').setInputFiles({ name: 'board.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText) })
   await expect(noteByText(fresh, 'Kept in the file')).toBeVisible()
   await expect(fresh.getByTestId('board-waiting')).toHaveCount(0)

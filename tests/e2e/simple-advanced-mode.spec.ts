@@ -38,3 +38,10 @@ test('simple creation uses the defaults and sharing keeps link, copy and QR', as
   await expect(page.getByTestId('copy-chat')).toBeVisible()
   await expect(page.getByTestId('share-e2e')).toBeVisible()
 })
+
+test('the create button sits in the right half of the form (change creation-polish)', async ({ page }) => {
+  await page.goto('/new')
+  const form = await page.getByTestId('setup-form').boundingBox()
+  const btn = await page.getByTestId('setup-submit').boundingBox()
+  expect(btn!.x + btn!.width / 2).toBeGreaterThan(form!.x + form!.width / 2)
+})

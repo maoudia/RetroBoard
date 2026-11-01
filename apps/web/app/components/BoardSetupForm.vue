@@ -90,7 +90,7 @@ watch(() => agent.setupDraft, (draft) => {
 .block { display: grid; gap: .8rem; }
 h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-family: var(--f-body); font-size: var(--fs-sm); font-weight: 800; }
-.go { justify-self: start; padding: .8rem 1.5rem; font-size: var(--fs-md); }
+.go { justify-self: end; padding: .8rem 1.5rem; font-size: var(--fs-md); }
 .pass { display: grid; gap: .35rem; }
 .fac { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; }
 .votable { display: grid; gap: .5rem; }

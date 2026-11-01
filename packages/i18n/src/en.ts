@@ -339,6 +339,7 @@ export const en: Record<keyof typeof fr, string> = {
   'board.opening': 'Opening the board...',
   'board.reconnecting': 'Connection lost. Your changes are kept and sent as soon as you are back.',
   'board.replicaFailing': 'This device cannot save the board (storage full or blocked). Export a board file to keep your work.',
+  'board.waiting.retry': 'Try again',
   'board.waiting.title': 'Waiting for someone who has this board',
   'board.waiting.lead': 'Nobody connected right now holds this board. It appears by itself as soon as one of the people who were in it opens the link. Nothing is lost and nothing was created in its place.',
   'board.waiting.start': 'The board is lost: start a new one here',

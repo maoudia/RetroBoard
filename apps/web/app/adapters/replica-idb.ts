@@ -23,13 +23,19 @@ export function openReplicaDb(factory: IDBFactory = indexedDB): Promise<IDBDatab
 }
 
 export function createIdbReplicaStore(db: Promise<IDBDatabase>, now: () => number = Date.now): ReplicaStorePort {
+  // Rooms opened in this tab are never purged by the start-up sweep (it runs while the board loads).
+  const live = new Set<string>()
   return {
     async load(roomId) {
-      const tx = (await db).transaction('envelopes', 'readonly')
-      const rows = await req(tx.objectStore('envelopes').index('room').getAll(roomId)) as { id: string; data: string }[]
+      live.add(roomId)
+      const d = await db
+      const rows = await req(d.transaction('envelopes', 'readonly').objectStore('envelopes').index('room').getAll(roomId)) as { id: string; data: string }[]
+      // Retention counts from the last use, not from the last write: opening a board keeps its copy.
+      if (rows.length) { try { const tx = d.transaction('rooms', 'readwrite'); tx.objectStore('rooms').put({ room: roomId, usedAt: now() }); await done(tx) } catch { /* best effort */ } }
       return rows.map(({ id, data }) => ({ id, data }))
     },
     async append(roomId, records: readonly ReplicaRecord[]) {
+      live.add(roomId)
       const tx = (await db).transaction(['envelopes', 'rooms'], 'readwrite')
       const envs = tx.objectStore('envelopes')
       for (const r of records) envs.put({ room: roomId, id: r.id, data: r.data })
@@ -39,7 +45,7 @@ export function createIdbReplicaStore(db: Promise<IDBDatabase>, now: () => numbe
     async purge(before) {
       const d = await db
       const rooms = await req(d.transaction('rooms', 'readonly').objectStore('rooms').getAll()) as { room: string; usedAt: number }[]
-      const stale = rooms.filter((r) => r.usedAt < before).map((r) => r.room)
+      const stale = rooms.filter((r) => r.usedAt < before && !live.has(r.room)).map((r) => r.room)
       for (const room of stale) await this.delete(room)
       return stale.length
     },

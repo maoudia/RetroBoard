@@ -337,6 +337,7 @@ export const fr = {
   'board.connecting': 'Connexion en cours...',
   'board.reconnecting': 'Connexion perdue. Tes modifications sont gardées et envoyées dès que tu es de retour.',
   'board.replicaFailing': 'Cet appareil ne peut pas enregistrer le board (stockage plein ou bloqué). Exporte un fichier de board pour garder ton travail.',
+  'board.waiting.retry': 'Réessayer',
   'board.waiting.title': 'En attente de quelqu\'un qui a ce board',
   'board.waiting.lead': 'Personne de connecté n\'a ce board pour le moment. Il réapparaît tout seul dès qu\'une personne qui y était ouvre le lien. Rien n\'est perdu et rien n\'a été créé à sa place.',
   'board.waiting.start': 'Le board est perdu : en démarrer un nouveau ici',

@@ -254,7 +254,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
 
       <HiddenColumns v-if="board.ready && board.hiddenColumns.length" />
-      <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" />
+      <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" @retry="enter" />
       <div v-else-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 
       <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board">

@@ -5,6 +5,11 @@
  * restore a board file, or, as a last resort, start a new board in this room.
  */
 defineProps<{ canStart: boolean }>()
+const emit = defineEmits<{ retry: [] }>()
+// The relay may have lost its memory or a holder may have just arrived: ask again, quietly.
+let timer: ReturnType<typeof setInterval> | undefined
+onMounted(() => { timer = setInterval(() => emit('retry'), 20_000) })
+onBeforeUnmount(() => clearInterval(timer))
 const { t } = useT()
 const board = useBoardStore()
 const { push } = useToasts()
@@ -27,6 +32,7 @@ async function restore(e: Event) {
     <Icon name="lucide:hourglass" class="ico" aria-hidden="true" />
     <h1>{{ t('board.waiting.title') }}</h1>
     <p class="lead">{{ t('board.waiting.lead') }}</p>
+    <button class="btn" type="button" data-testid="waiting-retry" @click="emit('retry')"><Icon name="lucide:refresh-cw" /> {{ t('board.waiting.retry') }}</button>
     <div v-if="canStart" class="actions">
       <button class="btn" type="button" data-testid="waiting-restore" @click="fileInput?.click()"><Icon name="lucide:file-up" /> {{ t('boardFile.import') }}</button>
       <input ref="fileInput" type="file" accept=".retro,application/json" class="visually-hidden" tabindex="-1" aria-hidden="true" data-testid="waiting-restore-input" @change="restore" />
