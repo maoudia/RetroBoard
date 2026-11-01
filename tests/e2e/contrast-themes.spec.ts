@@ -47,6 +47,13 @@ for (const variant of ['light', 'dark'] as const) {
       await column(page, 0).locator('textarea').fill('x'.repeat(150)) // the counter shows from 80% of the limit
       await settle(page)
       expect(await lowContrast(page)).toEqual([])
+      // The locked board shows the lock pill and the vote bar controls in their disabled and pressed states.
+      await page.evaluate(() => {
+        const store = (document.getElementById('__nuxt') as unknown as { __vue_app__: { config: { globalProperties: { $pinia: { _s: Map<string, { commands: { updateSettings: (p: unknown) => void } }> } } } } }).__vue_app__.config.globalProperties.$pinia._s.get('board')!
+        store.commands.updateSettings({ locked: true, secretVoting: true })
+      })
+      await settle(page)
+      expect(await lowContrast(page)).toEqual([])
     })
   }
 }
