@@ -38,6 +38,8 @@ async function copyFacilitator() {
   if (!facilitatorUrl.value) return
   try { await $ports.clipboard.writeText(facilitatorUrl.value); push(t('share.copied'), 'ok') } catch { push(t('share.copyFailed'), 'warn') }
 }
+/** Simple: link, copy, native share, QR, passcode. Advanced adds chat/email templates, notes and the facilitator link (change simple-advanced-mode). */
+const advanced = computed(() => useSettingsStore().s.uiMode === 'advanced')
 const canShare = computed(() => import.meta.client && typeof navigator.share === 'function')
 
 async function copy() {
@@ -61,6 +63,7 @@ const showQr = ref(false)
 <template>
   <BaseDialog v-model:open="open" :title="t('share.title')" width="520px">
     <p class="muted">{{ t('share.intro') }}</p>
+    <ModeSwitch />
     <p v-if="board.roomCode" class="code-words" data-testid="share-room-code"><Icon name="lucide:badge-check" /> {{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <div class="row">
       <input class="field mono" :value="url" readonly :aria-label="t('share.link')" data-testid="share-url" @focus="($event.target as HTMLInputElement).select()" />
@@ -68,8 +71,8 @@ const showQr = ref(false)
     </div>
     <div class="acts">
       <button v-if="canShare" class="btn" type="button" @click="share"><Icon name="lucide:share-2" /> {{ t('share.share') }}</button>
-      <button class="btn" type="button" data-testid="copy-chat" @click="copyChat"><Icon name="lucide:message-square" /> {{ t('share.copyChat') }}</button>
-      <a class="btn" :href="mailto" data-testid="share-email"><Icon name="lucide:mail" /> {{ t('share.email') }}</a>
+      <button v-if="advanced" class="btn" type="button" data-testid="copy-chat" @click="copyChat"><Icon name="lucide:message-square" /> {{ t('share.copyChat') }}</button>
+      <a v-if="advanced" class="btn" :href="mailto" data-testid="share-email"><Icon name="lucide:mail" /> {{ t('share.email') }}</a>
     </div>
     <div v-if="protectedByPasscode && passcode" class="row code">
       <span class="lbl">{{ t('share.passcode') }}</span>
@@ -82,7 +85,7 @@ const showQr = ref(false)
       <p class="muted small">{{ t('share.qr.hint') }}</p>
       <QrCode v-if="showQr" class="qrbox" :value="url" :label="t('share.qr.alt')" />
     </details>
-    <ul class="notes muted">
+    <ul v-if="advanced" class="notes muted">
       <li v-if="encrypted" data-testid="share-e2e"><Icon name="lucide:shield-check" /> {{ t('share.note.e2e') }}</li>
       <li v-if="encrypted" class="warn" data-testid="share-warn"><Icon name="lucide:triangle-alert" /> {{ t('share.note.public') }}</li>
       <li v-if="protectedByPasscode" data-testid="share-passcode"><Icon name="lucide:key-round" /> {{ t('share.note.passcode') }}</li>
@@ -104,7 +107,7 @@ const showQr = ref(false)
         <button class="btn" type="button" :disabled="!handTo" data-testid="share-handover" @click="handOver"><Icon name="lucide:crown" /> {{ t('roles.handover.ok') }}</button>
       </div>
     </section>
-    <details v-else-if="facilitatorUrl" class="fac" :open="showFacilitator" @toggle="showFacilitator = ($event.target as HTMLDetailsElement).open">
+    <details v-else-if="facilitatorUrl && advanced" class="fac" :open="showFacilitator" @toggle="showFacilitator = ($event.target as HTMLDetailsElement).open">
       <summary data-testid="share-facilitator-toggle">{{ t(board.settings?.openFacilitation ? 'share.facilitator.advanced' : 'share.facilitator') }}</summary>
       <p class="muted small">{{ t(board.settings?.openFacilitation ? 'share.facilitator.advanced.hint' : 'share.facilitator.hint') }}</p>
       <div v-if="showFacilitator" class="row">

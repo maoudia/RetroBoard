@@ -13,6 +13,7 @@ useSetupAgentTools()
 const settings = useSettingsStore()
 const router = useRouter()
 const recents = useRecentsStore()
+const advanced = computed(() => settings.s.uiMode === 'advanced')
 useHead({ title: computed(() => t('new.pageTitle')) })
 
 onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false) })
@@ -61,6 +62,10 @@ function solo() {
     <main class="wrap">
       <h1 data-testid="new-title">{{ t('new.title') }}</h1>
       <p class="lede">{{ themeText(theme.theme).hero }}</p>
+      <div class="modebar">
+        <ModeSwitch />
+        <p v-if="!advanced" class="muted small" data-testid="new-simple-note">{{ t('new.simple.note') }}</p>
+      </div>
       <!-- Back from a board lands here: the way back to it must be visible, not a new empty form (#222). -->
       <section v-if="recents.items.length" class="card panel resume" data-testid="new-resume">
         <h2>{{ t('new.resume.title') }}</h2>
@@ -69,10 +74,10 @@ function solo() {
       <section class="card panel">
         <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
-      <section class="card panel">
+      <section v-if="advanced" class="card panel">
         <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
       </section>
-      <section class="card panel">
+      <section v-if="advanced" class="card panel">
         <CarryOverPicker v-model="carry" />
       </section>
       <p class="foot muted">
@@ -93,6 +98,8 @@ h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
 .lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }
 .panel { padding: clamp(1rem, 3vw, 2rem); }
 .resume h2 { margin: 0 0 .5rem; font-size: var(--fs-lg); }
+.modebar { display: flex; align-items: center; gap: .8rem 1.2rem; flex-wrap: wrap; }
+.modebar .small { margin: 0; font-size: var(--fs-sm); max-width: 62ch; }
 .foot { display: grid; gap: .4rem; font-size: var(--fs-sm); }
 .link { justify-self: start; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-weight: 600; }
 </style>

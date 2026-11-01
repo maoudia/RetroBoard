@@ -308,6 +308,12 @@ export const en: Record<keyof typeof fr, string> = {
   'setup.name': 'Retro name',
   'setup.defaultTitle': 'Retro {date}',
   'setup.fallbackTitle': 'Retrospective',
+  'mode.label': 'Display mode',
+  'mode.simple': 'Simple',
+  'mode.advanced': 'Advanced',
+  'mode.hint': 'Simple: the essentials with the best defaults. Advanced: every option.',
+  'mode.moreOptions': 'More options in advanced mode.',
+  'new.simple.note': 'Recommended settings: one-hour agenda, everyone can facilitate, theme of the moment, arrival notifications. Switch to advanced to customise everything.',
   'setup.step1': 'Pick a mood',
   'setup.step2': 'Pick a format',
 

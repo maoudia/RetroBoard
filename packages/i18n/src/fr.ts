@@ -307,6 +307,12 @@ export const fr = {
   'setup.name': 'Nom de la rétro',
   'setup.defaultTitle': 'Rétro {date}',
   'setup.fallbackTitle': 'Rétrospective',
+  'mode.label': 'Mode d\'affichage',
+  'mode.simple': 'Simple',
+  'mode.advanced': 'Avancé',
+  'mode.hint': 'Simple : l\'essentiel, avec les meilleurs réglages par défaut. Avancé : toutes les options.',
+  'mode.moreOptions': 'Plus d\'options en mode avancé.',
+  'new.simple.note': 'Réglages recommandés : agenda d\'une heure, tout le monde peut animer, thème du moment, notifications d\'arrivée. Passe en avancé pour tout personnaliser.',
   'setup.step1': 'Choisis une ambiance',
   'setup.step2': 'Choisis un format',
 

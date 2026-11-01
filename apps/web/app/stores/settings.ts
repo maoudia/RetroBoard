@@ -37,6 +37,8 @@ export interface LocalSettings {
   /** Where toasts and the time-up popup sit horizontally (personal). */
   notifyPos: 'center' | 'left' | 'right'
   /** What the phase stepper shows: time elapsed in the phase or time left (personal). */
+  /** Simple shows the essentials with the best defaults, advanced shows every option (change simple-advanced-mode). */
+  uiMode: 'simple' | 'advanced'
   stepperTime: 'elapsed' | 'remaining'
   /** What the global ring shows: time left or time elapsed of the whole retro (personal). */
   ringTime: 'elapsed' | 'remaining'
@@ -56,7 +58,7 @@ const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
-  phaseWarning: true, notifyPos: 'center', stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, votedSort: 'votes',
+  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, votedSort: 'votes',
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

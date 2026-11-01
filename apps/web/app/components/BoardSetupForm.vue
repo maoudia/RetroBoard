@@ -4,6 +4,8 @@ import { LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type Import
 export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
+/** Simple keeps title and format; theme, facilitation, popups, voting columns and passcode are advanced (change simple-advanced-mode). */
+const advanced = computed(() => useSettingsStore().s.uiMode === 'advanced')
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
 const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean }>()
 const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult]; 'update:minutes': [minutes: number] }>()
@@ -39,16 +41,17 @@ watch(() => agent.setupDraft, (draft) => {
       <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" />
     </label>
 
-    <section class="block">
+    <section v-if="advanced" class="block">
       <h3><span class="n">1</span> {{ t('setup.step1') }}</h3>
       <ThemePicker :model-value="themeId" @update:model-value="emit('update:themeId', $event)" />
     </section>
 
     <section class="block">
-      <h3><span class="n">2</span> {{ t('setup.step2') }}</h3>
+      <h3><span class="n">{{ advanced ? 2 : 1 }}</span> {{ t('setup.step2') }}</h3>
       <TemplatePicker v-model="templateId" :theme-id="themeId" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
+    <template v-if="advanced">
     <fieldset class="fac" data-testid="setup-facilitation">
       <legend class="lbl">{{ t('setup.fac.title') }}</legend>
       <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="everyone" data-testid="setup-fac-everyone" />
@@ -76,6 +79,8 @@ watch(() => agent.setupDraft, (draft) => {
       <input v-model="passcode" class="field" type="password" autocomplete="new-password" data-testid="setup-passcode" />
       <small class="muted">{{ t('setup.passcode.hint') }}</small>
     </label>
+    </template>
+
     <button class="btn btn-primary go" type="submit" data-testid="setup-submit"><Icon name="lucide:rocket" /> {{ submitLabel }}</button>
   </form>
 </template>

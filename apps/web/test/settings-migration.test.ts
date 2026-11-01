@@ -9,4 +9,8 @@ describe('stored settings migration', () => {
     expect(migrate({ variant: 'dark' })).toEqual({ variant: 'dark' })
     expect(migrate({ variant: 'sepia' })).toEqual({})
   })
+  it('keeps a valid interface mode and drops an unknown one (change simple-advanced-mode)', () => {
+    expect(migrate({ uiMode: 'advanced' })).toEqual({ uiMode: 'advanced' })
+    expect(migrate({ uiMode: 'expert' })).toEqual({})
+  })
 })

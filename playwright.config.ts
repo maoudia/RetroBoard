@@ -22,6 +22,8 @@ export default defineConfig({
   use: {
     locale: 'fr-FR',
     baseURL: `http://127.0.0.1:${port}`,
+    // The suite exercises every option: start in advanced mode (the product default is simple, change simple-advanced-mode).
+    storageState: { cookies: [], origins: [{ origin: `http://127.0.0.1:${port}`, localStorage: [{ name: 'retroboard:settings', value: JSON.stringify({ uiMode: 'advanced' }) }] }] },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     // E2E_NO_VIDEO: CI-like runs on machines without Playwright's ffmpeg.

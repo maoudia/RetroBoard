@@ -67,6 +67,12 @@ async function wipe() {
     </section>
 
     <section class="grp">
+      <h3>{{ t('mode.label') }}</h3>
+      <p class="muted">{{ t('mode.hint') }}</p>
+      <ModeSwitch />
+    </section>
+
+    <section class="grp">
       <h3>{{ t('profile.look') }}</h3>
       <div class="line">
         <span><strong>{{ t('profile.language') }}</strong><small class="muted">{{ t('profile.language.hint') }}</small></span>

@@ -25,7 +25,10 @@ const DESTS: { id: Dest; icon: string }[] = [
   { id: 'slack', icon: 'lucide:message-square' },
   { id: 'agents', icon: 'lucide:bot' },
 ]
+/** Simple: report, Markdown, copy, actions CSV. Advanced: every destination, JSON and board file (change simple-advanced-mode). */
+const advanced = computed(() => useSettingsStore().s.uiMode === 'advanced')
 const dest = ref<Dest>('files')
+watch(advanced, (a) => { if (!a) dest.value = 'files' })
 const actionsOnly = ref(false)
 const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'retro')
 const report = computed(() => (open.value && board.snapshot ? buildReport(board.snapshot, new Date()) : null))
@@ -81,10 +84,11 @@ async function restoreBoardFile(e: Event) {
 
 <template>
   <BaseDialog v-model:open="open" :title="t('exportHub.title')" width="900px">
+    <ModeSwitch />
     <div class="hub">
       <nav class="dests" :aria-label="t('exportHub.destinations')">
         <button
-          v-for="d in DESTS" :key="d.id" type="button" class="dest" :aria-pressed="dest === d.id" :data-testid="`export-dest-${d.id}`" @click="dest = d.id"
+          v-for="d in (advanced ? DESTS : [])" :key="d.id" type="button" class="dest" :aria-pressed="dest === d.id" :data-testid="`export-dest-${d.id}`" @click="dest = d.id"
         >
           <Icon :name="d.icon" /><span><strong>{{ td(`exportHub.${d.id}`) }}</strong><small class="muted">{{ td(`exportHub.${d.id}.hint`) }}</small></span>
         </button>
@@ -94,7 +98,7 @@ async function restoreBoardFile(e: Event) {
       </nav>
 
       <section class="pane">
-        <label v-if="dest !== 'jira'" class="only">
+        <label v-if="advanced && dest !== 'jira'" class="only">
           <input v-model="actionsOnly" type="checkbox" data-testid="export-actions-only" /> {{ t('exportHub.actionsOnly') }}
         </label>
 
@@ -102,7 +106,7 @@ async function restoreBoardFile(e: Event) {
           <template v-if="dest === 'files'">
             <button class="btn btn-primary" type="button" data-testid="export-md" @click="save(`${slug}.md`, preview, 'text/markdown')"><Icon name="lucide:file-text" /> {{ t('export.md') }}</button>
             <button class="btn" type="button" data-testid="export-csv" @click="save(`${slug}.csv`, toCsv(board.snapshot!, exportLabels), 'text/csv')"><Icon name="lucide:file-spreadsheet" /> {{ t('export.csv') }}</button>
-            <button class="btn" type="button" data-testid="export-json" @click="save(`${slug}.json`, toJson(board.snapshot!), 'application/json')"><Icon name="lucide:file-json" /> {{ t('export.json') }}</button>
+            <button v-if="advanced" class="btn" type="button" data-testid="export-json" @click="save(`${slug}.json`, toJson(board.snapshot!), 'application/json')"><Icon name="lucide:file-json" /> {{ t('export.json') }}</button>
             <button class="btn" type="button" @click="copy(preview)"><Icon name="lucide:copy" /> {{ t('export.copy') }}</button>
           </template>
           <template v-else-if="dest === 'jira'">
@@ -121,7 +125,7 @@ async function restoreBoardFile(e: Event) {
         <div v-if="dest === 'docs'" class="preview doc" data-testid="export-preview" v-html="preview" />
         <pre v-else class="preview" tabindex="0" role="region" :aria-label="t('exportHub.previewLabel')" data-testid="export-preview">{{ preview }}</pre>
 
-        <div v-if="dest === 'files' && board.canUseBoardFile()" class="boardfile">
+        <div v-if="advanced && dest === 'files' && board.canUseBoardFile()" class="boardfile">
           <strong><Icon name="lucide:file-lock" /> {{ t('boardFile.export') }}</strong>
           <p class="muted small">{{ t('boardFile.exportHint') }}</p>
           <span class="acts">
