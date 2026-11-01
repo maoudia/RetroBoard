@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ringProgress } from '@retroboard/application'
+import { ringProgress, timeLabel } from '@retroboard/application'
 import { type AgendaState, phaseClock } from '@retroboard/domain'
 const { t } = useT()
 
@@ -9,6 +9,7 @@ const { t } = useT()
  * passes and turns to the danger colour in overtime. Click opens the phase panel.
  */
 const board = useBoardStore()
+const settings = useSettingsStore()
 const ui = useUiStore()
 const now = ref(Date.now())
 let tick: ReturnType<typeof setInterval> | undefined
@@ -32,9 +33,10 @@ const fmt = (ms: number) => {
   const s = Math.ceil(Math.abs(ms) / 1000)
   return `${ms < 0 ? '+' : ''}${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
+/** The whole retro, as chosen: time left (default) or time elapsed. The phase bar says the complementary thing. */
 const centre = computed(() => {
   const c = clock.value
-  if (c.phase) return fmt(c.overtime ? -c.remainingMs : c.remainingMs)
+  if (c.phase) return timeLabel(c.totalPlannedMs, c.totalElapsedMs, settings.s.ringTime).text
   return agenda.value.current < 0 ? `${Math.round(c.totalPlannedMs / 60_000)} min` : t('agenda.done')
 })
 const phaseName = (kind: string) => t(`agenda.phase.${kind}` as never)
@@ -89,6 +91,9 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
           </span>
         </li>
       </ol>
+      <button class="btn btn-sm btn-ghost" type="button" :aria-pressed="settings.s.ringTime === 'elapsed'" data-testid="ring-mode" @click="settings.patch({ ringTime: settings.s.ringTime === 'elapsed' ? 'remaining' : 'elapsed' })">
+        <Icon name="lucide:timer" /> {{ t(`profile.time.${settings.s.ringTime}` as never) }}
+      </button>
       <p v-if="clock.overtime && canSteer" class="note" role="status" data-testid="agenda-overtime">{{ t('agenda.overtime') }}</p>
       <div v-if="canSteer" class="ctl">
         <button v-if="!started || clock.paused" class="btn btn-sm btn-primary" type="button" data-testid="agenda-start" :disabled="agenda.current >= agenda.phases.length" @click="board.commands.startAgenda()">

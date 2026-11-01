@@ -36,6 +36,10 @@ export interface LocalSettings {
   keyHints: boolean
   /** Where toasts and the time-up popup sit horizontally (personal). */
   notifyPos: 'center' | 'left' | 'right'
+  /** What the phase stepper shows: time elapsed in the phase or time left (personal). */
+  stepperTime: 'elapsed' | 'remaining'
+  /** What the global ring shows: time left or time elapsed of the whole retro (personal). */
+  ringTime: 'elapsed' | 'remaining'
   /** Toast one minute before a phase or the countdown ends. */
   phaseWarning: boolean
   /** System notification when time is up and the tab is hidden (asked on opt-in only). */
@@ -52,7 +56,7 @@ const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
-  phaseWarning: true, notifyPos: 'center', systemNotify: false, votedSort: 'votes',
+  phaseWarning: true, notifyPos: 'center', stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, votedSort: 'votes',
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

@@ -121,6 +121,18 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
           <button v-for="p in (['left', 'center', 'right'] as const)" :key="p" type="button" :class="{ on: settings.s.notifyPos === p }" :aria-pressed="settings.s.notifyPos === p" :data-testid="`notify-${p}`" @click="set({ notifyPos: p })">{{ t(`profile.notifyPos.${p}` as never) }}</button>
         </span>
       </div>
+      <div class="line">
+        <span><strong>{{ t('profile.stepperTime') }}</strong></span>
+        <span class="seg">
+          <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.stepperTime === m }" :aria-pressed="settings.s.stepperTime === m" :data-testid="`stepper-time-${m}`" @click="set({ stepperTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
+        </span>
+      </div>
+      <div class="line">
+        <span><strong>{{ t('profile.ringTime') }}</strong></span>
+        <span class="seg">
+          <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.ringTime === m }" :aria-pressed="settings.s.ringTime === m" :data-testid="`ring-time-${m}`" @click="set({ ringTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
+        </span>
+      </div>
       <label class="line">
         <span><strong>{{ t('profile.phaseWarning') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.phaseWarning" data-testid="set-phase-warning" @change="set({ phaseWarning: ($event.target as HTMLInputElement).checked })" />

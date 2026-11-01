@@ -204,7 +204,12 @@ test.describe('phase stepper (board-activity-feed)', () => {
     await expect(page.getByTestId('stepper-line')).toContainText('Pas commencé')
     await page.getByTestId('agenda-toggle').click()
     await expect(page.locator('[data-testid^="step-"][data-state="current"]')).toHaveCount(1)
+    // Complementary defaults: the bar says the time elapsed, the ring the time left; one click switches.
+    await expect(page.getByTestId('stepper-line')).toContainText('écoulées')
+    await page.getByTestId('stepper-mode').click()
     await expect(page.getByTestId('stepper-line')).toContainText('restantes')
+    await page.getByTestId('stepper-mode').click()
+    await expect(page.getByTestId('stepper-line')).toContainText('écoulées')
     await page.getByTestId('agenda-ring').click()
     await page.getByTestId('agenda-next').click()
     await page.keyboard.press('Escape')

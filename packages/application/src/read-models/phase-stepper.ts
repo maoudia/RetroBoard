@@ -18,7 +18,7 @@ export interface Step {
 
 export interface PhaseStepper {
   steps: Step[]
-  current: { kind: PhaseKind; remainingMs: number; overtime: boolean; paused: boolean } | null
+  current: { kind: PhaseKind; plannedMs: number; elapsedMs: number; remainingMs: number; overtime: boolean; paused: boolean } | null
   next: PhaseKind | null
   started: boolean
   ended: boolean
@@ -35,7 +35,7 @@ export function phaseStepper(agenda: AgendaState, now: number): PhaseStepper {
   const cur = clock.phase
   return {
     steps,
-    current: cur ? { kind: cur.kind, remainingMs: clock.remainingMs, overtime: clock.overtime, paused: clock.paused } : null,
+    current: cur ? { kind: cur.kind, plannedMs: cur.plannedMs, elapsedMs: clock.elapsedMs, remainingMs: clock.remainingMs, overtime: clock.overtime, paused: clock.paused } : null,
     // Before the start, the first phase is the next one.
     next: agenda.phases[agenda.current < 0 ? 0 : agenda.current + 1]?.kind ?? null,
     started: agenda.current >= 0,
