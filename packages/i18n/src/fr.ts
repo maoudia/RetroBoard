@@ -218,6 +218,7 @@ export const fr = {
   'landing.sub': 'Un board en temps réel, sans compte, avec brouillons privés, votes, groupes et minuteur. Un lien, et l\'équipe est là.',
   'landing.create': 'Créer une rétro',
   'landing.trySolo': 'Essayer en solo',
+  'new.resume.title': 'Tes boards récents',
   'landing.resume': 'Reprendre « {title} »',
   'landing.stat.accounts': 'compte à créer',
   'landing.stat.people': 'participants par board',

@@ -12,6 +12,7 @@ const theme = useThemeStore()
 useSetupAgentTools()
 const settings = useSettingsStore()
 const router = useRouter()
+const recents = useRecentsStore()
 useHead({ title: computed(() => t('new.pageTitle')) })
 
 onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false) })
@@ -60,6 +61,13 @@ function solo() {
     <main class="wrap">
       <h1 data-testid="new-title">{{ t('new.title') }}</h1>
       <p class="lede">{{ themeText(theme.theme).hero }}</p>
+      <!-- Back from a board lands here: the way back to it must be visible, not a new empty form (#222). -->
+      <section v-if="recents.items.length" class="card panel resume" data-testid="new-resume">
+        <h2>{{ t('new.resume.title') }}</h2>
+        <ul>
+          <li v-for="r in recents.items.slice(0, 3)" :key="r.id"><NuxtLink :to="{ path: '/board', hash: r.hash }" :data-testid="`new-resume-${r.id}`"><Icon name="lucide:rotate-ccw" /> {{ t('landing.resume', { title: r.title }) }}</NuxtLink></li>
+        </ul>
+      </section>
       <section class="card panel">
         <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
@@ -86,6 +94,9 @@ function solo() {
 h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
 .lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }
 .panel { padding: clamp(1rem, 3vw, 2rem); }
+.resume h2 { margin: 0 0 .5rem; font-size: var(--fs-lg); }
+.resume ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.resume a { display: inline-flex; align-items: center; gap: .4rem; min-height: 24px; color: var(--accent); font-weight: 600; }
 .foot { display: grid; gap: .4rem; font-size: var(--fs-sm); }
 .link { justify-self: start; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-weight: 600; }
 </style>
