@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.24.0](https://github.com/maoudia/RetroBoard/compare/v1.23.0...v1.24.0) (2026-11-01)
+
+
+### Features
+
+* **clusters:** recolour a whole cluster from its panel with one command ([d58e3a2](https://github.com/maoudia/RetroBoard/commit/d58e3a2d2b5b22fc9f532effde9de373af4a420e))
+
+
+### Bug Fixes
+
+* **a11y:** sakura badge reaches 4.5:1, contrast checked on every theme and variant ([#225](https://github.com/maoudia/RetroBoard/issues/225)) ([01d3346](https://github.com/maoudia/RetroBoard/commit/01d334639f6cbd712235ea2311739ea4a7be8859))
+* **keyboard:** digits and AltGr brackets work on AZERTY, handler kept without a library ([dd54d6d](https://github.com/maoudia/RetroBoard/commit/dd54d6da663550c378358faf925b9289e1bf99f4))
+
 ## [1.23.0](https://github.com/maoudia/RetroBoard/compare/v1.22.0...v1.23.0) (2026-11-01)
 
 
