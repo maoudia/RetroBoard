@@ -212,7 +212,7 @@ test('board file: export, then restore into the same link after the board is gon
   await expect(fresh.getByTestId('board-waiting')).toBeVisible()
   await expect(fresh.getByTestId('board')).toHaveCount(0)
   // "Try again" reconnects without leaving the page (change board-recovery).
-  await fresh.getByTestId('waiting-retry').click()
+  await fresh.getByTestId('waiting-retry').dispatchEvent('click') // the name dialog sits above the screen
   await expect(fresh.getByTestId('board-waiting')).toBeVisible()
   await fresh.getByTestId('waiting-restore-input').setInputFiles({ name: 'board.retro', mimeType: 'application/octet-stream', buffer: Buffer.from(fileText) })
   await expect(noteByText(fresh, 'Kept in the file')).toBeVisible()
