@@ -56,6 +56,11 @@ export interface KeyInput {
   metaKey: boolean
   altKey: boolean
   isComposing?: boolean
+  shiftKey?: boolean
+  /** `KeyboardEvent.code`: the physical key, used for the digits (AZERTY needs Shift to type "1"). */
+  code?: string
+  /** AltGr is held (`getModifierState('AltGraph')`): Windows reports it as Ctrl+Alt, it types a character ("[" on AZERTY). */
+  altGraph?: boolean
 }
 
 export interface KeyContext {
@@ -80,10 +85,17 @@ const BY_KEY = new Map<string, ShortcutDef>(SHORTCUTS.flatMap((d) => d.keys.map(
  */
 export function resolveShortcut(input: KeyInput, ctx: KeyContext): ShortcutMatch | null {
   if (!ctx.enabled || ctx.typing || ctx.dialogOpen || input.isComposing) return null
-  if (input.ctrlKey || input.metaKey || input.altKey) return null
-  const def = BY_KEY.get(input.key)
+  if (input.metaKey || (!input.altGraph && (input.ctrlKey || input.altKey))) return null
+  if (input.altGraph && input.key.length !== 1) return null
+  let def = BY_KEY.get(input.key)
+  let digit = Number(input.key)
+  if (!def && !input.shiftKey && !input.altGraph) {
+    // AZERTY: the top row types "&", "e-acute"... unshifted, so the digit comes from the physical key.
+    const m = /^(?:Digit|Numpad)([1-8])$/.exec(input.code ?? '')
+    if (m) { def = BY_KEY.get(m[1]!); digit = Number(m[1]) }
+  }
   if (!def) return null
   if (def.facilitator && !ctx.facilitator) return null
   if (def.nativeKey && ctx.onControl) return null
-  return def.id === 'column.focus' ? { id: def.id, digit: Number(input.key) } : { id: def.id }
+  return def.id === 'column.focus' ? { id: def.id, digit } : { id: def.id }
 }

@@ -102,7 +102,10 @@ export function useShortcuts() {
 
   function onKey(e: KeyboardEvent) {
     const owner = keyboardOwner(e.target)
-    const match = resolveShortcut(e, {
+    const match = resolveShortcut({
+      key: e.key, code: e.code, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, shiftKey: e.shiftKey, isComposing: e.isComposing,
+      altGraph: e.getModifierState('AltGraph'),
+    }, {
       enabled: settings.s.shortcuts,
       ...owner,
       dialogOpen: ui.dialog !== null || !!document.querySelector('dialog[open]'),

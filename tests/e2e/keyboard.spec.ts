@@ -109,3 +109,13 @@ test('key caps show next to toolbar actions on desktop and can be turned off (ke
   await page.reload()
   await expect(page.getByTestId('keycap')).toHaveCount(0)
 })
+
+test('AZERTY: the unshifted digit key focuses a column through its physical key', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'hardware keyboard flow')
+  await createBoard(page, { template: 'start-stop-continue' })
+  await page.locator('body').click({ position: { x: 5, y: 300 } })
+  // On AZERTY the top row types "e-acute" (key) from the physical Digit2 (code).
+  await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'é', code: 'Digit2', bubbles: true })))
+  await page.keyboard.press('n')
+  await expect(page.locator('section[data-anchor-kind="column"]').nth(1).locator('textarea')).toBeFocused()
+})

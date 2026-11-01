@@ -45,3 +45,25 @@ describe('resolveShortcut', () => {
     for (const s of SHORTCUTS) { expect(s.label).toMatch(/^kbd\./); expect(s.display).not.toBe('') }
   })
 })
+
+describe('keyboard layouts (change keyboard-shortcuts-v2, own handler kept: event.key for characters, event.code for digits)', () => {
+  it('AZERTY: the unshifted top row focuses columns through the physical key', () => {
+    expect(resolveShortcut(key('&', { code: 'Digit1' }), ctx())).toEqual({ id: 'column.focus', digit: 1 })
+    expect(resolveShortcut(key('\u00e9', { code: 'Digit2' }), ctx())).toEqual({ id: 'column.focus', digit: 2 })
+    expect(resolveShortcut(key('3', { code: 'Digit3', shiftKey: true }), ctx())).toEqual({ id: 'column.focus', digit: 3 })
+    expect(resolveShortcut(key('&', { code: 'Digit1', shiftKey: true }), ctx())).toBeNull()
+  })
+
+  it('AZERTY: AltGr types "[" and "]" (reported as Ctrl+Alt on Windows) and still triggers the phase keys', () => {
+    expect(resolveShortcut(key(']', { code: 'Minus', ctrlKey: true, altKey: true, altGraph: true }), ctx({ facilitator: true }))).toEqual({ id: 'phase.next' })
+    expect(resolveShortcut(key('[', { code: 'Digit5', ctrlKey: true, altKey: true, altGraph: true }), ctx({ facilitator: true }))).toEqual({ id: 'phase.prev' })
+    expect(resolveShortcut(key('ArrowRight', { ctrlKey: true, altKey: true, altGraph: true }), ctx())).toBeNull()
+  })
+
+  it('QWERTY keeps working and Ctrl/Alt alone still belong to the browser', () => {
+    expect(resolveShortcut(key('1', { code: 'Digit1' }), ctx())).toEqual({ id: 'column.focus', digit: 1 })
+    expect(resolveShortcut(key(']', { code: 'BracketRight' }), ctx({ facilitator: true }))).toEqual({ id: 'phase.next' })
+    expect(resolveShortcut(key('1', { code: 'Digit1', ctrlKey: true }), ctx())).toBeNull()
+    expect(resolveShortcut(key(']', { code: 'BracketRight', ctrlKey: true, altKey: true }), ctx({ facilitator: true }))).toBeNull()
+  })
+})
