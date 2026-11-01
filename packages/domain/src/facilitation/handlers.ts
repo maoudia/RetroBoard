@@ -18,7 +18,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     return done({
       ...s,
       columns: columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId),
-      settings: { ...s.settings, initialized: true, templateId: tpl.id, themeId: c.themeId, title: c.title ?? s.settings.title, ...(c.locale ? { locale: c.locale } : {}), ...(c.openFacilitation !== undefined ? { openFacilitation: c.openFacilitation } : {}) },
+      settings: { ...s.settings, initialized: true, templateId: tpl.id, themeId: c.themeId, title: c.title ?? s.settings.title, ...(c.locale ? { locale: c.locale } : {}), ...(c.openFacilitation !== undefined ? { openFacilitation: c.openFacilitation } : {}), ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}) },
     }, { meta: true, wipe: true })
   },
 
@@ -75,6 +75,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       talkBudgetMs: c.talkBudgetSec !== undefined ? c.talkBudgetSec * 1000 : s.settings.talkBudgetMs,
       talkSelfStart: c.talkSelfStart ?? s.settings.talkSelfStart,
       noteMaxLength: c.noteMaxLength ?? s.settings.noteMaxLength,
+      ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}),
     }
     return done({ ...s, settings }, { meta: true })
   },

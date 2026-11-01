@@ -44,10 +44,10 @@ export type Command =
   | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon; color?: number }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
-  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean }
+  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean }
   /** `wipe: true` is the older spelling of mode `wipe`; `migrate` keeps notes, clusters and votes (change board-type-migration). */
   | { t: 'template.apply'; templateId: string; wipe?: boolean; mode?: 'wipe' | 'migrate'; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean }
   | { t: 'action.add'; text: string; owner: string; due?: string; sourceNote?: string }
   | { t: 'action.update'; id: string; text?: string; owner?: string; due?: string | null }
   | { t: 'action.status'; id: string; status: ActionStatusName }

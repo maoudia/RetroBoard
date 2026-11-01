@@ -72,6 +72,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <input type="checkbox" role="switch" class="switch" :checked="s.secretVoting" data-testid="opt-secret" @change="set({ secretVoting: ($event.target as HTMLInputElement).checked })" />
         </label>
         <label class="line">
+          <span><strong>{{ t('options.arrivals') }}</strong><small class="muted">{{ t('options.arrivals.hint') }}</small></span>
+          <input type="checkbox" role="switch" class="switch" :checked="s.announceArrivals !== false" data-testid="opt-arrivals" @change="set({ announceArrivals: ($event.target as HTMLInputElement).checked })" />
+        </label>
+        <label class="line">
           <span><strong>{{ t('options.lock') }}</strong><small class="muted">{{ t('options.lock.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.locked" data-testid="opt-lock" @change="set({ locked: ($event.target as HTMLInputElement).checked })" />
         </label>

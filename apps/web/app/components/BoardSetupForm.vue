@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { LIMITS, DEFAULT_TEMPLATE_ID, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 
-export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one' }
+export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean }
 
 const { t, locale } = useT()
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
@@ -14,6 +14,8 @@ const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
 const passcode = ref('')
 /** "Everyone facilitates" is the default; "One facilitator" keeps the roles. */
 const facilitation = ref<'everyone' | 'one'>('everyone')
+/** Arrival popups are on by default; the activity feed always lists them. */
+const announceArrivals = ref(true)
 
 // A browser agent (WebMCP) may prepare the form; the human still reviews it and clicks Create.
 const agent = useAgentStore()
@@ -27,7 +29,7 @@ watch(() => agent.setupDraft, (draft) => {
 </script>
 
 <template>
-  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, ...(withPasscode && passcode ? { passcode } : {}) })">
+  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(withPasscode && passcode ? { passcode } : {}) })">
     <label class="lbl">{{ t('setup.name') }}
       <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" />
     </label>
@@ -49,6 +51,11 @@ watch(() => agent.setupDraft, (draft) => {
       <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="one" data-testid="setup-fac-one" />
         <span><strong>{{ t('setup.fac.single') }}</strong><small class="muted">{{ t('setup.fac.single.hint') }}</small></span></label>
     </fieldset>
+
+    <label class="opt" data-testid="setup-arrivals-row">
+      <input v-model="announceArrivals" type="checkbox" data-testid="setup-arrivals" />
+      <span><strong>{{ t('setup.arrivals') }}</strong><small class="muted">{{ t('setup.arrivals.hint') }}</small></span>
+    </label>
 
     <label v-if="withPasscode" class="pass">
       <span class="lbl">{{ t('setup.passcode') }}</span>

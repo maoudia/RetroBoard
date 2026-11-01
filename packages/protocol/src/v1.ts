@@ -58,6 +58,7 @@ export const CommandSchema = v.variant('t', [
     title: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.boardTitle))),
     locale: v.optional(v.picklist(['fr', 'en'])),
     openFacilitation: v.optional(v.boolean()),
+    announceArrivals: v.optional(v.boolean()),
   }),
   v.object({ t: v.literal('template.apply'), templateId: v.pipe(v.string(), v.maxLength(40)), wipe: v.optional(v.boolean()), mode: v.optional(v.picklist(['wipe', 'migrate'])), locale: v.optional(v.picklist(['fr', 'en'])) }),
   v.object({
@@ -75,6 +76,7 @@ export const CommandSchema = v.variant('t', [
     talkMode: v.optional(v.picklist(['off', 'ring', 'popup'])),
     talkBudgetSec: v.optional(v.pipe(v.number(), v.integer(), v.minValue(TALK_BUDGET_MIN_S), v.maxValue(TALK_BUDGET_MAX_S))),
     talkSelfStart: v.optional(v.boolean()),
+    announceArrivals: v.optional(v.boolean()),
     noteMaxLength: v.optional(v.pipe(v.number(), v.integer(), v.minValue(NOTE_TEXT_MIN), v.maxValue(LIMITS.noteText))),
   }),
   v.object({ t: v.literal('talk.assign'), speaker: v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{8,64}$/)), label: v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.displayName))) }),

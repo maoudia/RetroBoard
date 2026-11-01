@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, test } from '@playwright/test'
-import { createBoard, enterName } from './helpers'
+import { closeShare, createBoard, enterName } from './helpers'
 
 async function shareUrl(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -53,4 +53,40 @@ test('joins and departures go to the activity feed for everyone', async ({ page,
   await expect(page.getByText('Bob a rejoint le board')).toBeVisible({ timeout: 15_000 })
   await bob.ctx.close()
   await expect(page.getByText('Bob a quitté le board')).toBeVisible({ timeout: 20_000 })
+})
+
+test('arrival popups: a toast when someone joins by default, none when the option is off, the feed lists both', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const url = await shareUrl(page)
+  const bob = await joinAs(browser, url, 'Bob', true)
+  await expect(page.getByText('Bob a rejoint le board').first()).toBeVisible({ timeout: 15_000 })
+
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-arrivals').uncheck()
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.toasts').getByText('Bob a rejoint le board')).toHaveCount(0, { timeout: 8000 })
+  const carol = await joinAs(browser, url, 'Carol', true)
+  await page.getByTestId('btn-activity').click()
+  await expect(page.getByRole('region', { name: 'Activité' }).getByText('Carol a rejoint le board')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.toasts').getByText('Carol a rejoint le board')).toHaveCount(0)
+  await bob.ctx.close()
+  await carol.ctx.close()
+})
+
+test('arrival popups chosen off at creation: no popup, the feed still says who joined', async ({ page, browser }) => {
+  await page.goto('/new')
+  await page.getByTestId('theme-studio').click()
+  await page.getByTestId('tab-all').click()
+  await page.getByTestId('template-start-stop-continue').click()
+  await page.getByTestId('setup-arrivals').uncheck()
+  await page.getByTestId('setup-submit').click()
+  await enterName(page, 'Alice')
+  await expect(page.getByTestId('board')).toBeVisible()
+  await closeShare(page)
+  const url = await shareUrl(page)
+  const bob = await joinAs(browser, url, 'Bob', true)
+  await page.getByTestId('btn-activity').click()
+  await expect(page.getByRole('region', { name: 'Activité' }).getByText('Bob a rejoint le board')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.toasts').getByText('Bob a rejoint le board')).toHaveCount(0)
+  await bob.ctx.close()
 })

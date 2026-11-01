@@ -109,6 +109,8 @@ export interface BoardSettings {
   talkSelfStart: boolean
   /** Set by `board.destroy`: the board is closed for good, every later event is ignored. */
   destroyed: boolean
+  /** Arrivals and departures also pop up as toasts (always in the activity feed). Absent on older boards: on. */
+  announceArrivals?: boolean
   /** Longest note text accepted, NOTE_TEXT_MIN..LIMITS.noteText (facilitator setting). */
   noteMaxLength: number
   /** Language the board was created in (board.init); absent on older boards. Picks the room words. */
