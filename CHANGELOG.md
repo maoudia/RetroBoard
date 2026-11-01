@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.22.0](https://github.com/maoudia/RetroBoard/compare/v1.21.1...v1.22.0) (2026-11-01)
+
+
+### Features
+
+* **agenda:** global time follows the real time spent, start button inside the ring, phase details on bar segments ([d1fd1f1](https://github.com/maoudia/RetroBoard/commit/d1fd1f1e8575cb3f04785326628e1745e8ed34c9))
+* **notes:** facilitators pin a note or a cluster at the top of its column ([c58f08f](https://github.com/maoudia/RetroBoard/commit/c58f08f4e1ffe359e9b1c1ef0bfc7136fa5065c6))
+* **toolbar:** tools slide horizontally on small screens instead of wrapping over the columns ([71676d9](https://github.com/maoudia/RetroBoard/commit/71676d9ce7c870a457f571f8e305890c1e778c88))
+* **ui:** icon at the left of every labelled button, guarded by a design test ([91d14a7](https://github.com/maoudia/RetroBoard/commit/91d14a705f0195fb7032a20e60fbef410d4ab27a))
+
+
+### Bug Fixes
+
+* **a11y:** segment hit areas no longer overlap the phase bar mode button (target size) ([85b0c64](https://github.com/maoudia/RetroBoard/commit/85b0c64fdf5c2ad65e775903b374afaa9289b0c9))
+
 ## [1.21.1](https://github.com/maoudia/RetroBoard/compare/v1.21.0...v1.21.1) (2026-11-01)
 
 
