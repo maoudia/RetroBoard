@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.25.0](https://github.com/maoudia/RetroBoard/compare/v1.24.0...v1.25.0) (2026-11-01)
+
+
+### Features
+
+* **presence:** announce arrivals option with grouped popups, in creation and options ([a097554](https://github.com/maoudia/RetroBoard/commit/a0975541a2030569430ca09d5cd48af88bfd627b))
+* **presence:** connection dot per participant in words, and my own state line ([6cd94e5](https://github.com/maoudia/RetroBoard/commit/6cd94e52487a1b8b0bc122476ef2b025293501ec))
+* **presence:** joins and departures appear in the activity feed ([28b7789](https://github.com/maoudia/RetroBoard/commit/28b7789b5e9ebebaa44f28baee00030a50c7b52b))
+* **voting:** vote only on chosen columns, with sensible defaults per format ([c76bdf1](https://github.com/maoudia/RetroBoard/commit/c76bdf1da247a8e5103b628b75f3ba30eb6014a2))
+
+
+### Bug Fixes
+
+* **web:** the creation page lists recent boards so going back never loses the way to yours ([#222](https://github.com/maoudia/RetroBoard/issues/222)) ([21c4dde](https://github.com/maoudia/RetroBoard/commit/21c4dde41dab9f4b722067500002f550b999d289))
+
 ## [1.24.0](https://github.com/maoudia/RetroBoard/compare/v1.23.0...v1.24.0) (2026-11-01)
 
 
