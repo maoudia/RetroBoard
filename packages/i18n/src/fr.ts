@@ -436,6 +436,7 @@ export const fr = {
   'report.votesHidden': 'Le vote secret n\'est pas clos : les résultats restent cachés.',
   'report.votesN': '{n} vote(s)',
   'report.ideasByColumn': 'Idées par colonne',
+  'report.hiddenColumn': 'masquée',
   'report.noIdea': 'Aucune idée.',
   'report.noAction': 'Aucune action.',
   'report.action': 'Action',

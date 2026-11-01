@@ -4,7 +4,7 @@
  * the data as JSON). Pure functions of the report read model; nothing leaves the device here.
  */
 import type { Report } from '@retroboard/application'
-import { escapeHtml, type ReportLabels } from './report-html'
+import { escapeHtml, itemMarks, type ReportLabels } from './report-html'
 
 export interface DestinationOptions {
   /** Only the actions, with owner, status and due date. */
@@ -25,12 +25,12 @@ export function toDocHtml(r: Report, t: ReportLabels, o: DestinationOptions = {}
     if (r.podium.length) out.push(`<h2>${e(t('report.podium'))}</h2><ol>${r.podium.map((p) => `<li>${e(oneLine(p.title))} (${e(t('report.votesN', { n: p.votes }))})</li>`).join('')}</ol>`)
     out.push(`<h2>${e(t('report.ideasByColumn'))}</h2>`)
     for (const c of r.columns) {
-      out.push(`<h3>${e(c.title)}</h3>`)
+      out.push(`<h3>${e(c.title)}${c.hidden ? ` [${e(t('report.hiddenColumn'))}]` : ''}</h3>`)
       if (!c.items.length) { out.push(`<p>${e(t('report.noIdea'))}</p>`); continue }
       const votes = (n: number) => (r.votesHidden ? '' : ` (${e(t('report.votesN', { n }))})`)
       out.push(`<ul>${c.items.map((it) => (it.kind === 'note'
-        ? `<li>${e(oneLine(it.note.text))}${votes(it.votes)}</li>`
-        : `<li><strong>${e(oneLine(it.title))}</strong>${votes(it.votes)}<ul>${it.notes.map((n) => `<li>${e(oneLine(n.text))}</li>`).join('')}</ul></li>`)).join('')}</ul>`)
+        ? `<li>${e(oneLine(it.note.text))}${e(itemMarks(it, t))}${votes(it.votes)}</li>`
+        : `<li><strong>${e(oneLine(it.title))}</strong>${e(itemMarks(it, t))}${votes(it.votes)}<ul>${it.notes.map((n) => `<li>${e(oneLine(n.text))}</li>`).join('')}</ul></li>`)).join('')}</ul>`)
     }
   }
   out.push(`<h2>${e(t('report.actions'))}</h2>`)
@@ -48,10 +48,10 @@ export function toPlainText(r: Report, t: ReportLabels, o: DestinationOptions = 
   const out: string[] = [r.title, `${t('report.title')} - ${r.date}`, '']
   if (!o.actionsOnly) {
     for (const c of r.columns) {
-      out.push(c.title)
+      out.push(c.hidden ? `${c.title} [${t('report.hiddenColumn')}]` : c.title)
       for (const it of c.items) {
-        if (it.kind === 'note') out.push(`- ${oneLine(it.note.text)}`)
-        else { out.push(`- ${oneLine(it.title)}`); for (const n of it.notes) out.push(`  - ${oneLine(n.text)}`) }
+        if (it.kind === 'note') out.push(`- ${oneLine(it.note.text)}${itemMarks(it, t)}`)
+        else { out.push(`- ${oneLine(it.title)}${itemMarks(it, t)}`); for (const n of it.notes) out.push(`  - ${oneLine(n.text)}`) }
       }
       out.push('')
     }

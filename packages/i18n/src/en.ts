@@ -437,6 +437,7 @@ export const en: Record<keyof typeof fr, string> = {
   'report.votesHidden': 'The secret vote is not closed: results stay hidden.',
   'report.votesN': '{n} vote(s)',
   'report.ideasByColumn': 'Ideas by column',
+  'report.hiddenColumn': 'hidden',
   'report.noIdea': 'No ideas.',
   'report.noAction': 'No actions.',
   'report.action': 'Action',

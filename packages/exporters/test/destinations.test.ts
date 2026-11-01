@@ -73,3 +73,26 @@ describe('AI agents', () => {
     expect(Object.keys(JSON.parse(toAgentsBundle(report(), { actionsOnly: true }).split('```')[1]!.replace(/^json\n/, '')) as object)).toEqual(['format', 'title', 'date', 'actions'])
   })
 })
+
+describe('marks of pinned, frozen ideas and hidden columns (note-pin, note-freeze, column-visibility)', () => {
+  function marked() {
+    const h = harness()
+    h.run({ t: 'board.init', templateId: 'start-stop-continue', themeId: 'studio', title: 'Marks' })
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'Pinned idea' })
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'Frozen idea' })
+    const [a, b] = Object.keys(h.state.notes)
+    h.run({ t: 'note.pin', id: a! })
+    h.run({ t: 'note.freeze', id: b! })
+    h.run({ t: 'column.hide', id: h.col(1) })
+    return buildReport(buildSnapshot(h.state, { cid: alice.cid }, [], h.now), new Date('2026-11-01T00:00:00Z'))
+  }
+  it('plain text and HTML say what is pinned, frozen or hidden', () => {
+    const txt = toPlainText(marked(), t)
+    expect(txt).toContain('- Pinned idea [note.pinned]')
+    expect(txt).toContain('- Frozen idea [note.frozen]')
+    expect(txt).toContain('[report.hiddenColumn]')
+    const html = toDocHtml(marked(), t)
+    expect(html).toContain('Pinned idea [note.pinned]')
+    expect(html).toContain('[report.hiddenColumn]')
+  })
+})

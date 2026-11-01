@@ -7,7 +7,7 @@ import { type ActionItem, type ActionStatus, type PhaseKind, type Snapshot, type
 import { type ColumnItem, buildColumnItems } from './column-items'
 import { buildRanking, podium, type RankedItem } from './ranking'
 
-export interface ReportColumn { id: string; title: string; items: ColumnItem[]; ideas: number }
+export interface ReportColumn { id: string; title: string; items: ColumnItem[]; ideas: number; /** Hidden by the facilitator when the report is made (change column-visibility). */ hidden?: boolean }
 
 export interface ReportPhase { kind: PhaseKind; plannedMs: number; actualMs: number | null }
 
@@ -68,7 +68,7 @@ export function buildReport(s: Snapshot, date: Date): Report {
     podium: ranking ? podium(ranking) : [],
     columns: s.columns.map((c) => {
       const items = buildColumnItems(s, c.id, votesHidden ? 'time' : 'votes')
-      return { id: c.id, title: c.title, items, ideas: s.notes.filter((n) => n.columnId === c.id).length }
+      return { id: c.id, title: c.title, items, ideas: s.notes.filter((n) => n.columnId === c.id).length, ...(c.hidden ? { hidden: true } : {}) }
     }),
     actions: s.actions,
     carried: { total: carriedList.length, byStatus },

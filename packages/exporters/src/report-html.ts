@@ -1,4 +1,10 @@
-import type { Report } from '@retroboard/application'
+import type { ColumnItem, Report } from '@retroboard/application'
+
+/** " [Pinned] [Frozen]" after an idea, empty when it carries no mark (changes note-pin, note-freeze). */
+export function itemMarks(it: ColumnItem, t: (key: string) => string): string {
+  const x = it.kind === 'note' ? it.note : it.group
+  return `${x.pinned ? ` [${t('note.pinned')}]` : ''}${x.frozen ? ` [${t('note.frozen')}]` : ''}`
+}
 
 /** Label provider: `report.*`, `agenda.phase.*` and `actions.status.*` i18n keys. */
 export type ReportLabels = (key: string, params?: Record<string, string | number>) => string
@@ -51,12 +57,12 @@ export function toReportHtml(r: Report, t: ReportLabels): string {
 
   out.push(`<h2>${e(t('report.ideasByColumn'))}</h2>`)
   for (const c of r.columns) {
-    out.push(`<h3>${e(c.title)} <span class="v">(${c.ideas})</span></h3>`)
+    out.push(`<h3>${e(c.title)} <span class="v">(${c.ideas})</span>${c.hidden ? ` <span class="v">[${e(t('report.hiddenColumn'))}]</span>` : ''}</h3>`)
     if (!c.items.length) { out.push(`<p class="muted">${e(t('report.noIdea'))}</p>`); continue }
     out.push('<ul>')
     for (const it of c.items) {
-      if (it.kind === 'note') out.push(`<li>${e(it.note.text)}${votes(it.votes)}</li>`)
-      else out.push(`<li><b>${e(it.title)}</b>${votes(it.votes)}<ul>${it.notes.map((n) => `<li>${e(n.text)}</li>`).join('')}</ul></li>`)
+      if (it.kind === 'note') out.push(`<li>${e(it.note.text)}${e(itemMarks(it, t))}${votes(it.votes)}</li>`)
+      else out.push(`<li><b>${e(it.title)}</b>${e(itemMarks(it, t))}${votes(it.votes)}<ul>${it.notes.map((n) => `<li>${e(n.text)}</li>`).join('')}</ul></li>`)
     }
     out.push('</ul>')
   }
