@@ -40,3 +40,12 @@ describe('phaseStepper', () => {
     expect(s.current!.overtime).toBe(true)
   })
 })
+
+describe('phase stepper: real time spent (agenda-clock-v2)', () => {
+  it('finished phases carry their recorded time, a skipped one is flagged, the current one runs, the next has none', () => {
+    const a: AgendaState = { ...agenda(2, 0), phases: agenda(2, 0).phases.map((p, i) => (i === 0 ? { ...p, actualMs: 4 * MIN } : p)) }
+    const s = phaseStepper(a, 90_000)
+    expect(s.steps.map((x) => x.spentMs)).toEqual([4 * MIN, 0, 90_000])
+    expect(s.steps.map((x) => x.skipped)).toEqual([false, true, false])
+  })
+})

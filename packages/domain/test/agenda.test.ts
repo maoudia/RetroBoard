@@ -4,9 +4,11 @@ import { harness } from '@retroboard/testkit'
 import { AGENDA_PRESETS, allowedInPhase, type AgendaState, extendPhase, MIN, newAgenda, PHASE_FLOOR_MS, PHASE_KINDS, phaseClock, presetPhases } from '../src'
 
 const ids = () => { let i = 0; return () => `p${i++}` }
-const started = (minutes: number[], current = 0, startedAt = 0): AgendaState => ({
-  ...newAgenda(minutes.map((m, i) => ({ kind: PHASE_KINDS[i % 8]!, minutes: m })), ids()), current, startedAt,
-})
+/** Earlier phases ran exactly their plan, as recorded when they were left. */
+const started = (minutes: number[], current = 0, startedAt = 0): AgendaState => {
+  const a = newAgenda(minutes.map((m, i) => ({ kind: PHASE_KINDS[i % 8]!, minutes: m })), ids())
+  return { ...a, current, startedAt, phases: a.phases.map((p, i) => (i < current ? { ...p, actualMs: p.plannedMs } : p)) }
+}
 
 describe('presets', () => {
   it.each([30, 45, 60, 90] as const)('the %i-minute preset has 8 phases summing exactly', (total) => {
@@ -29,7 +31,24 @@ describe('phase clock', () => {
     const a = { ...started([5], 0, 0), pausedAt: 2 * MIN }
     expect(phaseClock(a, 9 * MIN)).toMatchObject({ elapsedMs: 2 * MIN, paused: true })
     expect(phaseClock(newAgenda([{ kind: 'write', minutes: 5 }], ids()), 0)).toMatchObject({ phase: null, totalElapsedMs: 0 })
-    expect(phaseClock({ ...started([5]), current: 1 }, 0)).toMatchObject({ phase: null, totalElapsedMs: 5 * MIN })
+    expect(phaseClock(started([5], 1), 0)).toMatchObject({ phase: null, totalElapsedMs: 5 * MIN })
+  })
+})
+
+describe('global time follows the real time spent', () => {
+  it('a skipped phase adds what it really took, not its plan', () => {
+    // 10 + 15 + 35 = 60 min planned; the 15 minute phase was left after one minute.
+    const a = started([10, 15, 35], 2, 11 * MIN)
+    const skipped: AgendaState = { ...a, phases: a.phases.map((p, i) => (i === 1 ? { ...p, actualMs: MIN } : p)) }
+    const c = phaseClock(skipped, 11 * MIN + 2 * MIN)
+    expect(c.totalPlannedMs).toBe(60 * MIN)
+    expect(c.totalElapsedMs).toBe(10 * MIN + MIN + 2 * MIN)
+  })
+
+  it('a phase left without recorded time counts nothing, also once the retro ended', () => {
+    const a = started([10, 15, 35], 3)
+    const ended: AgendaState = { ...a, phases: a.phases.map((p, i) => (i === 1 ? { ...p, actualMs: 0 } : p)) }
+    expect(phaseClock(ended, 0).totalElapsedMs).toBe(10 * MIN + 35 * MIN)
   })
 })
 

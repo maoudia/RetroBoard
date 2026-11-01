@@ -14,6 +14,10 @@ export interface Step {
   plannedMs: number
   /** Share of the segment already used, 0..1 (1 for done, 0 for todo). */
   fill: number
+  /** Time really spent: recorded for a finished phase, running for the current one, null for one to come (change agenda-clock-v2). */
+  spentMs: number | null
+  /** Finished without any time spent in it (skipped by the facilitator). */
+  skipped: boolean
 }
 
 export interface PhaseStepper {
@@ -30,7 +34,8 @@ export function phaseStepper(agenda: AgendaState, now: number): PhaseStepper {
   const steps = agenda.phases.map<Step>((p, i) => {
     const state: StepState = ended || i < agenda.current ? 'done' : i === agenda.current ? 'current' : 'todo'
     const fill = state === 'done' ? 1 : state === 'current' && p.plannedMs > 0 ? Math.min(1, Math.max(0, clock.elapsedMs / p.plannedMs)) : 0
-    return { id: p.id, kind: p.kind, state, plannedMs: p.plannedMs, fill }
+    const spentMs = state === 'done' ? (p.actualMs ?? 0) : state === 'current' ? clock.elapsedMs : null
+    return { id: p.id, kind: p.kind, state, plannedMs: p.plannedMs, fill, spentMs, skipped: state === 'done' && (p.actualMs ?? 0) === 0 }
   })
   const cur = clock.phase
   return {

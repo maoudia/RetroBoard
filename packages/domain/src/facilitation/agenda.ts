@@ -79,22 +79,22 @@ export interface PhaseClock {
   overtime: boolean
   paused: boolean
   totalPlannedMs: number
-  /** Planned time of finished phases plus elapsed time of the current one. */
+  /** Time really spent: the recorded time of the phases left behind plus the running one (a skipped phase adds what it really took, never its plan). */
   totalElapsedMs: number
 }
 
 export function phaseClock(a: AgendaState, now: number): PhaseClock {
   const totalPlannedMs = a.phases.reduce((n, p) => n + p.plannedMs, 0)
-  const done = a.phases.slice(0, Math.max(0, a.current)).reduce((n, p) => n + p.plannedMs, 0)
+  const spent = a.phases.reduce((n, p) => n + (p.actualMs ?? 0), 0)
   const running = a.current >= 0 && a.current < a.phases.length
   if (!running) {
     const ended = a.current >= a.phases.length
-    return { index: a.current, phase: null, elapsedMs: 0, remainingMs: 0, overtime: false, paused: false, totalPlannedMs, totalElapsedMs: ended ? totalPlannedMs : 0 }
+    return { index: a.current, phase: null, elapsedMs: 0, remainingMs: 0, overtime: false, paused: false, totalPlannedMs, totalElapsedMs: ended ? spent : 0 }
   }
   const phase = a.phases[a.current]!
   const elapsedMs = Math.max(0, (a.pausedAt ?? now) - a.startedAt)
   const remainingMs = phase.plannedMs - elapsedMs
-  return { index: a.current, phase, elapsedMs, remainingMs, overtime: remainingMs < 0, paused: a.pausedAt !== null, totalPlannedMs, totalElapsedMs: done + elapsedMs }
+  return { index: a.current, phase, elapsedMs, remainingMs, overtime: remainingMs < 0, paused: a.pausedAt !== null, totalPlannedMs, totalElapsedMs: spent + elapsedMs }
 }
 
 /**

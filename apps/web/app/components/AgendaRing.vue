@@ -124,10 +124,10 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 </template>
 
 <style scoped>
-.clockrow { display: inline-flex; align-items: center; gap: .4rem; }
+.clockrow { display: inline-flex; align-items: center; gap: .4rem; padding: .2rem .35rem .2rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
 .go { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-md); cursor: pointer; transition: transform .15s var(--ease); }
 .go:hover { transform: scale(1.08); }
-.ring { display: inline-flex; align-items: center; gap: .5rem; padding: .2rem .7rem .2rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); cursor: pointer; }
+.ring { display: inline-flex; align-items: center; gap: .5rem; padding: 0 .4rem 0 0; border: 0; border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; }
 .txt { display: grid; line-height: 1.1; text-align: left; }
 .txt strong { font-size: var(--fs-lg); }
 .txt small { font-size: var(--fs-xs); color: var(--muted); }

@@ -39,8 +39,20 @@ const toggleMode = () => settings.patch({ stepperTime: settings.s.stepperTime ==
         v-for="(p, i) in s.steps" :key="p.id" class="seg" :class="[p.state, { over: p.state === 'current' && overtime }]" :style="{ flexGrow: p.plannedMs }"
         :aria-current="p.state === 'current' ? 'step' : undefined" :data-testid="`step-${i}`" :data-state="p.state"
       >
-        <span class="fill" :style="{ width: `${Math.round(p.fill * 100)}%` }" />
-        <span class="visually-hidden">{{ name(p.kind) }}</span>
+        <span class="bar" aria-hidden="true"><span class="fill" :style="{ width: `${Math.round(p.fill * 100)}%` }" /></span>
+        <!-- A click on a segment names the phase and tells the real time spent in it (change agenda-clock-v2). -->
+        <Dropdown align="start" width="200px">
+          <template #trigger="{ toggle, open }">
+            <button class="hit" type="button" :aria-expanded="open" :aria-label="t('stepper.segment', { phase: name(p.kind) })" :data-testid="`step-btn-${i}`" @click="toggle" />
+          </template>
+          <div class="pop" :data-testid="`step-pop-${i}`">
+            <strong>{{ name(p.kind) }}</strong>
+            <span v-if="p.skipped" class="muted">{{ t('stepper.skipped') }}</span>
+            <span v-else-if="p.spentMs === null" class="muted">{{ t('stepper.todo') }}</span>
+            <span v-else class="mono">{{ t('stepper.spent', { time: timeLabel(p.plannedMs, p.spentMs, 'elapsed').text }) }}</span>
+            <span class="muted small">{{ t('stepper.planned', { n: Math.round(p.plannedMs / 60_000) }) }}</span>
+          </div>
+        </Dropdown>
       </li>
     </ol>
     <p class="line" data-testid="stepper-line" :data-mode="settings.s.stepperTime">
@@ -54,8 +66,15 @@ const toggleMode = () => settings.patch({ stepperTime: settings.s.stepperTime ==
 <style scoped>
 nav.stepper.stepper { display: grid; gap: .25rem; padding: .3rem 1rem .35rem; border-bottom: 1px solid var(--border); background: var(--surface); }
 .segs { display: flex; gap: 3px; margin: 0; padding: 0; list-style: none; }
-.seg { position: relative; flex-basis: 0; min-width: 6px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
-.seg.current { background: color-mix(in oklab, var(--accent) 25%, var(--border)); }
+.seg { position: relative; flex-basis: 0; min-width: 6px; height: 6px; }
+.bar { position: absolute; inset: 0; border-radius: 999px; background: var(--border); overflow: hidden; }
+.seg.current .bar { background: color-mix(in oklab, var(--accent) 25%, var(--border)); }
+/* The hit area is 24px tall (WCAG 2.5.8) around a 6px bar. */
+.seg :deep(.dd) { position: absolute; inset: -9px 0; display: block; }
+.hit { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: var(--r-xs); }
+.pop { display: grid; gap: .2rem; padding: .35rem .5rem; font-size: var(--fs-sm); }
+.small { font-size: var(--fs-xs); }
 .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width .5s linear; }
 .seg.done .fill { background: color-mix(in oklab, var(--accent) 70%, var(--border)); }
 .line { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; margin: 0; font-size: var(--fs-xs); }
@@ -65,7 +84,7 @@ nav.stepper.stepper { display: grid; gap: .25rem; padding: .3rem 1rem .35rem; bo
 .over { color: var(--ring-over); }
 .overtxt { color: var(--ring-over); }
 .seg.over .fill { background: var(--ring-over); }
-.seg.over { background: color-mix(in oklab, var(--ring-over) 25%, var(--border)); }
+.seg.over .bar { background: color-mix(in oklab, var(--ring-over) 25%, var(--border)); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 720px) { .next { display: none; } }
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }

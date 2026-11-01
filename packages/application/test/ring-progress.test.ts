@@ -2,7 +2,9 @@ import { type AgendaState, MIN } from '@retroboard/domain'
 import { describe, expect, it } from 'vitest'
 import { ringProgress } from '../src'
 
-const agenda = (current: number, startedAt = 0, pausedAt: number | null = null): AgendaState => ({
+/** Phases left behind ran exactly their plan, as recorded when they were left. */
+const left = (a: AgendaState): AgendaState => ({ ...a, phases: a.phases.map((p, i) => (i < a.current ? { ...p, actualMs: p.plannedMs } : p)) })
+const agenda = (current: number, startedAt = 0, pausedAt: number | null = null): AgendaState => left({
   phases: [
     { id: 'a', kind: 'checkin', plannedMs: 10 * MIN },
     { id: 'b', kind: 'write', plannedMs: 10 * MIN },
@@ -13,11 +15,11 @@ const agenda = (current: number, startedAt = 0, pausedAt: number | null = null):
 
 describe('ringProgress', () => {
   it('middle of Write: outer one third, current half', () => {
-    const a: AgendaState = { ...agenda(1, 0), phases: [
+    const a: AgendaState = left({ ...agenda(1, 0), phases: [
       { id: 'a', kind: 'checkin', plannedMs: 10 * MIN },
       { id: 'b', kind: 'write', plannedMs: 20 * MIN },
       { id: 'c', kind: 'vote', plannedMs: 30 * MIN },
-    ] }
+    ] })
     const r = ringProgress(a, 10 * MIN)
     expect(r.outer.fill).toBeCloseTo(1 / 3)
     expect(r.current?.fill).toBeCloseTo(0.5)
