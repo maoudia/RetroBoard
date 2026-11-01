@@ -38,6 +38,7 @@ Type roles: body `--fs-md`; secondary text and hints `--fs-sm` in `--muted`; bad
 ## 4. Writing
 
 - Sentence case. Plain verbs. No filler, no exclamation marks.
+- **Icon at the left of every labelled button.** A `.btn` that shows a word starts with a Lucide icon; only numeric or status chips (`+1`, vote scores, status pills) and toggle segments go without. The shared vocabulary: cancel and close `x`, confirm and apply `check`, delete `trash`, erase and reset `eraser` or `rotate-ccw`, next `skip-forward` or `arrow-right`, back `arrow-left`, leave `log-out`, home `house`, save `save`, later `clock`, stop `square`. `ConfirmDialog` takes `confirm-icon` (default `check`, `trash` when dangerous). `apps/web/test/design-tokens.test.ts` enforces it.
 - A button says what happens: "Group", "Publish", "Freeze". The same action keeps the same name everywhere (the button "Publish" produces the toast "Published").
 - Errors say what happened and what to do, without apologising: "This note is frozen by the facilitator."
 - Empty states invite an action ("Write the first idea").

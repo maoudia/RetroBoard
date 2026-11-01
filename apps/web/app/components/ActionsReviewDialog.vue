@@ -43,7 +43,7 @@ const QUICK: ActionStatus[] = ['done', 'doing', 'blocked', 'dropped']
     </ul>
     <template #footer>
       <span class="muted" data-testid="review-open">{{ t('review.open', { n: pending.length }) }}</span>
-      <button class="btn btn-primary" type="button" data-testid="review-close" @click="dismiss">{{ t('common.close') }}</button>
+      <button class="btn btn-primary" type="button" data-testid="review-close" @click="dismiss"><Icon name="lucide:x" /> {{ t('common.close') }}</button>
     </template>
   </BaseDialog>
 </template>

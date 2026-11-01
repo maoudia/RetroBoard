@@ -16,8 +16,8 @@ const who = computed(() => props.name ?? t('common.anonymous'))
       <input v-model="value" class="field" :maxlength="LIMITS.displayName" :placeholder="t('roles.rename.placeholder')" autocomplete="off" autofocus data-testid="rename-input" :aria-label="t('roles.rename.label')" />
     </form>
     <template #footer>
-      <button class="btn btn-ghost" type="button" @click="emit('update:open', false)">{{ t('common.cancel') }}</button>
-      <button class="btn btn-primary" type="submit" form="rename-form" data-testid="rename-save">{{ t('roles.rename.save') }}</button>
+      <button class="btn btn-ghost" type="button" @click="emit('update:open', false)"><Icon name="lucide:x" /> {{ t('common.cancel') }}</button>
+      <button class="btn btn-primary" type="submit" form="rename-form" data-testid="rename-save"><Icon name="lucide:save" /> {{ t('roles.rename.save') }}</button>
     </template>
   </BaseDialog>
 </template>

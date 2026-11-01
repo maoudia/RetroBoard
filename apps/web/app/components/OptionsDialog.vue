@@ -154,9 +154,9 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
       </section>
       </fieldset>
     </template>
-    <ConfirmDialog v-model:open="resetVotesAsk" danger :title="t('options.resetVotes.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetVotes.msg')" @confirm="board.commands.resetVotes(); ui.close()" />
-    <ConfirmDialog v-model:open="resetClockAsk" danger :title="t('options.resetClock.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetClock.msg')" @confirm="board.commands.resetTimer(undefined, true); ui.close()" />
-    <ConfirmDialog v-model:open="resetAsk" danger :title="t('options.resetConfirm.title')" :confirm-label="t('options.resetConfirm.ok')" :message="t('options.resetConfirm.msg')" @confirm="board.commands.resetBoard(); ui.close()" />
+    <ConfirmDialog v-model:open="resetVotesAsk" danger confirm-icon="lucide:eraser" :title="t('options.resetVotes.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetVotes.msg')" @confirm="board.commands.resetVotes(); ui.close()" />
+    <ConfirmDialog v-model:open="resetClockAsk" danger confirm-icon="lucide:rotate-ccw" :title="t('options.resetClock.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetClock.msg')" @confirm="board.commands.resetTimer(undefined, true); ui.close()" />
+    <ConfirmDialog v-model:open="resetAsk" danger confirm-icon="lucide:eraser" :title="t('options.resetConfirm.title')" :confirm-label="t('options.resetConfirm.ok')" :message="t('options.resetConfirm.msg')" @confirm="board.commands.resetBoard(); ui.close()" />
   </BaseDialog>
 </template>
 

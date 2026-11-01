@@ -95,7 +95,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
   </Dropdown>
   <RenameDialog :open="renaming !== null" :name="renaming?.name ?? null" @update:open="(v: boolean) => { if (!v) renaming = null }" @save="(n: string) => renaming && rename(renaming, n)" />
   <ConfirmDialog
-    :open="handOver !== null" :title="t('roles.handover.title')" :confirm-label="t('roles.handover.ok')"
+    :open="handOver !== null" confirm-icon="lucide:arrow-right-left" :title="t('roles.handover.title')" :confirm-label="t('roles.handover.ok')"
     :message="t('roles.handover.msg', { name: handOver?.name ?? t('common.anonymous') })"
     @update:open="(v: boolean) => { if (!v) handOver = null }" @confirm="handOver && role('role.handover', handOver); handOver = null"
   />

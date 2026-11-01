@@ -67,11 +67,11 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
     </template>
   </Dropdown>
   <ConfirmDialog
-    v-model:open="groupAsk" :title="mode === 'author' ? t('column.groupAuthor.title') : t('column.groupSimilar.title')" :confirm-label="t('column.groupAuthor.ok')"
+    v-model:open="groupAsk" confirm-icon="lucide:group" :title="mode === 'author' ? t('column.groupAuthor.title') : t('column.groupSimilar.title')" :confirm-label="t('column.groupAuthor.ok')"
     :message="t(mode === 'author' ? 'column.groupAuthor.msg' : 'column.groupSimilar.msg', { list: planText })" @confirm="applyGrouping"
   />
   <ConfirmDialog
-    v-model:open="resetAsk" danger :title="t('column.reset.title')" :confirm-label="t('column.reset.ok')"
+    v-model:open="resetAsk" danger confirm-icon="lucide:eraser" :title="t('column.reset.title')" :confirm-label="t('column.reset.ok')"
     :message="t('column.reset.msg', { n: noteCount, title: column.title })" @confirm="board.commands.resetColumn(column.id)"
   />
   <ConfirmDialog

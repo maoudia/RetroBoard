@@ -50,8 +50,8 @@ function keep() { dismissed.value = mine.value; shown.value = false; slot.releas
   <aside v-if="shown" class="conflict conflict" role="status" aria-live="polite" data-testid="name-conflict">
     <p><Icon name="lucide:users-round" aria-hidden="true" /> {{ t('conflict.name.title', { name: clash ?? '' }) }}</p>
     <div class="row">
-      <button class="btn btn-sm btn-primary" type="button" data-testid="conflict-choose" @click="choose">{{ t('conflict.name.choose') }}</button>
-      <button class="btn btn-sm" type="button" data-testid="conflict-keep" @click="keep">{{ t('conflict.name.keep') }}</button>
+      <button class="btn btn-sm btn-primary" type="button" data-testid="conflict-choose" @click="choose"><Icon name="lucide:check" /> {{ t('conflict.name.choose') }}</button>
+      <button class="btn btn-sm" type="button" data-testid="conflict-keep" @click="keep"><Icon name="lucide:user" /> {{ t('conflict.name.keep') }}</button>
     </div>
   </aside>
 </template>

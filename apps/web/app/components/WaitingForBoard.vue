@@ -32,7 +32,7 @@ async function restore(e: Event) {
       <input ref="fileInput" type="file" accept=".retro,application/json" class="visually-hidden" tabindex="-1" aria-hidden="true" data-testid="waiting-restore-input" @change="restore" />
       <button class="btn" type="button" data-testid="waiting-start" @click="confirmOpen = true"><Icon name="lucide:plus" /> {{ t('board.waiting.start') }}</button>
     </div>
-    <ConfirmDialog v-model:open="confirmOpen" :title="t('board.waiting.startTitle')" :message="t('board.waiting.startMsg')" :confirm-label="t('board.waiting.startOk')" @confirm="board.startBoard()" />
+    <ConfirmDialog v-model:open="confirmOpen" confirm-icon="lucide:play" :title="t('board.waiting.startTitle')" :message="t('board.waiting.startMsg')" :confirm-label="t('board.waiting.startOk')" @confirm="board.startBoard()" />
   </section>
 </template>
 

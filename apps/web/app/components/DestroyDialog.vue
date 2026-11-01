@@ -25,7 +25,7 @@ function destroy() {
       </label>
     </form>
     <template #footer>
-      <button class="btn btn-ghost" type="button" @click="ui.close()">{{ t('common.cancel') }}</button>
+      <button class="btn btn-ghost" type="button" @click="ui.close()"><Icon name="lucide:x" /> {{ t('common.cancel') }}</button>
       <button class="btn btn-danger" type="submit" form="destroy-form" :disabled="!matches" data-testid="destroy-confirm"><Icon name="lucide:trash" /> {{ t('destroy.confirm') }}</button>
     </template>
   </BaseDialog>

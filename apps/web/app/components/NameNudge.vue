@@ -50,8 +50,8 @@ function never() { identity.stopNudging() }
   <aside v-if="shown" class="nudge" role="status" aria-live="polite" data-testid="name-nudge">
     <p><Icon name="lucide:user-round-pen" aria-hidden="true" /> {{ t('nudge.name.title') }}</p>
     <div class="row">
-      <button class="btn btn-sm btn-primary" type="button" data-testid="nudge-choose" @click="choose">{{ t('nudge.name.choose') }}</button>
-      <button class="btn btn-sm" type="button" data-testid="nudge-later" @click="later">{{ t('nudge.name.later') }}</button>
+      <button class="btn btn-sm btn-primary" type="button" data-testid="nudge-choose" @click="choose"><Icon name="lucide:pencil" /> {{ t('nudge.name.choose') }}</button>
+      <button class="btn btn-sm" type="button" data-testid="nudge-later" @click="later"><Icon name="lucide:clock" /> {{ t('nudge.name.later') }}</button>
       <button class="link" type="button" data-testid="nudge-never" @click="never">{{ t('nudge.name.never') }}</button>
     </div>
   </aside>

@@ -108,7 +108,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
         </span>
         <label class="borrow"><input v-model="borrow" type="checkbox" data-testid="agenda-borrow" /> {{ t('agenda.borrow') }}</label>
         <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : undefined" @click="ui.open('toClose')"><Icon name="lucide:flag" /> {{ t('agenda.toClose.label') }}</button>
-        <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()">{{ t('agenda.end') }}</button>
+        <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()"><Icon name="lucide:square" /> {{ t('agenda.end') }}</button>
       </div>
       <p class="muted small">{{ t('agenda.total', { planned: minutes(clock.totalPlannedMs), elapsed: minutes(clock.totalElapsedMs) }) }}</p>
     </div>

@@ -33,8 +33,8 @@ const mapping = computed(() => {
   <BaseDialog v-model:open="open" :title="t('template.title')" width="780px">
     <TemplatePicker v-model="picked" :theme-id="theme.themeId" />
     <template #footer>
-      <button class="btn btn-ghost" type="button" @click="ui.close()">{{ t('common.cancel') }}</button>
-      <button class="btn btn-primary" type="button" :disabled="!picked || picked === board.settings?.templateId" data-testid="template-apply" @click="apply">{{ t('common.apply') }}</button>
+      <button class="btn btn-ghost" type="button" @click="ui.close()"><Icon name="lucide:x" /> {{ t('common.cancel') }}</button>
+      <button class="btn btn-primary" type="button" :disabled="!picked || picked === board.settings?.templateId" data-testid="template-apply" @click="apply"><Icon name="lucide:check" /> {{ t('common.apply') }}</button>
     </template>
     <BaseDialog v-model:open="confirm" :title="t('template.choice.title')" width="520px">
       <p class="muted">{{ t('template.choice.msg') }}</p>
@@ -46,9 +46,9 @@ const mapping = computed(() => {
         </li>
       </ul>
       <template #footer>
-        <button class="btn btn-ghost" type="button" @click="confirm = false">{{ t('common.cancel') }}</button>
-        <button class="btn btn-danger" type="button" data-testid="confirm" :title="t('template.confirm.msg')" @click="send('wipe')">{{ t('template.confirm.ok') }}</button>
-        <button class="btn btn-primary" type="button" data-testid="template-migrate" @click="send('migrate')">{{ t('template.choice.migrate') }}</button>
+        <button class="btn btn-ghost" type="button" @click="confirm = false"><Icon name="lucide:x" /> {{ t('common.cancel') }}</button>
+        <button class="btn btn-danger" type="button" data-testid="confirm" :title="t('template.confirm.msg')" @click="send('wipe')"><Icon name="lucide:eraser" /> {{ t('template.confirm.ok') }}</button>
+        <button class="btn btn-primary" type="button" data-testid="template-migrate" @click="send('migrate')"><Icon name="lucide:arrow-right-left" /> {{ t('template.choice.migrate') }}</button>
       </template>
     </BaseDialog>
   </BaseDialog>

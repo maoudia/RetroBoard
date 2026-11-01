@@ -45,7 +45,7 @@ const end = () => (mine.value ? board.commands.giveBackFloor() : board.commands.
       <text x="20" y="25" text-anchor="middle" class="ini">{{ name.slice(0, 1).toUpperCase() }}</text>
     </svg>
     <span class="who"><strong>{{ t('talk.speaking', { name }) }}</strong><small class="mono" data-testid="talk-time">{{ mmss(clock.remainingMs) }}</small></span>
-    <button v-if="canEnd" class="btn btn-sm" type="button" data-testid="talk-end" @click="end">{{ t(mine ? 'talk.done' : 'talk.end') }}</button>
+    <button v-if="canEnd" class="btn btn-sm" type="button" data-testid="talk-end" @click="end"><Icon name="lucide:check" /> {{ t(mine ? 'talk.done' : 'talk.end') }}</button>
   </div>
 </template>
 

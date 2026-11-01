@@ -18,7 +18,7 @@ function submit() { if (value.value) emit('submit', value.value) }
       <p v-if="wrong" id="passcode-error" class="error" role="alert" data-testid="passcode-wrong">{{ t('passcode.wrong') }}</p>
     </form>
     <template #footer>
-      <NuxtLink to="/" class="btn btn-ghost">{{ t('passcode.leave') }}</NuxtLink>
+      <NuxtLink to="/" class="btn btn-ghost"><Icon name="lucide:log-out" /> {{ t('passcode.leave') }}</NuxtLink>
       <button class="btn btn-primary" type="submit" form="passcode-form" data-testid="passcode-submit">{{ t('passcode.submit') }} <Icon name="lucide:lock-open" /></button>
     </template>
   </BaseDialog>

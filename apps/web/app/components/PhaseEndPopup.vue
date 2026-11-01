@@ -51,8 +51,8 @@ function more() { board.commands.extendPhase(2, true); emit('close') }
       <p id="phase-end-next" class="sub">{{ following }}</p>
     </div>
     <div class="row">
-      <button v-if="steer && ended.next" ref="primary" class="btn btn-sm btn-primary" type="button" data-testid="phase-end-next" @click="next">{{ t('phaseEnd.nextPhase') }}</button>
-      <button v-if="steer" class="btn btn-sm" type="button" data-testid="phase-end-more" @click="more">{{ t('phaseEnd.plus2') }}</button>
+      <button v-if="steer && ended.next" ref="primary" class="btn btn-sm btn-primary" type="button" data-testid="phase-end-next" @click="next"><Icon name="lucide:skip-forward" /> {{ t('phaseEnd.nextPhase') }}</button>
+      <button v-if="steer" class="btn btn-sm" type="button" data-testid="phase-end-more" @click="more"><Icon name="lucide:clock-plus" /> {{ t('phaseEnd.plus2') }}</button>
       <button :ref="(el) => { if (!(steer && ended.next)) primary = el as HTMLButtonElement }" class="btn btn-sm" type="button" data-testid="phase-end-ok" @click="emit('close')">{{ t('phaseEnd.ok') }}</button>
     </div>
   </aside>

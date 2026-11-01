@@ -14,8 +14,8 @@ const open = computed({ get: () => agent.pending !== null, set: (v) => { if (!v)
       <p class="muted small">{{ t('agent.confirm.hint') }}</p>
     </template>
     <template #footer>
-      <button class="btn btn-ghost" type="button" data-testid="agent-decline" @click="agent.answer(false)">{{ t('agent.confirm.decline') }}</button>
-      <button class="btn btn-primary" type="button" data-testid="agent-approve" @click="agent.answer(true)">{{ t('agent.confirm.approve') }}</button>
+      <button class="btn btn-ghost" type="button" data-testid="agent-decline" @click="agent.answer(false)"><Icon name="lucide:x" /> {{ t('agent.confirm.decline') }}</button>
+      <button class="btn btn-primary" type="button" data-testid="agent-approve" @click="agent.answer(true)"><Icon name="lucide:check" /> {{ t('agent.confirm.approve') }}</button>
     </template>
   </BaseDialog>
 </template>

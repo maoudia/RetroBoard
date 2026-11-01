@@ -47,7 +47,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKey, true); ui
         <button class="btn" type="button" :disabled="ui.walkIndex === 0" :aria-label="t('presenter.walk.prev')" data-testid="walk-prev" @click="step(-1)"><Icon name="lucide:chevron-left" /></button>
         <span class="muted" role="status">{{ t('presenter.walk.pos', { i: (ui.walkIndex ?? 0) + 1, n: voted.length }) }}</span>
         <button class="btn" type="button" :disabled="(ui.walkIndex ?? 0) >= voted.length - 1" :aria-label="t('presenter.walk.next')" data-testid="walk-next" @click="step(1)"><Icon name="lucide:chevron-right" /></button>
-        <button class="btn btn-ghost" type="button" data-testid="walk-stop" @click="stop">{{ t('presenter.walk.stop') }}</button>
+        <button class="btn btn-ghost" type="button" data-testid="walk-stop" @click="stop"><Icon name="lucide:square" /> {{ t('presenter.walk.stop') }}</button>
       </footer>
     </article>
   </div>

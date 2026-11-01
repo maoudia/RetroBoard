@@ -229,13 +229,13 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       v-if="!validRoom" icon="lucide:link-2-off" :title="t(retiredLink ? 'board.retired.h' : 'board.invalid.h')"
       :lead="t(retiredLink ? 'board.retired.p' : 'board.invalid.p')" :testid="retiredLink ? 'retired-link' : 'invalid-link'"
     >
-      <template #actions><NuxtLink class="btn btn-primary" to="/">{{ t('board.invalid.cta') }}</NuxtLink></template>
+      <template #actions><NuxtLink class="btn btn-primary" to="/"><Icon name="lucide:arrow-left" /> {{ t('board.invalid.cta') }}</NuxtLink></template>
     </ServicePage>
 
     <ServicePage
       v-else-if="closed" icon="lucide:flame" :title="t('board.closed.title')" :lead="t('board.closed.lead')" testid="board-closed"
     >
-      <template #actions><NuxtLink class="btn btn-primary" to="/new" data-testid="closed-new">{{ t('board.closed.new') }}</NuxtLink><NuxtLink class="btn" to="/">{{ t('service.home') }}</NuxtLink></template>
+      <template #actions><NuxtLink class="btn btn-primary" to="/new" data-testid="closed-new"><Icon name="lucide:plus" /> {{ t('board.closed.new') }}</NuxtLink><NuxtLink class="btn" to="/"><Icon name="lucide:house" /> {{ t('service.home') }}</NuxtLink></template>
     </ServicePage>
 
     <template v-else>
@@ -278,9 +278,9 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <NameNudge />
       <NameConflict />
       <LazyPhaseEndPopup v-if="phaseEnd.ended.value" :key="phaseEnd.ended.value.id" :ended="phaseEnd.ended.value" @close="phaseEnd.dismiss" />
-      <ConfirmDialog v-model:open="takeoverOpen" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />
+      <ConfirmDialog v-model:open="takeoverOpen" confirm-icon="lucide:key-round" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />
       <TemplateDialog />
-      <ConfirmDialog :open="ui.dialog === 'toClose'" :title="t('agenda.toClose.title')" :message="t('agenda.toClose.msg')" :confirm-label="t('agenda.toClose.ok')" @update:open="(v: boolean) => { if (!v && ui.dialog === 'toClose') ui.close() }" @confirm="board.commands.goToClosing()" />
+      <ConfirmDialog :open="ui.dialog === 'toClose'" confirm-icon="lucide:flag" :title="t('agenda.toClose.title')" :message="t('agenda.toClose.msg')" :confirm-label="t('agenda.toClose.ok')" @update:open="(v: boolean) => { if (!v && ui.dialog === 'toClose') ui.close() }" @confirm="board.commands.goToClosing()" />
       <ColumnEditorDialog />
       <PaletteDialog />
       <DestroyDialog />
