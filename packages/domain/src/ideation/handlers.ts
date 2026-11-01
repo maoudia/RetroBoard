@@ -4,7 +4,7 @@ import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome
 import { makeNote, normalizeGroups } from './notes'
 
 type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.move' | 'note.color'
-  | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.dissolve' | 'group.merge' | 'group.move'
+  | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.recolor' | 'group.dissolve' | 'group.merge' | 'group.move'
   | 'column.add' | 'column.hide' | 'column.show' | 'column.update' | 'column.delete' | 'column.move'
 
 /** A peer that ignores the board's note length limit is refused by everyone. */
@@ -155,6 +155,20 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     const g = s.groups[c.id]
     if (!g) return fail('not-found')
     return done({ ...s, groups: { ...s.groups, [g.id]: { ...g, title: c.title || null } } }, { groups: [g.id] })
+  },
+
+  // One command recolours every note of the cluster (change composer-and-colour-v3); a frozen note keeps its colour.
+  'group.recolor': (s, c) => {
+    const g = s.groups[c.id]
+    if (!g || !validColor(c.color)) return fail('not-found')
+    const notes = { ...s.notes }
+    const ids: string[] = []
+    for (const n of Object.values(s.notes)) {
+      if (n.groupId !== g.id || n.frozen) continue
+      notes[n.id] = { ...n, color: c.color }
+      ids.push(n.id)
+    }
+    return done({ ...s, notes }, { notes: ids })
   },
 
   'group.dissolve': (s, c) => {

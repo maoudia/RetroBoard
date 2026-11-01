@@ -845,6 +845,7 @@ export const en: Record<keyof typeof fr, string> = {
   'note.ungroup': 'Remove from group',
   'note.moveTo': 'Move to',
   'cluster.moveTo': 'Move to column...',
+  'cluster.recolor': 'Recolor the cluster',
   'note.edit': 'Edit',
   'note.delete': 'Delete',
 

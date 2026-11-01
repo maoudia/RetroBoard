@@ -22,7 +22,7 @@ The palette SHALL offer an advanced mode with more colours that all come from cu
 - **THEN** she sees extra shades and harmonies of the theme colours, and no free colour picker
 
 ### Requirement: Cluster colour
-A participant SHALL be able to recolour a whole cluster at once from the palette, which recolours every note of the cluster.
+A participant SHALL be able to recolour a whole cluster at once from the cluster panel (one command), which recolours every note of the cluster except the frozen ones.
 
 #### Scenario: Recolour a cluster
 - **WHEN** Alice picks blue for the cluster "Deploys"

@@ -844,6 +844,7 @@ export const fr = {
   'note.ungroup': 'Retirer du groupe',
   'note.moveTo': 'Déplacer vers',
   'cluster.moveTo': 'Déplacer vers la colonne...',
+  'cluster.recolor': 'Recolorer le groupe',
   'note.edit': 'Modifier',
   'note.delete': 'Supprimer',
 

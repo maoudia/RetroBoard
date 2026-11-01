@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from '@retroboard/domain'
+import { LIMITS, NOTE_COLOR_COUNT } from '@retroboard/domain'
 import { type ColumnItem, suggestClusterTitles } from '@retroboard/application'
 const { t } = useT()
 
@@ -94,6 +94,15 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
             <button v-for="c in otherColumns" :key="c.id" class="dd-item" type="button" :data-testid="`move-group-to-${c.id}`" @click="moveTo(c.id)"><Icon :name="`lucide:${c.icon}`" /> {{ c.title }}</button>
           </div>
         </details>
+        <details v-if="!board.locked && !item.group.frozen" class="merge">
+          <summary class="btn btn-sm btn-ghost" data-testid="cluster-recolor"><Icon name="lucide:palette" /> {{ t('cluster.recolor') }}</summary>
+          <div class="swatches" role="group" :aria-label="t('cluster.recolor')">
+            <button
+              v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :style="{ background: `var(--note-${i - 1})` }"
+              :aria-label="t('note.colorN', { n: i })" :data-testid="`cluster-color-${i - 1}`" @click="board.commands.recolorGroup(item.group.id, i - 1)"
+            />
+          </div>
+        </details>
         <button class="btn btn-sm btn-ghost" type="button" :disabled="!gate.allowed" data-testid="group-create-action" @click="toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>
         <button v-if="board.access.canSteer" class="btn btn-sm btn-ghost" type="button" data-testid="group-pin" @click="board.commands[item.group.pinned ? 'unpin' : 'pin'](item.group.id)">
           <Icon :name="item.group.pinned ? 'lucide:pin-off' : 'lucide:pin'" /> {{ item.group.pinned ? t('note.unpin') : t('note.pin') }}
@@ -121,6 +130,9 @@ footer { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: w
 .merge summary { list-style: none; cursor: pointer; }
 .merge summary::-webkit-details-marker { display: none; }
 .merge-list { display: grid; gap: 2px; margin-top: .35rem; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(26px, 1fr)); gap: .35rem; margin-top: .35rem; max-width: 14rem; }
+.sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; transition: transform .15s; }
+.sw:hover { transform: scale(1.2); }
 .chip { padding: .2rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-sm); }
 .chip:hover { border-color: var(--accent); }
 </style>

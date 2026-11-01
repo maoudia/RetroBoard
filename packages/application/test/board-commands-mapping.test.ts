@@ -22,6 +22,7 @@ describe('every use case sends the matching protocol command', () => {
     ['recolorNote', (c) => c.recolorNote('n1', 3), { t: 'note.color', id: 'n1', color: 3 }],
     ['groupNotes', (c) => c.groupNotes('n1', 'n2'), { t: 'note.group', id: 'n1', ontoId: 'n2' }],
     ['ungroupNote', (c) => c.ungroupNote('n1'), { t: 'note.ungroup', id: 'n1' }],
+    ['recolorGroup', (c) => c.recolorGroup('g1', 2), { t: 'group.recolor', id: 'g1', color: 2 }],
     ['renameGroup', (c) => c.renameGroup('g1', 'CI'), { t: 'group.rename', id: 'g1', title: 'CI' }],
     ['dissolveGroup', (c) => c.dissolveGroup('g1'), { t: 'group.dissolve', id: 'g1' }],
     ['toggleVote', (c) => c.toggleVote('n1'), { t: 'vote.add', kind: 'note', id: 'n1' }],

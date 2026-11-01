@@ -131,6 +131,21 @@ describe('groups', () => {
     expect(h.state.notes[a]!.groupId).toBeNull()
     expect(h.state.groups[gid]).toBeUndefined()
   })
+
+  it('group.recolor recolours every note of the cluster at once and refuses an invalid colour', () => {
+    const { h, a, b } = setup()
+    h.run({ t: 'note.group', id: a, ontoId: b })
+    const gid = h.state.notes[a]!.groupId!
+    expect(h.run({ t: 'group.recolor', id: gid, color: 4 }).ok).toBe(true)
+    expect(h.state.notes[a]!.color).toBe(4)
+    expect(h.state.notes[b]!.color).toBe(4)
+    expect(h.run({ t: 'group.recolor', id: gid, color: 99 }).ok).toBe(false)
+    expect(h.state.notes[a]!.color).toBe(4)
+    h.run({ t: 'note.freeze', id: b })
+    h.run({ t: 'group.recolor', id: gid, color: 1 })
+    expect(h.state.notes[a]!.color).toBe(1)
+    expect(h.state.notes[b]!.color).toBe(4) // a frozen note keeps its colour
+  })
 })
 
 describe('columns', () => {

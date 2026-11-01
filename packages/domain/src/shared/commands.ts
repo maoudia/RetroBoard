@@ -28,6 +28,7 @@ export type Command =
   | { t: 'note.pin'; id: string }
   | { t: 'note.unpin'; id: string }
   | { t: 'group.rename'; id: string; title: string }
+  | { t: 'group.recolor'; id: string; color: number }
   | { t: 'group.dissolve'; id: string }
   | { t: 'group.merge'; id: string; ontoId: string }
   | { t: 'group.move'; id: string; columnId: string }
