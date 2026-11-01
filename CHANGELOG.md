@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1](https://github.com/maoudia/RetroBoard/compare/v1.21.0...v1.21.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **a11y:** live regions are visually hidden again, the phase history stays in the activity feed ([98c9d68](https://github.com/maoudia/RetroBoard/commit/98c9d684203070296268bbd65e7f6171b9852e07))
+
 ## [1.21.0](https://github.com/maoudia/RetroBoard/compare/v1.20.1...v1.21.0) (2026-11-01)
 
 
