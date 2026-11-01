@@ -75,6 +75,8 @@ const PLAN = {
   'short-links-and-join': ['P8', 'A', []],
   'presenter-mode-v2': ['P8', 'C', []],
   'column-voting-scope': ['P8', 'B', []],
+  'recent-boards-visible': ['P9', 'B', []],
+  'simple-advanced-mode': ['P9', 'B', []],
   'identity-conflicts': ['P8', 'B', []],
   'column-tools': ['P8', 'B', []],
   'note-freeze': ['P8', 'C', []],
@@ -120,7 +122,7 @@ const ROADMAP = {
   'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2', 'profile-avatars-and-team-space': 'R2',
   'export-hub': 'R2', 'retro-report': 'R2',
   'composer-and-colour-v3': 'R2', 'facilitator-controls-v2': 'R2', 'board-activity-feed': 'R2', 'design-system-components': 'R2',
-  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'automated-semver-release': 'R1', 'clusters-v2': 'R2', 'board-type-migration': 'R2', 'allure-report-aggregation': 'R2', 'self-rename-event': 'R1',
+  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'recent-boards-visible': 'R2', 'simple-advanced-mode': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'automated-semver-release': 'R1', 'clusters-v2': 'R2', 'board-type-migration': 'R2', 'allure-report-aggregation': 'R2', 'self-rename-event': 'R1',
   // Onboarding is the first thing users see (owner, 2026-10-29): smart default creation moves to R2.
   'board-creation-v2': 'R2',
   'column-tools': 'R3', 'note-freeze': 'R3', 'talk-time-v2': 'R3', 'keyboard-shortcuts-v2': 'R3', 'agents-first-class': 'R3',
@@ -141,7 +143,7 @@ const PRIORITY_LEVELS = [
 const PRIORITY = {
   'reliable-board-sync': 1,
   'composer-and-colour-v3': 2, 'facilitator-controls-v2': 2, 'board-activity-feed': 2, 'design-system-components': 2, 'short-links-and-join': 2,
-  'board-creation-v2': 2, 'presenter-mode-v2': 2, 'column-voting-scope': 2, 'identity-conflicts': 2, 'publishing-ux-redesign': 2,
+  'board-creation-v2': 2, 'presenter-mode-v2': 2, 'column-voting-scope': 2, 'recent-boards-visible': 2, 'simple-advanced-mode': 2, 'identity-conflicts': 2, 'publishing-ux-redesign': 2,
   'postit-visual-system': 2, 'responsive-and-i18n-hardening': 2, 'profile-avatars-and-team-space': 2, 'activity-rings-timer': 2,
   'voting-results-charts': 2, 'cluster-reveal-motion': 2, 'column-tools': 2,
   'clusters-v2': 2, 'board-type-migration': 2,
