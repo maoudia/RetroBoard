@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/maoudia/RetroBoard/compare/v1.22.0...v1.23.0) (2026-11-01)
+
+
+### Features
+
+* **export:** reports and exports mark pinned and frozen ideas and hidden columns ([c96265e](https://github.com/maoudia/RetroBoard/commit/c96265ea706748535aff67191791986420f3266d))
+
 ## [1.22.0](https://github.com/maoudia/RetroBoard/compare/v1.21.1...v1.22.0) (2026-11-01)
 
 
