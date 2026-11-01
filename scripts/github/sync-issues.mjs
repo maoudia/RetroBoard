@@ -93,6 +93,9 @@ const PLAN = {
   'note-pin': ['P9', 'C', []],
   'up-down-votes': ['P9', 'B', []],
   'presence-status': ['P9', 'A', []],
+  'button-icons-everywhere': ['P9', 'B', []],
+  'toolbar-mobile-scroll': ['P9', 'B', []],
+  'agenda-clock-v2': ['P9', 'B', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
@@ -124,7 +127,7 @@ const ROADMAP = {
   'calendar-agenda-import': 'R3', 'themes-pop-culture': 'R3', 'actions-v2-and-carry-over': 'R3',
   'agentic-delivery-harness': 'R3', 'webmcp-browser-agents': 'R3',
   'retro-mcp-and-agent-sessions': 'R4', 'local-ai-companion': 'R4', 'landing-v2-and-product-video': 'R4',
-  'column-visibility': 'R2', 'time-display-options': 'R2', 'presence-status': 'R2', 'note-pin': 'R3', 'up-down-votes': 'R3',
+  'column-visibility': 'R2', 'time-display-options': 'R2', 'presence-status': 'R2', 'note-pin': 'R3', 'up-down-votes': 'R3', 'button-icons-everywhere': 'R2', 'toolbar-mobile-scroll': 'R2', 'agenda-clock-v2': 'R2',
   'licensing-and-monetization': 'PARKED',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
@@ -142,7 +145,7 @@ const PRIORITY = {
   'postit-visual-system': 2, 'responsive-and-i18n-hardening': 2, 'profile-avatars-and-team-space': 2, 'activity-rings-timer': 2,
   'voting-results-charts': 2, 'cluster-reveal-motion': 2, 'column-tools': 2,
   'clusters-v2': 2, 'board-type-migration': 2,
-  'column-visibility': 2, 'time-display-options': 2, 'presence-status': 2, 'note-pin': 2,
+  'column-visibility': 2, 'time-display-options': 2, 'presence-status': 2, 'note-pin': 2, 'button-icons-everywhere': 2, 'toolbar-mobile-scroll': 2, 'agenda-clock-v2': 2,
   'quality-gates-v2': 3, 'automated-semver-release': 3, 'allure-report-aggregation': 3, 'self-rename-event': 1, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
 }
 const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]
