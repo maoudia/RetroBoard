@@ -4,6 +4,8 @@ import { createBoard } from './helpers'
 test('skip link: first tab stop, moves the focus into the main content', async ({ page, isMobile }) => {
   test.skip(isMobile, 'keyboard flow')
   await page.goto('/new')
+  // Enter before hydration only follows the hash, the focus move needs the click handler: wait for the app (flaky on a cold first test).
+  await page.waitForFunction(() => !!(document.getElementById('__nuxt') as unknown as { __vue_app__?: unknown } | null)?.__vue_app__)
   await page.keyboard.press('Tab')
   const skip = page.getByTestId('skip-link')
   await expect(skip).toBeFocused()
