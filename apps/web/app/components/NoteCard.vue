@@ -51,7 +51,7 @@ function onDrop() {
 
 <template>
   <article
-    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note"
+    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen, pinned: !!note.pinned }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note"
     :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked && !note.frozen"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
@@ -71,6 +71,7 @@ function onDrop() {
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <span class="grow" />
+      <span v-if="note.pinned" class="fbadge pbadge" :data-testid="`pinned-${note.id}`"><Icon name="lucide:pin" aria-hidden="true" /> {{ t('note.pinned') }}</span>
       <span v-if="note.frozen" class="fbadge" :title="t('error.frozen')" :data-testid="`frozen-${note.id}`"><Icon name="lucide:snowflake" aria-hidden="true" /> {{ t('note.frozen') }}</span>
       <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${note.id}`" @click.stop="ui.openActionsFor(note.id)">
         <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
@@ -119,5 +120,7 @@ footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem;
 .edit { display: flex; gap: .3rem; align-items: start; }
 .edit textarea { width: 100%; resize: none; border: 1.5px solid color-mix(in oklab, var(--note-ink) 40%, transparent); border-radius: var(--r-xs); background: rgb(255 255 255 / .35); padding: .3rem .4rem; color: inherit; }
 .note.frozen { background-image: linear-gradient(135deg, rgb(255 255 255 / .35), rgb(255 255 255 / 0) 60%); cursor: default; }
+.note.pinned { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pbadge { background: var(--accent); color: var(--accent-ink); }
 .fbadge { display: inline-flex; align-items: center; gap: .25rem; font-size: var(--fs-xs); font-weight: 700; padding: .1rem .45rem; border-radius: 999px; background: rgb(255 255 255 / .55); color: var(--note-ink); }
 </style>

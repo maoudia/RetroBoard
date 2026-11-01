@@ -421,3 +421,36 @@ describe('hidden columns (column-visibility)', () => {
     expect(h.state.columns.some((c) => c.hidden)).toBe(false)
   })
 })
+
+describe('pinned notes (note-pin)', () => {
+  it('pins a note and a cluster, in pin order, and unpins them', () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'a' })
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'b' })
+    const [a, b] = Object.keys(h.state.notes)
+    expect(h.run({ t: 'note.pin', id: b! }).ok).toBe(true)
+    expect(h.state.notes[b!]?.pinned).toBeTypeOf('number')
+    expect(h.run({ t: 'note.unpin', id: b! }).ok).toBe(true)
+    expect(h.state.notes[b!]?.pinned).toBeUndefined()
+    expect(a).toBeDefined()
+  })
+
+  it('is idempotent, refuses unknown ids and notes inside a cluster, and does not lock', () => {
+    const h = harness()
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'a' })
+    h.run({ t: 'note.add', columnId: h.col(0), text: 'b' })
+    const [a, b] = Object.keys(h.state.notes)
+    h.run({ t: 'note.pin', id: a! })
+    const at = h.state.notes[a!]?.pinned
+    expect(h.run({ t: 'note.pin', id: a! }).ok).toBe(true)
+    expect(h.state.notes[a!]?.pinned).toBe(at)
+    expect(h.run({ t: 'note.pin', id: 'ghost-note' })).toEqual({ ok: false, error: 'not-found' })
+    // Pinned is not frozen: the owner still edits.
+    expect(h.run({ t: 'note.edit', id: a!, text: 'a2' }).ok).toBe(true)
+    h.run({ t: 'note.group', id: b!, ontoId: a! })
+    expect(h.run({ t: 'note.pin', id: b! })).toEqual({ ok: false, error: 'invalid' })
+    const gid = Object.keys(h.state.groups)[0]!
+    expect(h.run({ t: 'note.pin', id: gid }).ok).toBe(true)
+    expect(h.state.groups[gid]?.pinned).toBeTypeOf('number')
+  })
+})

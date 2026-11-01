@@ -20,6 +20,8 @@ export interface Group {
   voters: string[]
   /** Frozen by a facilitator: read only until unfrozen (change note-freeze). */
   frozen?: boolean
+  /** Pinned at the top of its column: time of the pin, which is the pin order (change note-pin). */
+  pinned?: number
 }
 
 export interface NoteRecord {
@@ -38,6 +40,8 @@ export interface NoteRecord {
   createdAt: number
   /** Frozen by a facilitator: read only until unfrozen (change note-freeze). */
   frozen?: boolean
+  /** Pinned at the top of its column: time of the pin, which is the pin order (change note-pin). */
+  pinned?: number
 }
 
 export type ActionStatus = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
@@ -176,6 +180,8 @@ export interface SnapshotNote {
   createdAt: number
   /** Frozen on its own or through its cluster: read only (change note-freeze). Absent when not frozen. */
   frozen?: boolean
+  /** Pin order (time of the pin) when pinned at the top of the column (change note-pin). */
+  pinned?: number
 }
 
 /** A cluster as clients see it: counts only, never voter ids. */
@@ -188,6 +194,7 @@ export interface SnapshotGroup {
   myVotes: number
   votable: boolean
   frozen?: boolean
+  pinned?: number
 }
 
 export interface Peer {

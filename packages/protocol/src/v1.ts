@@ -31,6 +31,8 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('note.ungroup'), id: Id }),
   v.object({ t: v.literal('note.freeze'), id: Id }),
   v.object({ t: v.literal('note.unfreeze'), id: Id }),
+  v.object({ t: v.literal('note.pin'), id: Id }),
+  v.object({ t: v.literal('note.unpin'), id: Id }),
   v.object({ t: v.literal('group.rename'), id: Id, title: v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.groupTitle)) }),
   v.object({ t: v.literal('group.dissolve'), id: Id }),
   v.object({ t: v.literal('group.merge'), id: Id, ontoId: Id }),

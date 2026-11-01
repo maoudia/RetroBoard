@@ -43,6 +43,9 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
       <button v-if="board.access.canSteer" class="dd-item" type="button" role="menuitem" :data-testid="`freeze-${note.id}`" @click="note.frozen ? board.commands.unfreeze(note.id) : board.commands.freeze(note.id); close()">
         <Icon :name="note.frozen ? 'lucide:flame' : 'lucide:snowflake'" /> {{ note.frozen ? t('note.unfreeze') : t('note.freeze') }}
       </button>
+      <button v-if="board.access.canSteer && !inGroup && !note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`pin-${note.id}`" @click="note.pinned ? board.commands.unpin(note.id) : board.commands.pin(note.id); close()">
+        <Icon :name="note.pinned ? 'lucide:pin-off' : 'lucide:pin'" /> {{ note.pinned ? t('note.unpin') : t('note.pin') }}
+      </button>
       <div class="dd-sep" />
       <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.commands.ungroupNote(note.id); close()">
         <Icon name="lucide:ungroup" /> {{ t('note.ungroup') }}

@@ -43,6 +43,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     groupNotes: (id: string, ontoId: string) => (id === ontoId ? ok() : whenOpen({ t: 'note.group', id, ontoId })),
     ungroupNote: (id: string) => whenOpen({ t: 'note.ungroup', id }),
     freeze: (id: string) => send({ t: 'note.freeze', id }),
+    pin: (id: string) => send({ t: 'note.pin', id }),
+    unpin: (id: string) => send({ t: 'note.unpin', id }),
     unfreeze: (id: string) => send({ t: 'note.unfreeze', id }),
     renameGroup: (id: string, title: string) => send({ t: 'group.rename', id, title }),
     dissolveGroup: (id: string) => whenOpen({ t: 'group.dissolve', id }),

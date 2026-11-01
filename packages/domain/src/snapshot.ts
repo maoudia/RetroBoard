@@ -33,6 +33,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       mine: n.ownerCid === viewer.cid,
       createdAt: n.createdAt,
       ...(isFrozenNote(state, n.id) ? { frozen: true } : {}),
+      ...(n.pinned ? { pinned: n.pinned } : {}),
     }))
   const groups: SnapshotGroup[] = Object.values(state.groups).map((g) => {
     const voters = clusterVoters(state, g.id)
@@ -42,6 +43,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       myVotes: countOf(g.voters, viewer.cid),
       votable: votability(state, 'cluster', g.id) === null,
       ...(g.frozen ? { frozen: true } : {}),
+      ...(g.pinned ? { pinned: g.pinned } : {}),
     }
   })
   const used = votesUsedBy(state, viewer.cid)

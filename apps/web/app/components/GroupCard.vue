@@ -85,6 +85,7 @@ onBeforeUnmount(cancelPeek)
       <span class="text">{{ item.title }}</span>
       <span class="meta">
         <span class="count"><Icon name="lucide:layers" /> {{ item.notes.length }}</span>
+        <span v-if="item.group.pinned" class="count pin" :data-testid="`pinned-${item.group.id}`"><Icon name="lucide:pin" /> {{ t('note.pinned') }}</span>
         <span v-if="item.group.frozen" class="count" :title="t('error.frozen')" :data-testid="`frozen-${item.group.id}`"><Icon name="lucide:snowflake" /> {{ t('note.frozen') }}</span>
         <span v-if="!secret && !item.group.votable" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
       </span>
@@ -133,6 +134,7 @@ onBeforeUnmount(cancelPeek)
 .text { overflow-wrap: anywhere; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; padding-right: 14px; }
 .meta { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 800; }
 .count, .votes { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 999px; background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
+.pin { background: var(--accent); color: var(--accent-ink); }
 </style>
 
 <style>

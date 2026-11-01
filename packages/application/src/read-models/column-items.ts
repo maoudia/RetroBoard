@@ -56,6 +56,8 @@ export function buildColumnItems(s: Pick<Snapshot, 'notes' | 'groups'>, columnId
     size: (a, b) => (b.kind === 'group' ? b.notes.length : 1) - (a.kind === 'group' ? a.notes.length : 1),
     alpha: (a, b) => text(a).localeCompare(text(b)),
   }
-  items.sort((a, b) => by[sort](a, b) || pos(a) - pos(b))
+  // Pinned items come first whatever the sort, in pin order; the personal sort applies below them (change note-pin).
+  const pin = (i: ColumnItem) => (i.kind === 'note' ? i.note.pinned : i.group.pinned) ?? 0
+  items.sort((a, b) => (pin(a) && pin(b) ? pin(a) - pin(b) : pin(b) - pin(a) ? (pin(a) ? -1 : 1) : 0) || by[sort](a, b) || pos(a) - pos(b))
   return items
 }

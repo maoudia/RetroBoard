@@ -1,6 +1,7 @@
 import { actionHandlers } from './action-tracking/handlers'
 import { facilitationHandlers } from './facilitation/handlers'
 import { freezeHandlers, touchesFrozen } from './ideation/freeze'
+import { pinHandlers } from './ideation/pin'
 import { ideationHandlers } from './ideation/handlers'
 import { rotiHandlers } from './facilitation/roti'
 import { talkHandlers } from './facilitation/talk'
@@ -13,6 +14,7 @@ import { votingHandlers } from './voting/handlers'
 const handlers: HandlerMap<Command['t']> = {
   ...ideationHandlers,
   ...freezeHandlers,
+  ...pinHandlers,
   ...votingHandlers,
   ...actionHandlers,
   ...facilitationHandlers,

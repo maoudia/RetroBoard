@@ -1,6 +1,6 @@
 import type { SnapshotGroup, SnapshotNote } from '@retroboard/domain'
 import { describe, expect, it } from 'vitest'
-import { buildColumnItems, groupTitle } from '../src'
+import { buildColumnItems, groupTitle, type SortMode } from '../src'
 
 const note = (id: string, votes: number | null, extra: Partial<SnapshotNote> = {}): SnapshotNote => ({
   id, columnId: 'c1', text: `text ${id}`, color: 0, author: null, groupId: null, votes, voted: false, myVotes: 0, votable: true, mine: false, createdAt: 0, ...extra,
@@ -53,5 +53,16 @@ describe('column items read model', () => {
     it('colour sorts by the first note colour', () => expect(keys('color')).toEqual(['b', 'g', 'a']))
     it('size puts the biggest clusters first', () => expect(keys('size')).toEqual(['g', 'a', 'b']))
     it('alpha ignores case', () => expect(keys('alpha')).toEqual(['b', 'a', 'g']))
+  })
+})
+
+describe('pinned items (note-pin)', () => {
+  const note = (id: string, text: string, pinned?: number, votes = 0) => ({ id, columnId: 'c', text, author: null, color: 0, groupId: null, votes, voted: false, myVotes: 0, votable: true, mine: false, createdAt: 0, ...(pinned ? { pinned } : {}) })
+  it('come first under every sort, in pin order, the sort applying below them', () => {
+    const notes = [note('a', 'a', undefined, 5), note('b', 'b', 200, 0), note('c', 'c', 100, 1), note('d', 'd', undefined, 9)]
+    const ids = (sort: SortMode) => buildColumnItems({ notes, groups: [] }, 'c', sort).map((i) => i.key)
+    expect(ids('votes')).toEqual(['c', 'b', 'd', 'a'])
+    expect(ids('newest')).toEqual(['c', 'b', 'd', 'a'])
+    expect(ids('alpha')).toEqual(['c', 'b', 'a', 'd'])
   })
 })
