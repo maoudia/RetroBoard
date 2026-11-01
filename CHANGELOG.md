@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.21.0](https://github.com/maoudia/RetroBoard/compare/v1.20.1...v1.21.0) (2026-11-01)
+
+
+### Features
+
+* **agenda:** choose time elapsed or time left for the phase bar and the global clock, overtime in red ([35e0c96](https://github.com/maoudia/RetroBoard/commit/35e0c96e3342ed2aef30e5b441dc773eb63ecfb8))
+* **columns:** facilitator hides and shows columns for everyone, hidden-columns chip, presenter skips them ([19b5309](https://github.com/maoudia/RetroBoard/commit/19b5309e33cb3aed74434696905e569484dd0827))
+
+
+### Bug Fixes
+
+* **access:** the facilitator link makes the session key a co-facilitator so phase rules do not block its notes ([3ebe3d3](https://github.com/maoudia/RetroBoard/commit/3ebe3d3b10c5fd27ba17b6b8a109531410c66e73))
+* **ui:** presenter QR close, in-card cluster vote, Copy icon, single voting switch, publish gated by phase ([aa16fc4](https://github.com/maoudia/RetroBoard/commit/aa16fc465a9b7ea5d146064ca1980ae9ba855f02))
+
 ## [1.20.1](https://github.com/maoudia/RetroBoard/compare/v1.20.0...v1.20.1) (2026-10-31)
 
 
