@@ -36,7 +36,7 @@ export interface ChannelHandlers {
   /** The room is at its participant cap: the channel keeps retrying slowly until a seat frees up. */
   onRoomFull?(full: boolean): void
   /** Peer-to-peer state: direct links (p2p) or relay fallback, and how many peers are linked. */
-  onLinks?(state: { p2p: boolean; peers: number }): void
+  onLinks?(state: { p2p: boolean; peers: number; /** Connection ids with an open direct link. */ direct?: string[] }): void
   /** A peer left: drop its cursor and focus. */
   onPeerLeft?(conn: string): void
   /** Saving on this device: `failing` when writes to the local copy keep failing (storage full or blocked). */

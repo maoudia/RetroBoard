@@ -531,7 +531,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   /** What the page shows: direct links when there are some (or nobody to link with), the relay otherwise. */
   private reportLinks(): void {
     const linked = this.mesh?.linked.length ?? 0
-    this.handlers.onLinks?.({ p2p: this.mesh !== null && (linked > 0 || this.others === 0), peers: linked })
+    this.handlers.onLinks?.({ p2p: this.mesh !== null && (linked > 0 || this.others === 0), peers: linked, direct: this.mesh ? [...this.mesh.linked] : [] })
   }
 
   /**

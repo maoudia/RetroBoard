@@ -846,6 +846,11 @@ export const en: Record<keyof typeof fr, string> = {
   'note.moveTo': 'Move to',
   'cluster.moveTo': 'Move to column...',
   'cluster.recolor': 'Recolor the cluster',
+  'presence.direct': 'Direct link',
+  'presence.relay': 'Through the relay',
+  'presence.reconnecting': 'Reconnecting...',
+  'presence.mine.relay': 'Connected through the relay: slower, still private.',
+  'presence.mine.reconnecting': 'Reconnecting...',
   'note.edit': 'Edit',
   'note.delete': 'Delete',
 

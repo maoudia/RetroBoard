@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nameKey } from '@retroboard/application'
+import { connectionState, nameKey } from '@retroboard/application'
 import type { Peer } from '@retroboard/domain'
 const { t } = useT()
 const board = useBoardStore()
@@ -7,6 +7,10 @@ const live = useLiveStore()
 const { push } = useToasts()
 const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
 const hue = (n: string | null) => { let h = 0; for (const c of n ?? 'x') h = (h * 31 + c.charCodeAt(0)) % 360; return h }
+
+/** Dot of each participant: direct link, through the relay, or reconnecting (change presence-status). */
+const stateOf = (p: Peer) => connectionState({ me: p.me, conn: p.conn, direct: board.links?.direct ?? [], status: board.status, p2p: board.links?.p2p ?? false })
+const myState = computed(() => connectionState({ me: true, direct: board.links?.direct ?? [], status: board.status, p2p: board.links?.p2p ?? false }))
 
 /** Two people with the same name: a small rank tells them apart (identity-conflicts). */
 const sameName = computed(() => {
@@ -65,8 +69,8 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     <p v-if="board.roomCode" class="code muted" :title="t('share.roomCode.hint')" data-testid="peers-room-code">{{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <ul class="list" data-testid="peers">
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
-        <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}</span>
-        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="sameName[i]" class="st muted" :data-testid="`peer-rank-${i}`">#{{ sameName[i] }}</small><small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small></span>
+        <span class="av" :style="{ background: `hsl(${hue(p.name)} 70% 72%)` }">{{ initial(p.name) }}<ConnDot class="cd" :state="stateOf(p)" /></span>
+        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="sameName[i]" class="st muted" :data-testid="`peer-rank-${i}`">#{{ sameName[i] }}</small><small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small><small v-if="!p.me && stateOf(p) !== 'direct'" class="st muted" :data-testid="`peer-conn-${i}`">{{ t(`presence.${stateOf(p)}`) }}</small></span>
         <span v-if="p.role === 'facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
         <span v-else-if="p.role === 'co-facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
@@ -87,6 +91,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
         </span>
       </li>
     </ul>
+    <p v-if="myState !== 'direct'" class="note muted" role="status" data-testid="my-conn">{{ t(myState === 'relay' ? 'presence.mine.relay' : 'presence.mine.reconnecting') }}</p>
     <p v-if="board.links" class="note muted links" :data-p2p="board.links.p2p" data-testid="links-state">
       <Icon :name="board.links.p2p ? 'lucide:waypoints' : 'lucide:server'" />
       {{ board.links.p2p ? t('links.p2p', { n: board.links.peers }) : t('links.relay') }}
@@ -106,7 +111,8 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
 .code { margin: 0 .5rem .35rem; font-size: var(--fs-xs); }
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: var(--r-sm); flex-wrap: wrap; }
-.av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: var(--fs-xs); color: #1b1b1b; flex: none; }
+.av { position: relative; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: var(--fs-xs); color: #1b1b1b; flex: none; }
+.cd { position: absolute; right: -3px; bottom: -3px; background-clip: padding-box; outline: 2px solid var(--surface); }
 .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st { display: block; font-size: var(--fs-xs); }
 .talking { display: inline-flex; align-items: center; gap: .25rem; color: var(--accent); }

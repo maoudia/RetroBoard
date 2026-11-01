@@ -20,7 +20,7 @@ export const useBoardStore = defineStore('board', () => {
   /** The board is at its participant cap; the channel retries until a seat frees up. */
   const roomFull = ref(false)
   /** Peer-to-peer state of this tab: direct links, or the relay fallback. */
-  const links = ref<{ p2p: boolean; peers: number } | null>(null)
+  const links = ref<{ p2p: boolean; peers: number; direct?: string[] } | null>(null)
   /** serverNow - clientNow, to show a timer that agrees with the server. */
   const skew = ref(0)
   let transport: BoardTransport | null = null

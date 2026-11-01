@@ -6,6 +6,7 @@
   --bg: #07080f; --bg2: #151238; --surface: #0f1224; --surface2: #181c36; --border: #2b3263;
   --text: #e9eeff; --muted: #a0a9d6; --accent: #2ee6ff; --accent2: #ff4df0; --accent-ink: #03161a;
   --danger: #ff6b8b; --success: #6dffb0; --note-ink: #0a0c18;
+  --warn: #b86e00; /* relay-only dot: 3:1 on light and dark surfaces, the shape also differs */
   --f-display: system-ui, sans-serif; --f-body: system-ui, sans-serif; --f-mono: ui-monospace, monospace;
   --r-card: 14px; --r-control: 10px;
   /* Shared scales (docs/design-system.md): type, small radii, spacing, motion. Themes change colour, fonts and --r-*; never these steps. */

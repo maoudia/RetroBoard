@@ -845,6 +845,11 @@ export const fr = {
   'note.moveTo': 'Déplacer vers',
   'cluster.moveTo': 'Déplacer vers la colonne...',
   'cluster.recolor': 'Recolorer le groupe',
+  'presence.direct': 'Lien direct',
+  'presence.relay': 'Via le relais',
+  'presence.reconnecting': 'Reconnexion...',
+  'presence.mine.relay': 'Connecté via le relais : plus lent, toujours privé.',
+  'presence.mine.reconnecting': 'Reconnexion en cours...',
   'note.edit': 'Modifier',
   'note.delete': 'Supprimer',
 
