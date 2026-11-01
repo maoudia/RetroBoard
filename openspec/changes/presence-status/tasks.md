@@ -7,5 +7,5 @@
 
 ## 2. Arrivals
 
-- [ ] 2.1 Join and leave entries in the activity feed; verify unit tests of the diff and e2e
+- [x] 2.1 Join and leave entries in the activity feed; verify unit tests of the diff and e2e
 - [ ] 2.2 "Announce arrivals" board option in creation and options with grouped toasts; verify e2e on and off

@@ -727,6 +727,8 @@ export const en: Record<keyof typeof fr, string> = {
   'activity.agenda.resumed': 'The agenda resumed',
   'activity.voting.opened': 'Voting is open',
   'activity.voting.closed': 'Voting is closed',
+  'activity.participant.joined': '{name} joined the board',
+  'activity.participant.left': '{name} left the board',
   'activity.reveal.started': 'Revealing ideas',
   'column.sort': 'Sort column',
   'column.sort.time': 'Oldest first',

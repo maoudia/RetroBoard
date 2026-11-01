@@ -45,3 +45,12 @@ test('connection dots: direct for a linked participant, relay for a relay-only o
   await bob.ctx.close()
   await carol.ctx.close()
 })
+
+test('joins and departures go to the activity feed for everyone', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const bob = await joinAs(browser, await shareUrl(page), 'Bob', true)
+  await page.getByTestId('btn-activity').click()
+  await expect(page.getByText('Bob a rejoint le board')).toBeVisible({ timeout: 15_000 })
+  await bob.ctx.close()
+  await expect(page.getByText('Bob a quitté le board')).toBeVisible({ timeout: 20_000 })
+})

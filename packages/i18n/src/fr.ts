@@ -726,6 +726,8 @@ export const fr = {
   'activity.agenda.resumed': "L'agenda a repris",
   'activity.voting.opened': 'Les votes sont ouverts',
   'activity.voting.closed': 'Les votes sont clos',
+  'activity.participant.joined': '{name} a rejoint le board',
+  'activity.participant.left': '{name} a quitté le board',
   'activity.reveal.started': 'Révélation des idées en cours',
   'column.sort': 'Trier la colonne',
   'column.sort.time': "Ordre d'arrivée",

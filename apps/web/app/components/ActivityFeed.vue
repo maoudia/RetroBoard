@@ -3,7 +3,7 @@ import type { ActivityEntry } from '@retroboard/application'
 const { t, locale } = useT()
 const activity = useActivityStore()
 const time = (at: number) => new Date(at).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
-const label = (e: ActivityEntry) => t(`activity.${e.kind}` as never, { phase: e.phase ? t(`agenda.phase.${e.phase}` as never) : '' } as never)
+const label = (e: ActivityEntry) => t(`activity.${e.kind}` as never, { phase: e.phase ? t(`agenda.phase.${e.phase}` as never) : '', name: e.name ?? t('common.anonymous') } as never)
 </script>
 
 <template>
