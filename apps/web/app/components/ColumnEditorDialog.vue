@@ -11,18 +11,21 @@ const title = ref('')
 const subtitle = ref('')
 const icon = ref<string>(DEFAULT_COLUMN_ICON)
 const color = ref(0)
+/** Votes are possible on this column (change column-voting-scope). */
+const votable = ref(true)
 watch(open, (v) => {
   if (!v) return
   title.value = editing.value?.title ?? ''
   subtitle.value = editing.value?.subtitle ?? ''
   icon.value = editing.value?.icon ?? DEFAULT_COLUMN_ICON
+  votable.value = editing.value?.votable !== false
   const idx = board.columns.findIndex((c) => c.id === editing.value?.id)
   color.value = editing.value ? (editing.value.color ?? idx % NOTE_COLOR_COUNT) : board.columns.length % NOTE_COLOR_COUNT
 })
 
 function save() {
   if (!title.value.trim()) return
-  const payload = { title: title.value, subtitle: subtitle.value, icon: icon.value as (typeof COLUMN_ICONS)[number], color: color.value }
+  const payload = { title: title.value, subtitle: subtitle.value, icon: icon.value as (typeof COLUMN_ICONS)[number], color: color.value, votable: votable.value }
   if (editing.value) board.commands.updateColumn(editing.value.id, payload)
   else board.commands.addColumn(payload)
   ui.close()
@@ -46,6 +49,10 @@ function save() {
           </button>
         </div>
       </fieldset>
+      <label class="line">
+        <span><strong>{{ t('column.votable') }}</strong><small class="muted">{{ t('column.votable.hint') }}</small></span>
+        <input v-model="votable" type="checkbox" role="switch" class="switch" data-testid="col-votable" />
+      </label>
       <fieldset>
         <legend class="lbl">{{ t('column.color') }}</legend>
         <div class="swatches" role="radiogroup" :aria-label="t('column.color')">
@@ -65,6 +72,12 @@ function save() {
 
 <style scoped>
 .form { display: grid; gap: 1rem; }
+.line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.line span { display: grid; gap: .1rem; }
+.switch { appearance: none; flex: none; width: 46px; height: 26px; border-radius: 999px; background: var(--border); position: relative; cursor: pointer; transition: background .2s; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
 fieldset { border: 0; padding: 0; margin: 0; }
 .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: 200px; overflow: auto; padding: 2px; }
 .ico { display: grid; place-items: center; aspect-ratio: 1; font-size: var(--fs-xl); border: 1.5px solid var(--border); border-radius: var(--r-control); background: var(--surface2); cursor: pointer; transition: transform .15s; }

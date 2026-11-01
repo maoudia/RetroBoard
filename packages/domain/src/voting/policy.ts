@@ -14,12 +14,16 @@ export const countOf = (voters: readonly string[], cid: string): number => voter
 /** Can this item take votes under the board's policy? Null when it can, else the reason. */
 export function votability(s: BoardState, kind: VotableKind, id: string): ErrorCode | null {
   const { votable } = s.settings
+  const columnVotable = (columnId: string) => s.columns.find((c) => c.id === columnId)?.votable !== false
   if (kind === 'cluster') {
-    if (!s.groups[id]) return 'not-found'
+    const g = s.groups[id]
+    if (!g) return 'not-found'
+    if (!columnVotable(g.columnId)) return 'not-votable'
     return votable === 'notes' ? 'not-votable' : null
   }
   const note = s.notes[id]
   if (!note) return 'not-found'
+  if (!columnVotable(note.columnId)) return 'not-votable'
   if (votable === 'clusters' && !note.groupId) return 'not-votable'
   // A note inside a cluster is voted through its cluster when clusters are votable.
   if (note.groupId && votable !== 'notes') return 'not-votable'

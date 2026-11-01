@@ -134,7 +134,8 @@ Useful tasks: summarise themes, suggest SMART actions with owners, spot actions 
       "color": 2,
       "title": "Continue",
       "subtitle": "À garder",
-      "icon": "refresh-cw"
+      "icon": "refresh-cw",
+      "votable": false
     }
   ],
   "notes": [],
@@ -613,7 +614,8 @@ tests","0","Alice"
       "color": 2,
       "title": "Continue",
       "subtitle": "À garder",
-      "icon": "refresh-cw"
+      "icon": "refresh-cw",
+      "votable": false
     }
   ],
   "notes": [
@@ -1228,7 +1230,8 @@ tests","","Alice"
       "color": 2,
       "title": "Continue",
       "subtitle": "À garder",
-      "icon": "refresh-cw"
+      "icon": "refresh-cw",
+      "votable": false
     }
   ],
   "notes": [

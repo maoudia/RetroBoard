@@ -209,6 +209,7 @@ describe('templates and init', () => {
     h.run({ t: 'note.group', id: a, ontoId: b })
     const g = h.state.notes[a]!.groupId!
     h.run({ t: 'vote.add', kind: 'note', id: first })
+    h.run({ t: 'column.update', id: before[lastOld]!, votable: true }) // the happy last column of the default format is not votable
     h.run({ t: 'vote.add', kind: 'cluster', id: g })
     const tplId = ['weather', 'daki', 'start-stop-continue'].find((id) => id !== h.state.settings.templateId)!
     const out = h.run({ t: 'template.apply', templateId: tplId, mode: 'migrate' })
@@ -467,5 +468,25 @@ describe('pinned notes (note-pin)', () => {
     const gid = Object.keys(h.state.groups)[0]!
     expect(h.run({ t: 'note.pin', id: gid }).ok).toBe(true)
     expect(h.state.groups[gid]?.pinned).toBeTypeOf('number')
+  })
+})
+
+describe('votable columns (change column-voting-scope)', () => {
+  it('refuses votes on a column where voting is off, for notes and clusters, and the facilitator can switch it', () => {
+    const h = harness()
+    const off = h.state.columns.find((c) => c.votable === false)!
+    const on = h.state.columns.find((c) => c.votable !== false)!
+    h.run({ t: 'note.add', columnId: off.id, text: 'happy' })
+    h.run({ t: 'note.add', columnId: on.id, text: 'pain' })
+    const [happy, pain] = ['happy', 'pain'].map((t) => Object.values(h.state.notes).find((n) => n.text === t)!.id) as [string, string]
+    expect(h.run({ t: 'vote.add', kind: 'note', id: happy })).toEqual({ ok: false, error: 'not-votable' })
+    expect(h.run({ t: 'vote.add', kind: 'note', id: pain }).ok).toBe(true)
+    expect(h.run({ t: 'column.update', id: off.id, votable: true }).ok).toBe(true)
+    expect(h.state.columns.find((c) => c.id === off.id)!.votable).toBeUndefined()
+    expect(h.run({ t: 'vote.add', kind: 'note', id: happy }).ok).toBe(true)
+    expect(h.run({ t: 'column.update', id: on.id, votable: false }).ok).toBe(true)
+    expect(h.run({ t: 'vote.add', kind: 'note', id: pain })).toEqual({ ok: false, error: 'not-votable' })
+    // Undo is still allowed after the column stopped being votable.
+    expect(h.run({ t: 'vote.remove', kind: 'note', id: pain }).ok).toBe(true)
   })
 })

@@ -38,13 +38,13 @@ export type Command =
   | { t: 'drafts.reveal'; seconds?: number }
   | { t: 'vote.close' }
   | { t: 'vote.reopen' }
-  | { t: 'column.add'; title: string; subtitle?: string; icon?: ColumnIcon; color?: number }
+  | { t: 'column.add'; title: string; subtitle?: string; icon?: ColumnIcon; color?: number; votable?: boolean }
   | { t: 'column.hide'; id: string }
   | { t: 'column.show'; id: string | null }
-  | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon; color?: number }
+  | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon; color?: number; votable?: boolean }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
-  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean }
+  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean; /** Votable flag per template column, in order (overrides the format's defaults). */ votable?: boolean[] }
   /** `wipe: true` is the older spelling of mode `wipe`; `migrate` keeps notes, clusters and votes (change board-type-migration). */
   | { t: 'template.apply'; templateId: string; wipe?: boolean; mode?: 'wipe' | 'migrate'; locale?: Locale }
   | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean }

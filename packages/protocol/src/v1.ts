@@ -45,8 +45,8 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('roti.set'), score: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5)) }),
   v.object({ t: v.literal('vote.close') }),
   v.object({ t: v.literal('vote.reopen') }),
-  v.object({ t: v.literal('column.add'), title: ColumnTitle, subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color) }),
-  v.object({ t: v.literal('column.update'), id: Id, title: v.optional(ColumnTitle), subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color) }),
+  v.object({ t: v.literal('column.add'), title: ColumnTitle, subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color), votable: v.optional(v.boolean()) }),
+  v.object({ t: v.literal('column.update'), id: Id, title: v.optional(ColumnTitle), subtitle: v.optional(ColumnSubtitle), icon: v.optional(Icon), color: v.optional(Color), votable: v.optional(v.boolean()) }),
   v.object({ t: v.literal('column.delete'), id: Id }),
   v.object({ t: v.literal('column.hide'), id: Id }),
   v.object({ t: v.literal('column.show'), id: v.nullable(Id) }),
@@ -59,6 +59,7 @@ export const CommandSchema = v.variant('t', [
     locale: v.optional(v.picklist(['fr', 'en'])),
     openFacilitation: v.optional(v.boolean()),
     announceArrivals: v.optional(v.boolean()),
+    votable: v.optional(v.pipe(v.array(v.boolean()), v.maxLength(LIMITS.maxColumns))),
   }),
   v.object({ t: v.literal('template.apply'), templateId: v.pipe(v.string(), v.maxLength(40)), wipe: v.optional(v.boolean()), mode: v.optional(v.picklist(['wipe', 'migrate'])), locale: v.optional(v.picklist(['fr', 'en'])) }),
   v.object({

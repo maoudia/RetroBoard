@@ -32,3 +32,16 @@ describe('ranking', () => {
     expect(podium(buildRanking({ notes: [note('x', 0)], groups: [] })!)).toEqual([])
   })
 })
+
+describe('ranking and votable columns (change column-voting-scope)', () => {
+  it('leaves out the ideas of a column where voting is off', () => {
+    const happy = { ...note('h', 0), columnId: 'c2' }
+    const happyCluster = { ...cluster('hg', 0), columnId: 'c2' }
+    const r = buildRanking({
+      notes: [note('a', 2), happy, { ...note('m', 0, 'hg'), columnId: 'c2' }],
+      groups: [happyCluster],
+      columns: [{ id: 'c1' }, { id: 'c2', votable: false }],
+    })!
+    expect(r.map((x) => x.id)).toEqual(['a'])
+  })
+})

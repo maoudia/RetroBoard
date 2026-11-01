@@ -190,7 +190,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
   'column.add': (s, c, _a, ctx) => {
     if (s.columns.length >= LIMITS.maxColumns) return fail('limit-reached')
     if (c.color !== undefined && !validColor(c.color)) return fail('invalid')
-    const col = { id: ctx.newId(), title: c.title, subtitle: c.subtitle ?? '', icon: c.icon ?? DEFAULT_COLUMN_ICON, ...(c.color === undefined ? {} : { color: c.color }) }
+    const col = { id: ctx.newId(), title: c.title, subtitle: c.subtitle ?? '', icon: c.icon ?? DEFAULT_COLUMN_ICON, ...(c.color === undefined ? {} : { color: c.color }), ...(c.votable === false ? { votable: false } : {}) }
     return done({ ...s, columns: [...s.columns, col], settings: { ...s.settings, templateId: null } }, { meta: true })
   },
 
@@ -217,7 +217,9 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     if (i < 0) return fail('not-found')
     if (c.color !== undefined && !validColor(c.color)) return fail('invalid')
     const col = s.columns[i]!
-    const next = { ...col, title: c.title ?? col.title, subtitle: c.subtitle ?? col.subtitle, icon: c.icon ?? col.icon, ...(c.color === undefined ? {} : { color: c.color }) }
+    const { votable: was, ...rest } = col
+    const votable = c.votable ?? was
+    const next = { ...rest, title: c.title ?? col.title, subtitle: c.subtitle ?? col.subtitle, icon: c.icon ?? col.icon, ...(c.color === undefined ? {} : { color: c.color }), ...(votable === false ? { votable: false } : {}) }
     const columns = s.columns.map((x, k) => (k === i ? next : x))
     return done({ ...s, columns, settings: { ...s.settings, templateId: null } }, { meta: true })
   },

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { LIMITS, DEFAULT_TEMPLATE_ID, type ImportedAction, type PhaseInput } from '@retroboard/domain'
+import { LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 
-export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean }
+export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
@@ -16,6 +16,11 @@ const passcode = ref('')
 const facilitation = ref<'everyone' | 'one'>('everyone')
 /** Arrival popups are on by default; the activity feed always lists them. */
 const announceArrivals = ref(true)
+/** Votes per column of the chosen format (change column-voting-scope): the format's defaults, editable here. */
+const tpl = computed(() => { const x = getTemplate(templateId.value); return x ? localizeTemplate(x, locale.value) : null })
+const votable = ref<boolean[]>([])
+watch(tpl, (x) => { votable.value = (x?.columns ?? []).map((c) => c.votable !== false) }, { immediate: true })
+const customVotable = computed(() => (tpl.value?.columns ?? []).some((c, i) => (c.votable !== false) !== votable.value[i]))
 
 // A browser agent (WebMCP) may prepare the form; the human still reviews it and clicks Create.
 const agent = useAgentStore()
@@ -29,7 +34,7 @@ watch(() => agent.setupDraft, (draft) => {
 </script>
 
 <template>
-  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(withPasscode && passcode ? { passcode } : {}) })">
+  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(customVotable ? { votable: [...votable] } : {}), ...(withPasscode && passcode ? { passcode } : {}) })">
     <label class="lbl">{{ t('setup.name') }}
       <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" />
     </label>
@@ -51,6 +56,15 @@ watch(() => agent.setupDraft, (draft) => {
       <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="one" data-testid="setup-fac-one" />
         <span><strong>{{ t('setup.fac.single') }}</strong><small class="muted">{{ t('setup.fac.single.hint') }}</small></span></label>
     </fieldset>
+
+    <details v-if="tpl" class="votable" data-testid="setup-votable">
+      <summary class="lbl">{{ t('setup.votable') }}</summary>
+      <p class="muted small">{{ t('setup.votable.hint') }}</p>
+      <label v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" class="opt">
+        <input v-model="votable[i]" type="checkbox" :data-testid="`setup-votable-${i}`" />
+        <span><strong>{{ c.title }}</strong></span>
+      </label>
+    </details>
 
     <label class="opt" data-testid="setup-arrivals-row">
       <input v-model="announceArrivals" type="checkbox" data-testid="setup-arrivals" />
@@ -74,6 +88,9 @@ h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .go { justify-self: start; padding: .8rem 1.5rem; font-size: var(--fs-md); }
 .pass { display: grid; gap: .35rem; }
 .fac { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; }
+.votable { display: grid; gap: .5rem; }
+.votable summary { cursor: pointer; }
+.small { font-size: var(--fs-sm); margin: 0; }
 .opt { display: flex; gap: .6rem; align-items: flex-start; cursor: pointer; }
 .opt span { display: grid; gap: .1rem; }
 .opt input { margin-top: .3rem; }

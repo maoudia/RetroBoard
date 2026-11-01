@@ -65,3 +65,11 @@ describe('suggestThemeForDate', () => {
     expect(suggestThemeForDate(new Date(`${d}T12:00:00`)).themeId).toBe(expected)
   })
 })
+
+describe('votable columns by template (change column-voting-scope)', () => {
+  it('every format keeps at least one votable column and marks only celebration columns as not votable', () => {
+    for (const t of TEMPLATES) expect(t.columns.some((c) => c.votable !== false), t.id).toBe(true)
+    const ssc = TEMPLATES.find((t) => t.id === 'start-stop-continue')!
+    expect(ssc.columns.map((c) => c.votable !== false)).toEqual([true, true, false])
+  })
+})

@@ -17,7 +17,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     if (!tpl) return fail('not-found')
     return done({
       ...s,
-      columns: columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId),
+      columns: columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId, c.votable),
       settings: { ...s.settings, initialized: true, templateId: tpl.id, themeId: c.themeId, title: c.title ?? s.settings.title, ...(c.locale ? { locale: c.locale } : {}), ...(c.openFacilitation !== undefined ? { openFacilitation: c.openFacilitation } : {}), ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}) },
     }, { meta: true, wipe: true })
   },

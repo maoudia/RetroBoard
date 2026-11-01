@@ -17,17 +17,20 @@ export interface RankedItem {
  * Ranking after voting: every idea (loose note or cluster) ordered by votes, ties kept together.
  * Returns null while counts are hidden: a ranking must never leak hidden counts.
  */
-export function buildRanking(s: Pick<Snapshot, 'notes' | 'groups'>): RankedItem[] | null {
+export function buildRanking(s: Pick<Snapshot, 'notes' | 'groups'> & { columns?: Pick<Snapshot['columns'][number], 'id' | 'votable'>[] }): RankedItem[] | null {
   if (s.notes.some((n) => n.votes === null) || s.groups.some((g) => g.votes === null)) return null
   const order = new Map(s.notes.map((n, i) => [n.id, i]))
+  // Ideas of a column where voting is off are not part of the ranking (change column-voting-scope).
+  const off = new Set((s.columns ?? []).filter((c) => c.votable === false).map((c) => c.id))
   const items: (RankedItem & { pos: number })[] = []
   for (const g of s.groups) {
+    if (off.has(g.columnId)) continue
     const notes = s.notes.filter((n) => n.groupId === g.id)
     if (!notes.length) continue
     items.push({ kind: 'cluster', id: g.id, title: groupTitle(g, notes), columnId: g.columnId, votes: g.votes ?? 0, rank: 0, size: notes.length, pos: order.get(notes[0]!.id) ?? 0 })
   }
   for (const n of s.notes) {
-    if (n.groupId) continue
+    if (n.groupId || off.has(n.columnId)) continue
     items.push({ kind: 'note', id: n.id, title: n.text, columnId: n.columnId, votes: n.votes ?? 0, rank: 0, size: 1, pos: order.get(n.id) ?? 0 })
   }
   items.sort((a, b) => b.votes - a.votes || a.pos - b.pos)

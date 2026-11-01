@@ -9,6 +9,8 @@ export interface Column {
   color?: number
   /** Hidden by a facilitator for a while (change column-visibility). Shown again by the closing phase in the snapshot. */
   hidden?: boolean
+  /** Votes are refused on this column when false (change column-voting-scope). Absent: votable, like boards created before. */
+  votable?: boolean
 }
 
 export interface Group {

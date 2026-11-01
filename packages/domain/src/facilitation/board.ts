@@ -7,13 +7,15 @@ import type { BoardState, Column, ReduceContext } from '../shared/types'
 export const DEFAULT_TEMPLATE_ID = 'start-stop-continue'
 export const DEFAULT_THEME_ID = 'studio'
 
-export function columnsFromTemplate(template: RetroTemplate, newId: () => string): Column[] {
+export function columnsFromTemplate(template: RetroTemplate, newId: () => string, votable?: readonly boolean[]): Column[] {
   return template.columns.map((c, i) => ({
     id: newId(),
     color: i % NOTE_COLOR_COUNT,
     title: c.title,
     subtitle: c.subtitle,
     icon: c.icon || DEFAULT_COLUMN_ICON,
+    // The setup form may override the format's default per column (change column-voting-scope).
+    ...((votable?.[i] ?? c.votable !== false) ? {} : { votable: false }),
   }))
 }
 

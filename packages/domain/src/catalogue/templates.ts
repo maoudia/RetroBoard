@@ -5,6 +5,8 @@ export interface TemplateColumn {
   title: string
   subtitle: string
   icon: string
+  /** false: celebration or keep column, not meant to be voted (change column-voting-scope). Default: votable. */
+  votable?: false
 }
 
 export interface RetroTemplate {
@@ -33,7 +35,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     columns: [
       { title: 'Start', subtitle: 'À commencer', icon: 'play' },
       { title: 'Stop', subtitle: 'À arrêter', icon: 'octagon-x' },
-      { title: 'Continue', subtitle: 'À garder', icon: 'refresh-cw' },
+      { title: 'Continue', subtitle: 'À garder', icon: 'refresh-cw', votable: false },
     ],
   },
   {
@@ -44,7 +46,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     mood: [2, 5],
     minutes: [15, 45],
     columns: [
-      { title: 'Ce qui a bien marché', subtitle: 'À conserver', icon: 'thumbs-up' },
+      { title: 'Ce qui a bien marché', subtitle: 'À conserver', icon: 'thumbs-up', votable: false },
       { title: 'À améliorer', subtitle: 'Ce qui peut mieux faire', icon: 'wrench' },
       { title: 'Questions', subtitle: 'Ce qu\'on veut éclaircir', icon: 'circle-question-mark' },
     ],
@@ -59,7 +61,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     columns: [
       { title: 'Drop', subtitle: 'On abandonne', icon: 'octagon-x' },
       { title: 'Add', subtitle: 'On ajoute', icon: 'plus' },
-      { title: 'Keep', subtitle: 'On garde', icon: 'shield-check' },
+      { title: 'Keep', subtitle: 'On garde', icon: 'shield-check', votable: false },
       { title: 'Improve', subtitle: 'On améliore', icon: 'refresh-cw' },
     ],
   },
@@ -73,7 +75,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     columns: [
       { title: 'Mad', subtitle: 'Ce qui énerve', icon: 'angry' },
       { title: 'Sad', subtitle: 'Ce qui déçoit', icon: 'frown' },
-      { title: 'Glad', subtitle: 'Ce qui rend heureux', icon: 'smile' },
+      { title: 'Glad', subtitle: 'Ce qui rend heureux', icon: 'smile', votable: false },
     ],
   },
   {
@@ -84,8 +86,8 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     mood: [3, 5],
     minutes: [30, 60],
     columns: [
-      { title: 'Liked', subtitle: 'Ce qu\'on a aimé', icon: 'heart' },
-      { title: 'Learned', subtitle: 'Ce qu\'on a appris', icon: 'graduation-cap' },
+      { title: 'Liked', subtitle: 'Ce qu\'on a aimé', icon: 'heart', votable: false },
+      { title: 'Learned', subtitle: 'Ce qu\'on a appris', icon: 'graduation-cap', votable: false },
       { title: 'Lacked', subtitle: 'Ce qui a manqué', icon: 'hourglass' },
       { title: 'Longed for', subtitle: 'Ce dont on rêve', icon: 'telescope' },
     ],
@@ -98,7 +100,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     mood: [2, 5],
     minutes: [30, 60],
     columns: [
-      { title: 'Vent', subtitle: 'Ce qui nous fait avancer', icon: 'wind' },
+      { title: 'Vent', subtitle: 'Ce qui nous fait avancer', icon: 'wind', votable: false },
       { title: 'Ancres', subtitle: 'Ce qui nous freine', icon: 'anchor' },
       { title: 'Rochers', subtitle: 'Les risques devant nous', icon: 'mountain' },
       { title: 'Île', subtitle: 'Notre objectif', icon: 'tree-palm' },
@@ -112,8 +114,8 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     mood: [2, 5],
     minutes: [20, 45],
     columns: [
-      { title: 'Ciel dégagé', subtitle: 'Ce qui va bien', icon: 'sun' },
-      { title: 'Air chaud', subtitle: 'Ce qui monte, ce qui nous porte', icon: 'cloud-sun' },
+      { title: 'Ciel dégagé', subtitle: 'Ce qui va bien', icon: 'sun', votable: false },
+      { title: 'Air chaud', subtitle: 'Ce qui monte, ce qui nous porte', icon: 'cloud-sun', votable: false },
       { title: 'Sacs de sable', subtitle: 'Ce qui nous alourdit', icon: 'cloud-rain' },
       { title: 'Tempête', subtitle: 'Les risques à venir', icon: 'cloud-lightning' },
     ],
@@ -126,7 +128,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     mood: [2, 4],
     minutes: [30, 60],
     columns: [
-      { title: 'Keep', subtitle: 'On garde', icon: 'shield-check' },
+      { title: 'Keep', subtitle: 'On garde', icon: 'shield-check', votable: false },
       { title: 'Less', subtitle: 'Moins de', icon: 'minus' },
       { title: 'More', subtitle: 'Plus de', icon: 'plus' },
       { title: 'Start', subtitle: 'On commence', icon: 'play' },
@@ -141,8 +143,8 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     mood: [3, 5],
     minutes: [15, 30],
     columns: [
-      { title: 'Merci', subtitle: 'Un coup de chapeau', icon: 'hand-heart' },
-      { title: 'Réussites', subtitle: 'Ce dont on est fier', icon: 'trophy' },
+      { title: 'Merci', subtitle: 'Un coup de chapeau', icon: 'hand-heart', votable: false },
+      { title: 'Réussites', subtitle: 'Ce dont on est fier', icon: 'trophy', votable: false },
       { title: 'Idées', subtitle: 'À tester', icon: 'lightbulb' },
     ],
   },
@@ -155,11 +157,11 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     minutes: [30, 60],
     themeId: 'halloween',
     columns: [
-      { title: 'Citrouilles', subtitle: 'Ce qui a bien marché', icon: 'sparkles' },
+      { title: 'Citrouilles', subtitle: 'Ce qui a bien marché', icon: 'sparkles', votable: false },
       { title: 'Fantômes', subtitle: 'Ce qui nous hante', icon: 'ghost' },
       { title: 'Toiles d\'araignée', subtitle: 'Ce qui nous bloque', icon: 'bug' },
       { title: 'Potions magiques', subtitle: 'Idées à tester', icon: 'lightbulb' },
-      { title: 'Bonbons ou sort', subtitle: 'Remerciements', icon: 'candy' },
+      { title: 'Bonbons ou sort', subtitle: 'Remerciements', icon: 'candy', votable: false },
     ],
   },
   {
@@ -171,10 +173,10 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     minutes: [30, 60],
     themeId: 'noel',
     columns: [
-      { title: 'Cadeaux reçus', subtitle: 'Ce qui nous a fait plaisir', icon: 'gift' },
+      { title: 'Cadeaux reçus', subtitle: 'Ce qui nous a fait plaisir', icon: 'gift', votable: false },
       { title: 'Morceaux de charbon', subtitle: 'Ce qui s\'est mal passé', icon: 'flame' },
       { title: 'Liste au Père Noël', subtitle: 'Ce qu\'on voudrait', icon: 'star' },
-      { title: 'Merci les lutins', subtitle: 'Remerciements', icon: 'candy-cane' },
+      { title: 'Merci les lutins', subtitle: 'Remerciements', icon: 'candy-cane', votable: false },
     ],
   },
   {
@@ -186,7 +188,7 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     minutes: [20, 45],
     themeId: 'cyber',
     columns: [
-      { title: 'Build OK', subtitle: 'Ce qui passe au vert', icon: 'shield-check' },
+      { title: 'Build OK', subtitle: 'Ce qui passe au vert', icon: 'shield-check', votable: false },
       { title: 'Tests rouges', subtitle: 'Ce qui casse', icon: 'bug' },
       { title: 'Hotfix', subtitle: 'À corriger vite', icon: 'wrench' },
       { title: 'Release', subtitle: 'À livrer ensuite', icon: 'rocket' },
@@ -201,8 +203,8 @@ export const TEMPLATES: readonly RetroTemplate[] = [
     minutes: [30, 60],
     themeId: 'sakura',
     columns: [
-      { title: 'Fleurs', subtitle: 'Ce qui éclot', icon: 'flower-2' },
-      { title: 'Racines', subtitle: 'Nos bases solides', icon: 'leaf' },
+      { title: 'Fleurs', subtitle: 'Ce qui éclot', icon: 'flower-2', votable: false },
+      { title: 'Racines', subtitle: 'Nos bases solides', icon: 'leaf', votable: false },
       { title: 'Mauvaises herbes', subtitle: 'À arracher', icon: 'sprout' },
       { title: 'Graines', subtitle: 'À planter', icon: 'cherry' },
     ],
