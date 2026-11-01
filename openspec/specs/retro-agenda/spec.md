@@ -50,3 +50,46 @@ A facilitator SHALL be able to jump to the close phase from any phase after a co
 #### Scenario: Short on time
 - **WHEN** the facilitator chooses Go to closing during the Group phase
 - **THEN** the board is in the close phase and skipped phases show no actual time
+
+### Requirement: Global time follows the real time spent
+The global elapsed time of the retro SHALL be the time actually spent in finished phases plus the time of the running phase; skipping a phase SHALL NOT add its planned time, and the planned total SHALL NOT change.
+
+#### Scenario: Skipping a phase
+- **WHEN** the facilitator moves to the next phase one minute into a fifteen minute phase of a one hour retro
+- **THEN** the global elapsed time is one minute and the global time left is fifty-nine minutes
+
+### Requirement: Phase detail from the progress bar
+Each segment of the phase bar SHALL open, on click or keyboard activation, a popover with the phase name, the real time spent in it and its planned time.
+
+#### Scenario: Finished phase
+- **WHEN** Bob activates the segment of a phase that ran for 4:12
+- **THEN** a popover names the phase and shows 4:12 spent of the planned time
+
+#### Scenario: Skipped phase
+- **WHEN** Bob activates the segment of a phase that was left without time spent
+- **THEN** the popover says it was skipped
+
+### Requirement: Start and pause inside the ring
+The start, pause and resume control of the agenda SHALL be part of the ring component, in the same frame as the rings and the time.
+
+#### Scenario: Facilitator
+- **WHEN** the facilitator looks at the toolbar clock
+- **THEN** the play or pause button is inside the clock frame, and participants see no button
+
+### Requirement: Elapsed or remaining time
+A participant SHALL be able to choose, separately for the phase stepper and for the global ring, whether they show the elapsed or the remaining time; by default the stepper SHALL show elapsed time and the ring SHALL show remaining time.
+
+#### Scenario: Defaults
+- **WHEN** Bob opens a running retro for the first time
+- **THEN** the stepper shows how long the current phase has run and the ring shows the time left for the retro
+
+#### Scenario: Switch
+- **WHEN** Bob sets the stepper to remaining time
+- **THEN** the stepper shows the time left in the phase and the ring is unchanged
+
+### Requirement: Visible overtime
+A phase past its planned time SHALL show zero time left in the overtime colour, then the time over as "+m:ss".
+
+#### Scenario: Two minutes over
+- **WHEN** the Group phase is two minutes past its planned time
+- **THEN** the stepper segment is in the overtime colour and reads "+2:00"

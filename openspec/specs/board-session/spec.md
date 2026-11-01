@@ -43,3 +43,14 @@ The system SHALL keep a board only in participants' replicas and exported board 
 #### Scenario: Everyone left
 - **WHEN** all participants closed the board and the relay was evicted
 - **THEN** the service holds no trace of the board and only participants' replicas or board files can bring it back
+
+### Requirement: Toolbar slides horizontally on small screens
+On narrow screens the toolbar tools SHALL stay on a single row that scrolls horizontally instead of wrapping, so that the columns keep their space.
+
+#### Scenario: Phone
+- **WHEN** a participant opens a board at 360 px wide
+- **THEN** the toolbar is at most two rows high, the tools row scrolls sideways, and a focused tool is scrolled into view
+
+#### Scenario: Menus
+- **WHEN** the participant opens a toolbar menu while the row is scrolled
+- **THEN** the menu opens next to its button, not clipped by the row
