@@ -8,7 +8,7 @@ export const sakura: ThemeDefinition = {
   scheme: 'light',
   tokens: {
     bg: '#fff6f9', bg2: '#ffe3ee', surface: '#ffffff', surface2: '#fff0f5', border: '#f1c6d6',
-    text: '#3a2230', muted: '#7d5568', accent: '#b93562', accent2: '#4b9256', accentInk: '#ffffff',
+    text: '#3a2230', muted: '#7d5568', accent: '#b93562', accent2: '#3b7a46', accentInk: '#ffffff',
     danger: '#c62a47', success: '#2d7742', noteInk: '#3a2230',
   },
   /** The dark variant (each participant picks light or dark; the board theme stays the same). */
