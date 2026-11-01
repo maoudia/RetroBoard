@@ -14,6 +14,8 @@ onMounted(() => {
   observer = new ResizeObserver(() => root.style.setProperty('--toolbar-actual', `${Math.ceil(el.value?.getBoundingClientRect().height ?? 0)}px`))
   observer.observe(el.value)
 })
+const recents = useRecentsStore()
+const otherBoards = computed(() => recents.items.some((r) => r.id !== board.roomId))
 onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.removeProperty('--toolbar-actual') })
 </script>
 
@@ -25,6 +27,19 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
         <strong>{{ board.settings?.title }}</strong>
         <small class="muted">{{ theme.theme.name }}</small>
       </button>
+      <!-- Switch board: the recent boards of this device, one click away (change recent-boards-visible). -->
+      <Dropdown align="start" width="260px">
+        <template #trigger="{ toggle, open: menuOpen }">
+          <button class="mini-btn boards-btn" type="button" aria-haspopup="true" :aria-expanded="menuOpen" :aria-label="t('toolbar.boards')" :title="t('toolbar.boards')" data-testid="btn-boards" @click="toggle">
+            <Icon name="lucide:chevrons-up-down" />
+          </button>
+        </template>
+        <template #default="{ close }">
+          <span class="boards-head muted">{{ t('toolbar.boards') }}</span>
+          <RecentBoards :exclude="board.roomId ?? undefined" :limit="8" testid="boards-menu" @open="close()" />
+          <p v-if="!otherBoards" class="boards-none muted">{{ t('toolbar.boards.none') }}</p>
+        </template>
+      </Dropdown>
     </div>
 
     <!-- With an agenda, the phase ring is the shared countdown; otherwise the plain timer. -->
@@ -60,6 +75,8 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 .brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
 .logo:hover { transform: rotate(-8deg) scale(1.08); }
+.boards-head { display: block; padding: .3rem .5rem; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.boards-none { margin: 0; padding: .3rem .5rem .5rem; font-size: var(--fs-sm); }
 .title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: var(--r-control); background: transparent; cursor: pointer; }
 .title:hover { background: var(--accent-soft); }
 .title strong { font-family: var(--f-display); font-size: var(--fs-xl); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

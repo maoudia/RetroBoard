@@ -5,7 +5,7 @@ import { THEMES } from '@retroboard/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
 import { askNotifyPermission, canNotify } from '~/utils/system-notify'
-const { t, locale } = useT()
+const { t } = useT()
 
 const ui = useUiStore()
 const identity = useIdentityStore()
@@ -45,7 +45,6 @@ async function wipe() {
   push(t('profile.wiped'), 'ok')
   setTimeout(() => window.location.assign('/'), 600)
 }
-const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 </script>
 
 <template>
@@ -182,12 +181,7 @@ const when = (at: number) => new Date(at).toLocaleDateString(locale.value === 'f
     <section class="grp">
       <h3>{{ t('profile.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h3>
       <p v-if="!recents.items.length" class="muted">{{ t('profile.recents.none') }}</p>
-      <ul v-else class="recents" data-testid="recents">
-        <li v-for="r in recents.items" :key="r.id">
-          <NuxtLink :to="{ path: '/board', hash: r.hash }" @click="ui.close()"><strong>{{ r.title }}</strong><small class="muted">{{ when(r.at) }}</small></NuxtLink>
-          <button class="mini-btn" type="button" :aria-label="t('profile.recents.remove')" @click="recents.remove(r.id)"><Icon name="lucide:x" /></button>
-        </li>
-      </ul>
+      <RecentBoards v-else removable testid="recents" @open="ui.close()" />
     </section>
 
     <section class="grp danger-zone">
@@ -230,10 +224,6 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
 .switch:checked { background: var(--accent); }
 .switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
-.recents { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 190px; overflow: auto; }
-.recents li { display: flex; align-items: center; gap: .5rem; padding: .3rem .5rem; border-radius: var(--r-sm); }
-.recents li:hover { background: var(--accent-soft); }
-.recents a { flex: 1; display: flex; justify-content: space-between; gap: 1rem; color: inherit; text-decoration: none; min-width: 0; }
 .recents strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .danger-zone h3 { color: var(--danger); }
 </style>

@@ -70,9 +70,10 @@ onMounted(() => {
           <NuxtLink to="/new" class="cta" data-testid="hero-create">{{ t('landing.create') }} <Icon name="lucide:arrow-right" /></NuxtLink>
           <button class="ghost" type="button" data-testid="solo" @click="solo">{{ t('landing.trySolo') }}</button>
         </div>
-        <ul v-if="recents.items.length" class="resume" data-reveal :style="{ '--d': '300ms' }">
-          <li v-for="r in recents.items.slice(0, 3)" :key="r.id"><NuxtLink :to="{ path: '/board', hash: r.hash }"><Icon name="lucide:rotate-ccw" /> {{ t('landing.resume', { title: r.title }) }}</NuxtLink></li>
-        </ul>
+        <section v-if="recents.items.length" class="mine card" data-reveal :style="{ '--d': '300ms' }" data-testid="landing-recents" :aria-label="t('landing.recents')">
+          <h2>{{ t('landing.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h2>
+          <RecentBoards :limit="4" testid="landing-recents-list" />
+        </section>
 
         <div class="stage" data-reveal :style="{ '--d': '340ms' }" @pointermove="onMove" @pointerleave="onLeave">
           <div class="tilt" :style="{ transform: `perspective(1400px) rotateX(${-tilt.y * 2.5}deg) rotateY(${tilt.x * 3.5}deg)` }"><LandingHeroMock /></div>
@@ -188,7 +189,10 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .hero h1 { font-size: clamp(2.9rem, 8vw, 6rem); line-height: 1.02; letter-spacing: -.045em; background: linear-gradient(180deg, #1d1d1f 30%, #6e6e73); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .sub { max-width: 620px; color: var(--ink2); font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.4; letter-spacing: -.01em; }
 .actions { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
-.resume { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; justify-content: center; margin: 0; padding: 0; } .resume a { display: inline-flex; gap: .4rem; align-items: center; color: var(--ink2); font-size: var(--fs-sm); text-decoration: none; } .resume a:hover { color: var(--blue); }
+/* Recent boards: the landing page has its own light palette, handed to the shared component through the theme tokens. */
+.mine { --text: var(--ink); --muted: var(--ink2); --border: var(--line); --accent-soft: rgb(0 113 227 / .08); justify-self: center; width: min(520px, 100%); padding: .9rem 1rem; border: 1px solid var(--line); border-radius: var(--r-card); background: #fff; text-align: left; box-shadow: 0 8px 24px -16px rgb(0 0 0 / .25); }
+.mine h2 { margin: 0 0 .4rem; font-size: var(--fs-md); letter-spacing: -.01em; }
+.mine .n { font-size: var(--fs-xs); font-weight: 500; }
 .stage { width: min(960px, 100%); margin-top: 2rem; } .tilt { transition: transform .5s cubic-bezier(.2,.8,.2,1); will-change: transform; }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; max-width: 1000px; margin: 2rem auto 5rem; padding: 0 1.25rem; text-align: center; }
