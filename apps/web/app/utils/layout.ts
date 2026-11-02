@@ -16,6 +16,8 @@ export interface ClassLayout {
   widths?: Record<string, Record<string, number>>
   /** board room id -> writing field height in px set by dragging (change board-layout-v2); a preset clears it. */
   writeH?: Record<string, number>
+  /** board room id -> column ids whose writing area is folded (change ux-irritants-wave-2). */
+  writeOff?: Record<string, string[]>
 }
 export type LayoutBook = Partial<Record<ScreenClass, ClassLayout>>
 
@@ -56,6 +58,13 @@ export function setWriteHeight(book: LayoutBook, cls: ScreenClass, room: string,
   const rest = Object.fromEntries(Object.entries(cur.writeH ?? {}).filter(([k]) => k !== room))
   const next = px === null ? rest : { ...rest, [room]: Math.round(Math.max(MIN_WRITE_PX, Math.min(MAX_WRITE_PX, px))) }
   return withLayout(book, cls, { writeH: next })
+}
+
+/** Fold or unfold the writing area of one column. Never mutates the input. */
+export function setColumnWriteHidden(book: LayoutBook, cls: ScreenClass, room: string, columnId: string, hidden: boolean): LayoutBook {
+  const cur = layoutOf(book, cls)
+  const rest = (cur.writeOff?.[room] ?? []).filter((id) => id !== columnId)
+  return withLayout(book, cls, { writeOff: { ...(cur.writeOff ?? {}), [room]: hidden ? [...rest, columnId] : rest } })
 }
 
 export const resetClass = (book: LayoutBook, cls: ScreenClass): LayoutBook => {

@@ -9,6 +9,8 @@ const props = defineProps<{ column: Column; colorIndex: number }>()
 const board = useBoardStore()
 const drafts = useDraftsStore()
 const layout = useLayoutStore()
+const folded = computed(() => layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id))
+function unfold() { layout.setWritingHidden(false); layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, false) }
 const identity = useIdentityStore()
 const ui = useUiStore()
 const { publish } = usePublish()
@@ -95,11 +97,11 @@ function onKey(e: KeyboardEvent) {
 </script>
 
 <template>
-  <!-- Folded writing area: one handle that reopens every column's writing area (change board-layout-v2). -->
-  <button v-if="layout.writingHidden" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="layout.setWritingHidden(false)">
-    <Icon name="lucide:pencil" /> {{ t('private.open') }}<span v-if="mine.length" class="n">({{ mine.length }})</span>
-  </button>
-  <section v-else class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
+  <!-- The writing area folds with a vertical slide: for every column (toolbar) or for this one (its own button);
+       one handle brings it back (changes board-layout-v2 and ux-irritants-wave-2). -->
+  <div class="priv-wrap" :data-folded="folded ? '' : undefined">
+    <div class="priv-clip" :inert="folded">
+  <section class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
     <header>
       <span class="title"><Icon name="lucide:eye-off" /> {{ t('private.title') }}</span>
       <Dropdown menu>
@@ -114,6 +116,7 @@ function onKey(e: KeyboardEvent) {
           </button>
         </template>
       </Dropdown>
+      <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevron-down" /></button>
       <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /> {{ t('private.publish') }} ({{ mine.length }})
       </button>
@@ -175,6 +178,11 @@ function onKey(e: KeyboardEvent) {
       <button class="link" type="button" @click="showSimilar(similar.id)">« {{ similar.text }} »</button>
     </p>
   </section>
+    </div>
+    <button v-if="folded" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
+      <Icon name="lucide:pencil" /> {{ t('private.open') }}<span v-if="mine.length" class="n">({{ mine.length }})</span>
+    </button>
+  </div>
 </template>
 
 <style scoped>
@@ -183,6 +191,10 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .similar { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font-size: var(--fs-sm); color: var(--muted); }
 .similar .link { overflow-wrap: anywhere; text-align: left; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
+.priv-wrap { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .3s var(--ease); }
+.priv-wrap[data-folded] { grid-template-rows: 0fr; }
+.priv-clip { min-height: 0; overflow: hidden; }
+.priv-wrap[data-folded] .priv-clip { visibility: hidden; transition: visibility 0s .3s; }
 .priv-handle { display: flex; align-items: center; justify-content: center; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-top: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
 .priv-handle:hover { color: var(--accent); background: var(--accent-soft); }
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
@@ -220,4 +232,8 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }
 .composer.gated textarea::placeholder { color: var(--muted); }
 .composer:focus-within { box-shadow: 0 0 0 3px var(--accent), var(--shadow-1); }
+</style>
+
+<style scoped>
+@media (prefers-reduced-motion: reduce) { .priv-wrap, .priv-wrap[data-folded] .priv-clip { transition: none; } }
 </style>

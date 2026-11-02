@@ -43,7 +43,7 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
     </div>
     <div class="right">
       <!-- Voting state, in words (change facilitator-controls-v2): facilitators switch it, everyone reads it. -->
-      <div class="seg" role="group" :aria-label="t('votebar.state')" data-testid="voting-state" :data-state="vstate">
+      <div class="seg" role="group" :aria-label="t('votebar.state')" :title="stateText" data-testid="voting-state" :data-state="vstate">
         <button
           type="button" class="segb" :class="{ on: vstate !== 'closed' && vstate !== 'phase-closed' }" :aria-pressed="vstate === 'open' || vstate === 'overridden'"
           :disabled="!board.access.canSteer || vstate === 'open' || vstate === 'overridden'" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')"
@@ -99,6 +99,12 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 .segb:disabled { cursor: default; }
 .segb:disabled:not(.on) { opacity: .6; }
 .state-text { font-size: var(--fs-sm); color: var(--muted); }
+/* One control height for the whole bar: the segmented switch, the buttons and the menu line up (change ux-irritants-wave-2). */
+.right .btn { min-height: 32px; }
+/* Narrower than a wide desktop the long state sentence would push the buttons to a third row: it stays for screen readers. */
+@media (max-width: 1280px) {
+  .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 /* Phone: the bar stays two short rows. The pill repeats the dots, the state text stays for screen readers. */
 @media (max-width: 720px) {
   .votebar { gap: .35rem 1rem; padding: .4rem .75rem; }

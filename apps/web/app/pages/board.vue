@@ -209,9 +209,14 @@ watch(() => board.access.isLead, (now, was) => {
   if (was && !now && ledOneFacilitator && board.settings?.openFacilitation === false) push(t('roles.takeover.lost', { name: leadName.value }), 'info', 8000)
 })
 // Presenter mode styles the whole page (tokens on the root) and ends with the board or Escape.
+let menusBefore = false
 watch(() => ui.presenter, (on) => {
-  if (on) document.documentElement.dataset.presenter = ''
-  else { delete document.documentElement.dataset.presenter; ui.focusColumn = null }
+  if (on) {
+    document.documentElement.dataset.presenter = ''
+    // The menu bar slides away in presentation mode unless the person chose otherwise (change ux-irritants-wave-2).
+    menusBefore = ui.chromeHidden
+    if (useSettingsStore().s.presenterHideMenus) ui.chromeHidden = true
+  } else { delete document.documentElement.dataset.presenter; ui.focusColumn = null; ui.chromeHidden = menusBefore }
 })
 watch(() => ui.focusColumn, async (i) => { if (i === null) return; await nextTick(); document.querySelector('.col[data-focused]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }) })
 // Column focus (presenter-mode-v2): the attribute drives the layout in base.css.

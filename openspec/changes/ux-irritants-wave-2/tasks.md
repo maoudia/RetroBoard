@@ -13,9 +13,9 @@
 
 ## 3. Chrome
 
-- [ ] 3.1 Per-column writing area with vertical slide; verify e2e
+- [x] 3.1 Per-column writing area with vertical slide; verify e2e
 - [x] 3.2 Toolbar slide with chevron handle, reduced motion respected; verify e2e
-- [ ] 3.3 Creation option to hide the menu bar in presentation mode, default on; verify unit and e2e
+- [x] 3.3 Creation option to hide the menu bar in presentation mode, default on; verify unit and e2e
 
 ## 4. Joining
 
@@ -23,7 +23,7 @@
 
 ## 5. Consistency and readability
 
-- [ ] 5.1 One button style for vote and phase bars; verify design-tokens test
+- [x] 5.1 One button style for vote and phase bars; verify design-tokens test
 - [x] 5.2 Human readable overdue time in fr and en; verify unit
 
 ## 6. Dialog polish

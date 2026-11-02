@@ -40,3 +40,32 @@ test('options dialog on a phone: destroy keeps its text in the box, scales are o
   expect(mb.width).toBeLessThan(db.width * 0.8)
   expect(Math.abs(mb.x + mb.width / 2 - (db.x + db.width / 2))).toBeLessThan(6)
 })
+
+test('presentation mode hides the menu bar by default, leaving restores it (change ux-irritants-wave-2)', async ({ page }) => {
+  await page.goto('/new')
+  await expect(page.getByTestId('new-presenter-switch')).toBeChecked()
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const tools = page.locator('nav.tools')
+  await page.getByTestId('btn-presenter').click()
+  await expect(tools).toBeHidden()
+  await page.keyboard.press('Escape')
+  await expect(tools).toBeVisible()
+})
+
+test('the creation switch keeps the menu bar in presentation mode (change ux-irritants-wave-2)', async ({ page }) => {
+  await page.goto('/new')
+  await page.getByTestId('new-presenter-switch').uncheck()
+  await page.reload()
+  await expect(page.getByTestId('new-presenter-switch')).not.toBeChecked()
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-presenter').click()
+  await expect(page.locator('nav.tools')).toBeVisible()
+})
+
+test('the vote bar controls share one height and the bar stays on one or two rows (change ux-irritants-wave-2)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  const heights = await page.getByTestId('votebar').locator('.segb, .right .btn').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)))
+  expect(heights.length).toBeGreaterThanOrEqual(3)
+  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(2)
+  expect((await page.getByTestId('votebar').boundingBox())!.height).toBeLessThan(100)
+})

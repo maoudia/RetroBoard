@@ -1,7 +1,7 @@
 import { safeStorage } from '~/utils/storage'
 import {
   type ClassLayout, type Density, LAYOUT_KEY, type LayoutBook, type ScreenClass, classOf, copyClass, layoutOf, resetClass,
-  setSize, setWidth, setWrite, setWriteHeight, withLayout,
+  setColumnWriteHidden, setSize, setWidth, setWrite, setWriteHeight, withLayout,
 } from '~/utils/layout'
 
 /** Layout remembered per screen class on this device (change device-layout-prefs). Local only. */
@@ -19,6 +19,8 @@ export const useLayoutStore = defineStore('layout', () => {
     setDensity: (d: Density) => commit(withLayout(book.value, cls.value, { density: d })),
     writingHidden: computed(() => current.value.writingHidden === true),
     setWritingHidden: (v: boolean) => commit(withLayout(book.value, cls.value, { writingHidden: v })),
+    columnWriteHidden: (room: string, columnId: string) => (current.value.writeOff?.[room] ?? []).includes(columnId),
+    setColumnWriteHidden: (room: string, columnId: string, hidden: boolean) => commit(setColumnWriteHidden(book.value, cls.value, room, columnId, hidden)),
     setFocusStyle: (s: 'centre' | 'accordion') => commit(withLayout(book.value, cls.value, { focusStyle: s })),
     setSizes: (room: string, sizes: Record<string, string>) => commit(withLayout(book.value, cls.value, { sizes: { ...current.value.sizes, [room]: sizes } })),
     setSize: (room: string, columnId: string, size: string) => commit(setSize(book.value, cls.value, room, columnId, size)),
