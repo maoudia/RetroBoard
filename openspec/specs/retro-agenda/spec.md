@@ -93,3 +93,21 @@ A phase past its planned time SHALL show zero time left in the overtime colour, 
 #### Scenario: Two minutes over
 - **WHEN** the Group phase is two minutes past its planned time
 - **THEN** the stepper segment is in the overtime colour and reads "+2:00"
+
+### Requirement: Gated controls cue
+Every control disabled by a phase rule SHALL use the same visual cue and SHALL expose the reason to assistive technologies; a phase change SHALL be announced with what opened and what closed.
+
+#### Scenario: Screen reader on phase change
+- **WHEN** the facilitator moves from Write to Group
+- **THEN** a polite live region announces that grouping opened and writing closed
+
+#### Scenario: Same cue for votes and notes
+- **WHEN** the Write phase is current
+- **THEN** vote controls and any other gated control show the same greyed style and lock icon as a closed composer
+
+### Requirement: Previous phase
+The facilitator SHALL be able to go back to the previous phase, which resumes with the time it had left.
+
+#### Scenario: Back to writing
+- **WHEN** the facilitator moved to Group by mistake while Write had 3 minutes left
+- **THEN** going back resumes Write with 3 minutes left for everyone

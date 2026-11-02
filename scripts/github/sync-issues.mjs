@@ -107,31 +107,42 @@ const PLAN = {
   'button-icons-everywhere': ['P9', 'B', []],
   'toolbar-mobile-scroll': ['P9', 'B', []],
   'agenda-clock-v2': ['P9', 'B', []],
+  // Owner feedback 2026-11-02: secure by default, coherent UI, parity, teams, insights, community.
+  'password-by-default': ['P10', 'A', []],
+  'ui-coherence-pass': ['P10', 'B', []],
+  'mode-parity': ['P10', 'B', []],
+  'community-feedback': ['P10', 'C', []],
+  'device-layout-prefs': ['P10', 'B', []],
+  'solo-parity-and-dedup': ['P10', 'A', []],
+  'results-insights': ['P10', 'C', []],
+  'team-workspaces': ['P10', 'A', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
-  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01',
+  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02',
 }
 // Roadmap: every change belongs to one release milestone (the GitHub roadmap is built from these).
 // Target dates are planning targets, revisited at each release review.
 const RELEASES = {
-  R1: { title: 'R1 Beta ready', due: '2026-11-08', description: 'Stable beta for real teams: service pages, everyone facilitates by default (or one clear facilitator), phase cues, name nudge, sticky notes v2, board lifecycle, edge security, peer-to-peer field test, keyboard, faster CI.' },
-  R2: { title: 'R2 Facilitation and visuals', due: '2026-11-29', description: 'Accessibility (WCAG 2.2 AA), phase-end popups, note to action and voted ideas, moderation, activity rings, cluster motion, results charts, publishing and note visuals, responsive and profile, exports and report.' },
-  R3: { title: 'R3 Teams and themes', due: '2026-12-20', description: 'Calendar import, genre themes, creation stepper, action carry-over sources, delivery harness, WebMCP rollout.' },
-  R4: { title: 'R4 Agents and growth', due: '2027-01-31', description: 'MCP server and agent sessions, local AI companion, landing v2 and product video.' },
+  // Recalibrated 2026-11-02: R1 closes on what a beta team needs (sync, passcode by default, coherent UI, mode parity,
+  // a feedback channel); quality items not blocking the beta move to R2; teams move to R3 with the team workspaces.
+  R1: { title: 'R1 Beta ready', due: '2026-11-15', description: 'Stable, secure-by-default beta for real teams: reliable sync, passcode by default, coherent buttons and menus, the same simple and advanced modes everywhere, a feedback channel; plus the delivered service pages, facilitation defaults, sticky notes v2, board lifecycle and keyboard.' },
+  R2: { title: 'R2 Facilitation and visuals', due: '2026-12-06', description: 'Accessibility (WCAG 2.2 AA), phase-end popups, note to action and voted ideas, moderation, activity rings, cluster motion, results charts, publishing and note visuals, responsive and profile, exports and report.' },
+  R3: { title: 'R3 Teams and themes', due: '2027-01-10', description: 'Team workspaces (teams, projects, carry-over by team), avatars, component library, calendar import, genre themes, delivery harness, WebMCP rollout.' },
+  R4: { title: 'R4 Agents and growth', due: '2027-02-14', description: 'MCP server and agent sessions, local AI companion, landing v2 and product video.' },
   PARKED: { title: 'Parked', due: null, description: 'On hold by owner decision (monetisation postponed on 2026-10-24).' },
 }
 const ROADMAP = {
-  'service-pages': 'R1', 'single-facilitator': 'R1', 'sticky-notes-v2': 'R1', 'board-lifecycle': 'R1', 'edge-security-and-domain': 'R1',
-  'p2p-presence-and-cursors': 'R1', 'keyboard-shortcuts': 'R1', 'ci-toolchain-speed': 'R1',
+  'service-pages': 'R1', 'single-facilitator': 'R1', 'sticky-notes-v2': 'R1', 'board-lifecycle': 'R1',
+  'keyboard-shortcuts': 'R1',
   'open-facilitation-default': 'R1', 'phase-availability-cues': 'R1', 'name-nudge': 'R1',
   'reliable-board-sync': 'R1', 'author-name-by-default': 'R1', 'draft-first-composer': 'R1',
   'accessibility-wcag': 'R2', 'phase-end-notifications': 'R2', 'note-to-action': 'R2', 'actions-from-votes': 'R2',
   'facilitator-moderation': 'R2', 'activity-rings-timer': 'R2', 'cluster-reveal-motion': 'R2', 'voting-results-charts': 'R2', 'voting-v2-and-ranking': 'R2',
-  'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2', 'profile-avatars-and-team-space': 'R2',
+  'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2',
   'export-hub': 'R2', 'retro-report': 'R2',
-  'composer-and-colour-v3': 'R2', 'facilitator-controls-v2': 'R2', 'board-activity-feed': 'R2', 'design-system-components': 'R2',
-  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'recent-boards-visible': 'R2', 'board-recovery': 'R2', 'options-simple-mode': 'R2', 'join-by-link': 'R2', 'profile-simple-mode': 'R2', 'smart-title': 'R2', 'creation-voting': 'R2', 'boards-menu-new': 'R2', 'private-mode-recovery': 'R2', 'creation-polish': 'R2', 'simple-advanced-mode': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'automated-semver-release': 'R1', 'clusters-v2': 'R2', 'board-type-migration': 'R2', 'allure-report-aggregation': 'R2', 'self-rename-event': 'R1',
+  'composer-and-colour-v3': 'R2', 'facilitator-controls-v2': 'R2', 'board-activity-feed': 'R2',
+  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'recent-boards-visible': 'R2', 'board-recovery': 'R2', 'options-simple-mode': 'R2', 'join-by-link': 'R2', 'profile-simple-mode': 'R2', 'smart-title': 'R2', 'creation-voting': 'R2', 'boards-menu-new': 'R2', 'private-mode-recovery': 'R2', 'creation-polish': 'R2', 'simple-advanced-mode': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'clusters-v2': 'R2', 'board-type-migration': 'R2', 'allure-report-aggregation': 'R2', 'self-rename-event': 'R1',
   // Onboarding is the first thing users see (owner, 2026-10-29): smart default creation moves to R2.
   'board-creation-v2': 'R2',
   'column-tools': 'R3', 'note-freeze': 'R3', 'talk-time-v2': 'R3', 'keyboard-shortcuts-v2': 'R3', 'agents-first-class': 'R3',
@@ -140,6 +151,11 @@ const ROADMAP = {
   'retro-mcp-and-agent-sessions': 'R4', 'local-ai-companion': 'R4', 'landing-v2-and-product-video': 'R4',
   'column-visibility': 'R2', 'time-display-options': 'R2', 'presence-status': 'R2', 'note-pin': 'R3', 'up-down-votes': 'R3', 'button-icons-everywhere': 'R2', 'toolbar-mobile-scroll': 'R2', 'agenda-clock-v2': 'R2',
   'licensing-and-monetization': 'PARKED',
+  // Recalibration 2026-11-02 .
+  'password-by-default': 'R1', 'ui-coherence-pass': 'R1', 'mode-parity': 'R1', 'community-feedback': 'R1',
+  'ci-toolchain-speed': 'R2', 'edge-security-and-domain': 'R2', 'p2p-presence-and-cursors': 'R2', 'automated-semver-release': 'R2',
+  'device-layout-prefs': 'R2', 'solo-parity-and-dedup': 'R2', 'results-insights': 'R2',
+  'team-workspaces': 'R3', 'profile-avatars-and-team-space': 'R3', 'design-system-components': 'R3',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
 // Bugs are standalone `bug` issues labelled priority:1-urgent; every change gets one of the other levels.
@@ -158,6 +174,7 @@ const PRIORITY = {
   'clusters-v2': 2, 'board-type-migration': 2,
   'column-visibility': 2, 'time-display-options': 2, 'presence-status': 2, 'note-pin': 2, 'button-icons-everywhere': 2, 'toolbar-mobile-scroll': 2, 'agenda-clock-v2': 2,
   'quality-gates-v2': 3, 'automated-semver-release': 3, 'allure-report-aggregation': 3, 'self-rename-event': 1, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
+  'password-by-default': 2, 'ui-coherence-pass': 2, 'mode-parity': 2, 'community-feedback': 2, 'device-layout-prefs': 2, 'solo-parity-and-dedup': 2, 'results-insights': 2, 'team-workspaces': 2,
 }
 const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]
 // A change with every task ticked needs no priority (its issues only wait to be closed).

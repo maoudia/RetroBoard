@@ -45,3 +45,52 @@ The profile menu SHALL show the essential settings in simple mode and every sett
 - **THEN** she sees language, theme variant and retention, and not density or motion
 - **AND WHEN** she switches to advanced
 - **THEN** density and motion appear
+
+### Requirement: Rename reaches published notes
+When a participant changes their display name, the system SHALL show the new name on the notes they already published as signed, for every participant. Notes published anonymously MUST stay anonymous. A name set by a facilitator rename MUST take precedence.
+
+#### Scenario: Signed note follows the rename
+- **WHEN** Alex publishes a signed note and then renames their profile to "Alexandre"
+- **THEN** every participant sees "Alexandre" on that note
+
+#### Scenario: Anonymous note unchanged
+- **WHEN** Alex publishes an anonymous note and then renames their profile
+- **THEN** the note stays anonymous for everyone
+
+#### Scenario: Facilitator rename wins
+- **WHEN** a facilitator renamed Alex to "Al" and Alex then renames their profile
+- **THEN** the notes still show "Al"
+
+### Requirement: Name shown by default
+When a participant enters a display name, the system SHALL show that name on the notes they publish unless they choose to stay anonymous. A choice already saved in the profile MUST be kept.
+
+#### Scenario: First name entered
+- **WHEN** Alice enters "Alice" in the name dialog without touching the other options and publishes a note
+- **THEN** every participant sees "Alice" on the note
+
+#### Scenario: Stay anonymous
+- **WHEN** Alice enters her name and unticks "Show my name on my notes"
+- **THEN** her name appears in the participants list and her notes stay anonymous
+
+#### Scenario: Saved anonymous choice
+- **WHEN** a participant had saved "do not show my name" before this change
+- **THEN** their notes stay anonymous until they change it
+
+### Requirement: Name nudge
+A participant without a name SHALL be invited once per board, by a dismissible floating popup, to choose a name.
+
+#### Scenario: Join without a name
+- **WHEN** Bob joins a board with no name and keeps the default "show my name" option
+- **THEN** after a few seconds a floating popup suggests choosing a name, and "Choose a name" opens the name dialog
+
+#### Scenario: Not now
+- **WHEN** Bob clicks "Not now"
+- **THEN** the popup does not come back on this board
+
+#### Scenario: Don't ask again
+- **WHEN** Bob clicks "Don't ask again"
+- **THEN** no board in this browser shows the popup again
+
+#### Scenario: Already has a name
+- **WHEN** a participant has a name, whether or not their notes show it
+- **THEN** the popup is never shown

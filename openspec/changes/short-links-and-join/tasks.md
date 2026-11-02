@@ -11,3 +11,4 @@
 - [ ] 2.1 Landing "Join a board" (paste link, scan QR where supported, fr/en); verify e2e and axe
 - [ ] 2.2 Knock join code (relay forward, sealed handoff, 10 minute expiry, rate limit); verify crypto unit tests, relay test and e2e two contexts
 - [ ] 2.3 Room words label and help text; verify e2e
+- [ ] 2.4 One join field for link, code or room words; code shown large in the invite panel and presenter screen; any online participant may accept when the board allows it (owner feedback 2026-11-02); verify e2e two contexts and axe

@@ -7,4 +7,4 @@
 ## 2. Page
 
 - [x] 2.1 SVG bar, share and gauge components themed and accessible (text alternatives); verify axe and e2e
-- [ ] 2.2 Results page redesign (podium, charts, create-an-action, phone to TV layouts, fr/en); verify e2e and screenshots reviewed by the owner
+- [x] 2.2 (moved to `results-insights`, 2026-11-02) Results page redesign (podium, charts, create-an-action, phone to TV layouts, fr/en); verify e2e and screenshots reviewed by the owner

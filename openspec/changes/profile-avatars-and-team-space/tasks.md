@@ -9,9 +9,9 @@
 
 ## 2. Team space
 
-- [ ] 2.1 `TeamProfile` model and IndexedDB adapter; verify unit tests
-- [ ] 2.2 Team management UI in profile (create, rename, sprint counter, defaults) fr/en; verify e2e
-- [ ] 2.3 Encrypted team file export/import; verify e2e round trip
+- [x] 2.1 (moved to `team-workspaces`, 2026-11-02) `TeamProfile` model and IndexedDB adapter; verify unit tests
+- [x] 2.2 (moved to `team-workspaces`, 2026-11-02) Team management UI in profile (create, rename, sprint counter, defaults) fr/en; verify e2e
+- [x] 2.3 (moved to `team-workspaces`, 2026-11-02) Encrypted team file export/import; verify e2e round trip
 
 ## 3. Profile page v2 (owner feedback 2026-10-25)
 
