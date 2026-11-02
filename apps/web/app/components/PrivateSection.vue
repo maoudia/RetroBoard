@@ -139,11 +139,11 @@ function onKey(e: KeyboardEvent) {
         :style="fieldH ? { minHeight: `${fieldH}px`, height: `${fieldH}px` } : undefined" @keydown="onKey"
       />
       <small class="hint-row"><span>{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
+      <span
+        class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
+        :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @keydown="growKey"
+      />
     </label>
-    <span
-      class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
-      :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @keydown="growKey"
-    />
     <div v-if="colorsOpen" class="swatches" role="group" :aria-label="t('note.color')" :data-testid="`compose-colors-${column.id}`">
       <button
         v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: colour === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
@@ -194,16 +194,17 @@ header { display: flex; align-items: center; justify-content: space-between; min
 }
 .draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: var(--fs-sm); }
 .acts { display: flex; flex: none; color: var(--muted); }
-.composer { display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
+.composer { position: relative; display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
-.grow-grip { justify-self: center; width: 56px; height: 24px; cursor: row-resize; touch-action: none; display: grid; place-items: center; border-radius: var(--r-pill); }
-.grow-grip::after { content: ''; width: 36px; height: 4px; border-radius: var(--r-pill); background: var(--border); transition: background .15s; }
-.grow-grip:hover::after, .grow-grip:focus-visible::after, .grow-grip:active::after { background: var(--accent); }
+.grow-grip { position: absolute; right: 0; bottom: 0; width: 24px; height: 24px; cursor: ns-resize; touch-action: none; display: grid; place-items: center; border-radius: var(--r-pill); }
+.grow-grip::after { content: ''; width: 12px; height: 12px; background: linear-gradient(135deg, transparent 0 45%, color-mix(in oklab, var(--note-ink) 55%, transparent) 45% 55%, transparent 55% 70%, color-mix(in oklab, var(--note-ink) 55%, transparent) 70% 80%, transparent 80%); transition: opacity .15s; opacity: .7; }
+.grow-grip:hover::after, .grow-grip:focus-visible::after, .grow-grip:active::after { opacity: 1; }
+.grow-grip:focus-visible { outline: 2px solid var(--note-ink); outline-offset: -2px; }
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: var(--fs-xs); font-weight: 500; color: color-mix(in oklab, var(--note-ink) 80%, transparent); }
-.hint-row { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
+.hint-row { padding-right: 22px; display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
 .compose-actions { display: flex; gap: .4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
 .sig-group { display: inline-flex; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
 .sig { display: inline-grid; place-items: center; width: 30px; min-height: 28px; padding: 0; border: 0; background: transparent; color: var(--text); cursor: pointer; }
