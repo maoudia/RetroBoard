@@ -147,7 +147,7 @@ export const phaseAllows = (kind: PhaseKind, command: CommandType): boolean => P
 export function allowedInPhase(a: AgendaState | null, command: CommandType): boolean {
   if (!agendaRunning(a) || !a.rules) return true
   // Taking and giving back one's own speaking turn is never a phase matter.
-  if (command === 'talk.self' || command === 'talk.done') return true
+  if (command === 'talk.self' || command === 'talk.done' || command === 'chat.post') return true
   if (a.voteOpen && (command === 'vote.add' || command === 'vote.remove' || command === 'vote.toggle')) return true
   return phaseAllows(a.phases[a.current]!.kind, command)
 }

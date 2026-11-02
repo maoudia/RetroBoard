@@ -2,6 +2,7 @@
 const { t } = useT()
 const board = useBoardStore()
 const ui = useUiStore()
+const chat = useChatStore()
 const layout = useLayoutStore()
 const theme = useThemeStore()
 const settings = useSettingsStore()
@@ -57,6 +58,10 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
       <button class="icon-btn" type="button" data-testid="btn-actions" @click="ui.open('actions')">
         <Icon name="lucide:list-checks" class="ico" /><span>{{ t('toolbar.actions') }}</span>
         <span v-if="board.openActions" class="badge" data-testid="actions-count">{{ board.openActions }}</span>
+      </button>
+      <button class="icon-btn" type="button" :aria-pressed="chat.open" :aria-label="chat.unread ? t('chat.unread', { n: chat.unread }) : t('chat.title')" data-testid="btn-chat" @click="chat.toggle()">
+        <Icon name="lucide:message-circle" class="ico" /><span>{{ t('chat.title') }}</span>
+        <span v-if="chat.unread" class="badge" data-testid="chat-unread">{{ chat.unread }}</span>
       </button>
       <button class="icon-btn" type="button" data-testid="btn-filter" :aria-pressed="ui.filterOpen" @click="ui.filterOpen ? (ui.resetFilter(), ui.filterOpen = false) : (ui.filterOpen = true)"><Icon name="lucide:search" class="ico" /><span>{{ t('toolbar.filter') }}</span><KeyCap k="/" /></button>
       <button class="icon-btn" type="button" data-testid="btn-presenter" :aria-pressed="ui.presenter" @click="ui.presenter = !ui.presenter"><Icon name="lucide:presentation" class="ico" /><span>{{ t('toolbar.presenter') }}</span><KeyCap k="P" /></button>

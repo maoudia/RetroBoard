@@ -82,3 +82,13 @@ describe('schemas', () => {
     expect(ROOM_ID_RE.test('a/b' + 'c'.repeat(30))).toBe(false)
   })
 })
+
+describe('chat commands (change board-chat)', () => {
+  it('trims a message, accepts the maximum and rejects empty or longer text', () => {
+    expect(parseCommand({ t: 'chat.post', text: '  hi  ' })).toEqual({ t: 'chat.post', text: 'hi' })
+    expect(parseCommand({ t: 'chat.post', text: 'a'.repeat(280) })).toMatchObject({ t: 'chat.post' })
+    expect(parseCommand({ t: 'chat.post', text: 'a'.repeat(281) })).toBeNull()
+    expect(parseCommand({ t: 'chat.post', text: '   ' })).toBeNull()
+    expect(parseCommand({ t: 'chat.clear' })).toEqual({ t: 'chat.clear' })
+  })
+})

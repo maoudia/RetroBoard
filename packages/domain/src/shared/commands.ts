@@ -62,6 +62,8 @@ export type Command =
   | { t: 'column.reset'; id: string }
   | { t: 'vote.reset' }
   | { t: 'roti.set'; score: number }
+  | { t: 'chat.post'; text: string }
+  | { t: 'chat.clear' }
   | { t: 'talk.assign'; speaker: string; label: string | null }
   | { t: 'talk.end' }
   | { t: 'talk.self' }

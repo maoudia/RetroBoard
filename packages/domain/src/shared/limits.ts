@@ -1,4 +1,8 @@
 /** Hard limits enforced by the domain (server side). The UI reads them to size inputs. */
+/** Board chat (change board-chat): messages kept per board and the longest message. */
+export const CHAT_MAX_MESSAGES = 200
+export const CHAT_TEXT_MAX = 280
+
 export const LIMITS = {
   /** Hard cap of a note; the board setting `noteMaxLength` lowers it (NOTE_TEXT_MIN..noteText). */
   noteText: 500,

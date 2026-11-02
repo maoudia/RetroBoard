@@ -127,6 +127,17 @@ export interface BoardSettings {
   locale?: 'fr' | 'en'
 }
 
+/** One line of the board chat (change board-chat). `name` is null when the author posts anonymously. */
+export interface ChatMessage {
+  id: string
+  cid: string
+  name: string | null
+  at: number
+  text: string
+}
+
+export interface SnapshotChatMessage { id: string; name: string | null; mine: boolean; at: number; text: string }
+
 export interface BoardState {
   settings: BoardSettings
   columns: Column[]
@@ -142,6 +153,8 @@ export interface BoardState {
   reveal?: { endsAt: number } | null
   /** ROTI scores 1..5 by participant id (change retro-report). */
   roti?: Record<string, number>
+  /** Chat messages, oldest first, at most CHAT_MAX_MESSAGES (change board-chat). */
+  chat?: ChatMessage[]
 }
 
 export interface Actor {
@@ -243,6 +256,8 @@ export interface Snapshot {
   reveal?: { endsAt: number } | null
   /** ROTI distribution and my own score (counts only, never who). */
   roti?: { counts: number[]; total: number; average: number | null; mine: number | null }
+  /** Board chat, oldest first (change board-chat). */
+  chat?: SnapshotChatMessage[]
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */

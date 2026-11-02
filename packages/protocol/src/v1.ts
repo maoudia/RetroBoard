@@ -1,6 +1,6 @@
 /** Wire format of RetroBoard v1 (plaintext commands): valibot schemas for every message that crosses the network. */
 import * as v from 'valibot'
-import { COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_COUNT, NOTE_TEXT_MIN, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
+import { CHAT_TEXT_MAX, COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_COUNT, NOTE_TEXT_MIN, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
 
 const Id = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
 const Text = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.noteText))
@@ -42,6 +42,8 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('vote.add'), kind: v.picklist(['note', 'cluster']), id: Id }),
   v.object({ t: v.literal('vote.remove'), kind: v.picklist(['note', 'cluster']), id: Id }),
   v.object({ t: v.literal('drafts.reveal'), seconds: v.optional(v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(30))) }),
+  v.object({ t: v.literal('chat.post'), text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(CHAT_TEXT_MAX)) }),
+  v.object({ t: v.literal('chat.clear') }),
   v.object({ t: v.literal('roti.set'), score: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5)) }),
   v.object({ t: v.literal('vote.close') }),
   v.object({ t: v.literal('vote.reopen') }),
