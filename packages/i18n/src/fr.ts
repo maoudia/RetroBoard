@@ -106,6 +106,7 @@ export const fr = {
   'carry.title': 'Reporter des actions',
   'carry.intro': 'Reprends dans ce board les actions encore ouvertes de la rétro précédente.',
   "team.default": "Mon équipe",
+  "team.other": "Autres boards",
   "team.title": "Équipe et projet",
   "team.intro": "Les actions reportées viennent des rétros précédentes de cette équipe, jamais d'une autre.",
   "team.team": "Équipe",
