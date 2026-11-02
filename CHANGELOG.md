@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.29.0](https://github.com/maoudia/RetroBoard/compare/v1.28.0...v1.29.0) (2026-11-02)
+
+
+### Features
+
+* **export:** RAG-friendly files, JSON Lines chunks and Markdown sections with front matter ([a637f34](https://github.com/maoudia/RetroBoard/commit/a637f34c26ce4be0529c7ce4a1dc4bc3b2bd628c))
+* **ui:** profile menu follows the simple or advanced mode ([0f039fe](https://github.com/maoudia/RetroBoard/commit/0f039fe8bf714013795b17dc16ad847624ddbcbe))
+
 ## [1.28.0](https://github.com/maoudia/RetroBoard/compare/v1.27.0...v1.28.0) (2026-11-02)
 
 
