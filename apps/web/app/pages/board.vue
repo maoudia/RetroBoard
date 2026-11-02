@@ -94,13 +94,9 @@ function unlock(code: string) {
 onMounted(enter)
 useBoardAgentTools()
 watch(() => route.hash, () => { passcode.value = null; enter() })
-// Retention "until I leave": the encrypted copy goes with the tab or the navigation away.
-// Anything still waiting to be written is written first, so a delete is never followed by a late write.
-function forgetIfLeaving() {
-  const inv = invite.value
-  if (settings.s.retentionDays === 0 && inv?.kind === 'encrypted') void board.flush().finally(() => $ports.replica?.delete(inv.ring.roomId).catch(() => {}))
-  else void board.flush()
-}
+// Anything still waiting to be written is written before the page goes. "Until I leave" needs nothing more:
+// that copy lives in the tab (sessionStorage) and goes with it, so a reload or back still reopens the board.
+function forgetIfLeaving() { void board.flush() }
 onMounted(() => window.addEventListener('pagehide', forgetIfLeaving))
 onBeforeUnmount(() => {
   window.removeEventListener('pagehide', forgetIfLeaving)
@@ -194,7 +190,6 @@ watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog ===
 })
 
 // The board's theme is shared: everybody sees the same ambiance.
-const settings = useSettingsStore()
 // Imposed: everyone sees the board's theme; only light or dark is personal.
 const effectiveThemeId = computed(() => board.settings?.themeId)
 watch(effectiveThemeId, (id) => { if (id && id !== theme.themeId) void theme.use(id, false) }, { immediate: true })

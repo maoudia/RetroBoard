@@ -17,7 +17,7 @@ export interface Ports {
   clipboard: ClipboardPort
   file: FilePort
   notifier: NotifierPort
-  /** null when IndexedDB is unavailable (some private modes): memory only. */
+  /** Where this device keeps boards (IndexedDB, or the tab in private modes and with "until I leave"). */
   replica: ReplicaStorePort | null
 }
 
@@ -26,14 +26,26 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   const { push } = useToasts()
   const settings = useSettingsStore()
-  let replica: ReplicaStorePort | null = null
-  try { replica = typeof indexedDB === 'undefined' ? null : createIdbReplicaStore(openReplicaDb()) } catch { replica = null }
+  let durable: ReplicaStorePort | null = null
+  try { durable = typeof indexedDB === 'undefined' ? null : createIdbReplicaStore(openReplicaDb()) } catch { durable = null }
+  let session: ReplicaStorePort | null = null
+  try { session = createSessionReplicaStore(sessionStorage) } catch { /* no storage at all: memory only */ }
   // Private modes without IndexedDB keep the board in this tab (sessionStorage): a reload or back and forward reopens it.
-  try { replica = withSessionFallback(replica, createSessionReplicaStore(sessionStorage)) } catch { /* no storage at all: memory only */ }
-  // Retention: expired local copies are deleted at start-up ("until I leave" is handled on the board page).
-  // "Until I leave" also purges everything at start-up: a delete started while leaving a page may not finish.
-  if (replica) void replica.purge(settings.s.retentionDays > 0 ? Date.now() - settings.s.retentionDays * 86_400_000 : Number.MAX_SAFE_INTEGER).catch(() => {})
-  if (replica) void requestPersistence()
+  const replica: ReplicaStorePort | null = session ? withSessionFallback(durable, session) : durable
+  // "Until I leave" (retention 0) keeps the copy for the life of the tab only (sessionStorage): a reload, the home
+  // page and back still reopen the board, closing the tab forgets it. Nothing is written to IndexedDB then.
+  // Reads still merge the durable copy, so a board kept before the switch to "until I leave" is not lost.
+  const tabOnly: ReplicaStorePort | null = session && replica ? { ...session, load: (roomId) => replica.load(roomId) } : session
+  const replicaFor = (): ReplicaStorePort | null => (settings.s.retentionDays === 0 ? tabOnly : replica)
+  // Retention sweep, deferred: the board being opened marks its room as live first, so it is never swept while it opens.
+  // "Until I leave" sweeps every durable copy (left over from a longer retention); the tab copy stays.
+  const sweep = () => {
+    const days = settings.s.retentionDays
+    if (days === 0) void durable?.purge(Number.MAX_SAFE_INTEGER).catch(() => {})
+    else void replica?.purge(Date.now() - days * 86_400_000).catch(() => {})
+  }
+  setTimeout(sweep, 20_000)
+  if (durable) void requestPersistence()
   const ports: Ports = {
     channelFactory: localTransportFactory,
     encryptedChannelFactory: (ring, passcode, opts) => (roomId, handlers) => new EncryptedRelayTransport(
@@ -43,7 +55,7 @@ export default defineNuxtPlugin(() => {
         session: await createSessionSigner(),
         facilitator: ring.facilitatorSecret ? await signerFor(ring.facilitatorSecret) : null,
         verifier: ed25519Verifier,
-        replica: replica ?? undefined,
+        replica: replicaFor() ?? undefined,
         p2p: settings.s.p2p,
         creator: opts?.creator === true,
         iceServers: String(config.public.iceServers ?? '').split(',').map((s) => s.trim()).filter(Boolean).map((urls) => ({ urls })),

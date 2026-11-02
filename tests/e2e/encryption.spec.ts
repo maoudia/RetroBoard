@@ -172,7 +172,7 @@ test('the board reopens from the encrypted local copy when the relay is unreacha
   expect(stored).not.toContain('Survives offline')
 })
 
-test('"until I leave" deletes the local copy when leaving the board', async ({ page }) => {
+test('"while the tab is open" keeps the board for reload and back, never in IndexedDB', async ({ page }) => {
   await page.goto('/')
   await page.getByTestId('btn-profile').click()
   await page.getByTestId('retention-0').click()
@@ -180,12 +180,17 @@ test('"until I leave" deletes the local copy when leaving the board', async ({ p
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await publishNote(page, 0, 'Ephemeral')
   await page.waitForTimeout(600)
+  // The only copy must survive a reload and a trip to the home page (the bug: it was deleted on pagehide).
+  await page.reload()
+  await expect(noteByText(page, 'Ephemeral')).toBeVisible({ timeout: 15_000 })
   await page.goto('/')
-  // The purge runs at start-up; some engines finish it a moment later.
-  await expect.poll(() => page.evaluate(() => new Promise<number>((resolve) => {
+  await page.getByTestId('landing-recents').getByRole('link').first().click()
+  await expect(noteByText(page, 'Ephemeral')).toBeVisible({ timeout: 15_000 })
+  const durable = await page.evaluate(() => new Promise<number>((resolve) => {
     const open = indexedDB.open('retroboard-replica')
     open.onsuccess = () => { const c = open.result.transaction('envelopes').objectStore('envelopes').count(); c.onsuccess = () => resolve(c.result) }
-  }))).toBe(0)
+  }))
+  expect(durable).toBe(0)
 })
 
 test('board file: export, then restore into the same link after the board is gone everywhere', async ({ page, browser }) => {
