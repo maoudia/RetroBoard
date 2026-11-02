@@ -86,3 +86,33 @@ Joins and departures SHALL appear in the activity feed; a board option chosen at
 #### Scenario: Popups off
 - **WHEN** the facilitator created the board with arrival popups off and Carol joins
 - **THEN** no popup appears and the activity feed says Carol joined
+
+### Requirement: Board options follow the interface mode
+The board options dialog SHALL show the essentials in simple mode and every setting in advanced mode, without removing any setting.
+
+#### Scenario: Simple options
+- **WHEN** Alice opens the options in simple mode
+- **THEN** she sees votes per person and secret voting, and not the talk time budget
+- **AND WHEN** she switches to advanced
+- **THEN** the talk time budget appears
+
+### Requirement: The local copy survives use
+The local encrypted copy of a board SHALL be kept for the chosen retention counted from the last time the board was opened or written, and the start-up cleanup SHALL NOT delete a board that this tab is opening.
+
+#### Scenario: Reopened every day
+- **WHEN** Alice opens a board every day and never writes in it, with a retention of 7 days
+- **THEN** the board is still on her device after 30 days
+
+### Requirement: The waiting screen asks again
+While no connected participant holds the board, the page SHALL offer a "Try again" action and SHALL reconnect by itself at a regular interval.
+
+#### Scenario: A holder arrives
+- **WHEN** Bob opens the board while Alice sees the waiting screen
+- **THEN** the board appears for Alice without any action, at the latest at the next retry
+
+### Requirement: Primary creation action on the right
+The "Create board" button SHALL sit at the right end of the creation form on every layout.
+
+#### Scenario: Desktop
+- **WHEN** Alice opens the creation page
+- **THEN** the Create board button is in the right half of the form

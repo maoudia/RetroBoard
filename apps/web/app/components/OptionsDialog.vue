@@ -7,6 +7,8 @@ const ui = useUiStore()
 const board = useBoardStore()
 const open = computed({ get: () => ui.dialog === 'options', set: (v) => { if (!v && ui.dialog === 'options') ui.close() } })
 const s = computed(() => board.settings!)
+/** Simple keeps title, votes, privacy, theme and format; advanced shows every setting (change simple-advanced-mode). */
+const advanced = computed(() => useSettingsStore().s.uiMode === 'advanced')
 const title = ref('')
 const resetAsk = ref(false)
 const resetVotesAsk = ref(false)
@@ -31,7 +33,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="opt-title" @blur="saveTitle" @keydown.enter.prevent="saveTitle" />
       </label>
 
-      <section class="grp">
+      <section v-if="advanced" class="grp">
         <h3>{{ t('options.notes') }}</h3>
         <div class="line">
           <span><strong>{{ t('options.noteMax') }}</strong><small class="muted">{{ t('options.noteMax.hint') }}</small></span>
@@ -53,7 +55,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
             <button class="mini-btn" type="button" :aria-label="t('options.more')" :disabled="s.voteLimit >= LIMITS.maxVotes" @click="set({ voteLimit: s.voteLimit + 1 })"><Icon name="lucide:plus" /></button>
           </span>
         </div>
-        <div class="line">
+        <div v-if="advanced" class="line">
           <span><strong>{{ t('options.perItem') }}</strong><small class="muted">{{ t('options.perItem.hint') }}</small></span>
           <span class="stepper">
             <button class="mini-btn" type="button" :aria-label="t('options.perItem.less')" :disabled="s.maxVotesPerItem <= 1" @click="set({ maxVotesPerItem: s.maxVotesPerItem - 1 })"><Icon name="lucide:minus" /></button>
@@ -61,7 +63,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
             <button class="mini-btn" type="button" :aria-label="t('options.perItem.more')" :disabled="s.maxVotesPerItem >= s.voteLimit" data-testid="opt-per-item-more" @click="set({ maxVotesPerItem: s.maxVotesPerItem + 1 })"><Icon name="lucide:plus" /></button>
           </span>
         </div>
-        <div class="line">
+        <div v-if="advanced" class="line">
           <span><strong>{{ t('options.votable') }}</strong><small class="muted">{{ t('options.votable.hint') }}</small></span>
           <span class="seg" role="group" :aria-label="t('options.votable')">
             <button v-for="v in (['both', 'notes', 'clusters'] as const)" :key="v" type="button" :class="{ on: s.votable === v }" :aria-pressed="s.votable === v" :data-testid="`opt-votable-${v}`" @click="set({ votable: v })">{{ t(`options.votable.${v}`) }}</button>
@@ -71,7 +73,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.secretVoting" data-testid="opt-secret" @change="set({ secretVoting: ($event.target as HTMLInputElement).checked })" />
         </label>
-        <label class="line">
+        <label v-if="advanced" class="line">
           <span><strong>{{ t('options.arrivals') }}</strong><small class="muted">{{ t('options.arrivals.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.announceArrivals !== false" data-testid="opt-arrivals" @change="set({ announceArrivals: ($event.target as HTMLInputElement).checked })" />
         </label>
@@ -79,7 +81,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.lock') }}</strong><small class="muted">{{ t('options.lock.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.locked" data-testid="opt-lock" @change="set({ locked: ($event.target as HTMLInputElement).checked })" />
         </label>
-        <label class="line">
+        <label v-if="advanced" class="line">
           <span><strong>{{ t('options.browserAgents') }}</strong><small class="muted">{{ t('options.browserAgents.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @change="set({ browserAgentsAllowed: ($event.target as HTMLInputElement).checked })" />
         </label>
@@ -89,7 +91,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         </label>
       </section>
 
-      <section class="grp">
+      <section v-if="advanced" class="grp">
         <h3>{{ t('actions.title') }}</h3>
         <div class="line">
           <span><strong>{{ t('actions.mode') }}</strong><small class="muted">{{ t('actions.mode.hint') }}</small></span>
@@ -99,7 +101,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         </div>
       </section>
 
-      <section class="grp">
+      <section v-if="advanced" class="grp">
         <h3>{{ t('talk.title') }}</h3>
         <div class="line">
           <span><strong>{{ t('talk.mode') }}</strong><small class="muted">{{ t('talk.mode.hint') }}</small></span>
@@ -157,6 +159,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         </div>
       </section>
       </fieldset>
+      <section class="grp modes">
+        <ModeSwitch />
+        <small v-if="!advanced" class="muted">{{ t('mode.moreOptions') }}</small>
+      </section>
     </template>
     <ConfirmDialog v-model:open="resetVotesAsk" danger confirm-icon="lucide:eraser" :title="t('options.resetVotes.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetVotes.msg')" @confirm="board.commands.resetVotes(); ui.close()" />
     <ConfirmDialog v-model:open="resetClockAsk" danger confirm-icon="lucide:rotate-ccw" :title="t('options.resetClock.title')" :confirm-label="t('options.resetBtn')" :message="t('options.resetClock.msg')" @confirm="board.commands.resetTimer(undefined, true); ui.close()" />
