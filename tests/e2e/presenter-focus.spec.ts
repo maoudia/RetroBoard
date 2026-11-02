@@ -25,10 +25,13 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
 
     await page.getByTestId('focus-accordion').click()
     await expect(root).toHaveAttribute('data-focus', 'accordion')
-    const folded = await page.locator('.col:not([data-focused])').first().boundingBox()
-    const open = await page.locator('.col[data-focused]').boundingBox()
-    expect(folded!.width).toBeLessThan(120)
-    expect(open!.width).toBeGreaterThan(folded!.width * 3)
+    // The fold is animated (change presenter-accordion-motion): wait for it to settle.
+    await expect(async () => {
+      const folded = await page.locator('.col:not([data-focused])').first().boundingBox()
+      const open = await page.locator('.col[data-focused]').boundingBox()
+      expect(folded!.width).toBeLessThan(120)
+      expect(open!.width).toBeGreaterThan(folded!.width * 3)
+    }).toPass()
     const found = (await new AxeBuilder({ page }).include('[data-testid="presenter-focus"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
 
@@ -37,6 +40,61 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
     await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'true')
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  test('the accordion animates the fold, a click on a spine unfolds it, and folded content leaves the tab order (change presenter-accordion-motion)', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 1, 'Hidden while folded')
+    await page.getByTestId('btn-presenter').click()
+    await page.getByTestId('focus-accordion').click()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByTestId('focus-current')).toHaveText('Start')
+    const second = page.locator('.board > .col').nth(1)
+    await expect(async () => expect((await second.boundingBox())!.width).toBeLessThan(120)).toPass()
+    // Folded: label only, content invisible and not focusable.
+    await expect(second.locator('article.note')).toBeHidden()
+    await expect(second.locator('h2')).toBeVisible()
+    // A click on the spine unfolds it; the previous one folds, with an in-between width on the way.
+    const widths: number[] = []
+    await second.click({ position: { x: 20, y: 60 } })
+    for (let i = 0; i < 6; i++) { widths.push((await second.boundingBox())!.width); await page.waitForTimeout(90) }
+    await expect(page.getByTestId('focus-current')).toHaveText('Stop')
+    await expect(async () => expect((await second.boundingBox())!.width).toBeGreaterThan(400)).toPass()
+    await expect(second.locator('article.note')).toBeVisible()
+    expect(widths.some((w) => w > 90 && w < (widths.at(-1) ?? 0) + 400)).toBe(true)
+    expect(new Set(widths.map((w) => Math.round(w))).size).toBeGreaterThan(1)
+  })
+
+  test('a sideways swipe moves the focus from column to column (change presenter-accordion-motion)', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await page.getByTestId('btn-presenter').click()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByTestId('focus-current')).toHaveText('Start')
+    const swipe = (dx: number, dy = 0) => page.getByTestId('board').evaluate((el, [x, y]) => {
+      const mk = (cx: number, cy: number) => new Touch({ identifier: 1, target: el, clientX: cx, clientY: cy })
+      el.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, touches: [mk(400, 400)], changedTouches: [mk(400, 400)] }))
+      el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, touches: [], changedTouches: [mk(400 + x!, 400 + y!)] }))
+    }, [dx, dy])
+    await swipe(-120)
+    await expect(page.getByTestId('focus-current')).toHaveText('Stop')
+    await swipe(20)
+    await expect(page.getByTestId('focus-current')).toHaveText('Stop')
+    await swipe(-120, 200)
+    await expect(page.getByTestId('focus-current')).toHaveText('Stop')
+    await swipe(120)
+    await expect(page.getByTestId('focus-current')).toHaveText('Start')
+  })
+
+  test('reduced motion switches the accordion at once', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await page.getByTestId('btn-presenter').click()
+    await page.getByTestId('focus-accordion').click()
+    await page.keyboard.press('ArrowRight')
+    const folded = page.locator('.board > .col').nth(1)
+    expect((await folded.boundingBox())!.width).toBeLessThan(120)
+    const transition = await folded.evaluate((el) => getComputedStyle(el).transitionDuration)
+    expect(transition.split(',').every((d) => parseFloat(d) === 0)).toBe(true)
   })
 
   for (const width of [1440, 2560]) test(`the focus layout fits at ${width} wide`, async ({ page }) => {

@@ -222,12 +222,26 @@ function onPresenterKey(e: KeyboardEvent) {
   if (ui.presenter && ui.dialog === null && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.ctrlKey && !e.metaKey) {
     const el = document.activeElement as HTMLElement | null
     if (el?.matches('input, textarea, select, [contenteditable="true"]')) return
-    const n = board.columns.length
-    if (!n) return
     e.preventDefault()
-    const step = e.key === 'ArrowRight' ? 1 : -1
-    ui.focusColumn = ui.focusColumn === null ? (step > 0 ? 0 : n - 1) : (ui.focusColumn + step + n) % n
+    focusStep(e.key === 'ArrowRight' ? 1 : -1)
   }
+}
+function focusStep(step: 1 | -1) {
+  const n = board.columns.length
+  if (!n) return
+  ui.focusColumn = ui.focusColumn === null ? (step > 0 ? 0 : n - 1) : (ui.focusColumn + step + n) % n
+}
+// Swipe sideways moves the focus column by column (change presenter-accordion-motion).
+let swipe: { x: number; y: number } | null = null
+function onSwipeStart(e: TouchEvent) { const t = e.touches[0]; swipe = t ? { x: t.clientX, y: t.clientY } : null }
+function onSwipeEnd(e: TouchEvent) {
+  const t = e.changedTouches[0]
+  const from = swipe
+  swipe = null
+  if (!from || !t || !ui.presenter || ui.focusColumn === null) return
+  const dx = t.clientX - from.x
+  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(t.clientY - from.y) * 1.5) return
+  focusStep(dx < 0 ? 1 : -1)
 }
 // Leave guard: unpublished drafts would stay in this browser only; the browser asks first.
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
@@ -309,7 +323,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" @retry="enter" />
       <div v-else-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
 
-      <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board">
+      <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board" @touchstart.passive="onSwipeStart" @touchend.passive="onSwipeEnd">
         <template v-for="(c, i) in board.columns" :key="c.id">
           <BoardColumn v-if="!c.hidden" :column="c" :index="i" :total="board.columns.length" />
         </template>

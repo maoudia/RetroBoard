@@ -16,6 +16,10 @@ const dragW = ref<number | null>(null)
 const customW = computed(() => dragW.value ?? ui.columnWidths[props.column.id] ?? null)
 const layoutStore = useLayoutStore()
 const colEl = ref<HTMLElement | null>(null)
+/** Accordion presenter: a click on a folded spine unfolds that column (change presenter-accordion-motion). */
+function unfold() {
+  if (ui.presenter && ui.focusStyle === 'accordion' && ui.focusColumn !== null && ui.focusColumn !== props.index) ui.focusColumn = props.index
+}
 /** The facilitator's display for the room: post-it width and text size (change board-layout-v2). */
 const NOTE_W = { small: '120px', normal: '150px', large: '230px' } as const
 const NOTE_FS = { small: '.85em', normal: '1em', large: '1.25em' } as const
@@ -67,7 +71,7 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>
 
 <template>
-  <section ref="colEl" tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey">
+  <section ref="colEl" tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey" @click="unfold">
     <header>
       <span class="badge-ico"><Icon :name="`lucide:${column.icon}`" /></span>
       <div class="titles">

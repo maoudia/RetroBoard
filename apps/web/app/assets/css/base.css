@@ -136,14 +136,28 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 :root[data-focus="centre"] .board > .col { transition: transform .35s var(--ease), opacity .35s; }
 :root[data-focus="centre"] .board > .col:not([data-focused]) { transform: scale(.84); opacity: .55; }
 :root[data-focus="centre"] .board > .col[data-focused] { transform: scale(1.04); z-index: 2; box-shadow: var(--shadow-2); }
-:root[data-focus="accordion"] .board > .col:not([data-focused]) { flex: 0 0 84px; min-width: 0; overflow: hidden; opacity: .8; }
-:root[data-focus="accordion"] .board > .col:not([data-focused]) > :not(header) { display: none; }
+/* Accordion (change presenter-accordion-motion): the focused column unfolds, the others fold to labelled spines.
+   CSS only: flex sizes and opacity animate, so it stays on the compositor-friendly path; reduced motion switches instantly. */
+:root[data-focus="accordion"] .board > .col {
+  overflow: hidden; cursor: default;
+  transition: flex-grow .65s var(--spring, cubic-bezier(.22, 1, .36, 1)), flex-basis .65s var(--spring, cubic-bezier(.22, 1, .36, 1)), min-width .65s var(--spring, cubic-bezier(.22, 1, .36, 1)), opacity .45s, box-shadow .45s, background .45s;
+}
+:root[data-focus="accordion"] .board > .col:not([data-focused]) { flex: 0 0 84px; min-width: 0; opacity: .85; cursor: pointer; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]):hover { opacity: 1; box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-1); }
+:root[data-focus="accordion"] .board > .col[data-focused] { flex: 1 1 0; min-width: min(520px, 70vw); max-width: none; box-shadow: var(--shadow-2); }
+/* Folded content fades first and leaves the tab order once invisible; it fades back in after the column has opened. */
+:root[data-focus="accordion"] .board > .col > :not(header) { transition: opacity .3s, visibility 0s linear .3s; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) > :not(header) { opacity: 0; visibility: hidden; pointer-events: none; }
+:root[data-focus="accordion"] .board > .col[data-focused] > :not(header) { animation: acc-in .55s .18s var(--spring, cubic-bezier(.22, 1, .36, 1)) both; transition: opacity .3s .15s, visibility 0s; }
 :root[data-focus="accordion"] .board > .col:not([data-focused]) header > :not(.badge-ico):not(.titles) { display: none; }
 :root[data-focus="accordion"] .board > .col:not([data-focused]) .titles p { display: none; }
-:root[data-focus="accordion"] .board > .col:not([data-focused]) header { flex-direction: column; align-items: center; }
-:root[data-focus="accordion"] .board > .col:not([data-focused]) h2 { writing-mode: vertical-rl; font-size: var(--fs-xl); }
-:root[data-focus="accordion"] .board > .col[data-focused] { flex: 1 1 0; min-width: min(520px, 70vw); max-width: none; }
-@media (prefers-reduced-motion: reduce) { :root[data-focus] .board > .col { transition: none !important; } }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) header { flex-direction: column; align-items: center; gap: .9rem; }
+:root[data-focus="accordion"] .board > .col:not([data-focused]) h2 { writing-mode: vertical-rl; font-size: var(--fs-xl); animation: spine-in .5s .3s ease-out both; }
+:root[data-focus="accordion"] .board > .col[data-focused] .badge-ico { animation: acc-pop .5s .2s var(--spring, cubic-bezier(.22, 1, .36, 1)) both; }
+@keyframes acc-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes spine-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes acc-pop { from { transform: scale(.6) rotate(-12deg); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { :root[data-focus] .board > .col, :root[data-focus] .board > .col * { transition: none !important; animation: none !important; } }
 :root[data-density="compact"] .note { min-height: 80px; padding: .5rem .6rem .35rem; font-size: var(--fs-sm); }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 
