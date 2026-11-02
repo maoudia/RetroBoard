@@ -7,6 +7,7 @@ const { t } = useT()
 const props = defineProps<{ column: Column; colorIndex: number }>()
 const board = useBoardStore()
 const drafts = useDraftsStore()
+const layout = useLayoutStore()
 const identity = useIdentityStore()
 const ui = useUiStore()
 const { publish } = usePublish()
@@ -68,7 +69,11 @@ function onKey(e: KeyboardEvent) {
 </script>
 
 <template>
-  <section class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
+  <!-- Folded writing area: one handle that reopens every column's writing area (change board-layout-v2). -->
+  <button v-if="layout.writingHidden" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="layout.setWritingHidden(false)">
+    <Icon name="lucide:pencil" /> {{ t('private.open') }}<span v-if="mine.length" class="n">({{ mine.length }})</span>
+  </button>
+  <section v-else class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
     <header>
       <span class="title"><Icon name="lucide:eye-off" /> {{ t('private.title') }}</span>
       <Dropdown menu>
@@ -148,6 +153,8 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .similar { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font-size: var(--fs-sm); color: var(--muted); }
 .similar .link { overflow-wrap: anywhere; text-align: left; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
+.priv-handle { display: flex; align-items: center; justify-content: center; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-top: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.priv-handle:hover { color: var(--accent); background: var(--accent-soft); }
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
 .draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: var(--r-sm); animation: pop-in .25s var(--ease); }
 /* Pointer devices reveal the actions on hover or focus; touch screens always show them. */

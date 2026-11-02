@@ -6,6 +6,8 @@ export type Density = 'comfortable' | 'compact'
 export interface ClassLayout {
   density?: Density
   focusStyle?: 'centre' | 'accordion'
+  /** Writing areas folded to a handle (change board-layout-v2). */
+  writingHidden?: boolean
   /** board room id -> column id -> size */
   sizes: Record<string, Record<string, string>>
   /** board room id -> writing area size */

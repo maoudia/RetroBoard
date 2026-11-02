@@ -83,6 +83,7 @@ export function useShortcuts() {
     'vote.remove': () => { const id = focusedNoteId(); if (id) board.commands.removeVote('note', id) },
     'note.color': () => { const id = focusedNoteId(); if (id) ui.openPalette(id) },
     'presenter.toggle': () => { ui.presenter = !ui.presenter },
+    'writing.toggle': () => { const l = useLayoutStore(); l.setWritingHidden(!l.writingHidden) },
     'share.open': () => ui.open('share'),
     'export.open': () => ui.open('export'),
     'help.open': () => ui.open('help'),

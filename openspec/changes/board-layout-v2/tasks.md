@@ -2,7 +2,7 @@
 
 ## 1. Writing area
 
-- [ ] 1.1 Hide and show toggle (toolbar, W key), Write handle, remembered per screen class; verify e2e and axe
+- [x] 1.1 Hide and show toggle (toolbar, W key), Write handle, remembered per screen class; verify e2e and axe
 - [ ] 1.2 Drag grip at the bottom of the writing area (mouse, touch, keyboard); verify e2e
 
 ## 2. Columns

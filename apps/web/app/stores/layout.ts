@@ -17,6 +17,8 @@ export const useLayoutStore = defineStore('layout', () => {
     book, cls, current,
     density: computed<Density | null>(() => current.value.density ?? null),
     setDensity: (d: Density) => commit(withLayout(book.value, cls.value, { density: d })),
+    writingHidden: computed(() => current.value.writingHidden === true),
+    setWritingHidden: (v: boolean) => commit(withLayout(book.value, cls.value, { writingHidden: v })),
     setFocusStyle: (s: 'centre' | 'accordion') => commit(withLayout(book.value, cls.value, { focusStyle: s })),
     setSizes: (room: string, sizes: Record<string, string>) => commit(withLayout(book.value, cls.value, { sizes: { ...current.value.sizes, [room]: sizes } })),
     setSize: (room: string, columnId: string, size: string) => commit(setSize(book.value, cls.value, room, columnId, size)),
