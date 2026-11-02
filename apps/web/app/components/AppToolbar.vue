@@ -22,9 +22,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 </script>
 
 <template>
-  <header ref="toolbarEl" class="toolbar glass">
-    <!-- Phones: the menus fold away while reading; this brings them back (change mobile-board-space). -->
-    <button v-if="ui.chromeHidden" class="mini-btn chrome-show" type="button" :aria-label="t('toolbar.showMenus')" :title="t('toolbar.showMenus')" data-testid="chrome-show" @click="ui.chromeHidden = false"><Icon name="lucide:chevrons-down" /></button>
+  <header ref="toolbarEl" class="toolbar glass" :data-folded="ui.chromeHidden ? '' : undefined">
     <div class="brand">
       <NuxtLink to="/" class="logo" :aria-label="t('toolbar.home')"><Icon name="lucide:sparkles" /></NuxtLink>
       <button class="title" type="button" :title="t('toolbar.rename')" data-testid="board-title" @click="ui.open('options')">
@@ -45,6 +43,12 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
           <NuxtLink to="/new" class="boards-new" data-testid="boards-new" @click="close()"><Icon name="lucide:plus" /> {{ t('toolbar.boards.new') }}</NuxtLink>
         </template>
       </Dropdown>
+      <!-- The menus slide away and a chevron stays to bring them back: by hand, on scroll on phones, and by default in
+      presenter mode (changes mobile-board-space and ux-irritants-wave-2). -->
+      <button
+      class="mini-btn chrome-toggle" type="button" :aria-expanded="!ui.chromeHidden" :aria-label="t(ui.chromeHidden ? 'toolbar.showMenus' : 'toolbar.hideMenus')"
+      :title="t(ui.chromeHidden ? 'toolbar.showMenus' : 'toolbar.hideMenus')" :data-testid="ui.chromeHidden ? 'chrome-show' : 'chrome-hide'" @click="ui.chromeHidden = !ui.chromeHidden"
+      ><Icon :name="ui.chromeHidden ? 'lucide:chevrons-down' : 'lucide:chevrons-up'" /></button>
     </div>
 
     <!-- With an agenda, the phase ring is the shared countdown; otherwise the plain timer. -->
@@ -112,6 +116,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 @media (prefers-reduced-motion: no-preference) { .tools { scroll-behavior: smooth; } }
 /* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
 @media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } .toolbar { padding-inline: 1rem; row-gap: .15rem; } }
-.toolbar:has(.chrome-show) { grid-template-columns: 1fr auto auto; padding-block: .2rem; }
-.chrome-show { grid-row: 1; grid-column: 3; }
+.toolbar[data-folded] { row-gap: 0; }
+/* The chevron sits next to the board switch and stays when the menus are away. */
+.chrome-toggle { flex: none; }
 </style>

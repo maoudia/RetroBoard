@@ -443,6 +443,7 @@ export const fr = {
   "toolbar.writing.show": "Saisie",
   "private.open": "Écrire",
   "kbd.writing.toggle": "Masquer ou afficher la saisie",
+  'toolbar.hideMenus': "Masquer les menus",
   'toolbar.showMenus': "Afficher les menus",
   'toolbar.options': 'Options',
   'toolbar.participants': 'Participants',

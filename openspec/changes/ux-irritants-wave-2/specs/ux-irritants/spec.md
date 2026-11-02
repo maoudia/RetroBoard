@@ -69,3 +69,17 @@ The vote bar and phase bar SHALL share one button style and an overdue time SHAL
 #### Scenario: Very late phase
 - **WHEN** a phase is 10949 minutes over its time
 - **THEN** the label reads about 7 days late
+
+### Requirement: Buttons keep their text inside
+A button SHALL show its whole label inside its box at any width and SHALL not shrink below its content.
+
+#### Scenario: Destroy on a phone
+- **WHEN** the board options are open on a 390 px screen
+- **THEN** the text of the Destroy button is fully inside the button
+
+### Requirement: Compact segmented controls
+The Simple / Advanced switch and the display scale choices SHALL be compact segmented controls with visible icons; the mode switch SHALL be centred and not stretch to the container width.
+
+#### Scenario: Mode switch in a dialog
+- **WHEN** a dialog shows the Simple / Advanced switch
+- **THEN** it is centred and narrower than the dialog

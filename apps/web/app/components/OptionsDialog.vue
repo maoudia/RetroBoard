@@ -201,8 +201,11 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 .readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: var(--r-control); background: var(--surface2); font-weight: 600; }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
-.scale { display: inline-flex; gap: .3rem; }
-.scale .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--text); background: var(--accent-soft); font-weight: 700; }
+.scale { display: inline-flex; flex: none; border: 1px solid var(--control, var(--border)); border-radius: var(--r-pill); overflow: hidden; }
+.scale .btn { min-height: 36px; padding: .2rem .7rem; border: 0; border-radius: 0; background: transparent; box-shadow: none; white-space: nowrap; }
+.scale .btn:hover { background: color-mix(in oklab, var(--accent) 12%, transparent); }
+.scale .btn[aria-pressed="true"] { color: var(--text); background: var(--accent-soft); font-weight: 700; box-shadow: inset 0 0 0 1px var(--accent); }
+.line > .btn, .line > .seg { flex: none; white-space: nowrap; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
 .line small { font-size: var(--fs-sm); }

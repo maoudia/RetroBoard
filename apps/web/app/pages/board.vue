@@ -307,7 +307,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
     <template v-else>
       <AppToolbar v-if="board.ready" />
-      <PhaseStepper v-if="board.ready && board.snapshot?.agenda && !ui.chromeHidden" />
+      <PhaseStepper v-if="board.ready && board.snapshot?.agenda" />
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <PresenterFocus v-if="board.ready && ui.presenter" />
@@ -370,7 +370,9 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .page { position: relative; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
 .page > :not(.ambient) { position: relative; z-index: 1; }
 /* Folded menus on phones: only the slim top bar stays (change mobile-board-space). */
-.chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { display: none; }
+.page :deep(.tools), .page :deep(.stepper), .page :deep(.votebar) { max-height: 220px; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s; }
+.chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { max-height: 0; opacity: 0; padding-block: 0; margin-block: 0; overflow: hidden; pointer-events: none; visibility: hidden; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s, visibility 0s .3s; }
+@media (prefers-reduced-motion: reduce) { .page :deep(.tools), .page :deep(.stepper), .page :deep(.votebar), .chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { transition: none; } }
 .board { flex: 1; min-height: 0; display: flex; gap: 1rem; padding: 1rem; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; align-items: stretch; }
 .board > .col { scroll-snap-align: start; }
 .col-dots { display: none; }

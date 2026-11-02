@@ -444,6 +444,7 @@ export const en: Record<keyof typeof fr, string> = {
   "toolbar.writing.show": "Write",
   "private.open": "Write",
   "kbd.writing.toggle": "Hide or show the writing area",
+  'toolbar.hideMenus': "Hide the menus",
   'toolbar.showMenus': "Show the menus",
   'toolbar.options': 'Options',
   'toolbar.participants': 'Participants',
