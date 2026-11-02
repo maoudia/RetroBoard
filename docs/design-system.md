@@ -33,6 +33,7 @@ Type roles: body `--fs-md`; secondary text and hints `--fs-sm` in `--muted`; bad
 - **Dialog**: title says the action, body one or two sentences, footer has Cancel (ghost) then the confirming action named like the trigger.
 - **Toast / popup**: one at a time, important ones stay until dismissed or 20 s, never below the columns. Position is a personal setting.
 - **Badge**: counts only; unread and open counts use `--accent2`.
+- **Menu order** (most to least important, same style everywhere): main toolbar = invite (share), participants, actions, filter, presenter, export, activity, options, light/dark, profile. Export hub = retro report, files (md, csv, json), destinations (advanced), board file, destroy last. Voting bar = state, results, facilitator menu, then the primary publish button last.
 - Every interactive element has a visible focus ring (`:focus-visible`) and passes axe in light and dark.
 
 ## 4. Writing

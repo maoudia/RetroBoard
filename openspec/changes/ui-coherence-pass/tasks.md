@@ -13,4 +13,4 @@
 
 ## 3. Menus
 
-- [ ] 3.1 Order by importance documented in `docs/design-system.md` and applied to toolbar, invite, export and voting menus; verify e2e order assertions in simple and advanced modes
+- [x] 3.1 Order by importance documented in `docs/design-system.md` and applied to toolbar, invite, export and voting menus; verify e2e order assertions in simple and advanced modes

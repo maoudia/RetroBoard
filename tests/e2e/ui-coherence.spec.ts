@@ -69,3 +69,12 @@ test.describe('voting bar on a phone', () => {
     expect(m.h).toBeLessThan(64)
   })
 })
+
+test('the toolbar lists its buttons by importance (change ui-coherence-pass)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue' })
+  const ids = await page.locator('nav.tools [data-testid]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')))
+  const order = ['btn-share', 'btn-participants', 'btn-actions', 'btn-filter', 'btn-presenter', 'btn-export', 'btn-options']
+  const at = order.map((id) => ids.indexOf(id))
+  expect(at.every((i) => i >= 0)).toBe(true)
+  expect([...at].sort((x, y) => x - y)).toEqual(at)
+})

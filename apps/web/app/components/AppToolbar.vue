@@ -48,16 +48,17 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
     <TimerWidget v-else class="timer-slot" />
 
     <nav class="tools" :aria-label="t('toolbar.tools')">
+      <!-- Order by importance (docs/design-system.md, menus): invite, people, actions, find, present, export, activity, settings. -->
+      <button class="icon-btn" type="button" data-testid="btn-share" @click="ui.open('share')"><Icon name="lucide:share-2" class="ico" /><span>{{ t('toolbar.share') }}</span><KeyCap k="S" /></button>
       <ParticipantsMenu />
       <button class="icon-btn" type="button" data-testid="btn-actions" @click="ui.open('actions')">
         <Icon name="lucide:list-checks" class="ico" /><span>{{ t('toolbar.actions') }}</span>
         <span v-if="board.openActions" class="badge" data-testid="actions-count">{{ board.openActions }}</span>
       </button>
-      <ExportMenu />
-      <ActivityFeed />
       <button class="icon-btn" type="button" data-testid="btn-filter" :aria-pressed="ui.filterOpen" @click="ui.filterOpen ? (ui.resetFilter(), ui.filterOpen = false) : (ui.filterOpen = true)"><Icon name="lucide:search" class="ico" /><span>{{ t('toolbar.filter') }}</span><KeyCap k="/" /></button>
       <button class="icon-btn" type="button" data-testid="btn-presenter" :aria-pressed="ui.presenter" @click="ui.presenter = !ui.presenter"><Icon name="lucide:presentation" class="ico" /><span>{{ t('toolbar.presenter') }}</span><KeyCap k="P" /></button>
-      <button class="icon-btn" type="button" data-testid="btn-share" @click="ui.open('share')"><Icon name="lucide:share-2" class="ico" /><span>{{ t('toolbar.share') }}</span><KeyCap k="S" /></button>
+      <ExportMenu />
+      <ActivityFeed />
       <button class="icon-btn" type="button" data-testid="btn-options" @click="ui.open('options')"><Icon name="lucide:settings" class="ico" /><span>{{ t('toolbar.options') }}</span></button>
       <button
         class="icon-btn" type="button" data-testid="btn-variant" :aria-pressed="theme.variant === 'dark'"
