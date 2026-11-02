@@ -25,3 +25,10 @@ A facilitator SHALL be able to open voting outside the Vote phase, and the overr
 #### Scenario: Vote early
 - **WHEN** the facilitator opens voting during the Group phase
 - **THEN** participants can vote until the facilitator moves to another phase
+
+### Requirement: Votable columns
+Votes SHALL only be possible on columns marked votable.
+
+#### Scenario: Happy column
+- **WHEN** Bob tries to vote on a note in "What went well" that is not votable
+- **THEN** there is no vote button and the fold refuses the vote

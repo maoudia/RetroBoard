@@ -54,3 +54,35 @@ On narrow screens the toolbar tools SHALL stay on a single row that scrolls hori
 #### Scenario: Menus
 - **WHEN** the participant opens a toolbar menu while the row is scrolled
 - **THEN** the menu opens next to its button, not clipped by the row
+
+### Requirement: Simple creation
+In simple mode the creation page SHALL show only the title, the retro format and the create button, apply the recommended defaults, and keep every other option available under Advanced.
+
+#### Scenario: Quick start
+- **WHEN** a visitor in simple mode picks a format and creates the board
+- **THEN** the board opens with the one-hour agenda, everyone facilitating, arrival popups on and the format's voting defaults
+
+#### Scenario: Personalise
+- **WHEN** a visitor switches the creation page to Advanced
+- **THEN** theme, facilitation, arrival popups, voting columns, passcode, agenda and carry-over actions are shown
+
+### Requirement: Home page resumes work
+The home page SHALL show the recent boards as a prominent card above the presentation when the browser has some, with the title, the theme and when it was last opened.
+
+#### Scenario: Returning visitor
+- **WHEN** a visitor with two recent boards opens the home page
+- **THEN** both boards are listed with their last opened time before the marketing sections
+
+### Requirement: Connection state of participants
+The board SHALL show for every connected participant whether they are linked directly, through the relay only or reconnecting, in colour and in words, and SHALL list who left.
+
+#### Scenario: Relay only
+- **WHEN** Bob's browser cannot open a direct link and uses the relay
+- **THEN** everyone sees an amber dot next to Bob described as "through the relay"
+
+### Requirement: Arrivals and departures
+Joins and departures SHALL appear in the activity feed; a board option chosen at creation SHALL decide whether they also appear as short popups.
+
+#### Scenario: Popups off
+- **WHEN** the facilitator created the board with arrival popups off and Carol joins
+- **THEN** no popup appears and the activity feed says Carol joined

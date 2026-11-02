@@ -18,3 +18,10 @@ The system SHALL rank formats from a goal, a team mood (1-5), an available time 
 #### Scenario: Quick format
 - **WHEN** the goal is "go fast" and the time is 15 minutes
 - **THEN** the top suggestion fits in 15 minutes
+
+### Requirement: Default votable columns
+Every template SHALL mark its improvement columns as votable by default.
+
+#### Scenario: Start Stop Continue
+- **WHEN** a board is created from Start Stop Continue
+- **THEN** Stop and Start are votable and Continue is not

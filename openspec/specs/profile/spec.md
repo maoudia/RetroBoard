@@ -18,3 +18,21 @@ A participant who joins with the name of someone already present SHALL be invite
 #### Scenario: Second Alex
 - **WHEN** Alex is on the board and another participant joins as alex
 - **THEN** the newcomer sees a popup suggesting another name
+
+### Requirement: Simple or advanced mode
+A person SHALL be able to choose between a simple and an advanced mode, simple by default, remembered on this device; the mode only decides which options are shown.
+
+#### Scenario: Switch from a dialog
+- **WHEN** Alice switches to Advanced in the share dialog
+- **THEN** the creation, share and export screens all show their advanced options from then on
+
+### Requirement: Recent boards within reach
+The boards this browser opened recently SHALL be listed where people land (home page, creation page, board title menu) and not only in the profile menu; the list SHALL stay on this device.
+
+#### Scenario: Back from a board
+- **WHEN** Alice leaves her board with the browser back button and lands on the creation page
+- **THEN** her board is listed first under "Your recent boards" and one click reopens it
+
+#### Scenario: Switch board
+- **WHEN** Alice opens the board title menu
+- **THEN** she sees her other recent boards and can open one
