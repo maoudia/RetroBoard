@@ -176,8 +176,8 @@ describe('resets and destroy', () => {
     const c = note(h, 'c', 1)
     h.run({ t: 'note.group', id: a, ontoId: b })
     h.run({ t: 'action.add', text: 'act', owner: '' })
-    h.run({ t: 'vote.add', id: c })
-    h.run({ t: 'vote.add', id: h.state.notes[a]!.groupId! })
+    h.run({ t: 'vote.add', kind: 'note', id: c })
+    h.run({ t: 'vote.add', kind: 'cluster', id: h.state.notes[a]!.groupId! })
     h.run({ t: 'timer.start' })
     return { h, a, b, c }
   }
