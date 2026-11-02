@@ -2,6 +2,7 @@ import type { ChannelFactory, ClipboardPort, FilePort, NotifierPort, ReplicaStor
 import { deriveContentKey, fromBase64Url } from '@retroboard/crypto'
 import type { KeyRing } from '@retroboard/domain'
 import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adapters/replica-idb'
+import { createSessionReplicaStore, withSessionFallback } from '~/adapters/replica-session'
 import { createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
 import { localTransportFactory } from '~/transport'
 import { buildWs2Url, EncryptedRelayTransport } from '~/transport/encrypted'
@@ -27,6 +28,8 @@ export default defineNuxtPlugin(() => {
   const settings = useSettingsStore()
   let replica: ReplicaStorePort | null = null
   try { replica = typeof indexedDB === 'undefined' ? null : createIdbReplicaStore(openReplicaDb()) } catch { replica = null }
+  // Private modes without IndexedDB keep the board in this tab (sessionStorage): a reload or back and forward reopens it.
+  try { replica = withSessionFallback(replica, createSessionReplicaStore(sessionStorage)) } catch { /* no storage at all: memory only */ }
   // Retention: expired local copies are deleted at start-up ("until I leave" is handled on the board page).
   // "Until I leave" also purges everything at start-up: a delete started while leaving a page may not finish.
   if (replica) void replica.purge(settings.s.retentionDays > 0 ? Date.now() - settings.s.retentionDays * 86_400_000 : Number.MAX_SAFE_INTEGER).catch(() => {})

@@ -102,3 +102,15 @@ test('going back from the board to the creation page offers the way back to it (
   await expect(page).toHaveURL(sameBoard(board))
   await alive(page, 'Keep me')
 })
+
+test('private mode without IndexedDB: a reload reopens the board from the tab copy (change board-recovery)', async ({ page }) => {
+  await page.addInitScript(() => { Object.defineProperty(window, 'indexedDB', { value: undefined, configurable: true }) })
+  await createBoard(page, { title: 'Private' })
+  await publishNote(page, 0, 'Still here')
+  await expect(noteByText(page, 'Still here')).toBeVisible()
+  await page.waitForTimeout(600)
+  await page.reload()
+  await expect(page.getByTestId('board-waiting')).toHaveCount(0)
+  await expect(page.getByTestId('board')).toBeVisible()
+  await expect(noteByText(page, 'Still here')).toBeVisible()
+})

@@ -148,3 +148,10 @@ The toolbar boards menu SHALL end with an entry that opens the creation page.
 #### Scenario: Start another board
 - **WHEN** Alice opens the boards menu and chooses "New board"
 - **THEN** the creation page opens
+
+### Requirement: A board survives a reload without IndexedDB
+When the browser offers no durable local storage, the board SHALL still reopen after a reload, back or forward in the same tab, from an encrypted copy kept for that tab only.
+
+#### Scenario: Private mode reload
+- **WHEN** Alice creates a board and adds an idea in a browser without IndexedDB, then reloads the page
+- **THEN** the board and the idea are shown, not the waiting screen
