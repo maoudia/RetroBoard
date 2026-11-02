@@ -14,6 +14,8 @@ export interface ClassLayout {
   write: Record<string, string>
   /** board room id -> column id -> width in px set by dragging (change board-layout-v2); a preset clears it. */
   widths?: Record<string, Record<string, number>>
+  /** board room id -> writing field height in px set by dragging (change board-layout-v2); a preset clears it. */
+  writeH?: Record<string, number>
 }
 export type LayoutBook = Partial<Record<ScreenClass, ClassLayout>>
 
@@ -41,7 +43,19 @@ export function setSize(book: LayoutBook, cls: ScreenClass, room: string, column
 
 export function setWrite(book: LayoutBook, cls: ScreenClass, room: string, size: string): LayoutBook {
   const cur = layoutOf(book, cls)
-  return withLayout(book, cls, { write: { ...cur.write, [room]: size } })
+  const writeH = Object.fromEntries(Object.entries(cur.writeH ?? {}).filter(([k]) => k !== room))
+  return withLayout(book, cls, { write: { ...cur.write, [room]: size }, writeH })
+}
+
+export const MIN_WRITE_PX = 40
+export const MAX_WRITE_PX = 420
+
+/** Writing field height set by dragging (null clears it back to the preset). Clamped; never mutates the input. */
+export function setWriteHeight(book: LayoutBook, cls: ScreenClass, room: string, px: number | null): LayoutBook {
+  const cur = layoutOf(book, cls)
+  const rest = Object.fromEntries(Object.entries(cur.writeH ?? {}).filter(([k]) => k !== room))
+  const next = px === null ? rest : { ...rest, [room]: Math.round(Math.max(MIN_WRITE_PX, Math.min(MAX_WRITE_PX, px))) }
+  return withLayout(book, cls, { writeH: next })
 }
 
 export const resetClass = (book: LayoutBook, cls: ScreenClass): LayoutBook => {

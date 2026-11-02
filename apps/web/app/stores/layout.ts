@@ -1,7 +1,7 @@
 import { safeStorage } from '~/utils/storage'
 import {
   type ClassLayout, type Density, LAYOUT_KEY, type LayoutBook, type ScreenClass, classOf, copyClass, layoutOf, resetClass,
-  setSize, setWidth, setWrite, withLayout,
+  setSize, setWidth, setWrite, setWriteHeight, withLayout,
 } from '~/utils/layout'
 
 /** Layout remembered per screen class on this device (change device-layout-prefs). Local only. */
@@ -23,6 +23,7 @@ export const useLayoutStore = defineStore('layout', () => {
     setSizes: (room: string, sizes: Record<string, string>) => commit(withLayout(book.value, cls.value, { sizes: { ...current.value.sizes, [room]: sizes } })),
     setSize: (room: string, columnId: string, size: string) => commit(setSize(book.value, cls.value, room, columnId, size)),
     setWidth: (room: string, columnId: string, px: number | null) => commit(setWidth(book.value, cls.value, room, columnId, px)),
+    setWriteHeight: (room: string, px: number | null) => commit(setWriteHeight(book.value, cls.value, room, px)),
     setWrite: (room: string, size: string) => commit(setWrite(book.value, cls.value, room, size)),
     reset: () => commit(resetClass(book.value, cls.value)),
     copyFrom: (from: ScreenClass) => commit(copyClass(book.value, from, cls.value)),

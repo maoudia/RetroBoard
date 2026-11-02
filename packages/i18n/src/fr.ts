@@ -420,6 +420,7 @@ export const fr = {
   'toolbar.share': 'Partager',
   "board.dots": "Colonnes du board",
   "board.dot": "Colonne {n} sur {total} : {title}",
+  "private.grow": "Hauteur de la zone d'écriture",
   "toolbar.writing.hide": "Saisie",
   "toolbar.writing.show": "Saisie",
   "private.open": "Écrire",

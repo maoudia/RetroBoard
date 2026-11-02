@@ -29,6 +29,8 @@ export const useUiStore = defineStore('ui', () => {
     legacy.value = room ? legacySizes(room, (k, f) => safeStorage.get(k, f)) : { sizes: {}, write: null }
   }
   const columnWidths = computed<Record<string, number>>(() => (roomId.value ? (layout.current.widths?.[roomId.value] ?? {}) : {}))
+  const writeHeight = computed<number | null>(() => (roomId.value ? (layout.current.writeH?.[roomId.value] ?? null) : null))
+  const setWriteHeight = (room: string | null, px: number | null) => { if (room) layout.setWriteHeight(room, px) }
   const setColumnWidth = (room: string | null, columnId: string, px: number | null) => { if (room) layout.setWidth(room, columnId, px) }
   const setColumnSize = (room: string | null, columnId: string, size: ColumnSize) => {
     if (!room) return
@@ -82,5 +84,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
+  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, dragGroupId }
 })

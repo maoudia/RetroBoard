@@ -38,3 +38,26 @@ test('a column is widened by dragging its edge, and a preset gives the standard 
   await page.getByTestId(`size-normal-${id}`).click()
   await expect(col).toHaveAttribute('data-size', 'normal')
 })
+
+test('the writing field grows by dragging its grip, with the keyboard, and a preset gives the standard height back', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'mouse drag on desktop; touch uses the same pointer events')
+  await createBoard(page, { template: 'start-stop-continue' })
+  const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
+  const field = page.getByTestId(`draft-${id}`)
+  const h0 = (await field.boundingBox())!.height
+  const grip = (await page.getByTestId(`grow-grip-${id}`).boundingBox())!
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + 90, { steps: 6 })
+  await page.mouse.up()
+  await expect(async () => expect((await field.boundingBox())!.height).toBeGreaterThan(h0 + 50)).toPass()
+  const h1 = (await field.boundingBox())!.height
+  await page.getByTestId(`grow-grip-${id}`).focus()
+  await page.keyboard.press('ArrowUp')
+  await expect(async () => expect((await field.boundingBox())!.height).toBeLessThan(h1)).toPass()
+  await page.reload()
+  await expect(async () => expect((await page.getByTestId(`draft-${id}`).boundingBox())!.height).toBeGreaterThan(h0 + 20)).toPass()
+  await page.getByTestId(`area-menu-${id}`).click()
+  await page.getByTestId(`area-normal-${id}`).click()
+  await expect(async () => expect(Math.abs((await field.boundingBox())!.height - h0)).toBeLessThan(4)).toPass()
+})

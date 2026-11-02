@@ -35,3 +35,17 @@ describe('layout per screen class', () => {
     expect(legacySizes('none', get)).toEqual({ sizes: {}, write: null })
   })
 })
+
+describe('writing field height (change board-layout-v2)', () => {
+  it('is clamped, per room, and a size preset clears it', async () => {
+    const { setWriteHeight, setWrite, layoutOf, MAX_WRITE_PX, MIN_WRITE_PX } = await import('../app/utils/layout')
+    let book = setWriteHeight({}, 'desktop', 'r1', 5000)
+    expect(layoutOf(book, 'desktop').writeH).toEqual({ r1: MAX_WRITE_PX })
+    book = setWriteHeight(book, 'desktop', 'r1', 1)
+    expect(layoutOf(book, 'desktop').writeH?.r1).toBe(MIN_WRITE_PX)
+    book = setWriteHeight(book, 'desktop', 'r2', 120)
+    book = setWrite(book, 'desktop', 'r1', 'large')
+    expect(layoutOf(book, 'desktop').writeH).toEqual({ r2: 120 })
+    expect(layoutOf(setWriteHeight(book, 'desktop', 'r2', null), 'desktop').writeH).toEqual({})
+  })
+})

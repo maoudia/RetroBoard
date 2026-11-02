@@ -2,6 +2,7 @@
 import { similarIdeas } from '@retroboard/application'
 import { NOTE_COLOR_COUNT, type Column } from '@retroboard/domain'
 import { WRITE_SIZES } from '~/stores/ui'
+import { MAX_WRITE_PX, MIN_WRITE_PX } from '~/utils/layout'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; colorIndex: number }>()
@@ -12,6 +13,31 @@ const identity = useIdentityStore()
 const ui = useUiStore()
 const { publish } = usePublish()
 const text = computed({ get: () => drafts.compose(props.column.id), set: (v: string) => drafts.setCompose(props.column.id, v) })
+/** Drag the grip under the writing field to set its height (mouse, touch, keyboard); a preset clears it (change board-layout-v2). */
+const fieldEl = ref<HTMLTextAreaElement | null>(null)
+const dragH = ref<number | null>(null)
+const fieldH = computed(() => dragH.value ?? ui.writeHeight)
+function startGrow(e: PointerEvent) {
+  const grip = e.currentTarget as HTMLElement
+  const start = fieldEl.value?.getBoundingClientRect().height ?? 52
+  const y0 = e.clientY
+  grip.setPointerCapture(e.pointerId)
+  const move = (ev: PointerEvent) => { dragH.value = Math.max(MIN_WRITE_PX, Math.min(MAX_WRITE_PX, start + ev.clientY - y0)) }
+  const up = () => {
+    grip.removeEventListener('pointermove', move)
+    if (dragH.value !== null) ui.setWriteHeight(board.roomId, dragH.value)
+    dragH.value = null
+  }
+  grip.addEventListener('pointermove', move)
+  grip.addEventListener('pointerup', up, { once: true })
+  grip.addEventListener('pointercancel', up, { once: true })
+}
+function growKey(e: KeyboardEvent) {
+  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+  e.preventDefault()
+  const now = fieldH.value ?? fieldEl.value?.getBoundingClientRect().height ?? 52
+  ui.setWriteHeight(board.roomId, now + (e.key === 'ArrowDown' ? 24 : -24))
+}
 /** On touch screens the keyboard's return key adds a line; the buttons act. */
 const coarse = ref(false)
 onMounted(() => { coarse.value = window.matchMedia('(pointer: coarse)').matches })
@@ -107,13 +133,17 @@ function onKey(e: KeyboardEvent) {
     <label class="composer" :class="{ gated: closed }" :style="{ '--c': `var(--note-${colour})` }">
       <span class="sr-only">{{ t('private.newIn', { title: column.title }) }}</span>
       <textarea
-        v-model="text" :maxlength="board.noteLimit" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
+        ref="fieldEl" v-model="text" :maxlength="board.noteLimit" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
         :aria-describedby="gate.closedBy ? `gated-${column.id}` : undefined"
         :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
-        @keydown="onKey"
+        :style="fieldH ? { minHeight: `${fieldH}px`, height: `${fieldH}px` } : undefined" @keydown="onKey"
       />
       <small class="hint-row"><span>{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
     </label>
+    <span
+      class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
+      :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @keydown="growKey"
+    />
     <div v-if="colorsOpen" class="swatches" role="group" :aria-label="t('note.color')" :data-testid="`compose-colors-${column.id}`">
       <button
         v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: colour === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
@@ -167,6 +197,9 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .composer { display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
+.grow-grip { justify-self: center; width: 56px; height: 24px; cursor: row-resize; touch-action: none; display: grid; place-items: center; border-radius: var(--r-pill); }
+.grow-grip::after { content: ''; width: 36px; height: 4px; border-radius: var(--r-pill); background: var(--border); transition: background .15s; }
+.grow-grip:hover::after, .grow-grip:focus-visible::after, .grow-grip:active::after { background: var(--accent); }
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: var(--fs-xs); font-weight: 500; color: color-mix(in oklab, var(--note-ink) 80%, transparent); }
