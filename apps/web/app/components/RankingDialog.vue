@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { buildRanking, podium, type RankedItem, voteStats } from '@retroboard/application'
+import { buildInsights, buildRanking, type Insight, podium, type RankedItem, voteStats } from '@retroboard/application'
 import { errorLabel } from '~/utils/labels'
 const { t } = useT()
 const ui = useUiStore()
@@ -13,6 +13,14 @@ const top = computed(() => (ranking.value ? podium(ranking.value) : []))
 const steps = computed(() => [2, 1, 3].map((rank) => ({ rank, items: top.value.filter((i) => i.rank === rank) })).filter((s) => s.items.length))
 const stats = computed(() => (board.snapshot && ranking.value ? voteStats(board.snapshot, board.snapshot.peers.length) : null))
 const pct = (n: number) => Math.round(n * 100)
+const insights = computed(() => (board.snapshot && ranking.value ? buildInsights(board.snapshot, board.snapshot.peers.length) : null))
+const insightText = (i: Insight) => t(`insight.${i.id}` as never, { ...i.n, column: i.columnId ? columnTitle(i.columnId) : '' })
+const energyRows = computed(() => (insights.value?.notesPerColumn ?? []).map((c) => ({ id: c.columnId, label: columnTitle(c.columnId), value: String(c.notes), ratio: c.share })))
+const wordRows = computed(() => {
+  const k = insights.value?.keywords ?? []
+  const max = k[0]?.count ?? 1
+  return k.map((w) => ({ id: w.word, label: w.word, value: String(w.count), ratio: w.count / max }))
+})
 const topRows = computed(() => (stats.value?.top ?? []).map((i) => ({
   id: i.id, label: i.title, value: String(i.votes), ratio: i.ratio, highlight: i.rank === 1, ...(i.tied ? { hint: t('ranking.charts.tie') } : {}),
 })))
@@ -67,6 +75,24 @@ function toAction(item: RankedItem) {
         </div>
       </section>
 
+      <section v-if="insights && (insights.list.length || wordRows.length)" class="insights" data-testid="insights">
+        <h3 class="list-h">{{ t('insight.title') }}</h3>
+        <ul v-if="insights.list.length" class="sentences">
+          <li v-for="i in insights.list" :key="i.id" :data-testid="`insight-${i.id}`"><Icon name="lucide:sparkles" /> {{ insightText(i) }}</li>
+        </ul>
+        <div class="charts">
+          <div v-if="energyRows.some((r) => r.value !== '0')" class="chart" data-testid="chart-energy">
+            <h3 class="list-h">{{ t('insight.energy') }}</h3>
+            <ChartBars :rows="energyRows" :label="t('insight.energy')" />
+          </div>
+          <div v-if="wordRows.length" class="chart" data-testid="chart-words">
+            <h3 class="list-h">{{ t('insight.words') }}</h3>
+            <ChartBars :rows="wordRows" :label="t('insight.words')" />
+            <p class="muted small">{{ t('insight.words.note') }}</p>
+          </div>
+        </div>
+      </section>
+
       <h3 class="list-h">{{ t('ranking.all') }}</h3>
       <ol class="list" data-testid="ranking-list">
         <li v-for="it in ranking" :key="it.id" :data-testid="`rank-${it.id}`" :data-rank="it.rank">
@@ -90,7 +116,7 @@ function toAction(item: RankedItem) {
 
 <style scoped>
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: .75rem; margin: .5rem 0 1rem; padding: 0; list-style: none; }
-.step { display: grid; justify-items: center; gap: .5rem; width: min(33%, 220px); }
+.step { display: grid; justify-items: center; gap: .5rem; flex: 1 1 0; min-width: 0; max-width: 220px; }
 .on-step { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; width: 100%; }
 .winner { display: grid; gap: .1rem; padding: .5rem .6rem; border-radius: var(--r-control); background: var(--surface2); text-align: center; animation: rise .6s var(--ease) both; }
 .ttl { overflow-wrap: anywhere; }
@@ -99,6 +125,9 @@ function toAction(item: RankedItem) {
 .r1 .winner { animation-delay: .3s; } .r2 .winner { animation-delay: .15s; }
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 @media (prefers-reduced-motion: reduce) { .winner { animation: none; } }
+.insights { display: grid; gap: .75rem; margin: 0 0 1rem; }
+.sentences { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.sentences li { display: flex; gap: .5rem; align-items: baseline; padding: .5rem .75rem; border-radius: var(--r-control); background: var(--surface2); }
 .list-h { margin: 0; font-size: var(--fs-md); }
 .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem 1.5rem; margin: 0 0 1rem; }
 .chart { display: grid; gap: .5rem; align-content: start; min-width: 0; }
