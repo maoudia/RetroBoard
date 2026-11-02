@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.33.0](https://github.com/maoudia/RetroBoard/compare/v1.32.1...v1.33.0) (2026-11-02)
+
+
+### Features
+
+* **presenter:** spotlight one idea over the dimmed board with arrows inside the column ([8fcd1f7](https://github.com/maoudia/RetroBoard/commit/8fcd1f7c65b1c671319686efbabe10e0cf8bdc2a))
+
+
+### Bug Fixes
+
+* **board:** show on the waiting screen whether this browser holds a local copy ([bc98575](https://github.com/maoudia/RetroBoard/commit/bc985752e66ac6da7236e3d1977faa88aabef0f7))
+
 ## [1.32.1](https://github.com/maoudia/RetroBoard/compare/v1.32.0...v1.32.1) (2026-11-02)
 
 
