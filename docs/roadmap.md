@@ -23,6 +23,7 @@ Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a rea
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
 * `mobile-board-space` ([proposal](../openspec/changes/mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
 * `edit-published-notes` ([proposal](../openspec/changes/edit-published-notes/proposal.md)) - live retro 2026-11-02
+* `ux-irritants-wave-2` ([proposal](../openspec/changes/ux-irritants-wave-2/proposal.md)) - live retro 2026-11-02, phone: UX irritants first, before any new feature
 
 ## R2 Facilitation and visuals (target 2026-12-06)
 
