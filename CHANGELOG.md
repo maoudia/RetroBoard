@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.26.0](https://github.com/maoudia/RetroBoard/compare/v1.25.0...v1.26.0) (2026-11-02)
+
+
+### Features
+
+* **boards:** recent boards up front on the home page, the creation page and a switcher in the board toolbar ([20e4bb9](https://github.com/maoudia/RetroBoard/commit/20e4bb9f60fc8a9688cc09103dd167307b1e738a))
+* **ui:** simple and advanced mode for creation, sharing and export ([252c855](https://github.com/maoudia/RetroBoard/commit/252c8554214f19443adf144edf7b38fc284ff0c0))
+
+
+### Bug Fixes
+
+* **board:** keep the local copy of boards in use, retry from the waiting screen, create button on the right ([bfbf48f](https://github.com/maoudia/RetroBoard/commit/bfbf48fc7ab1cf79f2590b552f829a27db12ba3f))
+
 ## [1.25.0](https://github.com/maoudia/RetroBoard/compare/v1.24.0...v1.25.0) (2026-11-01)
 
 
