@@ -38,6 +38,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
           <span class="boards-head muted">{{ t('toolbar.boards') }}</span>
           <RecentBoards :exclude="board.roomId ?? undefined" :limit="8" testid="boards-menu" @open="close()" />
           <p v-if="!otherBoards" class="boards-none muted">{{ t('toolbar.boards.none') }}</p>
+          <NuxtLink to="/new" class="boards-new" data-testid="boards-new" @click="close()"><Icon name="lucide:plus" /> {{ t('toolbar.boards.new') }}</NuxtLink>
         </template>
       </Dropdown>
     </div>
@@ -76,6 +77,8 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 .logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
 .logo:hover { transform: rotate(-8deg) scale(1.08); }
 .boards-head { display: block; padding: .3rem .5rem; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.boards-new { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; padding: .5rem .6rem; border-top: 1px solid var(--border); color: var(--accent); font-weight: 600; text-decoration: none; }
+.boards-new:hover { background: var(--accent-soft); }
 .boards-none { margin: 0; padding: .3rem .5rem .5rem; font-size: var(--fs-sm); }
 .title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: var(--r-control); background: transparent; cursor: pointer; }
 .title:hover { background: var(--accent-soft); }

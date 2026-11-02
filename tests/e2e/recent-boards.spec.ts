@@ -51,3 +51,10 @@ test('the creation page suggests the next sprint number from the last board (cha
   await page.goto('/new')
   await expect(page.getByTestId('setup-title')).toHaveValue('Sprint 43')
 })
+
+test('the boards menu ends with a New board entry (change boards-menu-new)', async ({ page }) => {
+  await createBoard(page, { title: 'Menu' })
+  await page.getByTestId('btn-boards').click()
+  await page.getByTestId('boards-new').click()
+  await expect(page).toHaveURL(/\/new\/?$/)
+})

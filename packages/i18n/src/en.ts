@@ -968,6 +968,7 @@ export const en: Record<keyof typeof fr, string> = {
   'landing.join.invalid': 'This is not a RetroBoard link. Paste the full link you were sent.',
   'landing.recents': 'Resume a board',
   'toolbar.boards': 'My boards',
+  'toolbar.boards.new': 'New board',
   'toolbar.boards.none': 'No other board on this device.',
   'profile.recents': 'Recent boards',
   'profile.recents.where': 'on this device',

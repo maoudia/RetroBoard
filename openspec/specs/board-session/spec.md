@@ -141,3 +141,10 @@ Advanced creation SHALL let the facilitator choose the votes per person and the 
 #### Scenario: Five votes, sealed
 - **WHEN** Alice creates a board in advanced mode with 5 votes per person and the sealed ballot
 - **THEN** the options of the new board show 5 votes per person and the sealed ballot on
+
+### Requirement: New board from the boards menu
+The toolbar boards menu SHALL end with an entry that opens the creation page.
+
+#### Scenario: Start another board
+- **WHEN** Alice opens the boards menu and chooses "New board"
+- **THEN** the creation page opens

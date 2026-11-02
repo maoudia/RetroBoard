@@ -967,6 +967,7 @@ export const fr = {
   'landing.join.invalid': "Ce n'est pas un lien RetroBoard. Colle le lien complet qu'on t'a envoyé.",
   'landing.recents': 'Reprendre un board',
   'toolbar.boards': 'Mes boards',
+  'toolbar.boards.new': 'Nouveau board',
   'toolbar.boards.none': 'Aucun autre board sur cet appareil.',
   'profile.recents': 'Boards récents',
   'profile.recents.where': 'sur cet appareil',
