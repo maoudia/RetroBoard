@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.36.0](https://github.com/maoudia/RetroBoard/compare/v1.35.0...v1.36.0) (2026-11-02)
+
+
+### Features
+
+* **board:** per-column writing area fold, presenter hides menus by default, aligned vote bar ([319c59f](https://github.com/maoudia/RetroBoard/commit/319c59f85a16ad858136aba249c9f512b31d6d47))
+* **mobile:** working column width, thin top slider with peeking columns, presenter controls without overlap ([d50b0b4](https://github.com/maoudia/RetroBoard/commit/d50b0b426892d6ded6bc18519d7e98c211c6bc73))
+* **share:** clearer join steps, faster QR, readable overdue time ([a310b94](https://github.com/maoudia/RetroBoard/commit/a310b9428f76f3f507f8be4e569a80556f902c11))
+* **toolbar:** sliding menus with a permanent chevron; fix(options): destroy text, segmented scales, centred mode switch ([ac3675e](https://github.com/maoudia/RetroBoard/commit/ac3675e0f0d29b084f4a4444c5cae200ae6409b4))
+
+
+### Bug Fixes
+
+* **board:** confirm deleting a pinned note, group similar ideas without freezing and with a result notification ([1eb1f6b](https://github.com/maoudia/RetroBoard/commit/1eb1f6b2efc8e916ce1d28a1f678ec91eab228c9))
+
 ## [1.35.0](https://github.com/maoudia/RetroBoard/compare/v1.34.0...v1.35.0) (2026-11-02)
 
 
