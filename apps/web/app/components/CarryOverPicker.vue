@@ -5,11 +5,18 @@ const { t } = useT()
 
 /** Board creation: pick the previous actions to carry over (team profile on this device, or a file). */
 const model = defineModel<ImportedAction[]>({ required: true })
+/** Only the previous retros of this team (and project, when set) are offered (change team-workspaces). */
+const props = defineProps<{ teamId: string, project: string | null }>()
 const team = useTeamStore()
 const { push } = useToasts()
+const { locale } = useT()
 
-const candidates = ref<ImportedAction[]>([...team.openActions])
+const fromTeam = computed<ImportedAction[]>(() => team.candidates(props.teamId, props.project).map((c) => ({ text: c.text, owner: c.owner, status: c.status as ImportedAction['status'], ...(c.due ? { due: c.due } : {}), from: c.from })))
+const dates = computed(() => team.candidates(props.teamId, props.project).map((c) => new Date(c.at).toLocaleDateString(locale.value)))
+const candidates = ref<ImportedAction[]>([...fromTeam.value])
 const picked = ref<Set<number>>(new Set(candidates.value.map((_, i) => i)))
+// Another team or project: its own previous actions replace the list, files added by hand are kept out of the swap.
+watch(fromTeam, (next) => { candidates.value = [...next]; picked.value = new Set(next.map((_, i) => i)) })
 watch([candidates, picked], () => { model.value = candidates.value.filter((_, i) => picked.value.has(i)) }, { immediate: true, deep: true })
 
 function toggle(i: number, on: boolean) {
@@ -35,13 +42,13 @@ async function fromFile(e: Event) {
   <section class="carry" data-testid="carry-over">
     <h2 class="h"><Icon name="lucide:history" /> {{ t('carry.title') }}</h2>
     <p class="muted">{{ t('carry.intro') }}</p>
-    <p v-if="team.openActions.length" class="src muted">{{ t('carry.team', { title: team.profile.lastTitle ?? '-', n: team.openActions.length }) }}</p>
+    <p v-if="!fromTeam.length" class="src muted" data-testid="carry-none">{{ t('carry.none') }}</p>
     <ul v-if="candidates.length" class="list" data-testid="carry-list">
       <li v-for="(a, i) in candidates" :key="i">
         <label>
           <input type="checkbox" :checked="picked.has(i)" :data-testid="`carry-item-${i}`" @change="toggle(i, ($event.target as HTMLInputElement).checked)" />
           <span class="txt">{{ a.text }}</span>
-          <small class="muted">{{ a.owner || t('common.anonymous') }} · {{ t(`actions.status.${a.status}`) }}</small>
+          <small class="muted">{{ a.owner || t('common.anonymous') }} · {{ t(`actions.status.${a.status}`) }}<template v-if="a.from && dates[i]"> · {{ a.from }}, {{ dates[i] }}</template></small>
         </label>
       </li>
     </ul>

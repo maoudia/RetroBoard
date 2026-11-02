@@ -70,7 +70,7 @@ function setStatus(a: ActionItem, status: ActionStatus, e: Event) {
   if (status === 'done') celebrate(e)
 }
 function saveForNextTime() {
-  team.saveActions(board.settings?.title ?? '', board.actions)
+  team.saveActions(board.roomId ?? '', board.settings?.title ?? '', board.actions)
   push(t('actions.saved', { n: board.actions.filter(isOpenAction).length }), 'ok')
 }
 const clip = (s: string) => (s.length > 60 ? `${s.slice(0, 60)}...` : s)

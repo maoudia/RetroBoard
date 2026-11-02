@@ -19,7 +19,7 @@ const active = ref(-1)
 type Option = { name: string; source: 'present' | 'history' | 'custom' }
 const MAX_USED = 6
 const options = computed<Option[]>(() => {
-  const { connected, used } = ownerChoices({ peers: board.peers, actions: board.actions }, model.value, team.profile.owners)
+  const { connected, used } = ownerChoices({ peers: board.peers, actions: board.actions }, model.value, team.owners)
   const list: Option[] = [...connected.map((name) => ({ name, source: 'present' as const })), ...used.slice(0, MAX_USED).map((name) => ({ name, source: 'history' as const }))]
   const typed = model.value.trim().slice(0, LIMITS.actionOwner)
   const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()

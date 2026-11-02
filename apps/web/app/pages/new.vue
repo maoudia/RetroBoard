@@ -19,6 +19,13 @@ onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(
 
 /** Previous actions to carry over into the new board (team profile or a file). */
 const carry = ref<ImportedAction[]>([])
+/** Team and project of the new board (change team-workspaces): advanced shows both, simple keeps the last team. */
+const team = useTeamStore()
+const NEW_TEAM = '__new'
+const teamChoice = ref(team.current?.id ?? NEW_TEAM)
+const newTeamName = ref('')
+const project = ref('')
+const projectName = computed(() => project.value.trim() || null)
 /** Default: the one-hour agenda (spec: 8 phases, 60 minutes) unless the facilitator edits it. */
 const agenda = ref<AgendaDraft>({ enabled: true, phases: presetPhases(60), rules: true, autoPublish: true })
 /** The time available in the format picker picks the closest agenda preset, until the agenda is edited by hand (#224). */
@@ -41,6 +48,8 @@ function create({ passcode, ...form }: SetupResult) {
   }
   const ring = { ...newKeyRing(), ...(passcode && !soloMode.value ? { passcode: true } : {}) }
   if (soloMode.value) markSolo(ring.roomId)
+  const chosen = advanced.value && teamChoice.value === NEW_TEAM && newTeamName.value.trim() ? team.create(newTeamName.value) : team.teams.find((x) => x.id === teamChoice.value) ?? team.ensureTeam()
+  team.assign(ring.roomId, chosen.id, advanced.value ? projectName.value : null)
   try {
     sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
     // Hand-off to the board page of this tab only; read once and removed there.
@@ -79,8 +88,30 @@ function create({ passcode, ...form }: SetupResult) {
       <section v-if="advanced" class="card panel">
         <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
       </section>
+      <section v-if="advanced" class="card panel team" data-testid="team-card">
+        <h2 class="h2"><Icon name="lucide:users-round" /> {{ t('team.title') }}</h2>
+        <p class="muted">{{ t('team.intro') }}</p>
+        <div class="team-row">
+          <label class="team-f">
+            <span>{{ t('team.team') }}</span>
+            <select v-model="teamChoice" class="field" data-testid="team-select">
+              <option v-for="x in team.teams" :key="x.id" :value="x.id">{{ x.emoji }} {{ x.name }}</option>
+              <option :value="NEW_TEAM">{{ t('team.new') }}</option>
+            </select>
+          </label>
+          <label v-if="teamChoice === NEW_TEAM" class="team-f">
+            <span>{{ t('team.name') }}</span>
+            <input v-model="newTeamName" class="field" maxlength="40" data-testid="team-name" />
+          </label>
+          <label class="team-f">
+            <span>{{ t('team.project') }}</span>
+            <input v-model="project" class="field" maxlength="40" list="team-projects" data-testid="team-project" />
+            <datalist id="team-projects"><option v-for="p in team.projects(teamChoice)" :key="p" :value="p" /></datalist>
+          </label>
+        </div>
+      </section>
       <section v-if="advanced" class="card panel">
-        <CarryOverPicker v-model="carry" />
+        <CarryOverPicker v-model="carry" :team-id="teamChoice" :project="projectName" />
       </section>
       <p class="foot muted">
         {{ t('new.foot') }}
@@ -97,6 +128,10 @@ function create({ passcode, ...form }: SetupResult) {
 .back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text); font-weight: 700; text-decoration: none; }
 .wrap { position: relative; z-index: 1; display: grid; gap: 1.4rem; width: min(1040px, 100% - 2rem); margin: 0 auto; padding: 1rem 0 3rem; }
 h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
+.h2 { display: flex; gap: .5rem; align-items: center; margin: 0; font-size: var(--fs-lg); }
+.team { display: grid; gap: .6rem; }
+.team-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.team-f { display: grid; gap: .25rem; flex: 1 1 14rem; font-weight: 600; }
 .solo-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
 .solo-line span { display: grid; gap: .15rem; }
 .lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }

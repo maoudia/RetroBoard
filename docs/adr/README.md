@@ -37,3 +37,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0024](0024-board-events-on-two-paths-anti-entropy-on-every-connection.md) | Board events on two paths, anti-entropy on every connection | accepted | 2026-10-25 |
 | [0025](0025-automatic-semantic-releases-from-conventional-commits-github.md) | Automatic semantic releases from Conventional Commits, GitHub Release and GHCR image | accepted | 2026-10-29 |
 | [0026](0026-one-engine-for-solo-and-shared-boards.md) | One engine for solo and shared boards | accepted | 2026-11-02 |
+| [0027](0027-local-team-workspaces-without-server-storage.md) | Local team workspaces without server storage | accepted | 2026-11-02 |
