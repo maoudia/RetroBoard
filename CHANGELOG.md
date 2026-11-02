@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/maoudia/RetroBoard/compare/v1.26.0...v1.27.0) (2026-11-02)
+
+
+### Features
+
+* **ui:** board options follow the simple or advanced mode ([e1bce6f](https://github.com/maoudia/RetroBoard/commit/e1bce6f42a56f81722bff4a3dbccd5c90f668b0b))
+
 ## [1.26.0](https://github.com/maoudia/RetroBoard/compare/v1.25.0...v1.26.0) (2026-11-02)
 
 
