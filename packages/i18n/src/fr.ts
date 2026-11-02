@@ -947,6 +947,7 @@ export const fr = {
   'presence.mine.relay': 'Connecté via le relais : plus lent, toujours privé.',
   'presence.mine.reconnecting': 'Reconnexion en cours...',
   'note.edit': 'Modifier',
+  'note.edited': "modifié",
   'note.delete': 'Supprimer',
 
   'group.label': 'Groupe: {title}, {n} post-its',

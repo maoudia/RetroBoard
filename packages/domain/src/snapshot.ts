@@ -34,6 +34,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       createdAt: n.createdAt,
       ...(isFrozenNote(state, n.id) ? { frozen: true } : {}),
       ...(n.pinned ? { pinned: n.pinned } : {}),
+      ...(n.edited ? { edited: true as const } : {}),
     }))
   const groups: SnapshotGroup[] = Object.values(state.groups).map((g) => {
     const voters = clusterVoters(state, g.id)

@@ -88,6 +88,19 @@ describe('authorship', () => {
     expect(foldEvent(l, cmd(BOB, { t: 'note.delete', id }))).toMatchObject({ ok: false, reason: 'forbidden' })
     expect(foldAll(l, [cmd(ALICE, { t: 'note.edit', id, text: 'mine, edited' })]).board.notes[id]!.text).toBe('mine, edited')
   })
+
+  it('facilitators and co-facilitators edit any published note, also on a locked board, and it is marked edited (change edit-published-notes)', () => {
+    let l = foldAll(started(), [ev(FAC, { t: 'role.delegate', key: CO })])
+    const col = l.board.columns[0]!.id
+    l = foldAll(l, [cmd(BOB, { t: 'note.add', columnId: col, text: 'typo hree' })])
+    const id = Object.keys(l.board.notes)[0]!
+    l = foldAll(l, [cmd(FAC, { t: 'note.edit', id, text: 'typo here' })])
+    expect(l.board.notes[id]).toMatchObject({ text: 'typo here', edited: true, ownerCid: BOB })
+    l = foldAll(l, [cmd(FAC, { t: 'settings.update', locked: true }), cmd(CO, { t: 'note.edit', id, text: 'by co' })])
+    expect(l.board.notes[id]!.text).toBe('by co')
+    expect(foldEvent(l, cmd(ALICE, { t: 'note.edit', id, text: 'no' }))).toMatchObject({ ok: false, reason: 'forbidden' })
+    expect(foldEvent(l, cmd(BOB, { t: 'note.edit', id, text: 'mine but locked' }))).toMatchObject({ ok: false, reason: 'locked' })
+  })
 })
 
 describe('determinism', () => {

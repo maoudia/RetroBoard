@@ -44,6 +44,8 @@ export interface NoteRecord {
   frozen?: boolean
   /** Pinned at the top of its column: time of the pin, which is the pin order (change note-pin). */
   pinned?: number
+  /** Text changed after publishing (change edit-published-notes). */
+  edited?: true
 }
 
 export type ActionStatus = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
@@ -140,6 +142,8 @@ export interface Actor {
   cid: string
   name: string | null
   showName: boolean
+  /** Facilitator or co-facilitator: may edit any published note (change edit-published-notes). */
+  moderator?: boolean
 }
 
 export interface ReduceContext {
@@ -186,6 +190,8 @@ export interface SnapshotNote {
   frozen?: boolean
   /** Pin order (time of the pin) when pinned at the top of the column (change note-pin). */
   pinned?: number
+  /** Text changed after publishing. */
+  edited?: true
 }
 
 /** A cluster as clients see it: counts only, never voter ids. */

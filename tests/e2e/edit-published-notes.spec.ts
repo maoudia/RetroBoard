@@ -1,0 +1,30 @@
+import { expect, test } from '@playwright/test'
+import { createBoard, join, noteByText, publishNote } from './helpers'
+
+test('the facilitator edits a participant note; everyone sees the new text marked edited (change edit-published-notes)', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await page.getByTestId('btn-share').click()
+  const url = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await join(browser, url, 'Bob')
+  await publishNote(bob.page, 0, 'Typo hree')
+  const note = noteByText(page, 'Typo hree')
+  await expect(note).toBeVisible()
+  const id = (await note.getAttribute('data-testid'))!.replace('note-', '')
+  await note.hover()
+  await page.getByTestId(`note-menu-${id}`).click()
+  await page.getByTestId(`edit-${id}`).click()
+  const editor = page.getByTestId(`note-${id}`).locator('textarea')
+  await editor.fill('Typo here')
+  await editor.press('Enter')
+  await expect(noteByText(bob.page, 'Typo here')).toBeVisible()
+  await expect(bob.page.getByTestId(`edited-${id}`)).toBeVisible()
+  // Bob may not delete or edit Alice's notes.
+  await publishNote(page, 0, 'From Alice')
+  const a = noteByText(bob.page, 'From Alice')
+  const aid = (await a.getAttribute('data-testid'))!.replace('note-', '')
+  await a.hover()
+  await bob.page.getByTestId(`note-menu-${aid}`).click()
+  await expect(bob.page.getByTestId(`edit-${aid}`)).toHaveCount(0)
+  await bob.ctx.close()
+})

@@ -38,12 +38,14 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
   },
 
   'note.edit': (s, c, a) => {
-    if (s.settings.locked) return fail('locked')
+    // The author edits their note; facilitators edit any note, also on a locked board (change edit-published-notes).
     const n = s.notes[c.id]
-    if (!n) return fail('not-found')
-    if (n.ownerCid !== a.cid) return fail('forbidden')
+    if (!n) return fail(s.settings.locked && !a.moderator ? 'locked' : 'not-found')
+    if (n.ownerCid !== a.cid && !a.moderator) return fail('forbidden')
+    if (s.settings.locked && !a.moderator) return fail('locked')
     if (tooLong(s, c.text)) return fail('invalid')
-    return done({ ...s, notes: { ...s.notes, [n.id]: { ...n, text: c.text } } }, { notes: [n.id] })
+    if (n.text === c.text) return done(s, { notes: [] })
+    return done({ ...s, notes: { ...s.notes, [n.id]: { ...n, text: c.text, edited: true } } }, { notes: [n.id] })
   },
 
   'note.delete': (s, c, a) => {

@@ -25,7 +25,7 @@ onMounted(() => { if (flightFrom && el.value) flights.fly(el.value, flightFrom) 
 watch(() => ui.editNoteId, (id) => {
   if (id !== props.note.id) return
   ui.editNoteId = null
-  if (props.note.mine && !board.locked && !props.note.frozen && !editing.value) startEdit()
+  if ((props.note.mine ? !board.locked : board.access.role !== 'participant') && !props.note.frozen && !editing.value) startEdit()
 })
 const editor = ref<HTMLTextAreaElement | null>(null)
 // autofocus only works on page load: focus the editor when it appears.
@@ -70,6 +70,7 @@ function onDrop() {
 
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
+      <small v-if="note.edited" class="edited" :data-testid="`edited-${note.id}`">{{ t('note.edited') }}</small>
       <span class="grow" />
       <span v-if="note.pinned" class="fbadge pbadge" :data-testid="`pinned-${note.id}`"><Icon name="lucide:pin" aria-hidden="true" /> {{ t('note.pinned') }}</span>
       <span v-if="note.frozen" class="fbadge" :title="t('error.frozen')" :data-testid="`frozen-${note.id}`"><Icon name="lucide:snowflake" aria-hidden="true" /> {{ t('note.frozen') }}</span>
@@ -117,6 +118,7 @@ footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem;
   .edit .cancel { opacity: 0; transition: opacity .15s; }
   .edit:hover .cancel, .edit:focus-within .cancel { opacity: 1; }
 }
+.edited { font-size: var(--fs-xs); opacity: .75; font-style: italic; }
 .edit-side { display: grid; gap: .3rem; justify-items: end; }
 .edit { display: flex; gap: .3rem; align-items: start; }
 .edit textarea { width: 100%; resize: none; border: 1.5px solid color-mix(in oklab, var(--note-ink) 40%, transparent); border-radius: var(--r-xs); background: rgb(255 255 255 / .35); padding: .3rem .4rem; color: inherit; }

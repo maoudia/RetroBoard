@@ -21,8 +21,15 @@ Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a rea
 * `ui-coherence-pass` ([proposal](../openspec/changes/ui-coherence-pass/proposal.md))
 * `mode-parity` ([proposal](../openspec/changes/mode-parity/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
+* `mobile-board-space` ([proposal](../openspec/changes/mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
+* `edit-published-notes` ([proposal](../openspec/changes/edit-published-notes/proposal.md)) - live retro 2026-11-02
 
 ## R2 Facilitation and visuals (target 2026-12-06)
+
+Added 2026-11-02 after a live retro: `board-layout-v2` (hide and resize the writing area, drag column widths, shared board display) and `presenter-accordion-motion`.
+
+* `board-layout-v2` ([proposal](../openspec/changes/board-layout-v2/proposal.md))
+* `presenter-accordion-motion` ([proposal](../openspec/changes/presenter-accordion-motion/proposal.md))
 
 Quality items that do not block the beta moved here from R1 (`ci-toolchain-speed`, `edge-security-and-domain`, `p2p-presence-and-cursors`, `automated-semver-release`). New from P10: per-device layouts, solo parity with one engine, results insights; `short-links-and-join` now carries the short join code.
 
@@ -51,6 +58,8 @@ Quality items that do not block the beta moved here from R1 (`ci-toolchain-speed
 * `allure-report-aggregation` ([proposal](../openspec/changes/allure-report-aggregation/proposal.md))
 
 ## R3 Teams and themes (target 2027-01-10)
+
+* `board-chat` ([proposal](../openspec/changes/board-chat/proposal.md)) - added 2026-11-02 after a live retro
 
 `team-workspaces` (teams, projects, carry-over by team) leads; it folds the team part of `profile-avatars-and-team-space` and the team source of `actions-v2-and-carry-over`. The component library (`design-system-components`) follows the CSS coherence pass of R1.
 

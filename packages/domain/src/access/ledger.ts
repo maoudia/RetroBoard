@@ -204,7 +204,7 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
       return applied(ledger, { selfNames: name ? { ...rest, [author]: name } : rest })
     }
     case 'cmd': {
-      const out = reduce(ledger.board, body.cmd, { cid: author, name: body.name, showName: body.showName }, { now: event.at, newId: idsFrom(event.id) })
+      const out = reduce(ledger.board, body.cmd, { cid: author, name: body.name, showName: body.showName, ...(roleOf(ledger, author) !== 'participant' ? { moderator: true } : {}) }, { now: event.at, newId: idsFrom(event.id) })
       return out.ok ? applied(ledger, { board: out.state }) : ignore(ledger, out.error)
     }
   }

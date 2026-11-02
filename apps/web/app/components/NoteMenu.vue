@@ -5,6 +5,7 @@ const { t } = useT()
 
 const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()
 const emit = defineEmits<{ edit: [] }>()
+const moderator = computed(() => useBoardStore().access.role !== 'participant')
 const board = useBoardStore()
 const ui = useUiStore()
 /** Keyboard and touch alternative to dragging a note onto another idea (WCAG 2.5.7). */
@@ -64,10 +65,11 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           <Icon :name="`lucide:${c.icon}`" /> {{ c.title }}
         </button>
       </template>
-      <template v-if="note.mine && !note.frozen">
+      <template v-if="(note.mine || moderator) && !note.frozen">
         <div class="dd-sep" />
-        <button class="dd-item" type="button" role="menuitem" @click="emit('edit'); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
-        <button class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="board.commands.deleteNote(note.id); close()">
+        <!-- The author edits their note; facilitators edit any note (change edit-published-notes). -->
+        <button class="dd-item" type="button" role="menuitem" :data-testid="`edit-${note.id}`" @click="emit('edit'); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
+        <button v-if="note.mine" class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="board.commands.deleteNote(note.id); close()">
           <Icon name="lucide:trash" /> {{ t('note.delete') }}
         </button>
       </template>

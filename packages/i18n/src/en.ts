@@ -948,6 +948,7 @@ export const en: Record<keyof typeof fr, string> = {
   'presence.mine.relay': 'Connected through the relay: slower, still private.',
   'presence.mine.reconnecting': 'Reconnecting...',
   'note.edit': 'Edit',
+  'note.edited': "edited",
   'note.delete': 'Delete',
 
   'group.label': 'Group: {title}, {n} notes',
