@@ -12,6 +12,8 @@ export interface ClassLayout {
   sizes: Record<string, Record<string, string>>
   /** board room id -> writing area size */
   write: Record<string, string>
+  /** board room id -> column id -> width in px set by dragging (change board-layout-v2); a preset clears it. */
+  widths?: Record<string, Record<string, number>>
 }
 export type LayoutBook = Partial<Record<ScreenClass, ClassLayout>>
 
@@ -57,4 +59,15 @@ export const copyClass = (book: LayoutBook, from: ScreenClass, to: ScreenClass):
  */
 export function legacySizes(room: string, get: <T>(key: string, fallback: T) => T): { sizes: Record<string, string>, write: string | null } {
   return { sizes: get<Record<string, string>>(`rb.colsize.${room}`, {}), write: get<string | null>(`rb.writesize.${room}`, null) }
+}
+
+/** Column width set by dragging; null removes it (a preset was picked). Clamped to a usable range. */
+export const MIN_COL_PX = 200
+export const MAX_COL_PX = 1400
+export function setWidth(book: LayoutBook, cls: ScreenClass, room: string, columnId: string, px: number | null): LayoutBook {
+  const cur = layoutOf(book, cls)
+  const all = cur.widths ?? {}
+  const rest = Object.fromEntries(Object.entries(all[room] ?? {}).filter(([k]) => k !== columnId))
+  const next = px === null ? rest : { ...rest, [columnId]: Math.round(Math.min(MAX_COL_PX, Math.max(MIN_COL_PX, px))) }
+  return withLayout(book, cls, { widths: { ...all, [room]: next } })
 }

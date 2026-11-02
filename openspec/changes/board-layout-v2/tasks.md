@@ -7,8 +7,8 @@
 
 ## 2. Columns
 
-- [ ] 2.1 Drag grip on the column edge with keyboard support, presets reset; verify e2e desktop and phone
-- [ ] 2.2 New column width icon; verify design-tokens and e2e
+- [x] 2.1 Drag grip on the column edge with keyboard support, presets reset; verify e2e desktop and phone
+- [x] 2.2 New column width icon; verify design-tokens and e2e
 
 ## 3. Board display
 

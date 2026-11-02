@@ -11,8 +11,32 @@ const live = useLiveStore()
 const theme = useThemeStore()
 const sort = ref<SortMode>('time')
 const size = computed(() => ui.columnSizes[props.column.id] ?? 'normal')
+/** Width set by dragging the column edge (change board-layout-v2); a preset clears it. */
+const dragW = ref<number | null>(null)
+const customW = computed(() => dragW.value ?? ui.columnWidths[props.column.id] ?? null)
+const colEl = ref<HTMLElement | null>(null)
+function startResize(e: PointerEvent) {
+  const grip = e.currentTarget as HTMLElement
+  const start = colEl.value?.getBoundingClientRect().width ?? 340
+  const x0 = e.clientX
+  grip.setPointerCapture(e.pointerId)
+  const move = (ev: PointerEvent) => { dragW.value = Math.max(200, Math.min(1400, start + ev.clientX - x0)) }
+  const up = () => {
+    grip.removeEventListener('pointermove', move)
+    if (dragW.value !== null) ui.setColumnWidth(board.roomId, props.column.id, dragW.value)
+    dragW.value = null
+  }
+  grip.addEventListener('pointermove', move)
+  grip.addEventListener('pointerup', up, { once: true })
+  grip.addEventListener('pointercancel', up, { once: true })
+}
+function resizeKey(e: KeyboardEvent) {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+  e.preventDefault()
+  const now = customW.value ?? colEl.value?.getBoundingClientRect().width ?? 340
+  ui.setColumnWidth(board.roomId, props.column.id, now + (e.key === 'ArrowRight' ? 32 : -32))
+}
 onMounted(() => { if (props.index === 0) ui.loadColumnSizes(board.roomId) })
-const icon = { narrow: 'lucide:minimize-2', normal: 'lucide:square', wide: 'lucide:maximize-2', full: 'lucide:expand' } as const
 const onSizeKey = (e: KeyboardEvent) => {
   if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
   e.preventDefault()
@@ -31,7 +55,7 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>
 
 <template>
-  <section tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :style="{ '--col': `var(--note-${colorIndex})` }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="size" v-bind="bind" @keydown="onSizeKey">
+  <section ref="colEl" tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey">
     <header>
       <span class="badge-ico"><Icon :name="`lucide:${column.icon}`" /></span>
       <div class="titles">
@@ -63,8 +87,8 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
       </button>
       <Dropdown menu>
         <template #trigger="{ toggle, open }">
-          <button class="mini-btn" :class="{ on: size !== 'normal' }" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('column.size')" :title="t('column.size')" :data-testid="`col-size-${column.id}`" @click="toggle">
-            <Icon :name="icon[size]" />
+          <button class="mini-btn" :class="{ on: size !== 'normal' || !!customW }" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('column.size')" :title="t('column.size')" :data-testid="`col-size-${column.id}`" @click="toggle">
+            <Icon name="lucide:move-horizontal" />
           </button>
         </template>
         <template #default="{ close }">
@@ -89,6 +113,11 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
     <!-- Presenter mode is shown to the room: my private drafts stay off screen. -->
     <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
     <GroupPanel v-if="openGroup" :item="openGroup" />
+    <span
+      class="col-grip" role="separator" aria-orientation="vertical" tabindex="0" :aria-label="t('column.resize', { title: column.title })"
+      :aria-valuenow="Math.round(customW ?? colEl?.getBoundingClientRect().width ?? 340)" aria-valuemin="200" aria-valuemax="1400" :data-testid="`col-grip-${column.id}`"
+      @pointerdown.prevent="startResize" @keydown="resizeKey"
+    />
   </section>
 </template>
 
@@ -101,6 +130,11 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 .col[data-size="narrow"] { flex-basis: 240px; min-width: min(240px, 86vw); max-width: 300px; }
 .col[data-size="wide"] { flex-basis: 560px; min-width: min(560px, 92vw); max-width: 760px; }
 .col[data-size="full"] { flex: 0 0 100%; min-width: 0; max-width: none; }
+.col[data-size="custom"] { flex: 0 0 var(--w); min-width: min(var(--w), 92vw); max-width: none; }
+/* Drag the right edge to set the width (mouse, touch, keyboard arrows). */
+.col-grip { position: absolute; top: 12px; bottom: 12px; right: -13px; width: 10px; z-index: 3; cursor: col-resize; touch-action: none; border-radius: var(--r-pill); }
+.col-grip::after { content: ''; position: absolute; inset: 30% 3px; border-radius: var(--r-pill); background: var(--border); opacity: 0; transition: opacity .15s; }
+.col:hover .col-grip::after, .col-grip:focus-visible::after, .col-grip:active::after { opacity: 1; background: var(--accent); }
 .col.over { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-1); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
 header { display: flex; align-items: center; gap: .5rem; padding: .8rem .8rem .5rem; }
 .badge-ico { display: grid; place-items: center; width: 38px; height: 38px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--col); color: var(--note-ink); }

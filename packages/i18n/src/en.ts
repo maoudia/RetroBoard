@@ -795,6 +795,7 @@ export const en: Record<keyof typeof fr, string> = {
   'column.delete.msgEmpty': '"{title}" will be deleted for the whole team.',
   'column.count': '{n} note(s)',
   'column.size': 'Column width',
+  'column.resize': "Width of the {title} column: drag or use the arrow keys",
   'column.size.narrow': 'Narrow',
   'column.size.normal': 'Normal',
   'column.size.wide': 'Wide',

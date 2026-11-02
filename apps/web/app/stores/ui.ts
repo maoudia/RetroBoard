@@ -28,8 +28,12 @@ export const useUiStore = defineStore('ui', () => {
     roomId.value = room
     legacy.value = room ? legacySizes(room, (k, f) => safeStorage.get(k, f)) : { sizes: {}, write: null }
   }
+  const columnWidths = computed<Record<string, number>>(() => (roomId.value ? (layout.current.widths?.[roomId.value] ?? {}) : {}))
+  const setColumnWidth = (room: string | null, columnId: string, px: number | null) => { if (room) layout.setWidth(room, columnId, px) }
   const setColumnSize = (room: string | null, columnId: string, size: ColumnSize) => {
     if (!room) return
+    // A preset replaces a width set by dragging.
+    if (layout.current.widths?.[room]?.[columnId] !== undefined) layout.setWidth(room, columnId, null)
     if (!layout.current.sizes[room]) layout.setSizes(room, legacy.value.sizes)
     layout.setSize(room, columnId, size)
   }
@@ -78,5 +82,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
+  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
 })

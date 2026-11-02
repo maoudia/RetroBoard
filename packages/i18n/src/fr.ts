@@ -794,6 +794,7 @@ export const fr = {
   'column.delete.msgEmpty': '« {title} » sera supprimée pour toute l\'équipe.',
   'column.count': '{n} post-it(s)',
   'column.size': 'Largeur de la colonne',
+  'column.resize': "Largeur de la colonne {title} : glisse ou utilise les flèches",
   'column.size.narrow': 'Étroite',
   'column.size.normal': 'Normale',
   'column.size.wide': 'Large',
