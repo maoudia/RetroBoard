@@ -292,6 +292,7 @@ export const fr = {
   'setup.fac.single': 'Un animateur',
   'setup.votable': 'Colonnes où l\'on vote',
   'setup.votable.hint': 'Par défaut, les colonnes qui servent à progresser. Tu peux changer ça aussi plus tard.',
+  'setup.voting': 'Vote',
   'setup.arrivals': 'Annoncer les arrivées',
   'setup.arrivals.hint': 'Une courte notification quand quelqu\'un rejoint ou quitte le board. Toujours visible dans l\'activité.',
   'options.arrivals': 'Annoncer les arrivées',

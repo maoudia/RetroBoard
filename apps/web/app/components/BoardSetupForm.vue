@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
+import { DEFAULT_VOTE_LIMIT, LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 import { nextTitle } from '~/utils/next-title'
 
-export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
+export interface SetupResult { voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
 /** Simple keeps title and format; theme, facilitation, popups, voting columns and passcode are advanced (change simple-advanced-mode). */
@@ -22,6 +22,9 @@ watch(() => recents.items[0]?.title, (prev) => {
   if (next && !typed.value && title.value === dated) title.value = next
 }, { immediate: true })
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
+/** Votes per person and sealed ballot (advanced): applied right after the board exists. */
+const voteLimit = ref<number>(DEFAULT_VOTE_LIMIT)
+const secretVoting = ref(false)
 const passcode = ref('')
 /** "Everyone facilitates" is the default; "One facilitator" keeps the roles. */
 const facilitation = ref<'everyone' | 'one'>('everyone')
@@ -45,7 +48,7 @@ watch(() => agent.setupDraft, (draft) => {
 </script>
 
 <template>
-  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(customVotable ? { votable: [...votable] } : {}), ...(withPasscode && passcode ? { passcode } : {}) })">
+  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(advanced && voteLimit !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced && secretVoting ? { secretVoting: true } : {}), ...(customVotable ? { votable: [...votable] } : {}), ...(withPasscode && passcode ? { passcode } : {}) })">
     <label class="lbl">{{ t('setup.name') }}
       <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" @input="typed = true" />
     </label>
@@ -78,6 +81,18 @@ watch(() => agent.setupDraft, (draft) => {
       </label>
     </details>
 
+    <fieldset class="votes" data-testid="setup-voting">
+      <legend class="lbl">{{ t('setup.voting') }}</legend>
+      <label class="opt votes-per">
+        <input v-model.number="voteLimit" class="field num" type="number" :min="LIMITS.minVotes" :max="LIMITS.maxVotes" inputmode="numeric" data-testid="setup-vote-limit" />
+        <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
+      </label>
+      <label class="opt">
+        <input v-model="secretVoting" type="checkbox" data-testid="setup-secret" />
+        <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
+      </label>
+    </fieldset>
+
     <label class="opt" data-testid="setup-arrivals-row">
       <input v-model="announceArrivals" type="checkbox" data-testid="setup-arrivals" />
       <span><strong>{{ t('setup.arrivals') }}</strong><small class="muted">{{ t('setup.arrivals.hint') }}</small></span>
@@ -105,6 +120,8 @@ h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .votable { display: grid; gap: .5rem; }
 .votable summary { cursor: pointer; }
 .small { font-size: var(--fs-sm); margin: 0; }
+.votes { display: grid; gap: .6rem; margin: 0; padding: 0; border: 0; min-width: 0; }
+.num { width: 5rem; flex: none; }
 .opt { display: flex; gap: .6rem; align-items: flex-start; cursor: pointer; }
 .opt span { display: grid; gap: .1rem; }
 .opt input { margin-top: .3rem; }

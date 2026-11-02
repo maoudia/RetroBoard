@@ -122,6 +122,8 @@ watch(needsSetup, (need) => {
 })
 function sendSetup(s: SetupResult) {
   board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value, openFacilitation: s.facilitation !== 'one', ...(s.announceArrivals === false ? { announceArrivals: false } : {}), ...(s.votable ? { votable: s.votable } : {}) })
+  // Votes per person and sealed ballot chosen at creation (advanced mode).
+  if (s.voteLimit !== undefined || s.secretVoting) board.commands.updateSettings({ ...(s.voteLimit !== undefined ? { voteLimit: s.voteLimit } : {}), ...(s.secretVoting ? { secretVoting: true } : {}) })
   // One facilitator: the creator's tab is the lead (it never gets the takeover question).
   if (s.facilitation === 'one' && board.myKey) { ui.takeoverAsked = true; board.sendRole('role.claim', board.myKey) }
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.

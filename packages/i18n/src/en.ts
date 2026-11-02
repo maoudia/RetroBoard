@@ -293,6 +293,7 @@ export const en: Record<keyof typeof fr, string> = {
   'setup.fac.single': 'One facilitator',
   'setup.votable': 'Columns where people vote',
   'setup.votable.hint': 'By default the columns that help the team improve. You can change this later too.',
+  'setup.voting': 'Voting',
   'setup.arrivals': 'Announce arrivals',
   'setup.arrivals.hint': 'A short popup when someone joins or leaves the board. Always listed in the activity.',
   'options.arrivals': 'Announce arrivals',
