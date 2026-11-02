@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.34.0](https://github.com/maoudia/RetroBoard/compare/v1.33.0...v1.34.0) (2026-11-02)
+
+
+### Features
+
+* **board:** drag a column edge to resize it, new width icon ([5496877](https://github.com/maoudia/RetroBoard/commit/5496877bf7a5a3b3000638101345e0454a1cd859))
+* **board:** drag the writing field to the height you want ([a5e272d](https://github.com/maoudia/RetroBoard/commit/a5e272d85f93799200b2fd52a5e6b43692835235))
+* **board:** hide the writing area behind a Write handle (toolbar, W key) ([095ae0d](https://github.com/maoudia/RetroBoard/commit/095ae0d668010efb3d0524e4a9ced8f619bec7b0))
+* **board:** passcode by default with a readable generator, an advanced generator and a sealed device vault ([2886222](https://github.com/maoudia/RetroBoard/commit/2886222d5a800d592aad9003824ebae74753311a))
+* **board:** solo boards run the same ledger engine through an in-tab relay ([8d23b5e](https://github.com/maoudia/RetroBoard/commit/8d23b5e068da9adc75cd4db7d185d5fe4abefa7b))
+* **board:** the facilitator sets post-it and text size for the whole room, TV screens scale up ([8973abd](https://github.com/maoudia/RetroBoard/commit/8973abd83cac3a275256736514ce229186abfb51))
+* **join:** join a board with a short code, sealed hand-off and safety number ([116205b](https://github.com/maoudia/RetroBoard/commit/116205b09e6d6a9dbb49a56fc380674beab7b579))
+* **mobile:** menus fold away while reading a column on a phone ([16b3593](https://github.com/maoudia/RetroBoard/commit/16b35931f14902c3336e65698209447cde0768b2))
+* **mobile:** one column per screen with snap and dots, compact vote pill ([d067310](https://github.com/maoudia/RetroBoard/commit/d067310a712e3d27cb3e9d7f19358e1ffabd22a6))
+* **notes:** facilitators edit any published note, edits are marked ([54904d2](https://github.com/maoudia/RetroBoard/commit/54904d24468220939cb63c6860f822131cace153))
+* **report:** insights in the retro report and its exports ([69516a2](https://github.com/maoudia/RetroBoard/commit/69516a293b0a8f37556270554602f50494268285))
+* **results:** plain-language insights, energy per column and recurring words ([9193738](https://github.com/maoudia/RetroBoard/commit/91937386e90a5f61faa4386600619853c68aa582))
+* **team:** local teams and projects, carry-over of previous actions by team ([a57fb72](https://github.com/maoudia/RetroBoard/commit/a57fb721759092998c88da87e23f736badd71a13))
+* **team:** recent boards grouped in one lane per team ([c3f47f2](https://github.com/maoudia/RetroBoard/commit/c3f47f20b4f4b7506ae7b7b64b9a51c74e12cdf2))
+* **ui:** order toolbar menus by importance and document the rule ([396cff4](https://github.com/maoudia/RetroBoard/commit/396cff4a1f888c89501ddeeead0c8ba06060b3a8))
+* **ui:** pill buttons everywhere, bounded advanced tiles, centred ring, sliding vote bar ([0709fd2](https://github.com/maoudia/RetroBoard/commit/0709fd2636a694f32137d4c6aac432285a7610e5))
+* **web:** feedback call to action with a prefilled bug link and the owner profiles ([7fc9e07](https://github.com/maoudia/RetroBoard/commit/7fc9e07c073698e346bc3739b16e5e1eda11f964))
+* **web:** layout remembered per screen class with reset and copy in the profile ([9faa032](https://github.com/maoudia/RetroBoard/commit/9faa032119d32d30fe0c810ebc14d21b42903cf5))
+* **web:** theme picker in simple mode, every voting column listed in advanced, mode switch on the set-up page ([5c706b7](https://github.com/maoudia/RetroBoard/commit/5c706b70063ee4d938af99a8062a196ace49fea3))
+
+
+### Bug Fixes
+
+* **board:** keep the only copy on reload and back with short retention, never sweep the board being opened ([dcf25c7](https://github.com/maoudia/RetroBoard/commit/dcf25c7f9ab67e34905f09f3b912e85b59941e9a))
+* **board:** the writing grip is a corner handle so notes keep their room ([8d8c938](https://github.com/maoudia/RetroBoard/commit/8d8c938209920d903b945fcf66bbb1205323cef4))
+* **options:** icons on the display scale buttons ([c0ce8bb](https://github.com/maoudia/RetroBoard/commit/c0ce8bbc6db304d3fea8c0c1d71a387493b405d0))
+* **toolbar:** short Write label keeps one toolbar row at 1280px ([1c11b6b](https://github.com/maoudia/RetroBoard/commit/1c11b6b59fc56bf0e396a20a74faf86715d40d10))
+
 ## [1.33.0](https://github.com/maoudia/RetroBoard/compare/v1.32.1...v1.33.0) (2026-11-02)
 
 
