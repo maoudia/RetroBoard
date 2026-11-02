@@ -1,12 +1,12 @@
 {
   "comment": "Mutation score floors (percent), set from CI measurements (the reference, not local runs). Raise them as scores improve; never lower them to pass a build.",
-  "score": 72,
+  "score": 77,
   "packages": {
-    "application": 71.5,
+    "application": 77.5,
     "crypto": 78.5,
-    "domain": 70.5,
-    "exporters": 54,
-    "protocol": 79.5,
-    "sync": 74.5
+    "domain": 73.5,
+    "exporters": 84.5,
+    "protocol": 84.5,
+    "sync": 85.5
   }
 }
