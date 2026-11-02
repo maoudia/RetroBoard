@@ -45,7 +45,7 @@ Rules:
 
 ```bash
 pnpm install
-pnpm verify        # lint + typecheck + unit + openspec validate --all --strict
+pnpm verify        # lint + typecheck + arch + duplication (jscpd) + unit + openspec validate --all --strict
 pnpm generate      # static site + CSP hashes
 pnpm dev:worker    # http://localhost:8787 (site + relay)
 pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), about 7 minutes

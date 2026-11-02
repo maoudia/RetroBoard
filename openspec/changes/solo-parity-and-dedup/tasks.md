@@ -13,4 +13,4 @@
 ## 3. Guards
 
 - [x] 3.1 Parity e2e test listing board features for solo and shared boards; verify it fails on a deliberately removed feature
-- [ ] 3.2 Duplication gate (jscpd) in verify and refactor of current duplicates; verify the gate passes with the agreed threshold
+- [x] 3.2 Duplication gate (jscpd) in verify and refactor of current duplicates; verify the gate passes with the agreed threshold
