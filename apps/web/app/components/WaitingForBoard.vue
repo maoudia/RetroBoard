@@ -32,6 +32,7 @@ async function restore(e: Event) {
     <Icon name="lucide:hourglass" class="ico" aria-hidden="true" />
     <h1>{{ t('board.waiting.title') }}</h1>
     <p class="lead">{{ t('board.waiting.lead') }}</p>
+    <p class="muted diag" data-testid="waiting-local">{{ board.localCopy === null ? t('board.waiting.local.error') : board.localCopy ? t('board.waiting.local.some', { n: board.localCopy }) : t('board.waiting.local.none') }}</p>
     <button class="btn" type="button" data-testid="waiting-retry" @click="emit('retry')"><Icon name="lucide:refresh-cw" /> {{ t('board.waiting.retry') }}</button>
     <div v-if="canStart" class="actions">
       <button class="btn" type="button" data-testid="waiting-restore" @click="fileInput?.click()"><Icon name="lucide:file-up" /> {{ t('boardFile.import') }}</button>
@@ -47,5 +48,6 @@ async function restore(e: Event) {
 .ico { width: 52px; height: 52px; color: var(--accent); }
 h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); }
 .lead { margin: 0; color: var(--muted); }
+.diag { margin: 0; font-size: var(--fs-sm); }
 .actions { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
 </style>

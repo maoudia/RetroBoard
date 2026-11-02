@@ -17,6 +17,8 @@ export const useBoardStore = defineStore('board', () => {
   const accessDenied = ref(false)
   /** Writes to the local copy keep failing (storage full or blocked): the board is not saved on this device. */
   const replicaFailing = ref(false)
+  /** Events found in the local copy at open (null: unreadable, undefined: not loaded yet). Shown on the waiting screen. */
+  const localCopy = ref<number | null | undefined>(undefined)
   /** The board is at its participant cap; the channel retries until a seat frees up. */
   const roomFull = ref(false)
   /** Peer-to-peer state of this tab: direct links, or the relay fallback. */
@@ -31,6 +33,7 @@ export const useBoardStore = defineStore('board', () => {
     disconnect()
     accessDenied.value = false
     replicaFailing.value = false
+    localCopy.value = undefined
     roomFull.value = false
     links.value = null
     roomId.value = room
@@ -51,6 +54,7 @@ export const useBoardStore = defineStore('board', () => {
       onRoomFull: (full) => { roomFull.value = full },
       onLinks: (s) => { links.value = s },
       onReplica: (state) => { replicaFailing.value = state === 'failing' },
+      onLocalCopy: (n) => { localCopy.value = n },
     })
     transport.connect(identity)
   }
@@ -127,7 +131,7 @@ export const useBoardStore = defineStore('board', () => {
   const groupById = (id: string) => snapshot.value?.groups.find((g) => g.id === id)
 
   return {
-    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, roomFull, roomCode, links, myKey,
+    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, localCopy, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
     settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,

@@ -41,6 +41,8 @@ export interface ChannelHandlers {
   onPeerLeft?(conn: string): void
   /** Saving on this device: `failing` when writes to the local copy keep failing (storage full or blocked). */
   onReplica?(state: 'ok' | 'failing'): void
+  /** Events found in this browser's local copy when the board opened (null: the storage could not be read). */
+  onLocalCopy?(events: number | null): void
 }
 
 /** What a participant shares live; the channel adds its connection id. */

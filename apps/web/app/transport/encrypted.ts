@@ -327,7 +327,8 @@ export class EncryptedRelayTransport implements BoardTransport {
         const env = parseEnvelope((() => { try { return JSON.parse(r.data) as unknown } catch { return null } })())
         return env ? [env] : []
       })
-    } catch { return }
+    } catch { this.handlers.onLocalCopy?.(null); return }
+    this.handlers.onLocalCopy?.(envs.length)
     // Already stored: ingest without re-remembering.
     if ((await this.ingest(envs, false)).length) this.emit()
   }
