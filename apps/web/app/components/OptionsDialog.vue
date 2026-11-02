@@ -6,6 +6,7 @@ const { t } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
 const open = computed({ get: () => ui.dialog === 'options', set: (v) => { if (!v && ui.dialog === 'options') ui.close() } })
+const SCALE_ICON = { small: 'minimize-2', normal: 'square', large: 'maximize-2' } as const
 const s = computed(() => board.settings!)
 /** Simple keeps title, votes, privacy, theme and format; advanced shows every setting (change simple-advanced-mode). */
 const advanced = computed(() => useSettingsStore().s.uiMode === 'advanced')
@@ -42,7 +43,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
             <button
               v-for="z in DISPLAY_SCALES" :key="z" class="btn btn-sm" type="button" :aria-pressed="(s[k] ?? 'normal') === z" :disabled="!board.access.canSteer"
               :data-testid="`opt-${k}-${z}`" @click="set({ [k]: z })"
-            >{{ t(`options.scale.${z}` as never) }}</button>
+            ><Icon :name="`lucide:${SCALE_ICON[z]}`" /> {{ t(`options.scale.${z}` as never) }}</button>
           </span>
         </div>
       </section>
