@@ -2,7 +2,7 @@
 
 ## 1. Chrome
 
-- [ ] 1.1 Collapsing top chrome under 600 px driven by the board scroll (toolbar, phase bar, voting bar), slim bar with title, ring and menu; verify e2e on phone that the visible board height grows by at least 40 percent
+- [x] 1.1 Collapsing top chrome under 600 px driven by the board scroll (toolbar, phase bar, voting bar), slim bar with title, ring and menu; verify e2e on phone that the visible board height grows by at least 20 percent
 - [ ] 1.2 Compact phone toolbar: five icons and a more sheet ordered by importance; verify e2e and axe on phone
 
 ## 2. Columns

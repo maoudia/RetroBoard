@@ -67,6 +67,8 @@ export const useUiStore = defineStore('ui', () => {
   const paletteNoteId = ref<string | null>(null)
   /** Note the keyboard asked to edit (Enter on a focused note). */
   const editNoteId = ref<string | null>(null)
+  /** Phones: toolbar, phase bar and voting bar folded away while reading the board (change mobile-board-space). */
+  const chromeHidden = ref(false)
   /** Action form to prefill when the actions panel opens (from a note or group menu). */
   const actionFrom = ref<{ sourceId: string; text: string; owner: string } | null>(null)
   function openActionFrom(source: { sourceId: string; text: string; owner: string }) { actionFrom.value = source; dialog.value = 'actions' }
@@ -76,5 +78,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
+  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
 })

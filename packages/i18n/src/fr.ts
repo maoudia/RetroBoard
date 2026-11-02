@@ -418,6 +418,7 @@ export const fr = {
   'toolbar.tools': 'Outils du board',
   'toolbar.actions': 'Actions',
   'toolbar.share': 'Partager',
+  'toolbar.showMenus': "Afficher les menus",
   'toolbar.options': 'Options',
   'toolbar.participants': 'Participants',
   'toolbar.export': 'Export',

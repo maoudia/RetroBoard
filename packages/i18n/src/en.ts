@@ -419,6 +419,7 @@ export const en: Record<keyof typeof fr, string> = {
   'toolbar.tools': 'Board tools',
   'toolbar.actions': 'Actions',
   'toolbar.share': 'Share',
+  'toolbar.showMenus': "Show the menus",
   'toolbar.options': 'Options',
   'toolbar.participants': 'Participants',
   'toolbar.export': 'Export',

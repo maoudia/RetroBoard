@@ -107,6 +107,28 @@ watch(() => board.accessDenied, (denied) => {
 })
 
 onMounted(() => { void enter() })
+// Phones: scrolling down a column folds the menus away, scrolling up brings them back (change mobile-board-space).
+const phone = import.meta.client ? window.matchMedia('(max-width: 600px)') : null
+const lastTop = new WeakMap<EventTarget, number>()
+function onBoardScroll(e: Event) {
+  const el = e.target as HTMLElement
+  if (!phone?.matches || !(el instanceof HTMLElement)) return
+  const top = el.scrollTop
+  const before = lastTop.get(el) ?? 0
+  lastTop.set(el, top)
+  if (el.scrollHeight <= el.clientHeight) return
+  const dy = top - before
+  // Folding changes the column height, which moves scrollTop by itself: ignore the scrolls that follow a toggle.
+  if (performance.now() < settleUntil) return
+  const next = top < 8 || dy < -24 ? false : dy > 12 && top > 40 ? true : ui.chromeHidden
+  if (next !== ui.chromeHidden) { ui.chromeHidden = next; settleUntil = performance.now() + 400 }
+}
+let settleUntil = 0
+watch(boardEl, (el, old) => {
+  old?.removeEventListener('scroll', onBoardScroll, true)
+  el?.addEventListener('scroll', onBoardScroll, { capture: true, passive: true })
+})
+onBeforeUnmount(() => { boardEl.value?.removeEventListener('scroll', onBoardScroll, true); ui.chromeHidden = false })
 useBoardAgentTools()
 watch(() => route.hash, () => { passcode.value = null; void enter() })
 // Anything still waiting to be written is written before the page goes. "Until I leave" needs nothing more:
@@ -234,7 +256,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 </script>
 
 <template>
-  <div class="page" :data-locked="board.locked">
+  <div class="page" :class="{ 'chrome-hidden': ui.chromeHidden }" :data-locked="board.locked">
     <AmbientLayer />
 
     <ServicePage
@@ -252,7 +274,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
     <template v-else>
       <AppToolbar v-if="board.ready" />
-      <PhaseStepper v-if="board.ready && board.snapshot?.agenda" />
+      <PhaseStepper v-if="board.ready && board.snapshot?.agenda && !ui.chromeHidden" />
       <CursorLayer v-if="board.ready" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <PresenterFocus v-if="board.ready && ui.presenter" />
@@ -307,6 +329,8 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 <style scoped>
 .page { position: relative; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
 .page > :not(.ambient) { position: relative; z-index: 1; }
+/* Folded menus on phones: only the slim top bar stays (change mobile-board-space). */
+.chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { display: none; }
 .board { flex: 1; min-height: 0; display: flex; gap: 1rem; padding: 1rem; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; align-items: stretch; }
 .board > .col { scroll-snap-align: start; }
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
