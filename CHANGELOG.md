@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.1](https://github.com/maoudia/RetroBoard/compare/v1.32.0...v1.32.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **board:** reload in private mode reopens the board from an encrypted tab copy ([c20bb39](https://github.com/maoudia/RetroBoard/commit/c20bb39b934ae59fff929558af01b33b81c42dd4))
+
 ## [1.32.0](https://github.com/maoudia/RetroBoard/compare/v1.31.0...v1.32.0) (2026-11-02)
 
 
