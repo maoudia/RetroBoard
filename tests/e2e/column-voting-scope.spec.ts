@@ -35,7 +35,8 @@ test('the creation form lists the columns where people vote and a change is appl
   await page.getByTestId('theme-studio').click()
   await page.getByTestId('tab-all').click()
   await page.getByTestId('template-start-stop-continue').click()
-  await page.getByTestId('setup-votable').locator('summary').click()
+  // The group is open by default (change mode-parity).
+  await expect(page.getByTestId('setup-votable')).toHaveAttribute('open', '')
   await expect(page.getByTestId('setup-votable-0')).toBeChecked()
   await expect(page.getByTestId('setup-votable-2')).not.toBeChecked()
   await page.getByTestId('setup-votable-0').uncheck()

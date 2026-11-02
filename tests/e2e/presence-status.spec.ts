@@ -79,7 +79,10 @@ test('arrival popups chosen off at creation: no popup, the feed still says who j
   await page.getByTestId('tab-all').click()
   await page.getByTestId('template-start-stop-continue').click()
   await page.getByTestId('setup-arrivals').uncheck()
+  // No passcode: the joiner opens the plain link.
+  await page.getByTestId('setup-passcode').fill('')
   await page.getByTestId('setup-submit').click()
+  await page.getByTestId('confirm').click()
   await enterName(page, 'Alice')
   await expect(page.getByTestId('board')).toBeVisible()
   await closeShare(page)

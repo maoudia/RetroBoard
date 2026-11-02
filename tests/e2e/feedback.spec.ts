@@ -12,6 +12,8 @@ test('landing and help offer bug, idea, discussion and the owner profiles (chang
 
 test('the bug link from a board carries the environment and no board data', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue' })
+  // Focus off the composer first, or the key is typed into it.
+  await page.locator('body').click({ position: { x: 5, y: 300 } })
   await page.keyboard.press('?')
   const bug = page.getByTestId('feedback-bug')
   await expect(bug).toBeVisible()

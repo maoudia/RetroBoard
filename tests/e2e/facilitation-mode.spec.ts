@@ -32,7 +32,10 @@ test('"One facilitator" at creation keeps the controls to the facilitator', asyn
   await page.getByTestId('template-start-stop-continue').click()
   await expect(page.getByTestId('setup-fac-everyone')).toBeChecked()
   await page.getByTestId('setup-fac-one').check()
+  // No passcode: the joiner opens the plain link.
+  await page.getByTestId('setup-passcode').fill('')
   await page.getByTestId('setup-submit').click()
+  await page.getByTestId('confirm').click()
   await enterName(page, 'Alice')
   await expect(page.getByTestId('board')).toBeVisible()
   const bob = await join(browser, await link(page), 'Bob')
