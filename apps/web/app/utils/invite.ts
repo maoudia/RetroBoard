@@ -1,15 +1,13 @@
 import { formatInvite, type Invite, type KeyRing, parseInvite } from '@retroboard/domain'
-import { isLocalRoom } from '~/transport'
 import { randomId } from '~/utils/storage'
 
-/** Invite in a location hash; local solo rooms are the only bare ids still accepted. */
-export const inviteFromHash = (hash: string): Invite | null =>
-  parseInvite(hash, (id) => isLocalRoom(id) && id.length >= 12 && /^[A-Za-z0-9_-]+$/.test(id))
+/** Invite in a location hash. Bare ids (protocol v1 and the old in-tab solo boards) are no longer boards. */
+export const inviteFromHash = (hash: string): Invite | null => parseInvite(hash, () => false)
 
 /** A bare shared-room id: an unencrypted link from protocol v1, whose server storage was removed. */
 export const isRetiredLink = (hash: string): boolean => {
   const raw = hash.replace(/^#/, '')
-  return !isLocalRoom(raw) && /^[A-Za-z0-9_-]{22,64}$/.test(raw)
+  return /^[A-Za-z0-9_-]{22,64}$/.test(raw)
 }
 
 /** A new encrypted room: 128-bit id, 256-bit room key, 256-bit facilitator seed. */

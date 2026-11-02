@@ -47,7 +47,7 @@ Browser (Nuxt SPA, generated)                 Cloudflare
 |  - AES-GCM envelopes        |  envelopes   |  - origin and room id checks   |
 |  - signed events (Ed25519)  |              +---------------+----------------+
 |  - IndexedDB replica        |                              | idFromName(room)
-| LoopbackTransport (solo)    |                              v
+| LocalRelaySocket (solo)     |                              v
 +-------------+---------------+              +--------------------------------+
               |                              | Durable Object RelayRoom       |
               v                              |  - forwards ciphertext only    |

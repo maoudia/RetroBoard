@@ -49,7 +49,7 @@ export interface ChannelHandlers {
 export type OwnCursor = Omit<CursorFrame, 'conn'>
 export type OwnFocus = Omit<FocusFrame, 'conn'>
 
-/** Port to the room: the relay over WebSocket, or a local loopback in solo mode. */
+/** Port to the room: the relay over WebSocket, or the in-tab relay of a solo board. */
 export interface BoardChannel {
   connect(identity: Identity): void
   /** Returns false when the command could not be sent (offline). */

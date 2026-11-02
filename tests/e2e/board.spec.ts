@@ -253,6 +253,10 @@ test.describe('themes and options', () => {
 test('solo mode works fully in the browser', async ({ page }) => {
   await page.goto('/')
   await page.getByTestId('solo').click()
+  // Try solo opens the regular creation flow with solo preselected.
+  await expect(page.getByTestId('new-solo-switch')).toBeChecked()
+  await expect(page.getByTestId('setup-passcode')).toHaveCount(0)
+  await page.getByTestId('setup-submit').click()
   await page.getByTestId('name-input').fill('Solo')
   await page.getByTestId('name-save').click()
   await expect(page.getByTestId('board')).toBeVisible()

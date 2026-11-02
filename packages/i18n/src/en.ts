@@ -281,6 +281,8 @@ export const en: Record<keyof typeof fr, string> = {
   'landing.mock.n6': 'Real-time retros', 'landing.mock.n7': 'Quick code reviews',
 
   'new.title': 'New retro',
+  "new.soloMode": "Solo board",
+  "new.soloMode.hint": "Stays in this tab, no link to share. Same board, same features.",
   'new.pageTitle': 'New retro - RetroBoard',
   'new.submit': 'Create board',
   'new.foot': 'The board link is the invitation. Nothing is stored on the server.',

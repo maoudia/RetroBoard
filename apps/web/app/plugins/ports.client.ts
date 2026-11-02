@@ -5,16 +5,16 @@ import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adap
 import { createSessionReplicaStore, withSessionFallback } from '~/adapters/replica-session'
 import { createIdbVault, createSessionVault, createVault, openVaultDb, type PasscodeVault } from '~/adapters/passcode-vault'
 import { createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
-import { localTransportFactory } from '~/transport'
+import { LocalRelaySocket } from '~/transport/local-relay'
 import { buildWs2Url, EncryptedRelayTransport } from '~/transport/encrypted'
 import { download } from '~/utils/export'
 
 export interface Ports {
-  /** Solo (local-) boards: in-tab loopback. */
-  channelFactory: ChannelFactory
-  /** Protocol v2: end-to-end encrypted room for a key ring. */
-  /** `creator`: this tab is the one that just created the board (it alone may write its first event). */
-  encryptedChannelFactory(ring: KeyRing, passcode?: string, opts?: { creator?: boolean }): ChannelFactory
+  /**
+   * Protocol v2: end-to-end encrypted room for a key ring. `creator`: this tab is the one that just created the board
+   * (it alone may write its first event). `solo`: the relay lives in this tab, same engine, nothing leaves it.
+   */
+  encryptedChannelFactory(ring: KeyRing, passcode?: string, opts?: { creator?: boolean, solo?: boolean }): ChannelFactory
   clipboard: ClipboardPort
   file: FilePort
   notifier: NotifierPort
@@ -56,7 +56,6 @@ export default defineNuxtPlugin(() => {
   setTimeout(() => { sweep(); sweepVault() }, 20_000)
   if (durable) void requestPersistence()
   const ports: Ports = {
-    channelFactory: localTransportFactory,
     encryptedChannelFactory: (ring, passcode, opts) => (roomId, handlers) => new EncryptedRelayTransport(
       buildWs2Url(config.public.wsUrl as string, roomId, window.location), ring, handlers,
       (async () => ({
@@ -65,7 +64,8 @@ export default defineNuxtPlugin(() => {
         facilitator: ring.facilitatorSecret ? await signerFor(ring.facilitatorSecret) : null,
         verifier: ed25519Verifier,
         replica: replicaFor() ?? undefined,
-        p2p: settings.s.p2p,
+        p2p: opts?.solo ? false : settings.s.p2p,
+        ...(opts?.solo ? { WS: LocalRelaySocket as unknown as typeof WebSocket } : {}),
         creator: opts?.creator === true,
         iceServers: String(config.public.iceServers ?? '').split(',').map((s) => s.trim()).filter(Boolean).map((urls) => ({ urls })),
       }))(),

@@ -1,3 +1,4 @@
+import { isSolo } from '~/utils/solo'
 import { type ActionItem, allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { type BoardNotice, buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
@@ -84,7 +85,7 @@ export const useBoardStore = defineStore('board', () => {
   const sendRename = (key: string, name: string) => transport?.sendRename?.(key, name) ?? false
   /** Encrypted boards only: export and restore of the board file (.retro). */
   /** Three words everyone sees for this board (shared boards only), in the board's language. */
-  const roomCode = computed(() => (roomId.value && !roomId.value.startsWith('local-') && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
+  const roomCode = computed(() => (roomId.value && !isSolo(roomId.value) && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
   /** My actor id on this board (session key on encrypted boards): who I am in talk turns. */
   const myKey = computed(() => snapshot.value?.peers.find((p) => p.me)?.key ?? null)
   const sendCursor = (c: OwnCursor) => transport?.sendCursor?.(c)

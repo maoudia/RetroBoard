@@ -280,6 +280,8 @@ export const fr = {
   'landing.mock.n6': 'Rétros en temps réel', 'landing.mock.n7': 'Revues de code rapides',
 
   'new.title': 'Nouvelle rétro',
+  "new.soloMode": "Board solo",
+  "new.soloMode.hint": "Reste dans cet onglet, sans lien à partager. Même board, mêmes fonctions.",
   'new.pageTitle': 'Nouvelle rétro - RetroBoard',
   'new.submit': 'Créer le board',
   'new.foot': 'Le lien du board est l\'invitation. Rien n\'est stocké sur le serveur.',

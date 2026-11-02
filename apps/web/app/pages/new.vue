@@ -3,10 +3,9 @@ import { type ImportedAction, presetPhases } from '@retroboard/domain'
 import type { AgendaDraft } from '~/components/AgendaEditor.vue'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { suggestThemeForDate } from '@retroboard/domain'
-import { LOCAL_ROOM_PREFIX } from '~/transport'
+import { markSolo } from '~/utils/solo'
 import { boardHash, newKeyRing } from '~/utils/invite'
-import { randomId } from '~/utils/storage'
-const { t, locale } = useT()
+const { t } = useT()
 
 const theme = useThemeStore()
 useSetupAgentTools()
@@ -31,6 +30,8 @@ function onMinutes(minutes: number) {
   agenda.value = { ...agenda.value, phases: presetPhases(preset) }
 }
 const { $ports } = useNuxtApp()
+// "Try solo" lands here with solo preselected: same form, same engine, the relay just lives in this tab.
+const soloMode = ref(useRoute().query.solo === '1')
 function create({ passcode, ...form }: SetupResult) {
   const a = agenda.value
   const setup: SetupResult = {
@@ -38,18 +39,14 @@ function create({ passcode, ...form }: SetupResult) {
     ...(carry.value.length ? { importActions: carry.value } : {}),
     ...(a.enabled && a.phases.length ? { agenda: { phases: a.phases, rules: a.rules, autoPublish: a.autoPublish, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
   }
-  const ring = { ...newKeyRing(), ...(passcode ? { passcode: true } : {}) }
+  const ring = { ...newKeyRing(), ...(passcode && !soloMode.value ? { passcode: true } : {}) }
+  if (soloMode.value) markSolo(ring.roomId)
   try {
     sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
     // Hand-off to the board page of this tab only; read once and removed there.
-    if (passcode) { sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode); void $ports.vault.set(ring.roomId, passcode) }
+    if (passcode && !soloMode.value) { sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode); void $ports.vault.set(ring.roomId, passcode) }
   } catch { /* the board page will ask for the passcode */ }
   void router.push({ path: '/board', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
-}
-function solo() {
-  const id = LOCAL_ROOM_PREFIX + randomId(9)
-  try { sessionStorage.setItem(`retroboard:init:${id}`, JSON.stringify({ templateId: 'start-stop-continue', themeId: theme.themeId, title: t('landing.solo.title'), locale: locale.value })) } catch { /* ignore */ }
-  void router.push({ path: '/board', hash: `#${id}` })
 }
 </script>
 
@@ -73,7 +70,11 @@ function solo() {
         <RecentBoards :limit="3" testid="new-resume-list" />
       </section>
       <section class="card panel">
-        <BoardSetupForm :with-passcode="true" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
+        <label class="solo-line" data-testid="new-solo-line">
+          <span><strong>{{ t('new.soloMode') }}</strong><small class="muted">{{ t('new.soloMode.hint') }}</small></span>
+          <input v-model="soloMode" type="checkbox" role="switch" class="switch" data-testid="new-solo-switch" />
+        </label>
+        <BoardSetupForm :with-passcode="!soloMode" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
       <section v-if="advanced" class="card panel">
         <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
@@ -83,7 +84,7 @@ function solo() {
       </section>
       <p class="foot muted">
         {{ t('new.foot') }}
-        <button class="link" type="button" data-testid="solo-new" @click="solo">{{ t('new.solo') }}</button>
+        <button class="link" type="button" data-testid="solo-new" @click="soloMode = true">{{ t('new.solo') }}</button>
       </p>
       <LegalLinks class="legal" />
     </main>
@@ -96,6 +97,8 @@ function solo() {
 .back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text); font-weight: 700; text-decoration: none; }
 .wrap { position: relative; z-index: 1; display: grid; gap: 1.4rem; width: min(1040px, 100% - 2rem); margin: 0 auto; padding: 1rem 0 3rem; }
 h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
+.solo-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.solo-line span { display: grid; gap: .15rem; }
 .lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }
 .panel { padding: clamp(1rem, 3vw, 2rem); }
 .resume h2 { margin: 0 0 .5rem; font-size: var(--fs-lg); }

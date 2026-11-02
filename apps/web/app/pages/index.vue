@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import '@fontsource-variable/inter/index.css'
 import { THEMES } from '@retroboard/themes'
-import { LOCAL_ROOM_PREFIX } from '~/transport'
 import { inviteFromHash } from '~/utils/invite'
-import { randomId } from '~/utils/storage'
-const { t, locale } = useT()
+const { t } = useT()
 
 useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color', content: '#fbfbfd' }] })
 const router = useRouter()
@@ -27,10 +25,9 @@ function join() {
   void router.push({ path: '/board', hash })
 }
 
+// "Try solo" opens the regular creation flow with solo preselected (change solo-parity-and-dedup).
 function solo() {
-  const id = LOCAL_ROOM_PREFIX + randomId(9)
-  try { sessionStorage.setItem(`retroboard:init:${id}`, JSON.stringify({ templateId: 'start-stop-continue', themeId: 'studio', title: t('landing.solo.title'), locale: locale.value })) } catch { /* ignore */ }
-  void router.push({ path: '/board', hash: `#${id}` })
+  void router.push({ path: '/new', query: { solo: '1' } })
 }
 
 function onMove(e: PointerEvent) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { LIMITS } from '@retroboard/domain'
-import { isLocalRoom } from '~/transport'
+import { isSolo } from '~/utils/solo'
 import { boardHash, inviteFromHash, inviteRoomId, isRetiredLink } from '~/utils/invite'
 import { errorLabel } from '~/utils/labels'
 import { safeStorage } from '~/utils/storage'
@@ -79,7 +79,8 @@ async function enter() {
   identity.load()
   drafts.load(roomId.value)
   const inv = invite.value!
-  if (inv.kind === 'encrypted' && inv.ring.passcode) {
+  if (inv.kind !== 'encrypted') return
+  if (inv.ring.passcode) {
     if (passcode.value === null) {
       // The creator's hand-off, else the code remembered on this device (change password-by-default).
       const handed = takeHandoff(inv.ring.roomId)
@@ -92,7 +93,7 @@ async function enter() {
   if (!identity.named) ui.open('name')
   // Only the tab that just created this board may write its first event (the set-up hand-off is still there).
   const creator = hasSetupHandoff(roomId.value)
-  board.connect(roomId.value, identity.identity, inv.kind === 'encrypted' ? $ports.encryptedChannelFactory(inv.ring, passcode.value ?? undefined, { creator }) : $ports.channelFactory)
+  board.connect(roomId.value, identity.identity, $ports.encryptedChannelFactory(inv.ring, passcode.value ?? undefined, { creator, solo: isSolo(inv.ring.roomId) }))
 }
 
 function unlock(code: string) {
@@ -144,7 +145,7 @@ function sendSetup(s: SetupResult) {
   setupOpen.value = false
   // A new shared board: the next thing the facilitator does is invite the team.
   // With carried-over actions, the review comes first and the invite panel after it.
-  if (!isLocalRoom(roomId.value)) { shareOnReady.value = true; shareAfterReview.value = !!s.importActions?.length }
+  if (!isSolo(roomId.value)) { shareOnReady.value = true; shareAfterReview.value = !!s.importActions?.length }
 }
 const shareOnReady = ref(false)
 
@@ -210,7 +211,7 @@ watch(effectiveThemeId, (id) => { if (id && id !== theme.themeId) void theme.use
 
 // Remember this board on this device only (title and theme, never content).
 watch(() => [board.settings?.title, board.settings?.initialized] as const, ([title, init]) => {
-  if (init && title && roomId.value && !isLocalRoom(roomId.value)) void recents.touch(roomId.value, title, board.settings!.themeId, boardHash(invite.value!, 'facilitator'))
+  if (init && title && roomId.value) void recents.touch(roomId.value, title, board.settings!.themeId, boardHash(invite.value!, 'facilitator'))
 })
 
 // Drafts of a deleted column have nowhere to live.

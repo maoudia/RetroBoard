@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shouldNudgeName } from '@retroboard/application'
-import { isLocalRoom } from '~/transport'
+import { isSolo } from '~/utils/solo'
 const { t } = useT()
 
 const ID = 'name-nudge'
@@ -26,7 +26,7 @@ const wanted = computed(() => shouldNudgeName({
   name: identity.name,
   joinedForMs: now.value - joinedAt,
   ownNotes: board.snapshot?.notes.filter((n) => n.mine).length ?? 0,
-  solo: !board.roomId || isLocalRoom(board.roomId),
+  solo: !board.roomId || isSolo(board.roomId),
   presenter: ui.presenter,
   dismissedHere: hereOff.value,
   dismissedEverywhere: identity.nudgeOff,
