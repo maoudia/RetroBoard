@@ -9,6 +9,9 @@ export async function enterName(page: Page, name: string, show = true) {
 
 export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean; oneFacilitator?: boolean } = {}) {
   await page.goto('/new')
+  // Tests that replace the stored settings come back in simple mode (the default): the helper needs every option.
+  const advanced = page.getByTestId('mode-advanced')
+  if ((await advanced.getAttribute('aria-pressed')) !== 'true') await advanced.click()
   if (opts.title) await page.getByTestId('setup-title').fill(opts.title)
   await page.getByTestId(`theme-${opts.theme ?? 'studio'}`).click()
   await page.getByTestId('tab-all').click()

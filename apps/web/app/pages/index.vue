@@ -2,6 +2,7 @@
 import '@fontsource-variable/inter/index.css'
 import { THEMES } from '@retroboard/themes'
 import { LOCAL_ROOM_PREFIX } from '~/transport'
+import { inviteFromHash } from '~/utils/invite'
 import { randomId } from '~/utils/storage'
 const { t, locale } = useT()
 
@@ -13,6 +14,18 @@ const tab = ref<'pro' | 'fun'>('pro')
 const themes = computed(() => THEMES.filter((t) => t.group === tab.value))
 const scrolled = ref(false)
 const tilt = reactive({ x: 0, y: 0 })
+
+/** Join by pasting the board link (change join-by-link): only the part after the # is used, and it never leaves the browser. */
+const joinText = ref('')
+const joinError = ref(false)
+function join() {
+  const raw = joinText.value.trim()
+  const at = raw.indexOf('#')
+  const hash = at >= 0 ? raw.slice(at) : ''
+  if (!hash || !inviteFromHash(hash)) { joinError.value = true; return }
+  joinError.value = false
+  void router.push({ path: '/board', hash })
+}
 
 function solo() {
   const id = LOCAL_ROOM_PREFIX + randomId(9)
@@ -70,6 +83,12 @@ onMounted(() => {
           <NuxtLink to="/new" class="cta" data-testid="hero-create">{{ t('landing.create') }} <Icon name="lucide:arrow-right" /></NuxtLink>
           <button class="ghost" type="button" data-testid="solo" @click="solo">{{ t('landing.trySolo') }}</button>
         </div>
+        <form class="join" data-reveal :style="{ '--d': '280ms' }" data-testid="join-form" @submit.prevent="join">
+          <label class="sr" for="join-input">{{ t('landing.join.label') }}</label>
+          <input id="join-input" v-model="joinText" type="text" inputmode="url" autocomplete="off" spellcheck="false" :placeholder="t('landing.join.placeholder')" :aria-invalid="joinError" :aria-describedby="joinError ? 'join-error' : undefined" data-testid="join-input" @input="joinError = false" />
+          <button type="submit" class="ghost" data-testid="join-go"><Icon name="lucide:log-in" /> {{ t('landing.join.go') }}</button>
+          <p v-if="joinError" id="join-error" class="join-error" role="alert" data-testid="join-error">{{ t('landing.join.invalid') }}</p>
+        </form>
         <section v-if="recents.items.length" class="mine card" data-reveal :style="{ '--d': '300ms' }" data-testid="landing-recents" :aria-label="t('landing.recents')">
           <h2>{{ t('landing.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h2>
           <RecentBoards :limit="4" testid="landing-recents-list" />
@@ -181,6 +200,12 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .cta { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .85rem 1.6rem; border-radius: 999px; background: var(--blue); color: #fff; font-size: var(--fs-md); font-weight: 600; text-decoration: none; transition: background .2s, transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; box-shadow: 0 10px 24px -10px rgb(0 113 227 / .6); }
 .cta:hover { background: var(--blue-d); transform: translateY(-2px) scale(1.02); } .cta:active { transform: scale(.98); }
 .cta.sm { padding: .45rem 1rem; font-size: var(--fs-sm); box-shadow: none; white-space: nowrap; flex: none; } .cta.big { padding: 1rem 2rem; font-size: var(--fs-lg); }
+.join { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .5rem; width: min(520px, 100%); justify-self: center; }
+.join input { flex: 1 1 260px; min-width: 0; padding: .7rem 1rem; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: var(--fs-sm); }
+.join input[aria-invalid="true"] { border-color: #b3261e; }
+.join .ghost { display: inline-flex; align-items: center; gap: .4rem; padding: .7rem 1.1rem; }
+.join-error { flex-basis: 100%; margin: 0; color: #b3261e; font-size: var(--fs-sm); text-align: center; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .ghost { padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .2s; }
 .ghost:hover { background: rgb(0 113 227 / .08); }
 

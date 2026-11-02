@@ -18,5 +18,5 @@ const settings = useSettingsStore()
 .mode { display: inline-flex; flex: none; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
 button { display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: .2rem .8rem; border: 0; background: transparent; color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
 button:hover { background: color-mix(in oklab, var(--accent) 12%, transparent); }
-button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); font-weight: 700; box-shadow: inset 0 0 0 1px var(--accent); }
 </style>
