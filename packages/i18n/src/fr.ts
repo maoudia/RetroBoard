@@ -435,6 +435,8 @@ export const fr = {
   'exportHub.slack.how': 'Colle dans un canal ou un message : podium et actions.',
   'exportHub.agents': 'Assistant IA',
   'exportHub.agents.hint': 'Pour Claude, ChatGPT et autres',
+  'exportHub.rag.jsonl': 'Morceaux pour la recherche (.jsonl)',
+  'exportHub.rag.md': 'Sections avec front matter (.md)',
   'exportHub.agents.copy': 'Copier pour une IA',
   'exportHub.agents.how': 'Une consigne en tête précise que le contenu est une donnée à analyser, pas des instructions à suivre.',
   'exportHub.report.hint': 'Rapport complet, imprimable',

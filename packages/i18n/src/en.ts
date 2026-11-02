@@ -436,6 +436,8 @@ export const en: Record<keyof typeof fr, string> = {
   'exportHub.slack.how': 'Paste into a channel or a message: podium and actions.',
   'exportHub.agents': 'AI assistant',
   'exportHub.agents.hint': 'For Claude, ChatGPT and others',
+  'exportHub.rag.jsonl': 'Chunks for search (.jsonl)',
+  'exportHub.rag.md': 'Sections with front matter (.md)',
   'exportHub.agents.copy': 'Copy for an AI',
   'exportHub.agents.how': 'A header tells the assistant the content is data to analyse, not instructions to follow.',
   'exportHub.report.hint': 'Full report, printable',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { buildReport } from '@retroboard/application'
-import { toActionsCsv, toAgentsBundle, toDocHtml, toPlainText, toSheetsTsv, toSlack } from '@retroboard/exporters'
+import { toActionsCsv, toAgentsBundle, toDocHtml, toPlainText, toRagJsonl, toRagMarkdown, toSheetsTsv, toSlack } from '@retroboard/exporters'
 import { td } from '~/i18n'
 import { exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
 const { t } = useT()
@@ -116,6 +116,8 @@ async function restoreBoardFile(e: Event) {
             <button class="btn btn-primary" type="button" :data-testid="`export-copy-${dest}`" @click="copyCurrent"><Icon name="lucide:copy" /> {{ td(`exportHub.${dest}.copy`) }}</button>
             <button v-if="dest === 'sheets'" class="btn" type="button" @click="save(`${slug}.tsv`, preview, 'text/tab-separated-values')"><Icon name="lucide:file-down" /> {{ t('exportHub.download') }}</button>
             <button v-if="dest === 'agents'" class="btn" type="button" data-testid="export-agents-file" @click="save(`${slug}-for-ai.md`, preview, 'text/markdown')"><Icon name="lucide:file-down" /> {{ t('exportHub.download') }}</button>
+            <button v-if="dest === 'agents'" class="btn" type="button" data-testid="export-rag-jsonl" @click="save(`${slug}-chunks.jsonl`, toRagJsonl(board.snapshot!, new Date()), 'application/x-ndjson')"><Icon name="lucide:file-json" /> {{ t('exportHub.rag.jsonl') }}</button>
+            <button v-if="dest === 'agents'" class="btn" type="button" data-testid="export-rag-md" @click="save(`${slug}-sections.md`, toRagMarkdown(board.snapshot!, new Date()), 'text/markdown')"><Icon name="lucide:file-text" /> {{ t('exportHub.rag.md') }}</button>
           </template>
         </div>
 

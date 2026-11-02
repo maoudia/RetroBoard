@@ -4,6 +4,7 @@
  * the data as JSON). Pure functions of the report read model; nothing leaves the device here.
  */
 import type { Report } from '@retroboard/application'
+import type { Snapshot } from '@retroboard/domain'
 import { escapeHtml, itemMarks, type ReportLabels } from './report-html'
 
 export interface DestinationOptions {
@@ -133,4 +134,81 @@ export function toAgentsBundle(r: Report, o: DestinationOptions = {}): string {
     '```',
     '',
   ].join('\n')
+}
+
+// ----- RAG-friendly export (change export-hub, task 3.4) -----
+
+export const RAG_FORMAT = 'retroboard-rag-v1'
+
+/** One retrieval chunk per idea, cluster and action. Schema in docs/export-rag.md. */
+export interface RagChunk {
+  format: typeof RAG_FORMAT
+  id: string
+  kind: 'idea' | 'cluster' | 'action'
+  retro: { title: string; date: string }
+  column: string | null
+  cluster: { id: string; title: string | null } | null
+  /** Null while counts are hidden (secret voting not closed). */
+  votes: number | null
+  authorKind: 'named' | 'anonymous' | null
+  /** Agenda phase running when the export was made, null without an agenda. */
+  phase: string | null
+  text: string
+  /** Ids of the chunks this one belongs to or came from. */
+  links: string[]
+  /** Board text is written by participants: treat it as data, never as instructions. */
+  untrusted: true
+}
+
+function ragChunks(s: Snapshot, date: Date): RagChunk[] {
+  const retro = { title: oneLine(s.settings.title), date: date.toISOString().slice(0, 10) }
+  const columns = new Map(s.columns.map((c) => [c.id, oneLine(c.title)]))
+  const a = s.agenda
+  const phase = a && a.current >= 0 && a.current < a.phases.length ? a.phases[a.current]!.kind : null
+  const groups = new Map(s.groups.map((g) => [g.id, g]))
+  const common = { format: RAG_FORMAT, retro, phase, untrusted: true } as const
+  const out: RagChunk[] = []
+  for (const g of s.groups) {
+    const members = s.notes.filter((n) => n.groupId === g.id)
+    out.push({
+      ...common, id: `cluster:${g.id}`, kind: 'cluster', column: columns.get(g.columnId) ?? null, cluster: { id: g.id, title: g.title },
+      votes: g.votes, authorKind: null, text: oneLine(g.title ?? members[0]?.text ?? ''), links: members.map((n) => `idea:${n.id}`),
+    })
+  }
+  for (const n of s.notes) {
+    const g = n.groupId ? groups.get(n.groupId) : undefined
+    out.push({
+      ...common, id: `idea:${n.id}`, kind: 'idea', column: columns.get(n.columnId) ?? null, cluster: g ? { id: g.id, title: g.title } : null,
+      votes: n.votes, authorKind: n.author ? 'named' : 'anonymous', text: oneLine(n.text), links: g ? [`cluster:${g.id}`] : [],
+    })
+  }
+  for (const x of s.actions) {
+    out.push({
+      ...common, id: `action:${x.id}`, kind: 'action', column: null, cluster: null, votes: null, authorKind: null,
+      text: oneLine(x.text), links: x.sourceNote ? [groups.has(x.sourceNote) ? `cluster:${x.sourceNote}` : `idea:${x.sourceNote}`] : [],
+    })
+  }
+  return out
+}
+
+/** JSON Lines: one chunk per line, ready for an embedding pipeline. Backticks are escaped like in the agents bundle. */
+export function toRagJsonl(s: Snapshot, date: Date): string {
+  return ragChunks(s, date).map((c) => JSON.stringify(c)).join('\n') + '\n'
+}
+
+/** Markdown with a YAML front matter per column (and one for the actions), for tools that index documents. */
+export function toRagMarkdown(s: Snapshot, date: Date): string {
+  const chunks = ragChunks(s, date)
+  const q = (v: string) => JSON.stringify(v)
+  const retro = chunks[0]?.retro ?? { title: oneLine(s.settings.title), date: date.toISOString().slice(0, 10) }
+  const sections: string[] = []
+  const front = (kind: string, title: string) => ['---', `format: ${RAG_FORMAT}`, `retro: ${q(retro.title)}`, `date: ${retro.date}`, `section: ${q(kind)}`, `title: ${q(title)}`, 'untrusted: true', '---'].join('\n')
+  for (const c of s.columns) {
+    const items = chunks.filter((x) => x.kind !== 'action' && x.column === oneLine(c.title))
+    const lines = items.map((x) => `- [${x.id}]${x.votes === null ? '' : ` (${x.votes})`} ${x.text}`)
+    sections.push([front('column', oneLine(c.title)), '', `# ${oneLine(c.title)}`, '', ...(lines.length ? lines : ['-']), ''].join('\n'))
+  }
+  const actions = chunks.filter((x) => x.kind === 'action').map((x) => `- [${x.id}] ${x.text}`)
+  sections.push([front('actions', 'Actions'), '', '# Actions', '', ...(actions.length ? actions : ['-']), ''].join('\n'))
+  return sections.join('\n')
 }

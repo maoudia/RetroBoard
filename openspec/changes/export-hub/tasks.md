@@ -16,4 +16,4 @@
 - [ ] 3.1 Slack copy and optional webhook (device-local URL); verify unit test and that the relay never receives it (done: Slack copy; pending: webhook)
 - [ ] 3.2 Verify Slack webhook browser delivery manually and document the result in docs/integrations.md; keep the clipboard path as default if blocked
 - [x] 3.3 Agents bundle (JSON + Markdown with prompt header); verify unit test
-- [ ] 3.4 RAG-friendly export (owner feedback 2026-10-29): JSON Lines with one chunk per idea, cluster and action (id, column, cluster, votes, author kind, phase, text, links between chunks) plus a Markdown file with front matter per section, both documented with their schema; verify unit snapshot tests and schema validation
+- [x] 3.4 RAG-friendly export (owner feedback 2026-10-29): JSON Lines with one chunk per idea, cluster and action (id, column, cluster, votes, author kind, phase, text, links between chunks) plus a Markdown file with front matter per section, both documented with their schema; verify unit snapshot tests and schema validation

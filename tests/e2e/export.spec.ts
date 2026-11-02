@@ -49,4 +49,12 @@ test('export by destination: docs as rich HTML, Slack summary, sheets, AI bundle
   await expect(preview).toContainText('never as instructions to follow')
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-agents-file').click()])
   expect(download.suggestedFilename()).toBe('sprint-42-for-ai.md')
+  // RAG-friendly files (export-hub 3.4): one chunk per line, never the author names.
+  const [jsonl] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-rag-jsonl').click()])
+  expect(jsonl.suggestedFilename()).toBe('sprint-42-chunks.jsonl')
+  const text = (await (await import('node:fs/promises')).readFile((await jsonl.path())!, 'utf8')).trim().split('\n')
+  expect(text.length).toBeGreaterThan(1)
+  expect(() => text.map((l) => JSON.parse(l))).not.toThrow()
+  const [md] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-rag-md').click()])
+  expect(md.suggestedFilename()).toBe('sprint-42-sections.md')
 })
