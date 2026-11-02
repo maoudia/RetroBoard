@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0](https://github.com/maoudia/RetroBoard/compare/v1.30.0...v1.31.0) (2026-11-02)
+
+
+### Features
+
+* **creation:** votes per person and sealed ballot in the advanced creation form ([72c7e8a](https://github.com/maoudia/RetroBoard/commit/72c7e8ac62dbf7fab8294d03829bf453f62be38a))
+
 ## [1.30.0](https://github.com/maoudia/RetroBoard/compare/v1.29.0...v1.30.0) (2026-11-02)
 
 
