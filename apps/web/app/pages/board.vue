@@ -124,9 +124,26 @@ function onBoardScroll(e: Event) {
   if (next !== ui.chromeHidden) { ui.chromeHidden = next; settleUntil = performance.now() + 400 }
 }
 let settleUntil = 0
+// Phones show one column per screen: the dots say where you are and jump to a column (change mobile-board-space).
+const activeCol = ref(0)
+const visibleCols = computed(() => board.columns.filter((c) => !c.hidden))
+function syncActive() {
+  const el = boardEl.value
+  if (!el || !phone?.matches) return
+  const first = el.querySelector<HTMLElement>('.col')
+  const step = (first?.offsetWidth ?? el.clientWidth) + 16
+  activeCol.value = Math.max(0, Math.min(visibleCols.value.length - 1, Math.round(el.scrollLeft / step)))
+}
+function goCol(i: number) {
+  const el = boardEl.value
+  const col = el?.querySelectorAll<HTMLElement>('.col')[i]
+  col?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
+}
 watch(boardEl, (el, old) => {
   old?.removeEventListener('scroll', onBoardScroll, true)
+  old?.removeEventListener('scroll', syncActive)
   el?.addEventListener('scroll', onBoardScroll, { capture: true, passive: true })
+  el?.addEventListener('scroll', syncActive, { passive: true })
 })
 onBeforeUnmount(() => { boardEl.value?.removeEventListener('scroll', onBoardScroll, true); ui.chromeHidden = false })
 useBoardAgentTools()
@@ -300,6 +317,12 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
           <Icon name="lucide:plus" /> {{ t('board.addColumn') }}
         </button>
       </main>
+      <nav v-if="board.ready && visibleCols.length > 1" class="col-dots" :aria-label="t('board.dots')" data-testid="col-dots">
+        <button
+          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="dot" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
+          :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-dot-${i}`" @click="goCol(i)"
+        />
+      </nav>
 
       <ActionsDrawer />
       <ShareDialog :passcode="passcode" />
@@ -333,6 +356,17 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { display: none; }
 .board { flex: 1; min-height: 0; display: flex; gap: 1rem; padding: 1rem; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; align-items: stretch; }
 .board > .col { scroll-snap-align: start; }
+.col-dots { display: none; }
+@media (max-width: 600px) {
+  /* One column per screen, swipe sideways, snap on each (change mobile-board-space). */
+  .board { scroll-snap-type: x mandatory; gap: .6rem; padding: .5rem; }
+  .board > .col { flex: 0 0 100% !important; min-width: 0 !important; max-width: none !important; scroll-snap-align: center; scroll-snap-stop: always; }
+  .board > .add-col { flex: 0 0 100%; scroll-snap-align: center; }
+  .col-dots { display: flex; justify-content: center; align-items: center; gap: 2px; padding: 0 .5rem .35rem; }
+  .dot { width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
+  .dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: width .2s var(--ease), background .2s; }
+  .dot.on::after { width: 20px; border-radius: var(--r-pill); background: var(--accent); }
+}
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .offline { position: fixed; z-index: 50; top: 76px; left: 50%; translate: -50% 0; box-shadow: var(--shadow-2); background: var(--surface2); }

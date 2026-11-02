@@ -419,6 +419,8 @@ export const en: Record<keyof typeof fr, string> = {
   'toolbar.tools': 'Board tools',
   'toolbar.actions': 'Actions',
   'toolbar.share': 'Share',
+  "board.dots": "Board columns",
+  "board.dot": "Column {n} of {total}: {title}",
   "toolbar.writing.hide": "Write",
   "toolbar.writing.show": "Write",
   "private.open": "Write",

@@ -418,6 +418,8 @@ export const fr = {
   'toolbar.tools': 'Outils du board',
   'toolbar.actions': 'Actions',
   'toolbar.share': 'Partager',
+  "board.dots": "Colonnes du board",
+  "board.dot": "Colonne {n} sur {total} : {title}",
   "toolbar.writing.hide": "Saisie",
   "toolbar.writing.show": "Saisie",
   "private.open": "Écrire",

@@ -110,6 +110,9 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
   .votebar { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .votebar::-webkit-scrollbar { display: none; }
   .left, .mid, .right { flex: none; flex-wrap: nowrap; white-space: nowrap; }
+  /* The votes left read as one compact pill at the start of the row (change mobile-board-space). */
+  .mid { order: -1; gap: .4rem; padding: .15rem .6rem; border-radius: var(--r-pill); background: var(--accent-soft); font-size: var(--fs-sm); }
+  .d { width: 9px; height: 9px; }
 }
 .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>

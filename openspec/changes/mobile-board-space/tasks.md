@@ -7,5 +7,5 @@
 
 ## 2. Columns
 
-- [ ] 2.1 One column per screen with snap and a dot indicator; verify e2e swipe on phone
-- [ ] 2.2 Voting bar as a compact pill on phones; verify e2e
+- [x] 2.1 One column per screen with snap and a dot indicator; verify e2e swipe on phone
+- [x] 2.2 Voting bar as a compact pill on phones; verify e2e
