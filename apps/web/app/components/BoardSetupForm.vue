@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
+import { nextTitle } from '~/utils/next-title'
 
 export interface SetupResult { templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
@@ -12,6 +13,14 @@ const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: Setu
 
 const d = new Date()
 const title = ref(t('setup.defaultTitle', { date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }))
+/** The next number after my last retro's title (change board-creation-v2), unless the person already typed. */
+const recents = useRecentsStore()
+const dated = title.value
+const typed = ref(false)
+watch(() => recents.items[0]?.title, (prev) => {
+  const next = nextTitle(prev)
+  if (next && !typed.value && title.value === dated) title.value = next
+}, { immediate: true })
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
 const passcode = ref('')
 /** "Everyone facilitates" is the default; "One facilitator" keeps the roles. */
@@ -38,7 +47,7 @@ watch(() => agent.setupDraft, (draft) => {
 <template>
   <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(customVotable ? { votable: [...votable] } : {}), ...(withPasscode && passcode ? { passcode } : {}) })">
     <label class="lbl">{{ t('setup.name') }}
-      <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" />
+      <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" @input="typed = true" />
     </label>
 
     <section v-if="advanced" class="block">

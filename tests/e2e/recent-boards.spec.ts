@@ -40,3 +40,14 @@ test('switch board from the board title: the other recent boards, not the curren
   await menu.getByRole('link', { name: /Board A/ }).click()
   await expect(noteByText(page, 'In A')).toBeVisible({ timeout: 15_000 })
 })
+
+test('the creation page suggests the next sprint number from the last board (change smart-title)', async ({ page }) => {
+  await page.goto('/new')
+  await page.getByTestId('setup-title').fill('Sprint 42')
+  await page.getByTestId('tab-all').click()
+  await page.getByTestId('template-halloween').click()
+  await page.getByTestId('setup-submit').click()
+  await expect(page.getByTestId('board')).toBeVisible()
+  await page.goto('/new')
+  await expect(page.getByTestId('setup-title')).toHaveValue('Sprint 43')
+})
