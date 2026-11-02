@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0](https://github.com/maoudia/RetroBoard/compare/v1.31.0...v1.32.0) (2026-11-02)
+
+
+### Features
+
+* **boards:** new board entry at the end of the toolbar boards menu ([55ed81f](https://github.com/maoudia/RetroBoard/commit/55ed81f6e4add6750c47b6f4c00bd43f0a9d5c37))
+
 ## [1.31.0](https://github.com/maoudia/RetroBoard/compare/v1.30.0...v1.31.0) (2026-11-02)
 
 
