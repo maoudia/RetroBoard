@@ -124,10 +124,11 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 </template>
 
 <style scoped>
-.clockrow { display: inline-flex; align-items: center; gap: .4rem; padding: .2rem .35rem .2rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+/* The ring and the start button sit centred in the round ends of the pill: equal margin around the ring, the button centred on the right cap. */
+.clockrow { --pad: .3rem; display: inline-flex; align-items: center; gap: .4rem; padding: var(--pad) calc(var(--pad) + (var(--ring-size, 56px) - 36px) / 2) var(--pad) var(--pad); border: 1px solid var(--border); border-radius: var(--r-pill); background: var(--surface); }
 .go { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-md); cursor: pointer; transition: transform .15s var(--ease); }
 .go:hover { transform: scale(1.08); }
-.ring { display: inline-flex; align-items: center; gap: .5rem; padding: 0 .4rem 0 0; border: 0; border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; }
+.ring { display: inline-flex; align-items: center; gap: .6rem; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text); cursor: pointer; }
 .txt { display: grid; line-height: 1.1; text-align: left; }
 .txt strong { font-size: var(--fs-lg); }
 .txt small { font-size: var(--fs-xs); color: var(--muted); }
@@ -148,6 +149,6 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
 
 <style>
 /* TV screens: the toolbar rings grow. Presenter mode zooms the columns only, never the toolbar (#228). */
-@media (min-width: 2200px) { .ring .rings { width: 96px; height: 96px; } }
+@media (min-width: 2200px) { :root { --ring-size: 96px; } .ring .rings { width: 96px; height: 96px; } }
 .panel .big { display: grid; justify-items: center; }
 </style>

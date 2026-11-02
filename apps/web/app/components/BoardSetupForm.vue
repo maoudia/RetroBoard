@@ -73,42 +73,41 @@ function onSubmit() {
       <TemplatePicker v-model="templateId" :theme-id="themeId" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
-    <template v-if="advanced">
-    <fieldset class="fac" data-testid="setup-facilitation">
-      <legend class="lbl">{{ t('setup.fac.title') }}</legend>
-      <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="everyone" data-testid="setup-fac-everyone" />
-        <span><strong>{{ t('setup.fac.everyone') }}</strong><small class="muted">{{ t('setup.fac.everyone.hint') }}</small></span></label>
-      <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="one" data-testid="setup-fac-one" />
-        <span><strong>{{ t('setup.fac.single') }}</strong><small class="muted">{{ t('setup.fac.single.hint') }}</small></span></label>
-    </fieldset>
+    <div v-if="advanced" class="adv" data-testid="setup-advanced">
+      <fieldset class="tile fac" data-testid="setup-facilitation">
+        <legend class="lbl">{{ t('setup.fac.title') }}</legend>
+        <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="everyone" data-testid="setup-fac-everyone" />
+          <span><strong>{{ t('setup.fac.everyone') }}</strong><small class="muted">{{ t('setup.fac.everyone.hint') }}</small></span></label>
+        <label class="opt"><input v-model="facilitation" type="radio" name="facilitation" value="one" data-testid="setup-fac-one" />
+          <span><strong>{{ t('setup.fac.single') }}</strong><small class="muted">{{ t('setup.fac.single.hint') }}</small></span></label>
+      </fieldset>
 
-    <details v-if="tpl" class="votable" data-testid="setup-votable" open>
-      <summary class="lbl">{{ t('setup.votable') }}</summary>
-      <p class="muted small">{{ t('setup.votable.hint') }}</p>
-      <label v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" class="opt">
-        <input v-model="votable[i]" type="checkbox" :data-testid="`setup-votable-${i}`" />
-        <span><strong>{{ c.title }}</strong></span>
+      <fieldset class="tile votes" data-testid="setup-voting">
+        <legend class="lbl">{{ t('setup.voting') }}</legend>
+        <label class="opt votes-per">
+          <input v-model.number="voteLimit" class="field num" type="number" :min="LIMITS.minVotes" :max="LIMITS.maxVotes" inputmode="numeric" data-testid="setup-vote-limit" />
+          <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
+        </label>
+        <label class="line">
+          <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
+          <input v-model="secretVoting" type="checkbox" role="switch" class="switch" data-testid="setup-secret" />
+        </label>
+      </fieldset>
+
+      <details v-if="tpl" class="tile votable" data-testid="setup-votable" open>
+        <summary class="lbl">{{ t('setup.votable') }}</summary>
+        <p class="muted small">{{ t('setup.votable.hint') }}</p>
+        <label v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" class="line">
+          <span><strong>{{ c.title }}</strong></span>
+          <input v-model="votable[i]" type="checkbox" role="switch" class="switch" :data-testid="`setup-votable-${i}`" />
+        </label>
+      </details>
+
+      <label class="tile line" data-testid="setup-arrivals-row">
+        <span><strong>{{ t('setup.arrivals') }}</strong><small class="muted">{{ t('setup.arrivals.hint') }}</small></span>
+        <input v-model="announceArrivals" type="checkbox" role="switch" class="switch" data-testid="setup-arrivals" />
       </label>
-    </details>
-
-    <fieldset class="votes" data-testid="setup-voting">
-      <legend class="lbl">{{ t('setup.voting') }}</legend>
-      <label class="opt votes-per">
-        <input v-model.number="voteLimit" class="field num" type="number" :min="LIMITS.minVotes" :max="LIMITS.maxVotes" inputmode="numeric" data-testid="setup-vote-limit" />
-        <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
-      </label>
-      <label class="opt">
-        <input v-model="secretVoting" type="checkbox" data-testid="setup-secret" />
-        <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
-      </label>
-    </fieldset>
-
-    <label class="opt" data-testid="setup-arrivals-row">
-      <input v-model="announceArrivals" type="checkbox" data-testid="setup-arrivals" />
-      <span><strong>{{ t('setup.arrivals') }}</strong><small class="muted">{{ t('setup.arrivals.hint') }}</small></span>
-    </label>
-
-    </template>
+    </div>
 
     <ConfirmDialog v-model:open="confirmOpen" danger confirm-icon="lucide:unlock" :title="t('setup.passcode.noneTitle')" :message="t('setup.passcode.noneMsg')" :confirm-label="t('setup.passcode.noneOk')" @confirm="emit('submit', result())" />
     <button class="btn btn-primary go" type="submit" data-testid="setup-submit"><Icon name="lucide:rocket" /> {{ submitLabel }}</button>
@@ -122,11 +121,14 @@ h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-family: var(--f-body); font-size: var(--fs-sm); font-weight: 800; }
 .go { justify-self: end; padding: .8rem 1.5rem; font-size: var(--fs-md); }
 .pass { display: grid; gap: .35rem; }
-.fac { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; }
-.votable { display: grid; gap: .5rem; }
+.adv { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; align-items: start; }
+/* Each group is a bounded tile, not a full-width strip (change ui-coherence-pass). */
+.tile { display: grid; gap: .7rem; min-width: 0; margin: 0; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); }
+.tile > legend, .tile > summary { padding: 0 .3rem; }
+.line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; cursor: pointer; }
+.line > span { display: grid; gap: .15rem; }
 .votable summary { cursor: pointer; }
 .small { font-size: var(--fs-sm); margin: 0; }
-.votes { display: grid; gap: .6rem; margin: 0; padding: 0; border: 0; min-width: 0; }
 .num { width: 5rem; flex: none; }
 .opt { display: flex; gap: .6rem; align-items: flex-start; cursor: pointer; }
 .opt span { display: grid; gap: .1rem; }

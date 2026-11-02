@@ -65,7 +65,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         </div>
         <div v-if="advanced" class="line">
           <span><strong>{{ t('options.votable') }}</strong><small class="muted">{{ t('options.votable.hint') }}</small></span>
-          <span class="seg" role="group" :aria-label="t('options.votable')">
+          <span class="pick-seg" role="group" :aria-label="t('options.votable')">
             <button v-for="v in (['both', 'notes', 'clusters'] as const)" :key="v" type="button" :class="{ on: s.votable === v }" :aria-pressed="s.votable === v" :data-testid="`opt-votable-${v}`" @click="set({ votable: v })">{{ t(`options.votable.${v}`) }}</button>
           </span>
         </div>
@@ -106,7 +106,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <h3>{{ t('actions.title') }}</h3>
         <div class="line">
           <span><strong>{{ t('actions.mode') }}</strong><small class="muted">{{ t('actions.mode.hint') }}</small></span>
-          <span class="seg" role="group" :aria-label="t('actions.mode')">
+          <span class="pick-seg" role="group" :aria-label="t('actions.mode')">
             <button v-for="m in (['checkbox', 'workflow'] as const)" :key="m" type="button" :class="{ on: s.actionMode === m }" :aria-pressed="s.actionMode === m" :data-testid="`opt-action-${m}`" @click="set({ actionMode: m })">{{ t(`actions.mode.${m}`) }}</button>
           </span>
         </div>
@@ -116,14 +116,14 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <h3>{{ t('talk.title') }}</h3>
         <div class="line">
           <span><strong>{{ t('talk.mode') }}</strong><small class="muted">{{ t('talk.mode.hint') }}</small></span>
-          <span class="seg" role="group" :aria-label="t('talk.mode')">
+          <span class="pick-seg" role="group" :aria-label="t('talk.mode')">
             <button v-for="m in (['off', 'ring', 'popup'] as const)" :key="m" type="button" :class="{ on: s.talkMode === m }" :aria-pressed="s.talkMode === m" :data-testid="`opt-talk-${m}`" @click="set({ talkMode: m })">{{ t(`talk.mode.${m}`) }}</button>
           </span>
         </div>
         <template v-if="s.talkMode !== 'off'">
           <div class="line">
             <span><strong>{{ t('talk.budget') }}</strong></span>
-            <span class="seg" role="group" :aria-label="t('talk.budget')">
+            <span class="pick-seg" role="group" :aria-label="t('talk.budget')">
               <button v-for="m in [1, 2, 3, 5]" :key="m" type="button" :class="{ on: s.talkBudgetMs === m * 60_000 }" :aria-pressed="s.talkBudgetMs === m * 60_000" :data-testid="`opt-talk-budget-${m}`" @click="set({ talkBudgetSec: m * 60 })">{{ m }} min</button>
             </span>
           </div>
@@ -185,10 +185,6 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 .steer { display: contents; border: 0; margin: 0; padding: 0; min-width: 0; }
 .steer:disabled :is(.line, .lbl) { opacity: .6; }
 .readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: var(--r-control); background: var(--surface2); font-weight: 600; }
-.seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
-.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
-.seg button:last-child { border-right: 0; }
-.seg button.on { background: var(--accent); color: var(--accent-ink); }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
@@ -197,10 +193,6 @@ h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; le
 .stepper { display: inline-flex; align-items: center; gap: .3rem; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 800; }
 .btns { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
-.switch { appearance: none; flex: none; width: 46px; height: 26px; border-radius: 999px; background: var(--border); position: relative; cursor: pointer; transition: background .2s; }
-.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
-.switch:checked { background: var(--accent); }
-.switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
 .danger-zone h3 { color: var(--danger); }
 .cols { align-items: flex-start; flex-wrap: wrap; }
 .collist { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; min-width: min(100%, 16rem); }

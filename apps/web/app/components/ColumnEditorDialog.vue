@@ -74,10 +74,6 @@ function save() {
 .form { display: grid; gap: 1rem; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span { display: grid; gap: .1rem; }
-.switch { appearance: none; flex: none; width: 46px; height: 26px; border-radius: 999px; background: var(--border); position: relative; cursor: pointer; transition: background .2s; }
-.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
-.switch:checked { background: var(--accent); }
-.switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
 fieldset { border: 0; padding: 0; margin: 0; }
 .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: 200px; overflow: auto; padding: 2px; }
 .ico { display: grid; place-items: center; aspect-ratio: 1; font-size: var(--fs-xl); border: 1.5px solid var(--border); border-radius: var(--r-control); background: var(--surface2); cursor: pointer; transition: transform .15s; }

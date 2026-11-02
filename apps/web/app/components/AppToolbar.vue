@@ -80,7 +80,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 .boards-new { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; padding: .5rem .6rem; border-top: 1px solid var(--border); color: var(--accent); font-weight: 600; text-decoration: none; }
 .boards-new:hover { background: var(--accent-soft); }
 .boards-none { margin: 0; padding: .3rem .5rem .5rem; font-size: var(--fs-sm); }
-.title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: var(--r-control); background: transparent; cursor: pointer; }
+.title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: var(--r-pill); background: transparent; cursor: pointer; }
 .title:hover { background: var(--accent-soft); }
 .title strong { font-family: var(--f-display); font-size: var(--fs-xl); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tools { display: flex; justify-content: flex-end; align-items: center; gap: .1rem; }

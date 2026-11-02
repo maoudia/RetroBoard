@@ -43,3 +43,14 @@ describe('design tokens', () => {
     for (const t of ['--fs-xs', '--fs-sm', '--fs-md', '--fs-lg', '--fs-xl', '--fs-2xl', '--fs-3xl', '--r-xs', '--r-sm', '--sp-1', '--dur-base']) expect(base).toContain(`${t}:`)
   })
 })
+
+describe('one button shape (change ui-coherence-pass)', () => {
+  it('rules for .btn, .mini-btn and .icon-btn use the pill radius', () => {
+    const pill = /^(var\(--r-pill\)|999px|50%|inherit|0)$/
+    const bad = all.flatMap(({ f, s }) => [...s.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, sel, body]) => /(^|[\s,>+~])\.(btn|mini-btn|icon-btn)(?![\w-])/.test(sel!.trim().split(',').map((x) => x.trim().split(/[\s>+~]+/).pop()!).join(' ')) && /(^|;|\s)border-radius:/.test(body!))
+      .map(([, sel, body]) => ({ f: f.replace(`${root}/`, ''), sel: sel!.trim(), v: /border-radius: *([^;}]+)/.exec(body!)![1]!.trim() }))
+      .filter(({ v }) => !pill.test(v)))
+    expect(bad.map((b) => `${b.f}: ${b.sel} { border-radius: ${b.v} }`), 'buttons use var(--r-pill)').toEqual([])
+  })
+})

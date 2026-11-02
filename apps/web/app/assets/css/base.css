@@ -8,7 +8,7 @@
   --danger: #ff6b8b; --success: #6dffb0; --note-ink: #0a0c18;
   --warn: #b86e00; /* relay-only dot: 3:1 on light and dark surfaces, the shape also differs */
   --f-display: system-ui, sans-serif; --f-body: system-ui, sans-serif; --f-mono: ui-monospace, monospace;
-  --r-card: 14px; --r-control: 10px;
+  --r-card: 14px; --r-control: 10px; --r-pill: 999px;
   /* Shared scales (docs/design-system.md): type, small radii, spacing, motion. Themes change colour, fonts and --r-*; never these steps. */
   --fs-xs: .75rem; --fs-sm: .875rem; --fs-md: 1rem; --fs-lg: 1.125rem; --fs-xl: 1.25rem; --fs-2xl: 1.5rem; --fs-3xl: 2rem;
   --r-xs: 6px; --r-sm: 8px;
@@ -47,7 +47,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Buttons */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem; cursor: pointer;
-  padding: .55rem 1rem; border-radius: var(--r-control); border: 1px solid var(--border);
+  padding: .55rem 1rem; border-radius: var(--r-pill); border: 1px solid var(--border);
   background: var(--surface2); color: var(--text); font-weight: 600; line-height: 1.1;
   transition: transform .15s, background .15s, border-color .15s, box-shadow .15s;
 }
@@ -67,7 +67,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .icon-btn {
   position: relative; display: inline-grid; place-items: center; gap: 2px; min-width: 58px; padding: .4rem .5rem;
-  border: 0; border-radius: var(--r-control); background: transparent; color: var(--text); cursor: pointer;
+  border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text); cursor: pointer;
   font-size: var(--fs-xs); font-weight: 600; transition: background .15s, transform .15s;
 }
 .icon-btn:hover { background: var(--accent-soft); }
@@ -79,7 +79,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 700; background: var(--accent2); color: var(--accent-ink);
 }
 .mini-btn {
-  display: inline-grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: var(--r-sm);
+  display: inline-grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: var(--r-pill);
   background: transparent; color: inherit; cursor: pointer; transition: background .15s;
 }
 .mini-btn:hover { background: color-mix(in oklab, currentColor 14%, transparent); }
@@ -175,7 +175,13 @@ main:focus { outline: none; }
 :root[data-notify="right"] .end.end { left: auto; right: 16px; translate: 0 0; animation: none; }
 
 /* Segmented choice (one shared style; change ui-coherence-pass removes the per-component copies). */
-.pick-seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
+.pick-seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-pill); overflow: hidden; }
 .pick-seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
 .pick-seg button:last-child { border-right: 0; }
 .pick-seg button.on { background: var(--accent); color: var(--accent-ink); }
+
+/* One switch for every on/off setting (was copied in three dialogs). */
+.switch { appearance: none; flex: none; width: 46px; height: 26px; border-radius: var(--r-pill); background: var(--border); position: relative; cursor: pointer; transition: background .2s; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }

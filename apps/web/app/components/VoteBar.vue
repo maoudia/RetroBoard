@@ -105,5 +105,11 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
   .pill-votes { display: none; }
   .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
+/* Small screens: one row that slides sideways like the top toolbar, so the bar never takes column height. */
+@media (max-width: 600px) {
+  .votebar { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .votebar::-webkit-scrollbar { display: none; }
+  .left, .mid, .right { flex: none; flex-wrap: nowrap; white-space: nowrap; }
+}
 .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>

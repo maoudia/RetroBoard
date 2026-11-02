@@ -78,14 +78,14 @@ async function wipe() {
       <h3>{{ t('profile.look') }}</h3>
       <div class="line">
         <span><strong>{{ t('profile.language') }}</strong><small class="muted">{{ t('profile.language.hint') }}</small></span>
-        <span class="seg">
+        <span class="pick-seg">
           <button v-for="l in LOCALES" :key="l.id" type="button" :class="{ on: settings.s.locale === l.id }" :lang="l.id" :data-testid="`pref-lang-${l.id}`" @click="set({ locale: l.id })">{{ l.label }}</button>
           <button type="button" :class="{ on: settings.s.locale === 'auto' }" data-testid="lang-auto" @click="set({ locale: 'auto' })">{{ t('profile.language.auto') }}</button>
         </span>
       </div>
       <div class="line">
         <span><strong>{{ t('profile.variant') }}</strong><small class="muted">{{ t('profile.variant.hint') }}</small></span>
-        <span class="seg" role="group" :aria-label="t('profile.variant')">
+        <span class="pick-seg" role="group" :aria-label="t('profile.variant')">
           <button v-for="v in (['theme', 'light', 'dark', 'system'] as const)" :key="v" type="button" :class="{ on: settings.s.variant === v }" :aria-pressed="settings.s.variant === v" :data-testid="`variant-${v}`" @click="set({ variant: v })">{{ t(`profile.variant.${v}`) }}</button>
         </span>
       </div>
@@ -102,14 +102,14 @@ async function wipe() {
       </label>
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.motion') }}</strong><small class="muted">{{ t('profile.motion.hint') }}</small></span>
-        <span class="seg">
+        <span class="pick-seg">
           <button type="button" :class="{ on: settings.s.motion === 'auto' }" @click="set({ motion: 'auto' })">{{ t('profile.motion.normal') }}</button>
           <button type="button" :class="{ on: settings.s.motion === 'reduced' }" data-testid="motion-reduced" @click="set({ motion: 'reduced' })">{{ t('profile.motion.reduced') }}</button>
         </span>
       </div>
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.density') }}</strong></span>
-        <span class="seg">
+        <span class="pick-seg">
           <button type="button" :class="{ on: settings.s.density === 'comfortable' }" @click="set({ density: 'comfortable' })">{{ t('profile.density.comfortable') }}</button>
           <button type="button" :class="{ on: settings.s.density === 'compact' }" data-testid="density-compact" @click="set({ density: 'compact' })">{{ t('profile.density.compact') }}</button>
         </span>
@@ -124,19 +124,19 @@ async function wipe() {
       </label>
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.notifyPos') }}</strong></span>
-        <span class="seg">
+        <span class="pick-seg">
           <button v-for="p in (['left', 'center', 'right'] as const)" :key="p" type="button" :class="{ on: settings.s.notifyPos === p }" :aria-pressed="settings.s.notifyPos === p" :data-testid="`notify-${p}`" @click="set({ notifyPos: p })">{{ t(`profile.notifyPos.${p}` as never) }}</button>
         </span>
       </div>
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.stepperTime') }}</strong></span>
-        <span class="seg">
+        <span class="pick-seg">
           <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.stepperTime === m }" :aria-pressed="settings.s.stepperTime === m" :data-testid="`stepper-time-${m}`" @click="set({ stepperTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
         </span>
       </div>
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.ringTime') }}</strong></span>
-        <span class="seg">
+        <span class="pick-seg">
           <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.ringTime === m }" :aria-pressed="settings.s.ringTime === m" :data-testid="`ring-time-${m}`" @click="set({ ringTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
         </span>
       </div>
@@ -158,7 +158,7 @@ async function wipe() {
       <h3>{{ t('profile.privacy') }}</h3>
       <div class="line">
         <span><strong>{{ t('profile.retention') }}</strong><small class="muted">{{ t('profile.retention.hint') }}</small></span>
-        <span class="seg" role="group" :aria-label="t('profile.retention')">
+        <span class="pick-seg" role="group" :aria-label="t('profile.retention')">
           <button v-for="d in ([0, 1, 7, 30] as const)" :key="d" type="button" :class="{ on: settings.s.retentionDays === d }" :aria-pressed="settings.s.retentionDays === d" :data-testid="`retention-${d}`" @click="set({ retentionDays: d })">
             {{ d === 0 ? t('profile.retention.leave') : t('profile.retention.days', { n: d }) }}
           </button>
@@ -218,20 +218,12 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line > span:first-child { display: grid; gap: 2px; min-width: 0; }
 .line small { font-size: var(--fs-sm); }
-.seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
-.seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
-.seg button:last-child { border-right: 0; }
-.seg button.on { background: var(--accent); color: var(--accent-ink); }
 .sel { width: auto; min-width: 170px; }
 .mine { display: grid; gap: .4rem; padding: .7rem; border-radius: var(--r-control); background: var(--surface2); }
 .lbl-sm { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
 .chip { padding: .3rem .7rem; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
 .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
-.switch { appearance: none; flex: none; width: 46px; height: 26px; border-radius: 999px; background: var(--border); position: relative; cursor: pointer; transition: background .2s; }
-.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .25s var(--ease); }
-.switch:checked { background: var(--accent); }
-.switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
 .recents strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .danger-zone h3 { color: var(--danger); }
 </style>

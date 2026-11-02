@@ -38,14 +38,14 @@ const reasonText = (list: Reason[]) => list.map((x) => reasonLabel(x))
       <div class="row">
         <fieldset>
           <legend>{{ t('tp.mood') }}</legend>
-          <div class="seg">
+          <div class="pick-seg">
             <button v-for="m in MOOD_VALUES" :key="m" type="button" :class="{ on: mood === m }" :aria-pressed="mood === m" :title="moodLabel(m)" @click="mood = m">{{ m }}</button>
           </div>
           <small class="muted">{{ moodLabel(mood) }}</small>
         </fieldset>
         <fieldset>
           <legend>{{ t('tp.time') }}</legend>
-          <div class="seg">
+          <div class="pick-seg">
             <button v-for="tm in TIMES" :key="tm" type="button" :class="{ on: minutes === tm }" :aria-pressed="minutes === tm" :data-testid="`tp-time-${tm}`" @click="minutes = tm; emit('update:minutes', tm)">{{ t('timer.minutes', { n: tm }) }}</button>
           </div>
         </fieldset>
@@ -80,10 +80,6 @@ legend { font-weight: 700; font-size: var(--fs-sm); color: var(--muted); padding
 .opt small { color: var(--muted); font-size: var(--fs-xs); }
 .opt.on { border-color: var(--accent); background: var(--accent-soft); }
 .row { display: flex; flex-wrap: wrap; gap: 1.5rem; }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; width: fit-content; }
-.seg button { padding: .45rem .85rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-weight: 600; }
-.seg button:last-child { border-right: 0; }
-.seg button.on { background: var(--accent); color: var(--accent-ink); }
 .results, .all { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
 .all { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 </style>

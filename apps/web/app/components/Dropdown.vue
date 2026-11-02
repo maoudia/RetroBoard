@@ -71,7 +71,7 @@ defineExpose({ close })
 
 <style>
 /* Unscoped on purpose: the panel is teleported to the top layer by the browser. */
-.dd { display: inline-block; }
+.dd { display: inline-flex; vertical-align: middle; } /* inline-flex: no line-box gap under the trigger (the ring was 7 px off-centre) */
 .dd-panel[popover] {
   position: fixed; inset: auto; margin: 0; z-index: 60; min-width: 220px; max-width: min(92vw, 360px); max-height: min(70dvh, 520px); overflow: auto;
   padding: .5rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2);
