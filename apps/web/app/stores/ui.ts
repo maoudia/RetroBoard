@@ -1,5 +1,6 @@
 import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
 import { safeStorage } from '~/utils/storage'
+import { legacySizes } from '~/utils/layout'
 export type ColumnSize = 'narrow' | 'normal' | 'wide' | 'full'
 export type WriteSize = 'small' | 'normal' | 'large'
 export const WRITE_SIZES: readonly WriteSize[] = ['small', 'normal', 'large']
@@ -16,26 +17,23 @@ export const useUiStore = defineStore('ui', () => {
     if (next.has(columnId)) next.delete(columnId); else next.add(columnId)
     expandedColumns.value = next
   }
-  /** Personal column widths, remembered per board in this browser. */
-  const columnSizes = ref<Record<string, ColumnSize>>({})
-  const sizeKey = (room: string) => `rb.colsize.${room}`
-  const loadColumnSizes = (room: string | null) => { columnSizes.value = room ? safeStorage.get<Record<string, ColumnSize>>(sizeKey(room), {}) : {} }
-  const setColumnSize = (room: string | null, columnId: string, size: ColumnSize) => {
-    const rest = Object.fromEntries(Object.entries(columnSizes.value).filter(([k]) => k !== columnId))
-    const next: Record<string, ColumnSize> = size === 'normal' ? rest : { ...rest, [columnId]: size }
-    columnSizes.value = next
-    if (room) safeStorage.set(sizeKey(room), next)
-  }
-  /** Height of the writing area, personal and remembered per board. */
-  const writeSize = ref<WriteSize>('normal')
-  const setWriteSize = (room: string | null, size: WriteSize) => {
-    writeSize.value = size
-    if (room) safeStorage.set(`rb.writesize.${room}`, size)
-  }
+  /** Personal column widths and writing area, remembered per board and per screen class (change device-layout-prefs). */
+  const layout = useLayoutStore()
+  const roomId = ref<string | null>(null)
+  /** Sizes saved before layouts were per class: used until this class has a choice of its own. */
+  const legacy = ref<{ sizes: Record<string, string>, write: string | null }>({ sizes: {}, write: null })
+  const columnSizes = computed(() => (roomId.value ? ((layout.current.sizes[roomId.value] ?? legacy.value.sizes) as Record<string, ColumnSize>) : {}))
+  const writeSize = computed<WriteSize>(() => (roomId.value ? ((layout.current.write[roomId.value] ?? legacy.value.write ?? 'normal') as WriteSize) : 'normal'))
   const loadColumnSizesAndWrite = (room: string | null) => {
-    loadColumnSizes(room)
-    writeSize.value = room ? safeStorage.get<WriteSize>(`rb.writesize.${room}`, 'normal') : 'normal'
+    roomId.value = room
+    legacy.value = room ? legacySizes(room, (k, f) => safeStorage.get(k, f)) : { sizes: {}, write: null }
   }
+  const setColumnSize = (room: string | null, columnId: string, size: ColumnSize) => {
+    if (!room) return
+    if (!layout.current.sizes[room]) layout.setSizes(room, legacy.value.sizes)
+    layout.setSize(room, columnId, size)
+  }
+  const setWriteSize = (room: string | null, size: WriteSize) => { if (room) layout.setWrite(room, size) }
   /** Notes grouped by "group by author" per column, kept to offer an undo. */
   const autoGrouped = ref<Record<string, string[]>>({})
   /** Cluster being dragged (drop on another cluster to merge). */
@@ -52,7 +50,8 @@ export const useUiStore = defineStore('ui', () => {
   const presenter = ref(false)
   /** Presenter column focus (presenter-mode-v2): index of the focused column, null for the whole board. Local to this tab. */
   const focusColumn = ref<number | null>(null)
-  const focusStyle = ref<'centre' | 'accordion'>('centre')
+  /** Presenter focus style, remembered per screen class. */
+  const focusStyle = computed({ get: () => layout.current.focusStyle ?? 'centre', set: (v: 'centre' | 'accordion') => layout.setFocusStyle(v) })
   /** Presenter walk-through of the voted ideas (presenter-mode-v2): index in the ranking, null when off. Local to this tab. */
   /** Presenter note spotlight (presenter-mode-v2): id of the enlarged note, null when off. Local to this tab. */
   const spotlightNoteId = ref<string | null>(null)

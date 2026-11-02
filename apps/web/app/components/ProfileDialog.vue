@@ -4,6 +4,7 @@ import { hasChosen, showNameAfterTyping } from '~/utils/show-name'
 import { THEMES } from '@retroboard/themes'
 import { AVATAR_HUES } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
+import type { ScreenClass } from '~/utils/layout'
 import { askNotifyPermission, canNotify } from '~/utils/system-notify'
 const { t } = useT()
 
@@ -29,6 +30,12 @@ function saveIdentity() {
   board.updateIdentity(identity.identity)
 }
 const set = (patch: Parameters<typeof settings.patch>[0]) => settings.patch(patch)
+// Layout is kept per screen class on this device (change device-layout-prefs).
+const layout = useLayoutStore()
+const density = computed(() => layout.density ?? settings.s.density)
+const setDensity = (d: 'comfortable' | 'compact') => { layout.setDensity(d); settings.apply() }
+const resetLayout = () => { layout.reset(); settings.apply() }
+const copyLayout = (from: ScreenClass) => { layout.copyFrom(from); settings.apply() }
 /** System notifications: the browser permission is asked here, on opt-in, and nowhere else. */
 const notifyDenied = ref(typeof Notification !== 'undefined' && Notification.permission === 'denied')
 async function toggleNotify(box: HTMLInputElement) {
@@ -110,8 +117,8 @@ async function wipe() {
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.density') }}</strong></span>
         <span class="pick-seg">
-          <button type="button" :class="{ on: settings.s.density === 'comfortable' }" @click="set({ density: 'comfortable' })">{{ t('profile.density.comfortable') }}</button>
-          <button type="button" :class="{ on: settings.s.density === 'compact' }" data-testid="density-compact" @click="set({ density: 'compact' })">{{ t('profile.density.compact') }}</button>
+          <button type="button" :class="{ on: density === 'comfortable' }" @click="setDensity('comfortable')">{{ t('profile.density.comfortable') }}</button>
+          <button type="button" :class="{ on: density === 'compact' }" data-testid="density-compact" @click="setDensity('compact')">{{ t('profile.density.compact') }}</button>
         </span>
       </div>
       <label v-if="advanced" class="line">
@@ -176,6 +183,15 @@ async function wipe() {
         <span><strong>{{ t('profile.showCursors') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.showCursors" data-testid="set-show-cursors" @change="set({ showCursors: ($event.target as HTMLInputElement).checked })" />
       </label>
+    </section>
+
+    <section v-if="advanced" class="grp" data-testid="layout-section">
+      <h3>{{ t('profile.layout') }}</h3>
+      <p class="muted small">{{ t('profile.layout.hint', { screen: t(`screen.${layout.cls}` as never) }) }}</p>
+      <div class="line">
+        <button type="button" class="btn btn-sm" data-testid="layout-reset" @click="resetLayout"><Icon name="lucide:rotate-ccw" /> {{ t('profile.layout.reset') }}</button>
+        <button v-for="c in layout.copyable" :key="c" type="button" class="btn btn-sm" :data-testid="`layout-copy-${c}`" @click="copyLayout(c)"><Icon name="lucide:copy" /> {{ t('profile.layout.copy', { screen: t(`screen.${c}` as never) }) }}</button>
+      </div>
     </section>
 
     <section v-if="advanced" class="grp">

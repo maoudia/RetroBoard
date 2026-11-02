@@ -68,7 +68,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function apply() {
     const root = document.documentElement
     root.dataset.motion = s.motion
-    root.dataset.density = s.density
+    root.dataset.density = useLayoutStore().density ?? s.density
     root.dataset.notify = s.notifyPos
     currentLocale.value = detectLocale(s.locale, navigator.languages ?? [])
   }
