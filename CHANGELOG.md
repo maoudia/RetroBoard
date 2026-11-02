@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.35.0](https://github.com/maoudia/RetroBoard/compare/v1.34.0...v1.35.0) (2026-11-02)
+
+
+### Features
+
+* **chat:** lateral board chat with unread badge, clear by facilitator and phone drawer ([74fa92e](https://github.com/maoudia/RetroBoard/commit/74fa92e1735c620315452861be4ead15ea8e3775))
+* **presenter:** animated accordion with spines, click to unfold, swipe between columns ([176290d](https://github.com/maoudia/RetroBoard/commit/176290d940e3e09ddb7c875dbcac73c97528daa5))
+
 ## [1.34.0](https://github.com/maoudia/RetroBoard/compare/v1.33.0...v1.34.0) (2026-11-02)
 
 
