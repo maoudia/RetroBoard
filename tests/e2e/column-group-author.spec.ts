@@ -38,3 +38,12 @@ test('group similar ideas previews the sets and stacks look-alike ideas', async 
   await expect(col.locator('[data-testid^="group-"]')).toHaveCount(1)
   await expect(col.locator('article.note')).toHaveCount(1)
 })
+
+test('grouping an empty column answers with a notification instead of doing nothing (change ux-irritants-wave-2)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
+  await page.getByTestId(`col-menu-${id}`).click()
+  await page.getByTestId(`col-group-similar-${id}`).click()
+  await expect(page.locator('.toasts')).toContainText(/Aucune idée proche|No similar ideas/)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+})

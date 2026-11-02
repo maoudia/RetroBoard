@@ -15,6 +15,12 @@ const targets = computed(() => board.itemsFor(props.note.columnId, 'time').flatM
   return [{ key: i.group.id, onto: i.notes[0]!.id, label: t('note.groupWithGroup', { title: i.title }) }]
 }))
 const groupOpen = ref(false)
+const delAsk = ref(false)
+/** A pinned note is on the shared spotlight: ask before removing it (change ux-irritants-wave-2). */
+function askDelete() {
+  if (props.note.pinned) delAsk.value = true
+  else board.commands.deleteNote(props.note.id)
+}
 const clip = (s: string) => (s.length > 48 ? `${s.slice(0, 48)}...` : s)
 const gate = computed(() => board.availability('action.add'))
 function toAction() {
@@ -69,12 +75,13 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
         <div class="dd-sep" />
         <!-- The author edits their note; facilitators edit any note (change edit-published-notes). -->
         <button class="dd-item" type="button" role="menuitem" :data-testid="`edit-${note.id}`" @click="emit('edit'); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
-        <button v-if="note.mine" class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="board.commands.deleteNote(note.id); close()">
+        <button v-if="note.mine" class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="askDelete(); close()">
           <Icon name="lucide:trash" /> {{ t('note.delete') }}
         </button>
       </template>
     </template>
   </Dropdown>
+  <ConfirmDialog v-model:open="delAsk" danger :title="t('note.delete.title')" :message="t('note.delete.pinned')" :confirm-label="t('note.delete')" confirm-icon="lucide:trash" @confirm="board.commands.deleteNote(note.id)" />
 </template>
 
 <style scoped>

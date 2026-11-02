@@ -831,6 +831,7 @@ export const en: Record<keyof typeof fr, string> = {
   'column.groupSimilar.none': 'No similar ideas to group',
   'column.groupSimilar.title': 'Group similar ideas',
   'column.groupSimilar.msg': 'One cluster per set of similar ideas: {list}. Already grouped ideas stay put. You can undo it.',
+  'column.group.done': 'Grouping done ({n}).',
   'activity.title': 'Activity',
   'activity.unread': 'Activity, {n} unread',
   'activity.empty': 'Nothing yet.',
@@ -977,6 +978,8 @@ export const en: Record<keyof typeof fr, string> = {
   'note.edit': 'Edit',
   'note.edited': "edited",
   'note.delete': 'Delete',
+  'note.delete.title': 'Delete this note?',
+  'note.delete.pinned': 'This note is pinned: it disappears for everyone.',
 
   'group.label': 'Group: {title}, {n} notes',
   'group.peek.more': '+{n} more',

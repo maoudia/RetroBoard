@@ -830,6 +830,7 @@ export const fr = {
   'column.groupSimilar.none': 'Aucune idée proche à grouper',
   'column.groupSimilar.title': 'Grouper les idées proches',
   'column.groupSimilar.msg': 'Un groupe par idées proches: {list}. Les idées déjà groupées ne bougent pas. Tu pourras annuler.',
+  'column.group.done': 'Regroupement terminé ({n}).',
   'activity.title': 'Activité',
   'activity.unread': 'Activité, {n} non lu(s)',
   'activity.empty': 'Rien pour le moment.',
@@ -976,6 +977,8 @@ export const fr = {
   'note.edit': 'Modifier',
   'note.edited': "modifié",
   'note.delete': 'Supprimer',
+  'note.delete.title': 'Supprimer cette note ?',
+  'note.delete.pinned': 'Cette note est épinglée : elle disparaît pour tout le monde.',
 
   'group.label': 'Groupe: {title}, {n} post-its',
   'group.peek.more': '+{n} de plus',

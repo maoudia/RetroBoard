@@ -2,8 +2,8 @@
 
 ## 1. Safety and feedback
 
-- [ ] 1.1 Confirmation dialog before deleting a pinned note; verify e2e
-- [ ] 1.2 Group similar ideas off the main thread or in slices, with a result notification also when nothing is found; verify unit and e2e on empty columns
+- [x] 1.1 Confirmation dialog before deleting a pinned note; verify e2e
+- [x] 1.2 Group similar ideas off the main thread or in slices, with a result notification also when nothing is found; verify unit and e2e on empty columns
 
 ## 2. Phone columns
 

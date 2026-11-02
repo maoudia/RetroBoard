@@ -42,3 +42,37 @@ test('a pinned note comes first for everyone under any sort, stays editable and 
   await expect(page.getByTestId(`pinned-${id}`)).toHaveCount(0)
   await expect(first(page)).toContainText('Alpha idea')
 })
+
+test('deleting a pinned note asks first, an unpinned one goes at once (change ux-irritants-wave-2)', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await page.getByTestId('btn-share').click()
+  const url = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await join(browser, url, 'Bob')
+  await publishNote(bob.page, 0, 'Pinned by Alice')
+  await publishNote(bob.page, 0, 'Loose idea')
+  const pinned = noteByText(page, 'Pinned by Alice')
+  await expect(pinned).toBeVisible()
+  const id = (await pinned.getAttribute('data-source-id'))!
+  await pinned.getByTestId(`note-menu-${id}`).click()
+  await page.getByTestId(`pin-${id}`).click()
+  await expect(noteByText(bob.page, 'Pinned by Alice').getByTestId(`pinned-${id}`)).toBeVisible()
+
+  await noteByText(bob.page, 'Pinned by Alice').getByTestId(`note-menu-${id}`).click()
+  await bob.page.getByTestId(`delete-${id}`).click()
+  await expect(bob.page.getByRole('dialog')).toBeVisible()
+  await bob.page.getByRole('dialog').getByRole('button', { name: /Annuler|Cancel/ }).click()
+  await expect(noteByText(bob.page, 'Pinned by Alice')).toBeVisible()
+  await noteByText(bob.page, 'Pinned by Alice').getByTestId(`note-menu-${id}`).click()
+  await bob.page.getByTestId(`delete-${id}`).click()
+  await bob.page.getByTestId('confirm').click()
+  await expect(noteByText(page, 'Pinned by Alice')).toHaveCount(0)
+
+  const loose = noteByText(bob.page, 'Loose idea')
+  const lid = (await loose.getAttribute('data-source-id'))!
+  await loose.getByTestId(`note-menu-${lid}`).click()
+  await bob.page.getByTestId(`delete-${lid}`).click()
+  await expect(bob.page.getByRole('dialog')).toHaveCount(0)
+  await expect(noteByText(page, 'Loose idea')).toHaveCount(0)
+  await bob.ctx.close()
+})

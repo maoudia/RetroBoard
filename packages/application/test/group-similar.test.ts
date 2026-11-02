@@ -19,4 +19,12 @@ describe('group similar ideas plan', () => {
     ]
     expect(groupSimilarPlan({ notes }, 'c1')).toEqual([])
   })
+
+  it('stays fast on a big column and answers on an empty one', () => {
+    const notes = Array.from({ length: 400 }, (_, i) => note(`n${i}`, `idea number ${i} about topic ${i % 7} and thing${i}`))
+    const t0 = performance.now()
+    groupSimilarPlan({ notes }, 'c1')
+    expect(performance.now() - t0).toBeLessThan(1000)
+    expect(groupSimilarPlan({ notes: [] }, 'c1')).toEqual([])
+  })
 })

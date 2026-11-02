@@ -8,20 +8,28 @@ const board = useBoardStore()
 const ui = useUiStore()
 const confirm = ref(false)
 const resetAsk = ref(false)
-const authorPlan = computed(() => (board.snapshot ? groupByAuthorPlan(board.snapshot, props.column.id) : []))
-const similarPlan = computed(() => (board.snapshot ? groupSimilarPlan(board.snapshot, props.column.id) : []))
+const { push } = useToasts()
 const mode = ref<'author' | 'similar'>('author')
-const plan = computed(() => (mode.value === 'author'
-  ? authorPlan.value.map((p) => ({ label: p.author, noteIds: p.noteIds }))
-  : similarPlan.value))
+// The plan is computed on demand, when the facilitator asks: computing it for every column on every board
+// change froze big boards (change ux-irritants-wave-2).
+const plan = ref<{ label: string; noteIds: string[] }[]>([])
+function ask(m: 'author' | 'similar') {
+  mode.value = m
+  const snap = board.snapshot
+  plan.value = !snap ? [] : m === 'author'
+    ? groupByAuthorPlan(snap, props.column.id).map((p) => ({ label: p.author, noteIds: p.noteIds }))
+    : groupSimilarPlan(snap, props.column.id)
+  if (plan.value.length) groupAsk.value = true
+  else push(t(m === 'author' ? 'column.groupAuthor.none' : 'column.groupSimilar.none'), 'info')
+}
 const groupAsk = ref(false)
-const ask = (m: 'author' | 'similar') => { mode.value = m; groupAsk.value = true }
 const applied = computed(() => ui.autoGrouped[props.column.id] ?? [])
 const canUndo = computed(() => applied.value.some((id) => board.noteById(id)?.groupId))
 const planText = computed(() => plan.value.map((p) => `${p.label} (${p.noteIds.length})`).join(', '))
 function applyGrouping() {
   for (const p of plan.value) for (const id of p.noteIds.slice(1)) board.commands.groupNotes(id, p.noteIds[0]!)
   ui.autoGrouped = { ...ui.autoGrouped, [props.column.id]: plan.value.flatMap((p) => p.noteIds) }
+  push(t('column.group.done', { n: plan.value.length }), 'ok')
 }
 function undoGrouping() {
   for (const id of applied.value) if (board.noteById(id)?.groupId) board.commands.ungroupNote(id)
@@ -47,10 +55,10 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
         <button class="dd-item" type="button" role="menuitem" :disabled="visibleCount <= 1" :title="visibleCount <= 1 ? t('column.hide.last') : undefined" :data-testid="`col-hide-${column.id}`" @click="board.commands.hideColumn(column.id); close()">
           <Icon name="lucide:eye-off" /> {{ t('column.hide') }}
         </button>
-        <button class="dd-item" type="button" role="menuitem" :disabled="!authorPlan.length" :title="authorPlan.length ? undefined : t('column.groupAuthor.none')" :data-testid="`col-group-author-${column.id}`" @click="ask('author'); close()">
+        <button class="dd-item" type="button" role="menuitem" :data-testid="`col-group-author-${column.id}`" @click="ask('author'); close()">
           <Icon name="lucide:users" /> {{ t('column.groupAuthor') }}
         </button>
-        <button class="dd-item" type="button" role="menuitem" :disabled="!similarPlan.length" :title="similarPlan.length ? undefined : t('column.groupSimilar.none')" :data-testid="`col-group-similar-${column.id}`" @click="ask('similar'); close()">
+        <button class="dd-item" type="button" role="menuitem" :data-testid="`col-group-similar-${column.id}`" @click="ask('similar'); close()">
           <Icon name="lucide:sparkles" /> {{ t('column.groupSimilar') }}
         </button>
         <button v-if="canUndo" class="dd-item" type="button" role="menuitem" :data-testid="`col-group-undo-${column.id}`" @click="undoGrouping(); close()">
