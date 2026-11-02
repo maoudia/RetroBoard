@@ -33,8 +33,10 @@ test('a new board opens the invite panel; chat message, email and QR hold the pa
     expect(copied).toContain('« Sprint 42 »')
   }
 
+  await expect(page.getByTestId('share-how')).toBeVisible()
   await page.getByTestId('share-qr-toggle').click()
-  await expect(page.getByTestId('qr')).toBeVisible()
+  // The encoder is warmed when the dialog opens: the code shows up at once (change ux-irritants-wave-2).
+  await expect(page.getByTestId('qr')).toBeVisible({ timeout: 1000 })
   await expect(page.getByTestId('qr')).toHaveAttribute('aria-label', 'QR code du lien participant')
   expect(await scan(page.getByTestId('qr'))).toBe(url)
 })

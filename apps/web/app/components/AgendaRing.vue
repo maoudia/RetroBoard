@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ringProgress, timeLabel } from '@retroboard/application'
+import { mmss, ringProgress, timeLabel } from '@retroboard/application'
 import { type AgendaState, phaseClock } from '@retroboard/domain'
 const { t } = useT()
 
@@ -62,6 +62,8 @@ const canSteer = computed(() => board.access.canSteer)
 const started = computed(() => agenda.value.current >= 0 && agenda.value.current < agenda.value.phases.length)
 const playing = computed(() => started.value && !clock.value.paused)
 const minutes = (ms: number) => Math.round(ms / 60_000)
+/** Elapsed total: minutes while short, then "1h05" or "2d" (change ux-irritants-wave-2). */
+const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(ms))
 </script>
 
 <template>
@@ -110,7 +112,7 @@ const minutes = (ms: number) => Math.round(ms / 60_000)
         <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : undefined" @click="ui.open('toClose')"><Icon name="lucide:flag" /> {{ t('agenda.toClose.label') }}</button>
         <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()"><Icon name="lucide:square" /> {{ t('agenda.end') }}</button>
       </div>
-      <p class="muted small">{{ t('agenda.total', { planned: minutes(clock.totalPlannedMs), elapsed: minutes(clock.totalElapsedMs) }) }}</p>
+      <p class="muted small">{{ t('agenda.total', { planned: `${minutes(clock.totalPlannedMs)} min`, elapsed: spent(clock.totalElapsedMs) }) }}</p>
     </div>
   </Dropdown>
   <!-- Start or pause from the clock itself (facilitator-controls-v2): pausing stops the phase clock too. -->

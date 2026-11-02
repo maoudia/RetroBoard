@@ -6,15 +6,32 @@
 const props = defineProps<{ value: string; label: string; size?: number }>()
 const path = ref('')
 const modules = ref(0)
+// One shared load and one encoded result per link: the QR is instant once the encoder is warm (change ux-irritants-wave-2).
+const cache = new Map<string, { d: string; size: number }>()
 
 watch(() => props.value, async (value) => {
   if (!value) { path.value = ''; return }
-  const { encode } = await import('uqr')
-  const qr = encode(value, { ecc: 'M', border: 4 })
-  let d = ''
-  qr.data.forEach((row, y) => row.forEach((on, x) => { if (on) d += `M${x} ${y}h1v1h-1z` }))
-  modules.value = qr.size
-  path.value = d
+  let hit = cache.get(value)
+  if (!hit) {
+    const { encode } = await import('uqr')
+    const qr = encode(value, { ecc: 'M', border: 4 })
+    let d = ''
+    // One rectangle per run of dark modules instead of one per module: a shorter path to build and to paint.
+    qr.data.forEach((row, y) => {
+      let x = 0
+      while (x < row.length) {
+        if (!row[x]) { x++; continue }
+        let end = x
+        while (end < row.length && row[end]) end++
+        d += `M${x} ${y}h${end - x}v1h-${end - x}z`
+        x = end
+      }
+    })
+    hit = { d, size: qr.size }
+    cache.set(value, hit)
+  }
+  modules.value = hit.size
+  path.value = hit.d
 }, { immediate: true })
 </script>
 

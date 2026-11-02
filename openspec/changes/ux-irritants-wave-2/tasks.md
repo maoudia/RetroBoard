@@ -19,9 +19,9 @@
 
 ## 4. Joining
 
-- [ ] 4.1 Faster QR generation and a clearer join explanation; verify timing test and axe
+- [x] 4.1 Faster QR generation and a clearer join explanation; verify timing test and axe
 
 ## 5. Consistency and readability
 
 - [ ] 5.1 One button style for vote and phase bars; verify design-tokens test
-- [ ] 5.2 Human readable overdue time in fr and en; verify unit
+- [x] 5.2 Human readable overdue time in fr and en; verify unit

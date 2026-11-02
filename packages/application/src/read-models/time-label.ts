@@ -13,8 +13,11 @@ export interface TimeLabel {
   over: string | null
 }
 
-const mmss = (ms: number): string => {
+/** m:ss under one hour, then "1h05" and "2d" so a forgotten timer never reads "10949:49" (change ux-irritants-wave-2). */
+export const mmss = (ms: number): string => {
   const s = Math.ceil(Math.max(0, ms) / 1000)
+  if (s >= 86_400) return `${Math.floor(s / 86_400)}d`
+  if (s >= 3600) return `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 

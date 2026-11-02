@@ -58,6 +58,8 @@ async function copyPasscode() {
   try { await $ports.clipboard.writeText(props.passcode); push(t('share.passcodeCopied'), 'ok') } catch { push(t('share.copyFailed'), 'warn') }
 }
 const showQr = ref(false)
+// Warm the QR encoder as soon as the dialog opens, so the code is instant when expanded (change ux-irritants-wave-2).
+watch(open, (v) => { if (v) void import('uqr') }, { immediate: true })
 // Join by short code (change short-links-and-join): any participant can show a code and let a knocker in.
 const host = useJoinHostStore()
 const startCode = () => { const inv = invite.value; if (inv) void host.start(() => participantLink(inv, window.location.origin)) }
@@ -69,6 +71,11 @@ onBeforeUnmount(() => host.stop())
 <template>
   <BaseDialog v-model:open="open" :title="t('share.title')" width="520px">
     <p class="muted">{{ t('share.intro') }}</p>
+    <ol class="how" data-testid="share-how">
+      <li><Icon name="lucide:qr-code" /> {{ t('share.how.scan') }}</li>
+      <li><Icon name="lucide:link" /> {{ t('share.how.link') }}</li>
+      <li v-if="encrypted"><Icon name="lucide:hash" /> {{ t('share.how.code') }}</li>
+    </ol>
     <ModeSwitch />
     <p v-if="board.roomCode" class="code-words" data-testid="share-room-code"><Icon name="lucide:badge-check" /> {{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <div class="row">
@@ -153,6 +160,8 @@ onBeforeUnmount(() => host.stop())
 .code { align-items: center; }
 .code .lbl { font-weight: 600; white-space: nowrap; }
 .qrbox { margin: 0 auto; }
+.how { list-style: none; margin: .25rem 0 .5rem; padding: 0; display: grid; gap: .3rem; font-size: var(--fs-sm); }
+.how li { display: flex; gap: .5rem; align-items: center; }
 .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: var(--fs-sm); }
 .notes li { display: flex; gap: .5rem; align-items: center; }
 .notes .warn { color: var(--text); font-weight: 600; }

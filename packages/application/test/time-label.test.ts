@@ -17,4 +17,10 @@ describe('timeLabel', () => {
     expect(timeLabel(5 * MIN, 6 * MIN + 5000, 'remaining')).toEqual({ text: '0:00', overtime: true, over: '+1:05' })
     expect(timeLabel(5 * MIN, 6 * MIN + 5000, 'elapsed')).toEqual({ text: '6:05', overtime: true, over: '+1:05' })
   })
+  it('long durations read like a person says them (change ux-irritants-wave-2)', () => {
+    expect(timeLabel(5 * MIN, 59 * MIN + 59_000, 'elapsed').text).toBe('59:59')
+    expect(timeLabel(5 * MIN, 65 * MIN, 'elapsed').text).toBe('1h05')
+    expect(timeLabel(4 * MIN, 10_953 * MIN, 'remaining').over).toBe('+7d')
+    expect(timeLabel(4 * MIN, 23 * 60 * MIN + 59 * MIN, 'elapsed').text).toBe('23h59')
+  })
 })
