@@ -14,7 +14,10 @@ test('a typed name is shown on notes by default and the checkbox follows the nam
   await page.getByTestId('theme-studio').click()
   await page.getByTestId('tab-all').click()
   await page.getByTestId('template-start-stop-continue').click()
+  // No passcode here: this test is about the name, the joiner opens the plain link.
+  await page.getByTestId('setup-passcode').fill('')
   await page.getByTestId('setup-submit').click()
+  await page.getByTestId('confirm').click()
   await expect(page.getByTestId('name-input')).toBeVisible()
   await expect(page.getByTestId('name-show')).not.toBeChecked()
   await page.getByTestId('name-input').fill('Alice')
