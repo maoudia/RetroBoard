@@ -83,3 +83,27 @@ test.describe('voted ideas walk-through (presenter-mode-v2)', () => {
     await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'false')
   })
 })
+
+test.describe('note spotlight (presenter-mode-v2)', () => {
+  test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
+
+  test('a note is enlarged over the dimmed board, arrows move inside the column, Escape closes it', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'Pairing')
+    await publishNote(page, 0, 'Code review')
+    await expect(page.locator('[data-testid^="note-spotlight-"]')).toHaveCount(0)
+    await page.getByTestId('btn-presenter').click()
+    await page.locator('article.note', { hasText: 'Pairing' }).locator('[data-testid^="note-spotlight-"]').click({ force: true })
+    await expect(page.getByTestId('spotlight')).toBeVisible()
+    const first = await page.getByTestId('spotlight-text').innerText()
+    await expect(page.getByTestId('spotlight-prev')).toBeDisabled()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByTestId('spotlight-text')).not.toHaveText(first)
+    await expect(page.getByTestId('spotlight-next')).toBeDisabled()
+    const found = (await new AxeBuilder({ page }).include('[data-testid="spotlight"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    expect(found).toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('spotlight')).toHaveCount(0)
+    await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'true')
+  })
+})

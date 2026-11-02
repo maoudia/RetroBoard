@@ -76,6 +76,7 @@ function onDrop() {
       <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${note.id}`" @click.stop="ui.openActionsFor(note.id)">
         <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
       </button>
+      <button v-if="ui.presenter" class="mini-btn" type="button" :aria-label="t('presenter.spotlight.open')" :title="t('presenter.spotlight.open')" :data-testid="`note-spotlight-${note.id}`" @click.stop="ui.spotlightNoteId = note.id"><Icon name="lucide:expand" /></button>
       <LiveMarkers :peers="live.onNote.get(note.id)" :testid="`live-note-${note.id}`" />
       <!-- Notes inside a votable cluster are voted through the cluster. -->
       <VoteControl v-if="note.votable" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />

@@ -54,6 +54,8 @@ export const useUiStore = defineStore('ui', () => {
   const focusColumn = ref<number | null>(null)
   const focusStyle = ref<'centre' | 'accordion'>('centre')
   /** Presenter walk-through of the voted ideas (presenter-mode-v2): index in the ranking, null when off. Local to this tab. */
+  /** Presenter note spotlight (presenter-mode-v2): id of the enlarged note, null when off. Local to this tab. */
+  const spotlightNoteId = ref<string | null>(null)
   const walkIndex = ref<number | null>(null)
   /** My view filter (text, colours, author, has votes). Never shared. */
   const filter = ref<NoteFilter>({ ...EMPTY_FILTER })
@@ -75,5 +77,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { dialog, takeoverAsked, reviewDone, presenter, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
+  return { dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, dragGroupId }
 })

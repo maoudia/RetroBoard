@@ -13,3 +13,7 @@ The facilitator SHALL be able to spotlight one note on the shared screen.
 #### Scenario: Discuss one idea
 - **WHEN** the facilitator spotlights a note
 - **THEN** the note is enlarged and the rest of the board is dimmed
+
+#### Scenario: Move between ideas
+- **WHEN** a note is spotlighted and the facilitator presses an arrow key
+- **THEN** the previous or next idea of the same column is spotlighted and Escape closes the spotlight

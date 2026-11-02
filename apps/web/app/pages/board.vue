@@ -247,6 +247,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <PresenterFocus v-if="board.ready && ui.presenter" />
       <PresenterWalk v-if="board.ready && ui.presenter" />
+      <PresenterSpotlight v-if="board.ready && ui.presenter" />
       <TalkBanner v-if="board.ready" />
       <VoteBar v-if="board.ready" />
       <RevealCountdown v-if="board.ready" />
