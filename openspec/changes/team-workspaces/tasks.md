@@ -13,5 +13,5 @@
 
 ## 3. Home and sharing
 
-- [x] 3.1 Team switcher and recent boards grouped by team on home and profile (fr/en); verify e2e and axe
+- [ ] 3.1 (lanes on recent boards done; team switcher in the profile left) Team switcher and recent boards grouped by team on home and profile (fr/en); verify e2e and axe
 - [ ] 3.2 Encrypted team link and `.retroteam` file (no board content); verify e2e two contexts and a test that the file holds no note text

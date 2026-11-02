@@ -58,6 +58,12 @@ async function copyPasscode() {
   try { await $ports.clipboard.writeText(props.passcode); push(t('share.passcodeCopied'), 'ok') } catch { push(t('share.copyFailed'), 'warn') }
 }
 const showQr = ref(false)
+// Join by short code (change short-links-and-join): any participant can show a code and let a knocker in.
+const host = useJoinHostStore()
+const startCode = () => { const inv = invite.value; if (inv) void host.start(() => participantLink(inv, window.location.origin)) }
+const minutesLeft = computed(() => Math.max(1, Math.ceil((host.expiresAt - Date.now()) / 60_000)))
+watch(() => host.knocks.length, (n) => { if (n && !open.value) ui.open('share') })
+onBeforeUnmount(() => host.stop())
 </script>
 
 <template>
@@ -85,6 +91,25 @@ const showQr = ref(false)
       <p class="muted small">{{ t('share.qr.hint') }}</p>
       <QrCode v-if="showQr" class="qrbox" :value="url" :label="t('share.qr.alt')" />
     </details>
+    <section v-if="encrypted" class="jc" data-testid="join-code-block">
+      <button v-if="!host.code" class="btn" type="button" data-testid="join-code-show" @click="startCode"><Icon name="lucide:hash" /> {{ t('join.show') }}</button>
+      <template v-else>
+        <p class="muted small">{{ t('join.hint') }}</p>
+        <strong class="jc-code mono" data-testid="join-code-value">{{ host.code }}</strong>
+        <p class="muted small">{{ t('join.expires', { n: minutesLeft }) }}</p>
+        <ul v-if="host.knocks.length" class="knocks" data-testid="join-knocks">
+          <li v-for="k in host.knocks" :key="k.n" data-testid="join-knock">
+            <span>{{ t('join.knock', { name: k.name || t('common.anonymous') }) }} <strong class="mono" data-testid="knock-number">{{ k.number }}</strong></span>
+            <small class="muted">{{ t('join.check') }}</small>
+            <span class="kb">
+              <button class="btn btn-sm btn-primary" type="button" data-testid="knock-admit" @click="host.admit(k)"><Icon name="lucide:user-check" /> {{ t('join.letIn') }}</button>
+              <button class="btn btn-sm" type="button" data-testid="knock-refuse" @click="host.refuse(k)"><Icon name="lucide:user-x" /> {{ t('join.refuse') }}</button>
+            </span>
+          </li>
+        </ul>
+        <button class="btn btn-sm" type="button" data-testid="join-code-stop" @click="host.stop()"><Icon name="lucide:x" /> {{ t('join.stop') }}</button>
+      </template>
+    </section>
     <ul v-if="advanced" class="notes muted">
       <li v-if="encrypted" data-testid="share-e2e"><Icon name="lucide:shield-check" /> {{ t('share.note.e2e') }}</li>
       <li v-if="encrypted" class="warn" data-testid="share-warn"><Icon name="lucide:triangle-alert" /> {{ t('share.note.public') }}</li>
@@ -135,4 +160,9 @@ const showQr = ref(false)
 .fac summary { cursor: pointer; font-weight: 600; }
 .small { font-size: var(--fs-sm); margin: 0; }
 h3 { font-size: var(--fs-md); margin: 0; }
+.jc { display: grid; gap: .5rem; justify-items: start; padding-top: .5rem; }
+.jc-code { font-size: var(--fs-2xl); letter-spacing: .12em; font-weight: 800; }
+.knocks { display: grid; gap: .5rem; width: 100%; margin: 0; padding: 0; list-style: none; }
+.knocks li { display: grid; gap: .25rem; padding: .6rem .75rem; border: 1px solid var(--border); border-radius: var(--r-card); }
+.kb { display: flex; gap: .5rem; flex-wrap: wrap; }
 </style>

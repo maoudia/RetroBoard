@@ -19,7 +19,7 @@ const lanes = computed(() => {
   const out = team.teams.map((x) => ({ id: x.id, label: `${x.emoji} ${x.name}`, items: items.value.filter((r) => team.ws.boards[r.id]?.teamId === x.id) }))
   const known = new Set(team.teams.map((x) => x.id))
   const rest = items.value.filter((r) => !known.has(team.ws.boards[r.id]?.teamId ?? ''))
-  return [...out, { id: '__other', label: t('team.other'), items: rest }].filter((l) => l.items.length)
+  return [...out, { id: '__other', label: t('team.rest'), items: rest }].filter((l) => l.items.length)
 })
 </script>
 

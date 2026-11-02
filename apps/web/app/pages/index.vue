@@ -2,6 +2,7 @@
 import '@fontsource-variable/inter/index.css'
 import { THEMES } from '@retroboard/themes'
 import { inviteFromHash } from '~/utils/invite'
+import { normalizeJoinCode } from '~/utils/join-code'
 const { t } = useT()
 
 useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color', content: '#fbfbfd' }] })
@@ -16,8 +17,18 @@ const tilt = reactive({ x: 0, y: 0 })
 /** Join by pasting the board link (change join-by-link): only the part after the # is used, and it never leaves the browser. */
 const joinText = ref('')
 const joinError = ref(false)
-function join() {
+const byCode = useJoinByCode()
+const identity = useIdentityStore()
+async function join() {
   const raw = joinText.value.trim()
+  // A short code (RB-7KQ2M9) knocks on the board: someone who has it lets you in (change short-links-and-join).
+  if (!raw.includes('#') && normalizeJoinCode(raw)) {
+    joinError.value = false
+    identity.load()
+    const link = await byCode.join(raw, identity.name)
+    if (link) { const at = link.indexOf('#'); void router.push({ path: '/board', hash: link.slice(at) }) }
+    return
+  }
   const at = raw.indexOf('#')
   const hash = at >= 0 ? raw.slice(at) : ''
   if (!hash || !inviteFromHash(hash)) { joinError.value = true; return }
@@ -84,6 +95,10 @@ onMounted(() => {
           <label class="sr" for="join-input">{{ t('landing.join.label') }}</label>
           <input id="join-input" v-model="joinText" type="text" inputmode="url" autocomplete="off" spellcheck="false" :placeholder="t('landing.join.placeholder')" :aria-invalid="joinError" :aria-describedby="joinError ? 'join-error' : undefined" data-testid="join-input" @input="joinError = false" />
           <button type="submit" class="ghost" data-testid="join-go"><Icon name="lucide:log-in" /> {{ t('landing.join.go') }}</button>
+          <p v-if="byCode.state.value !== 'idle'" class="join-code-state" role="status" data-testid="join-code-state" :data-state="byCode.state.value">
+            <template v-if="byCode.state.value === 'connecting' || byCode.state.value === 'waiting'">{{ t('landing.join.waiting') }} <strong class="mono" data-testid="join-number">{{ byCode.number.value }}</strong> <button type="button" class="link" data-testid="join-cancel" @click="byCode.cancel()">{{ t('landing.join.cancel') }}</button></template>
+            <template v-else>{{ t(`landing.join.${byCode.state.value}` as never) }}</template>
+          </p>
           <p v-if="joinError" id="join-error" class="join-error" role="alert" data-testid="join-error">{{ t('landing.join.invalid') }}</p>
         </form>
         <section v-if="recents.items.length" class="mine card" data-reveal :style="{ '--d': '300ms' }" data-testid="landing-recents" :aria-label="t('landing.recents')">
