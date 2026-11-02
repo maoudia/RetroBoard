@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { collectProblems, column, createBoard, join, noteByText, publishNote, voteMenu } from './helpers'
+import { collectProblems, column, createBoard, join, noteByText, publishNote, settle, voteMenu } from './helpers'
 
 test.describe('board lifecycle', () => {
   test('creates a themed board from a template', async ({ page }) => {
@@ -193,6 +193,7 @@ test.describe('retro suggestions', () => {
     await page.getByTestId('template-apply').click()
     const preview = page.getByTestId('template-mapping')
     await expect(preview).toContainText('Rochers + Île')
+    await settle(page) // the dialog fades in: axe must not measure a colour mid-transition
     const axe = await new AxeBuilder({ page }).include('[data-testid="template-mapping"]').analyze()
     expect(axe.violations).toEqual([])
     await page.getByTestId('template-migrate').click()
