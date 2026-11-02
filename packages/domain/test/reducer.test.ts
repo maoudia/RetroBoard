@@ -317,6 +317,20 @@ describe('column default colour', () => {
   })
 })
 
+describe('board display (change board-layout-v2)', () => {
+  it('post-it size and text size are shared settings; unknown values are ignored', () => {
+    const h = harness()
+    expect(h.state.settings.noteSize).toBeUndefined()
+    expect(h.run({ t: 'settings.update', noteSize: 'large', noteText: 'small' }).ok).toBe(true)
+    expect(h.state.settings.noteSize).toBe('large')
+    expect(h.state.settings.noteText).toBe('small')
+    h.run({ t: 'settings.update', noteSize: 'huge' as never })
+    expect(h.state.settings.noteSize).toBe('large')
+    h.run({ t: 'settings.update', title: 'Other' })
+    expect(h.state.settings.noteText).toBe('small')
+  })
+})
+
 describe('note length limit', () => {
   it('defaults to 160 on a new board and is a facilitator setting between 40 and 500', () => {
     const h = harness()

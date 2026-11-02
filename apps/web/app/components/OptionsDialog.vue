@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SettingsPatch } from '@retroboard/application'
-import { LIMITS, NOTE_TEXT_MIN } from '@retroboard/domain'
+import { DISPLAY_SCALES, LIMITS, NOTE_TEXT_MIN } from '@retroboard/domain'
 const { t } = useT()
 
 const ui = useUiStore()
@@ -33,6 +33,19 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="opt-title" @blur="saveTitle" @keydown.enter.prevent="saveTitle" />
       </label>
 
+      <!-- Display for the whole room: the facilitator sets it, everyone sees the same board (change board-layout-v2). -->
+      <section class="grp" data-testid="opt-display">
+        <h3>{{ t('options.display') }}</h3>
+        <div v-for="k in (['noteSize', 'noteText'] as const)" :key="k" class="line">
+          <span><strong>{{ t(`options.${k}` as never) }}</strong></span>
+          <span class="scale" role="group" :aria-label="t(`options.${k}` as never)">
+            <button
+              v-for="z in DISPLAY_SCALES" :key="z" class="btn btn-sm" type="button" :aria-pressed="(s[k] ?? 'normal') === z" :disabled="!board.access.canSteer"
+              :data-testid="`opt-${k}-${z}`" @click="set({ [k]: z })"
+            >{{ t(`options.scale.${z}` as never) }}</button>
+          </span>
+        </div>
+      </section>
       <section v-if="advanced" class="grp">
         <h3>{{ t('options.notes') }}</h3>
         <div class="line">
@@ -187,6 +200,8 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 .readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: var(--r-control); background: var(--surface2); font-weight: 600; }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
+.scale { display: inline-flex; gap: .3rem; }
+.scale .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--text); background: var(--accent-soft); font-weight: 700; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
 .line small { font-size: var(--fs-sm); }

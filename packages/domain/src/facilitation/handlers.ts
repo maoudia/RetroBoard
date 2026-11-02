@@ -1,6 +1,7 @@
 import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, withoutOverride } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
+import { DISPLAY_SCALES } from '../shared/types'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate, mapColumns } from './board'
 import { emptyTalk } from './talk'
@@ -76,6 +77,8 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       talkSelfStart: c.talkSelfStart ?? s.settings.talkSelfStart,
       noteMaxLength: c.noteMaxLength ?? s.settings.noteMaxLength,
       ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}),
+      ...(c.noteSize !== undefined && DISPLAY_SCALES.includes(c.noteSize) ? { noteSize: c.noteSize } : {}),
+      ...(c.noteText !== undefined && DISPLAY_SCALES.includes(c.noteText) ? { noteText: c.noteText } : {}),
     }
     return done({ ...s, settings }, { meta: true })
   },

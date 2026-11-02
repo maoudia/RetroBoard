@@ -83,6 +83,9 @@ export interface TimerState {
   length: number
 }
 
+export type DisplayScale = 'small' | 'normal' | 'large'
+export const DISPLAY_SCALES: readonly DisplayScale[] = ['small', 'normal', 'large']
+
 export interface BoardSettings {
   title: string
   voteLimit: number
@@ -117,6 +120,9 @@ export interface BoardSettings {
   announceArrivals?: boolean
   /** Longest note text accepted, NOTE_TEXT_MIN..LIMITS.noteText (facilitator setting). */
   noteMaxLength: number
+  /** Display for the whole room (facilitator setting, change board-layout-v2): post-it width and text size. Absent: normal. */
+  noteSize?: DisplayScale
+  noteText?: DisplayScale
   /** Language the board was created in (board.init); absent on older boards. Picks the room words. */
   locale?: 'fr' | 'en'
 }

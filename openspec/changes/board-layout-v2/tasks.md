@@ -12,5 +12,5 @@
 
 ## 3. Board display
 
-- [ ] 3.1 Board display settings event (post-it size, notes per row, text size) in the domain and the options dialog; verify unit and e2e two contexts
-- [ ] 3.2 TV auto scale of the board display; verify e2e tv project
+- [x] 3.1 Board display settings event (post-it size, notes per row, text size) in the domain and the options dialog; verify unit and e2e two contexts
+- [x] 3.2 TV auto scale of the board display; verify e2e tv project

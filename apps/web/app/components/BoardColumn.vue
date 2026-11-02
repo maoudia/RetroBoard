@@ -14,7 +14,19 @@ const size = computed(() => ui.columnSizes[props.column.id] ?? 'normal')
 /** Width set by dragging the column edge (change board-layout-v2); a preset clears it. */
 const dragW = ref<number | null>(null)
 const customW = computed(() => dragW.value ?? ui.columnWidths[props.column.id] ?? null)
+const layoutStore = useLayoutStore()
 const colEl = ref<HTMLElement | null>(null)
+/** The facilitator's display for the room: post-it width and text size (change board-layout-v2). */
+const NOTE_W = { small: '120px', normal: '150px', large: '230px' } as const
+const NOTE_FS = { small: '.85em', normal: '1em', large: '1.25em' } as const
+/** TV and meeting-room screens (2200 px and more) read from afar: the chosen display is scaled up so the room reads it (change board-layout-v2). */
+const WALL = 1.5
+const wall = computed(() => layoutStore.cls === 'wall')
+const display = computed(() => {
+  const w = parseFloat(NOTE_W[board.settings?.noteSize ?? 'normal'])
+  const f = parseFloat(NOTE_FS[board.settings?.noteText ?? 'normal'])
+  return { '--note-w': `${Math.round(wall.value ? w * WALL : w)}px`, fontSize: `${wall.value ? +(f * WALL).toFixed(2) : f}em` }
+})
 function startResize(e: PointerEvent) {
   const grip = e.currentTarget as HTMLElement
   const start = colEl.value?.getBoundingClientRect().width ?? 340
@@ -101,7 +113,7 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
     </header>
 
     <div class="notes">
-      <TransitionGroup name="note" tag="div" class="grid">
+      <TransitionGroup name="note" tag="div" class="grid" :style="display" :data-note-size="board.settings?.noteSize ?? 'normal'">
         <template v-for="it in items" :key="it.key">
           <NoteCard v-if="it.kind === 'note'" :note="it.note" />
           <GroupCard v-else :item="it" :secret="board.countsHidden" :expanded="expanded" />
