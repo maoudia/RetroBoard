@@ -6,6 +6,7 @@
 import { type ActionItem, type ActionStatus, type PhaseKind, type Snapshot, type SnapshotNote, talkShares } from '@retroboard/domain'
 import { type ColumnItem, buildColumnItems } from './column-items'
 import { buildRanking, podium, type RankedItem } from './ranking'
+import { buildInsights, type Insight } from './insights'
 
 export interface ReportColumn { id: string; title: string; items: ColumnItem[]; ideas: number; /** Hidden by the facilitator when the report is made (change column-visibility). */ hidden?: boolean }
 
@@ -36,6 +37,8 @@ export interface Report {
   talk: { label: string | null; ms: number; share: number }[] | null
   /** ROTI scores (1 to 5) of the team; null when nobody rated. */
   roti: { counts: number[]; total: number; average: number } | null
+  /** Plain-language observations on the votes (change results-insights); empty while counts are hidden. */
+  insights: Insight[]
 }
 
 const sumVotes = (notes: readonly SnapshotNote[], s: Pick<Snapshot, 'groups'>): number =>
@@ -74,6 +77,7 @@ export function buildReport(s: Snapshot, date: Date): Report {
     carried: { total: carriedList.length, byStatus },
     agenda: s.agenda ? s.agenda.phases.map((p) => ({ kind: p.kind, plannedMs: p.plannedMs, actualMs: p.actualMs ?? null })) : null,
     talk: (() => { const shares = talkShares(s.talk, s.now); return shares.length ? shares : null })(),
+    insights: buildInsights(s, Math.max(s.peers.length, named.size, 1))?.list ?? [],
     roti: s.roti && s.roti.total > 0 && s.roti.average !== null ? { counts: s.roti.counts, total: s.roti.total, average: s.roti.average } : null,
   }
 }

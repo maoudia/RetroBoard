@@ -52,6 +52,7 @@ Useful tasks: summarise themes, suggest SMART actions with owners, spot actions 
   },
   "agenda": null,
   "talk": null,
+  "insights": [],
   "roti": null
 }
 \`\`\`
@@ -466,6 +467,22 @@ Useful tasks: summarise themes, suggest SMART actions with owners, spot actions 
       "share": 0.3333333333333333
     }
   ],
+  "insights": [
+    {
+      "id": "columnLead",
+      "n": {
+        "share": 67
+      },
+      "columnId": "id0005"
+    },
+    {
+      "id": "actionsForIdeas",
+      "n": {
+        "actions": 3,
+        "ideas": 2
+      }
+    }
+  ],
   "roti": null
 }
 \`\`\`
@@ -827,6 +844,10 @@ tests</li></ul></li>
 <tr><td>agenda.phase.write</td><td>5 min</td><td>6 min</td></tr>
 <tr><td>agenda.phase.vote</td><td>3 min</td><td>-</td></tr>
 </tbody></table>
+<h2>insight.title</h2><ul>
+<li>insight.columnLead(67,Stop)</li>
+<li>insight.actionsForIdeas(3,2,)</li>
+</ul>
 <h2>report.talk</h2><ul>
 <li>Ana: 67 % <span class="v">(2 min)</span></li>
 <li>report.anonymous: 33 % <span class="v">(1 min)</span></li>
@@ -1083,6 +1104,7 @@ Useful tasks: summarise themes, suggest SMART actions with owners, spot actions 
       "share": 0.3333333333333333
     }
   ],
+  "insights": [],
   "roti": null
 }
 \`\`\`

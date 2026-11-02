@@ -9,7 +9,7 @@
 
 - [x] 2.1 Podium layout fix with ties; verify e2e screenshots phone, desktop and TV
 - [x] 2.2 Charts in SVG with accessible tables and the insights list (fr/en); verify e2e and axe light and dark
-- [ ] 2.3 Insights in the report and exports; verify exporter unit tests
+- [x] 2.3 Insights in the report and exports; verify exporter unit tests
 
 ## 3. Trends
 
