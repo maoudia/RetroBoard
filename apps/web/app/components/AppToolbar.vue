@@ -92,7 +92,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 /* Buttons never shrink below their content: the row slides sideways instead (labels stay centred). */
 .tools > *, .tools :deep(.icon-btn) { flex: none; }
 .me { margin-left: .5rem; }
-@media (max-width: 1360px) {
+@media (max-width: 1100px) {
   .toolbar { grid-template-columns: 1fr auto; }
   .timer-slot { grid-column: 2; grid-row: 1; }
   /* One row that slides sideways instead of wrapping: the columns keep their space (change toolbar-mobile-scroll). */
