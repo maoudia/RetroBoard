@@ -43,6 +43,8 @@ export const en: Record<keyof typeof fr, string> = {
   'options.perItem.more': 'More votes per idea',
   'options.votable': 'Vote on',
   'options.votable.hint': 'With clusters, the notes of a cluster are voted together as one idea.',
+  'options.votableColumns': "Where people vote",
+  'options.votableColumns.hint': "Turn voting on or off for each column of the board.",
   'options.votable.both': 'Notes and clusters',
   'options.votable.notes': 'Notes',
   'options.votable.clusters': 'Clusters',

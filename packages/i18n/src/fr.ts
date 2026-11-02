@@ -42,6 +42,8 @@ export const fr = {
   'options.perItem.more': 'Plus de votes par idée',
   'options.votable': 'Voter pour',
   'options.votable.hint': 'Avec les groupes, les notes d\'un groupe sont votées ensemble comme une seule idée.',
+  'options.votableColumns': "Colonnes où l'on vote",
+  'options.votableColumns.hint': "Active ou coupe le vote pour chaque colonne du board.",
   'options.votable.both': 'Notes et groupes',
   'options.votable.notes': 'Notes',
   'options.votable.clusters': 'Groupes',

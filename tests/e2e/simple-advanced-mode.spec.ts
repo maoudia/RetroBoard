@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-import { enterName } from './helpers'
+import { createBoard, enterName } from './helpers'
 
 // Change simple-advanced-mode: the product starts simple, the whole suite otherwise runs advanced.
 test.use({ storageState: { cookies: [], origins: [] } })
@@ -10,7 +10,8 @@ test('creation: simple shows title and format only, advanced shows every option,
   await expect(page.getByTestId('mode-simple')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByTestId('setup-title')).toBeVisible()
   await expect(page.getByTestId('tab-all')).toBeVisible()
-  await expect(page.getByTestId('theme-studio')).toHaveCount(0)
+  // Themes are a differentiator: the picker stays in simple mode (change mode-parity).
+  await expect(page.getByTestId('theme-studio')).toBeVisible()
   await expect(page.getByTestId('setup-facilitation')).toHaveCount(0)
   await expect(page.getByTestId('setup-passcode')).toBeVisible()
   await expect(page.getByTestId('passcode-generator')).toHaveCount(0)
@@ -117,4 +118,31 @@ test('advanced creation: votes per person and sealed ballot start the board (cha
   await page.getByTestId('btn-options').click()
   await expect(page.getByTestId('opt-votes')).toHaveText('5')
   await expect(page.getByTestId('opt-secret')).toBeChecked()
+})
+
+test('the set-up page of a new board has the mode switch and every voting column in advanced (change mode-parity)', async ({ page }) => {
+  // A facilitator link without the creator hand-off: nobody holds the board, so starting one opens the set-up page.
+  const id = 'AbCdEfGhIjKlMnOpQrStUv', key = 'AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCde', fac = 'ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210-_ZyXwV'
+  await page.goto(`/board#r=${id}&k=${key}&f=${fac}`)
+  await page.getByTestId('name-input').fill('Alice')
+  await page.getByTestId('name-save').click()
+  await page.getByTestId('waiting-start').click()
+  await page.getByTestId('confirm').click()
+  await expect(page.getByTestId('setup-form')).toBeVisible()
+  await expect(page.getByTestId('mode-simple')).toBeVisible()
+  await expect(page.getByTestId('setup-theme')).toBeVisible()
+  await page.getByTestId('mode-advanced').dispatchEvent('click') // the sticky dialog header covers it once scrolled into view
+  await expect(page.getByTestId('setup-votable')).toHaveAttribute('open', '')
+  await expect(page.getByTestId('setup-votable').locator('input[type=checkbox]')).not.toHaveCount(0)
+})
+
+test('advanced options list every column with its voting switch', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-options').click()
+  const list = page.getByTestId('opt-votable-columns')
+  await expect(list.locator('input[type=checkbox]')).toHaveCount(3)
+  const first = list.locator('input[type=checkbox]').first()
+  await first.uncheck()
+  await expect(first).not.toBeChecked()
+  await first.check()
 })

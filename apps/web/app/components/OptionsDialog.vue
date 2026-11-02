@@ -69,6 +69,17 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
             <button v-for="v in (['both', 'notes', 'clusters'] as const)" :key="v" type="button" :class="{ on: s.votable === v }" :aria-pressed="s.votable === v" :data-testid="`opt-votable-${v}`" @click="set({ votable: v })">{{ t(`options.votable.${v}`) }}</button>
           </span>
         </div>
+        <div v-if="advanced && board.columns.length" class="line cols" data-testid="opt-votable-columns">
+          <span><strong>{{ t('options.votableColumns') }}</strong><small class="muted">{{ t('options.votableColumns.hint') }}</small></span>
+          <ul class="collist">
+            <li v-for="c in board.columns" :key="c.id">
+              <label class="line">
+                <span>{{ c.title }}</span>
+                <input type="checkbox" role="switch" class="switch" :checked="c.votable !== false" :data-testid="`opt-votable-col-${c.id}`" @change="board.commands.updateColumn(c.id, { votable: ($event.target as HTMLInputElement).checked })" />
+              </label>
+            </li>
+          </ul>
+        </div>
         <label class="line">
           <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
           <input type="checkbox" role="switch" class="switch" :checked="s.secretVoting" data-testid="opt-secret" @change="set({ secretVoting: ($event.target as HTMLInputElement).checked })" />
@@ -191,4 +202,6 @@ h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; le
 .switch:checked { background: var(--accent); }
 .switch:checked::after { transform: translateX(20px); background: var(--accent-ink); }
 .danger-zone h3 { color: var(--danger); }
+.cols { align-items: flex-start; flex-wrap: wrap; }
+.collist { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; min-width: min(100%, 16rem); }
 </style>

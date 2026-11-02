@@ -9,6 +9,7 @@ const theme = useThemeStore()
 
 <template>
   <BaseDialog :open="open" :title="t('setup.title')" width="860px" :closable="false">
+    <ModeSwitch />
     <p class="muted">{{ t('setup.intro') }}</p>
     <BoardSetupForm :theme-id="theme.themeId" :submit-label="t('setup.open')" @update:theme-id="theme.use($event, false)" @submit="emit('submit', $event)" />
   </BaseDialog>

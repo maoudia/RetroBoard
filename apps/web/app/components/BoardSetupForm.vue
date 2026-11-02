@@ -63,13 +63,13 @@ function onSubmit() {
 
     <PasscodeField v-if="withPasscode" v-model="passcode" :advanced="advanced" />
 
-    <section v-if="advanced" class="block">
+    <section class="block" data-testid="setup-theme">
       <h3><span class="n">1</span> {{ t('setup.step1') }}</h3>
       <ThemePicker :model-value="themeId" @update:model-value="emit('update:themeId', $event)" />
     </section>
 
     <section class="block">
-      <h3><span class="n">{{ advanced ? 2 : 1 }}</span> {{ t('setup.step2') }}</h3>
+      <h3><span class="n">2</span> {{ t('setup.step2') }}</h3>
       <TemplatePicker v-model="templateId" :theme-id="themeId" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
@@ -82,7 +82,7 @@ function onSubmit() {
         <span><strong>{{ t('setup.fac.single') }}</strong><small class="muted">{{ t('setup.fac.single.hint') }}</small></span></label>
     </fieldset>
 
-    <details v-if="tpl" class="votable" data-testid="setup-votable">
+    <details v-if="tpl" class="votable" data-testid="setup-votable" open>
       <summary class="lbl">{{ t('setup.votable') }}</summary>
       <p class="muted small">{{ t('setup.votable.hint') }}</p>
       <label v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" class="opt">
