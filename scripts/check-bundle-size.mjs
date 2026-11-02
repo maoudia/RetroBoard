@@ -16,8 +16,11 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // import graph (what really blocks first paint) is planned in quality-gates-v2.
 // 2026-10-31: total raised from 270 to 300 kB on the owner's request, for the facilitation and presentation
 // features of 1.6 to 1.9 (focus, voted ideas walk-through, phase stepper, key caps, name conflicts; 267.1 kB measured).
+// 2026-11-02: entry raised from 40 to 44 kB and total from 300 to 330 kB for the phone layout (one column per
+// screen, dots), the resizable columns and writing field, the shared board display and the edit-by-facilitator
+// flow (41.3 and 299.3 kB measured). Splitting the board dialogs into lazy chunks is tracked in quality-gates-v2.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 40, totalKb: 300 }
+const BUDGET = { entryKb: 44, totalKb: 330 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')

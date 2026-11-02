@@ -51,6 +51,16 @@ describe('schemas', () => {
     expect(parseCommand({ t: 'note.add', columnId: 'abcd1234', text: '  hi  ' })).toMatchObject({ text: 'hi' })
   })
 
+  it('accepts the board display settings and rejects unknown values (change board-layout-v2)', () => {
+    for (const size of ['small', 'normal', 'large']) {
+      expect(parseCommand({ t: 'settings.update', noteSize: size, noteText: size })).toMatchObject({ noteSize: size, noteText: size })
+    }
+    expect(parseCommand({ t: 'settings.update', noteSize: 'huge' })).toBeNull()
+    expect(parseCommand({ t: 'settings.update', noteText: 'XL' })).toBeNull()
+    expect(parseCommand({ t: 'settings.update', noteSize: 3 })).toBeNull()
+    expect(parseCommand({ t: 'settings.update', title: 'Only a title' })).toEqual({ t: 'settings.update', title: 'Only a title' })
+  })
+
   it.each([
     [{ t: 'note.add', columnId: 'abcd1234', text: '   ' }],
     [{ t: 'note.add', columnId: 'abcd1234', text: 'a'.repeat(501) }],
