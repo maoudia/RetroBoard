@@ -30,6 +30,7 @@ function onMinutes(minutes: number) {
   const preset = ([30, 45, 60, 90] as const).find((n) => n >= minutes) ?? 90
   agenda.value = { ...agenda.value, phases: presetPhases(preset) }
 }
+const { $ports } = useNuxtApp()
 function create({ passcode, ...form }: SetupResult) {
   const a = agenda.value
   const setup: SetupResult = {
@@ -41,7 +42,7 @@ function create({ passcode, ...form }: SetupResult) {
   try {
     sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
     // Hand-off to the board page of this tab only; read once and removed there.
-    if (passcode) sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode)
+    if (passcode) { sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode); void $ports.vault.set(ring.roomId, passcode) }
   } catch { /* the board page will ask for the passcode */ }
   void router.push({ path: '/board', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
 }

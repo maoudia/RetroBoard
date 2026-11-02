@@ -173,3 +173,9 @@ main:focus { outline: none; }
 :root[data-notify="right"] .toasts { left: auto; right: 16px; translate: 0 0; justify-items: end; }
 :root[data-notify="left"] .end.end { left: 16px; translate: 0 0; animation: none; }
 :root[data-notify="right"] .end.end { left: auto; right: 16px; translate: 0 0; animation: none; }
+
+/* Segmented choice (one shared style; change ui-coherence-pass removes the per-component copies). */
+.pick-seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-control); overflow: hidden; }
+.pick-seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
+.pick-seg button:last-child { border-right: 0; }
+.pick-seg button.on { background: var(--accent); color: var(--accent-ink); }

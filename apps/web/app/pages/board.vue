@@ -68,7 +68,10 @@ function hasSetupHandoff(id: string): boolean {
   try { return sessionStorage.getItem(`retroboard:init:${id}`) !== null } catch { return false }
 }
 
-function enter() {
+/** Latest call wins: the passcode lookup is asynchronous, so an older call must not connect after a newer one. */
+let entering = 0
+async function enter() {
+  const mine = ++entering
   board.disconnect()
   closed.value = false
   if (!validRoom.value) return
@@ -77,7 +80,13 @@ function enter() {
   drafts.load(roomId.value)
   const inv = invite.value!
   if (inv.kind === 'encrypted' && inv.ring.passcode) {
-    passcode.value ??= takeHandoff(inv.ring.roomId)
+    if (passcode.value === null) {
+      // The creator's hand-off, else the code remembered on this device (change password-by-default).
+      const handed = takeHandoff(inv.ring.roomId)
+      passcode.value = handed ?? await $ports.vault.get(inv.ring.roomId)
+      if (handed) void $ports.vault.set(inv.ring.roomId, handed)
+      if (mine !== entering) return
+    }
     if (passcode.value === null) return
   }
   if (!identity.named) ui.open('name')
@@ -88,12 +97,17 @@ function enter() {
 
 function unlock(code: string) {
   passcode.value = code
-  enter()
+  if (invite.value?.kind === 'encrypted') void $ports.vault.set(invite.value.ring.roomId, code)
+  void enter()
 }
+// A wrong remembered or typed passcode is forgotten, so the prompt is not skipped forever.
+watch(() => board.accessDenied, (denied) => {
+  if (denied && invite.value?.kind === 'encrypted') void $ports.vault.delete(invite.value.ring.roomId)
+})
 
-onMounted(enter)
+onMounted(() => { void enter() })
 useBoardAgentTools()
-watch(() => route.hash, () => { passcode.value = null; enter() })
+watch(() => route.hash, () => { passcode.value = null; void enter() })
 // Anything still waiting to be written is written before the page goes. "Until I leave" needs nothing more:
 // that copy lives in the tab (sessionStorage) and goes with it, so a reload or back still reopens the board.
 function forgetIfLeaving() { void board.flush() }

@@ -45,13 +45,23 @@ watch(() => agent.setupDraft, (draft) => {
   if (draft.themeId) emit('update:themeId', draft.themeId)
   agent.setupDraft = null
 }, { immediate: true })
+
+/** Creating without a passcode is an informed choice: the risks are stated first. */
+const confirmOpen = ref(false)
+const result = (): SetupResult => ({ templateId: templateId.value, themeId: props.themeId, title: title.value.trim() || t('setup.fallbackTitle'), locale: locale.value, facilitation: facilitation.value, announceArrivals: announceArrivals.value, ...(advanced.value && voteLimit.value !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit.value) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced.value && secretVoting.value ? { secretVoting: true } : {}), ...(customVotable.value ? { votable: [...votable.value] } : {}), ...(props.withPasscode && passcode.value ? { passcode: passcode.value } : {}) })
+function onSubmit() {
+  if (props.withPasscode && !passcode.value.trim()) { confirmOpen.value = true; return }
+  emit('submit', result())
+}
 </script>
 
 <template>
-  <form class="setup" data-testid="setup-form" @submit.prevent="emit('submit', { templateId, themeId: props.themeId, title: title.trim() || t('setup.fallbackTitle'), locale, facilitation, announceArrivals, ...(advanced && voteLimit !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced && secretVoting ? { secretVoting: true } : {}), ...(customVotable ? { votable: [...votable] } : {}), ...(withPasscode && passcode ? { passcode } : {}) })">
+  <form class="setup" data-testid="setup-form" @submit.prevent="onSubmit">
     <label class="lbl">{{ t('setup.name') }}
       <input v-model="title" class="field" :maxlength="LIMITS.boardTitle" data-testid="setup-title" @input="typed = true" />
     </label>
+
+    <PasscodeField v-if="withPasscode" v-model="passcode" :advanced="advanced" />
 
     <section v-if="advanced" class="block">
       <h3><span class="n">1</span> {{ t('setup.step1') }}</h3>
@@ -98,13 +108,9 @@ watch(() => agent.setupDraft, (draft) => {
       <span><strong>{{ t('setup.arrivals') }}</strong><small class="muted">{{ t('setup.arrivals.hint') }}</small></span>
     </label>
 
-    <label v-if="withPasscode" class="pass">
-      <span class="lbl">{{ t('setup.passcode') }}</span>
-      <input v-model="passcode" class="field" type="password" autocomplete="new-password" data-testid="setup-passcode" />
-      <small class="muted">{{ t('setup.passcode.hint') }}</small>
-    </label>
     </template>
 
+    <ConfirmDialog v-model:open="confirmOpen" danger confirm-icon="lucide:unlock" :title="t('setup.passcode.noneTitle')" :message="t('setup.passcode.noneMsg')" :confirm-label="t('setup.passcode.noneOk')" @confirm="emit('submit', result())" />
     <button class="btn btn-primary go" type="submit" data-testid="setup-submit"><Icon name="lucide:rocket" /> {{ submitLabel }}</button>
   </form>
 </template>

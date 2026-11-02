@@ -146,7 +146,8 @@ Ubiquitous language (FR/EN): retro/retro, idee/idea (published note), brouillon/
 
 - `roomId`: 128-bit random, base64url, in the path: `/r/<roomId>`.
 - `roomKey`: 256-bit random, in the fragment: `/r/<roomId>#k=<key>`. Never sent to the server.
-- Optional passcode: `contentKey = HKDF(roomKey, salt=roomId, info=PBKDF2(passcode, 600k iterations))`. Participants need both the link and the passcode; the passcode is shared through another channel.
+- Passcode by default (change `password-by-default`, 2026-11-02): the creation form proposes a generated, readable passcode (about 64 bits); the facilitator may replace it, use the advanced generator (random, passphrase) or clear it after a confirmation that states the risks. Content is end-to-end encrypted with or without it; the passcode is the second factor against a leaked link. The device remembers it sealed with a non-extractable AES-GCM key (IndexedDB) or in the tab only (retention "while the tab is open").
+- Passcode derivation: `contentKey = HKDF(roomKey, salt=roomId, info=PBKDF2(passcode, 600k iterations))`. Participants need both the link and the passcode; the passcode is shared through another channel.
 - Facilitator capability: an Ed25519 key pair created with the board. The public key is in the genesis event; the private key is only in the facilitator link (`#k=...&f=...`) and the facilitator's browser. Phase changes, vote reveal, role delegation and settings are signed with it; every peer rejects unsigned privileged events.
 - Every participant has a session Ed25519 key; their events are signed so authorship ("only the author edits") holds without a server.
 

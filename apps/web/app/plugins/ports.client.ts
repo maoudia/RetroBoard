@@ -3,6 +3,7 @@ import { deriveContentKey, fromBase64Url } from '@retroboard/crypto'
 import type { KeyRing } from '@retroboard/domain'
 import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adapters/replica-idb'
 import { createSessionReplicaStore, withSessionFallback } from '~/adapters/replica-session'
+import { createIdbVault, createSessionVault, createVault, openVaultDb, type PasscodeVault } from '~/adapters/passcode-vault'
 import { createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
 import { localTransportFactory } from '~/transport'
 import { buildWs2Url, EncryptedRelayTransport } from '~/transport/encrypted'
@@ -19,6 +20,8 @@ export interface Ports {
   notifier: NotifierPort
   /** Where this device keeps boards (IndexedDB, or the tab in private modes and with "until I leave"). */
   replica: ReplicaStorePort | null
+  /** Passcodes remembered on this device (sealed), or in the tab only. */
+  vault: PasscodeVault
 }
 
 /** Composition root: the only place where application ports meet browser adapters. */
@@ -44,7 +47,13 @@ export default defineNuxtPlugin(() => {
     if (days === 0) void durable?.purge(Number.MAX_SAFE_INTEGER).catch(() => {})
     else void replica?.purge(Date.now() - days * 86_400_000).catch(() => {})
   }
-  setTimeout(sweep, 20_000)
+  let durableVault: PasscodeVault | null
+  try { durableVault = typeof indexedDB === 'undefined' || !crypto?.subtle ? null : createIdbVault(openVaultDb()) } catch { durableVault = null }
+  let tabVault: PasscodeVault
+  try { tabVault = createSessionVault(sessionStorage) } catch { tabVault = { get: async () => null, set: async () => {}, delete: async () => {}, purge: async () => 0 } }
+  const vault = createVault(durableVault, tabVault, () => settings.s.retentionDays === 0)
+  const sweepVault = () => { void vault.purge(settings.s.retentionDays === 0 ? Number.MAX_SAFE_INTEGER : Date.now() - settings.s.retentionDays * 86_400_000) }
+  setTimeout(() => { sweep(); sweepVault() }, 20_000)
   if (durable) void requestPersistence()
   const ports: Ports = {
     channelFactory: localTransportFactory,
@@ -75,6 +84,7 @@ export default defineNuxtPlugin(() => {
     file: { save: download },
     notifier: { notify: push },
     replica,
+    vault,
   }
   return { provide: { ports } }
 })
