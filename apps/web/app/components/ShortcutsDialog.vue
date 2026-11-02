@@ -27,6 +27,10 @@ const rows = (g: ShortcutGroup) => SHORTCUTS.filter((s) => s.group === g && (!s.
         </template>
       </dl>
     </section>
+    <section class="grp">
+      <h3>{{ t('feedback.title') }}</h3>
+      <FeedbackLinks compact />
+    </section>
   </BaseDialog>
 </template>
 

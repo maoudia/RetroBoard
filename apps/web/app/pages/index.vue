@@ -163,6 +163,11 @@ onMounted(() => {
         </ul>
       </section>
 
+      <section class="community" data-reveal data-testid="landing-community">
+        <h2>{{ t('feedback.title') }}</h2>
+        <FeedbackLinks />
+      </section>
+
       <section class="final" data-reveal>
         <h2>{{ t('landing.final') }}</h2>
         <NuxtLink to="/new" class="cta big">{{ t('landing.create') }} <Icon name="lucide:arrow-right" /></NuxtLink>
@@ -173,6 +178,7 @@ onMounted(() => {
       <span>{{ t('landing.footer') }}</span>
       <NuxtLink to="/check" data-testid="link-check">{{ t('landing.check') }}</NuxtLink>
       <a href="https://github.com/maoudia/retroboard" rel="noopener" target="_blank">GitHub</a>
+      <a href="https://github.com/maoudia/retroboard/issues/new/choose" rel="noopener" target="_blank" data-testid="link-feedback">{{ t('feedback.bug') }}</a>
       <LegalLinks />
     </footer>
   </div>
@@ -185,6 +191,9 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 
 <style scoped>
 .lp { --ink: #1d1d1f; --ink2: #6e6e73; --line: #d2d2d7; --fill: #f5f5f7; --blue: #0071e3; --blue-d: #0062c4; position: relative; color: var(--ink); font-family: -apple-system, 'SF Pro Display', 'Inter Variable', system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+.community { display: grid; gap: 1rem; justify-items: center; text-align: center; padding: 4rem 1.25rem 1rem; }
+.community :deep(.btn) { background: var(--fill); color: var(--ink); border-color: var(--line); }
+.community :deep(a:not(.btn)) { color: var(--blue); }
 .lp h1, .lp h2, .lp h3 { font-family: inherit; font-weight: 700; }
 [data-reveal] { opacity: 0; transform: translateY(26px) scale(.985); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), filter .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms); }
 [data-reveal].in { opacity: 1; transform: none; filter: none; }
