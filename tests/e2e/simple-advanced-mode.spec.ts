@@ -87,3 +87,14 @@ test('landing: pasting a board link joins it, a wrong text says so (change join-
   await expect(bob.getByTestId('board')).toBeVisible()
   await ctx.close()
 })
+
+test('profile: simple hides the expert settings, advanced shows them (change profile-simple-mode)', async ({ page }) => {
+  await page.goto('/')
+  await page.getByTestId('btn-profile').click()
+  await expect(page.getByTestId('retention-7')).toBeVisible()
+  await expect(page.getByTestId('density-compact')).toHaveCount(0)
+  await expect(page.getByTestId('motion-reduced')).toHaveCount(0)
+  await page.getByTestId('mode-advanced').click()
+  await expect(page.getByTestId('density-compact')).toBeVisible()
+  await expect(page.getByTestId('motion-reduced')).toBeVisible()
+})

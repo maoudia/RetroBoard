@@ -11,6 +11,8 @@ const ui = useUiStore()
 const identity = useIdentityStore()
 const settings = useSettingsStore()
 const recents = useRecentsStore()
+/** Simple keeps identity, language, theme variant, retention, cursor sharing and the boards list (change simple-advanced-mode). */
+const advanced = computed(() => settings.s.uiMode === 'advanced')
 const board = useBoardStore()
 const { push } = useToasts()
 
@@ -94,55 +96,55 @@ async function wipe() {
           <option v-for="th in THEMES" :key="th.id" :value="th.id">{{ th.name }}</option>
         </select>
       </div>
-      <label class="line">
+      <label v-if="advanced" class="line">
         <span><strong>{{ t('profile.ambient') }}</strong><small class="muted">{{ t('profile.ambient.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.ambient" data-testid="set-ambient" @change="set({ ambient: ($event.target as HTMLInputElement).checked })" />
       </label>
-      <div class="line">
+      <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.motion') }}</strong><small class="muted">{{ t('profile.motion.hint') }}</small></span>
         <span class="seg">
           <button type="button" :class="{ on: settings.s.motion === 'auto' }" @click="set({ motion: 'auto' })">{{ t('profile.motion.normal') }}</button>
           <button type="button" :class="{ on: settings.s.motion === 'reduced' }" data-testid="motion-reduced" @click="set({ motion: 'reduced' })">{{ t('profile.motion.reduced') }}</button>
         </span>
       </div>
-      <div class="line">
+      <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.density') }}</strong></span>
         <span class="seg">
           <button type="button" :class="{ on: settings.s.density === 'comfortable' }" @click="set({ density: 'comfortable' })">{{ t('profile.density.comfortable') }}</button>
           <button type="button" :class="{ on: settings.s.density === 'compact' }" data-testid="density-compact" @click="set({ density: 'compact' })">{{ t('profile.density.compact') }}</button>
         </span>
       </div>
-      <label class="line">
+      <label v-if="advanced" class="line">
         <span><strong>{{ t('profile.shortcuts') }}</strong><small class="muted">{{ t('profile.shortcuts.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.shortcuts" data-testid="set-shortcuts" @change="set({ shortcuts: ($event.target as HTMLInputElement).checked })" />
       </label>
-      <label class="line">
+      <label v-if="advanced" class="line">
         <span><strong>{{ t('profile.keyHints') }}</strong><small class="muted">{{ t('profile.keyHints.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.keyHints" :disabled="!settings.s.shortcuts" data-testid="set-key-hints" @change="set({ keyHints: ($event.target as HTMLInputElement).checked })" />
       </label>
-      <div class="line">
+      <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.notifyPos') }}</strong></span>
         <span class="seg">
           <button v-for="p in (['left', 'center', 'right'] as const)" :key="p" type="button" :class="{ on: settings.s.notifyPos === p }" :aria-pressed="settings.s.notifyPos === p" :data-testid="`notify-${p}`" @click="set({ notifyPos: p })">{{ t(`profile.notifyPos.${p}` as never) }}</button>
         </span>
       </div>
-      <div class="line">
+      <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.stepperTime') }}</strong></span>
         <span class="seg">
           <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.stepperTime === m }" :aria-pressed="settings.s.stepperTime === m" :data-testid="`stepper-time-${m}`" @click="set({ stepperTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
         </span>
       </div>
-      <div class="line">
+      <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.ringTime') }}</strong></span>
         <span class="seg">
           <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.ringTime === m }" :aria-pressed="settings.s.ringTime === m" :data-testid="`ring-time-${m}`" @click="set({ ringTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
         </span>
       </div>
-      <label class="line">
+      <label v-if="advanced" class="line">
         <span><strong>{{ t('profile.phaseWarning') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.phaseWarning" data-testid="set-phase-warning" @change="set({ phaseWarning: ($event.target as HTMLInputElement).checked })" />
       </label>
-      <label v-if="canNotify()" class="line">
+      <label v-if="advanced && canNotify()" class="line">
         <span><strong>{{ t('profile.systemNotify') }}</strong><small class="muted">{{ notifyDenied ? t('profile.systemNotify.denied') : t('profile.systemNotify.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.systemNotify" data-testid="set-system-notify" @change="toggleNotify(($event.target as HTMLInputElement))" />
       </label>
@@ -166,17 +168,17 @@ async function wipe() {
         <span><strong>{{ t('profile.shareCursor') }}</strong><small class="muted">{{ t('profile.shareCursor.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.shareCursor" data-testid="set-share-cursor" @change="set({ shareCursor: ($event.target as HTMLInputElement).checked })" />
       </label>
-      <label class="line">
+      <label v-if="advanced" class="line">
         <span><strong>{{ t('profile.p2p') }}</strong><small class="muted">{{ t('profile.p2p.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.p2p" data-testid="set-p2p" @change="set({ p2p: ($event.target as HTMLInputElement).checked })" />
       </label>
-      <label class="line">
+      <label v-if="advanced" class="line">
         <span><strong>{{ t('profile.showCursors') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.showCursors" data-testid="set-show-cursors" @change="set({ showCursors: ($event.target as HTMLInputElement).checked })" />
       </label>
     </section>
 
-    <section class="grp">
+    <section v-if="advanced" class="grp">
       <h3>{{ t('profile.agents') }}</h3>
       <label class="line">
         <span><strong>{{ t('profile.browserAgents') }}</strong><small class="muted">{{ t('profile.browserAgents.hint') }}</small></span>
