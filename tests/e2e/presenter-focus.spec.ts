@@ -165,3 +165,24 @@ test.describe('note spotlight (presenter-mode-v2)', () => {
     await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'true')
   })
 })
+
+test('on a phone the presenter controls do not overlap and the walk button is an icon (change ux-irritants-wave-2)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Pairing')
+  await page.locator('article.note', { hasText: 'Pairing' }).locator('[data-testid^="vote-"]').click()
+  await page.getByTestId('btn-presenter').click()
+  const ids = ['walk-start', 'presenter-focus', 'presenter-join']
+  const boxes = []
+  for (const id of ids) {
+    const el = page.getByTestId(id)
+    if (await el.count()) boxes.push({ id, b: (await el.boundingBox())! })
+  }
+  expect(boxes.length).toBeGreaterThanOrEqual(2)
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    const a = boxes[i]!.b, c = boxes[j]!.b
+    const overlap = a.x < c.x + c.width && c.x < a.x + a.width && a.y < c.y + c.height && c.y < a.y + a.height
+    expect(overlap, `${boxes[i]!.id} vs ${boxes[j]!.id}`).toBe(false)
+  }
+  expect((await page.getByTestId('walk-start').boundingBox())!.width).toBeLessThan(60)
+})

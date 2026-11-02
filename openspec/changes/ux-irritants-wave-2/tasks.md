@@ -7,9 +7,9 @@
 
 ## 2. Phone columns
 
-- [ ] 2.1 Column width menu effective on phones with the next column peeking; verify e2e
-- [ ] 2.2 Thin top slider with count and position; verify e2e at 390 px
-- [ ] 2.3 Icon plus short labels in the presentation menu and the voting bar, no overlap; verify e2e geometry at 390 px
+- [x] 2.1 Column width menu effective on phones with the next column peeking; verify e2e
+- [x] 2.2 Thin top slider with count and position; verify e2e at 390 px
+- [x] 2.3 Icon plus short labels in the presentation menu and the voting bar, no overlap; verify e2e geometry at 390 px
 
 ## 3. Chrome
 

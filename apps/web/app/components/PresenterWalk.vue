@@ -31,9 +31,9 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKey, true); ui
 
 <template>
   <button
-    v-if="voted.length && ui.walkIndex === null" class="start btn btn-sm btn-primary" type="button" data-testid="walk-start"
+    v-if="voted.length && ui.walkIndex === null" class="start btn btn-sm btn-primary" type="button" :aria-label="t('presenter.walk.start')" :title="t('presenter.walk.start')" data-testid="walk-start"
     @click="step(1)"
-  ><Icon name="lucide:trophy" /> {{ t('presenter.walk.start') }}</button>
+  ><Icon name="lucide:trophy" /> <span class="lbl">{{ t('presenter.walk.start') }}</span></button>
   <div v-if="at" class="walk" role="dialog" :aria-label="t('presenter.walk.label')" aria-modal="false" data-testid="walk">
     <div class="scrim" aria-hidden="true" @click="stop" />
     <article class="card" :style="{ '--col': column ? `var(--note-${column.color ?? 0})` : 'var(--accent)' }">
@@ -63,4 +63,9 @@ header { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
 .text { margin: 0; font-size: clamp(1.6rem, 3.2vw, 3rem); line-height: 1.25; font-weight: 600; overflow-wrap: anywhere; }
 footer { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 button.start.start { position: fixed; z-index: 60; left: 16px; bottom: 16px; }
+/* Phones: icon only, above the focus bar, so the presenter controls never overlap (change ux-irritants-wave-2). */
+@media (max-width: 600px) {
+  button.start.start { bottom: 72px; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; }
+  button.start .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 </style>

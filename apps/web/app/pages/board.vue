@@ -130,9 +130,11 @@ const visibleCols = computed(() => board.columns.filter((c) => !c.hidden))
 function syncActive() {
   const el = boardEl.value
   if (!el || !phone?.matches) return
-  const first = el.querySelector<HTMLElement>('.col')
-  const step = (first?.offsetWidth ?? el.clientWidth) + 16
-  activeCol.value = Math.max(0, Math.min(visibleCols.value.length - 1, Math.round(el.scrollLeft / step)))
+  // Columns have different widths on phones (narrow leaves the next one peeking): nearest start wins.
+  const starts = [...el.querySelectorAll<HTMLElement>('.col')].map((c) => c.offsetLeft - el.offsetLeft)
+  let best = 0
+  starts.forEach((x, i) => { if (Math.abs(x - el.scrollLeft) < Math.abs((starts[best] ?? 0) - el.scrollLeft)) best = i })
+  activeCol.value = Math.max(0, Math.min(visibleCols.value.length - 1, best))
 }
 function goCol(i: number) {
   const el = boardEl.value
@@ -319,6 +321,13 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
       <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
 
+      <nav v-if="board.ready && visibleCols.length > 1" class="col-dots" :aria-label="t('board.dots')" data-testid="col-dots">
+        <button
+          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="dot" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
+          :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-dot-${i}`" @click="goCol(i)"
+        />
+      </nav>
+
       <HiddenColumns v-if="board.ready && board.hiddenColumns.length" />
       <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" @retry="enter" />
       <div v-else-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
@@ -331,13 +340,6 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
           <Icon name="lucide:plus" /> {{ t('board.addColumn') }}
         </button>
       </main>
-      <nav v-if="board.ready && visibleCols.length > 1" class="col-dots" :aria-label="t('board.dots')" data-testid="col-dots">
-        <button
-          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="dot" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
-          :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-dot-${i}`" @click="goCol(i)"
-        />
-      </nav>
-
       <ChatPanel v-if="board.ready" />
       <ActionsDrawer />
       <ShareDialog :passcode="passcode" />
@@ -373,14 +375,19 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .board > .col { scroll-snap-align: start; }
 .col-dots { display: none; }
 @media (max-width: 600px) {
-  /* One column per screen, swipe sideways, snap on each (change mobile-board-space). */
-  .board { scroll-snap-type: x mandatory; gap: .6rem; padding: .5rem; }
-  .board > .col { flex: 0 0 100% !important; min-width: 0 !important; max-width: none !important; scroll-snap-align: center; scroll-snap-stop: always; }
-  .board > .add-col { flex: 0 0 100%; scroll-snap-align: center; }
-  .col-dots { display: flex; justify-content: center; align-items: center; gap: 2px; padding: 0 .5rem .35rem; }
-  .dot { width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
-  .dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: width .2s var(--ease), background .2s; }
-  .dot.on::after { width: 20px; border-radius: var(--r-pill); background: var(--accent); }
+  /* One column per screen, swipe sideways, snap on each (change mobile-board-space). The width menu works here:
+     narrow and normal leave the next column peeking, which tells there is more on the right (ux-irritants-wave-2). */
+  .board { scroll-snap-type: x mandatory; gap: .6rem; padding: .5rem; scroll-padding-inline: .5rem; }
+  .board > .col { flex: 0 0 90% !important; min-width: 0 !important; max-width: none !important; scroll-snap-align: start; scroll-snap-stop: always; }
+  .board > .col[data-size="narrow"] { flex-basis: 72% !important; }
+  .board > .col[data-size="wide"], .board > .col[data-size="full"], .board > .col[data-size="custom"] { flex-basis: 100% !important; }
+  .board > .add-col { flex: 0 0 90%; scroll-snap-align: start; }
+  /* Thin segmented slider at the top: one segment per column, the current one filled. Targets stay 24 px high
+     and overlap the empty margins around the bar instead of taking room. */
+  .col-dots { display: flex; gap: 3px; padding: 0 .75rem; margin-block: -6px; position: relative; z-index: 2; }
+  .dot { flex: 1; max-width: 72px; height: 24px; display: grid; align-items: center; border: 0; background: transparent; cursor: pointer; }
+  .dot::after { content: ''; height: 4px; border-radius: var(--r-pill); background: var(--border); transition: background .2s; }
+  .dot.on::after { background: var(--accent); }
 }
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }

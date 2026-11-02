@@ -30,4 +30,7 @@ div.pfocus.glass { position: fixed; z-index: 60; left: 50%; bottom: 16px; transl
 .cur { min-width: 8ch; max-width: 22ch; padding: 0 .5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-weight: 700; }
 .sep { width: 1px; height: 20px; background: var(--border); margin: 0 .15rem; }
 .mini-btn.on { background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 600px) {
+  div.pfocus.glass { left: 8px; right: 8px; translate: none; justify-content: center; }
+}
 </style>

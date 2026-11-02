@@ -26,7 +26,9 @@ test('a phone shows one column per screen; the dots follow the swipe and jump to
   const cols = page.locator('.board > .col')
   const board = page.getByTestId('board')
   const bw = (await board.boundingBox())!.width
-  expect((await cols.first().boundingBox())!.width).toBeGreaterThan(bw * 0.9)
+  expect((await cols.first().boundingBox())!.width).toBeGreaterThan(bw * 0.85)
+  // The next column peeks out on the right: that is the hint that there is more.
+  expect((await cols.nth(1).boundingBox())!.x).toBeLessThan(bw)
   await expect(page.getByTestId('col-dot-0')).toHaveAttribute('aria-current', 'true')
   await page.getByTestId('col-dot-1').click()
   await expect(page.getByTestId('col-dot-1')).toHaveAttribute('aria-current', 'true')
@@ -44,4 +46,26 @@ test('the voting bar is one compact row with the votes left as a pill on a phone
   const left = (await page.locator('.votebar .seg').boundingBox())!
   expect(first.x).toBeLessThan(left.x)
   await expect(page.getByTestId('votes-left')).toBeVisible()
+})
+
+test('on a phone the column width menu works and the slider is a thin bar above the board (change ux-irritants-wave-2)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue' })
+  const col = page.locator('.board > .col').first()
+  const id = (await col.getAttribute('data-testid'))!.replace('column-', '')
+  const bw = (await page.getByTestId('board').boundingBox())!.width
+  const normal = (await col.boundingBox())!.width
+  await page.getByTestId(`col-size-${id}`).click()
+  await page.getByTestId(`size-narrow-${id}`).click()
+  await expect(async () => expect((await col.boundingBox())!.width).toBeLessThan(normal - 20)).toPass()
+  expect((await col.boundingBox())!.width).toBeLessThan(bw * 0.8)
+  await page.getByTestId(`col-size-${id}`).click()
+  await page.getByTestId(`size-full-${id}`).click()
+  await expect(async () => expect((await col.boundingBox())!.width).toBeGreaterThan(bw * 0.95)).toPass()
+
+  // The slider has one segment per column, sits above the board and is thin.
+  const dots = page.getByTestId('col-dots')
+  await expect(dots.locator('.dot')).toHaveCount(3)
+  expect((await dots.boundingBox())!.y).toBeLessThan((await page.getByTestId('board').boundingBox())!.y)
+  const bar = await dots.locator('.dot').first().evaluate((el) => getComputedStyle(el, '::after').height)
+  expect(parseFloat(bar)).toBeLessThanOrEqual(6)
 })

@@ -40,4 +40,5 @@ header { display: flex; align-items: center; gap: .25rem; }
 header strong { flex: 1; }
 .words { font-weight: 700; font-size: var(--fs-md); }
 .small { margin: 0; font-size: var(--fs-sm); display: flex; gap: .35rem; align-items: center; }
+@media (max-width: 600px) { .join { bottom: 72px; right: .5rem; width: 168px; padding: .5rem; } }
 </style>
