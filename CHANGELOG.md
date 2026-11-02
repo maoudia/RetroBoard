@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0](https://github.com/maoudia/RetroBoard/compare/v1.27.0...v1.28.0) (2026-11-02)
+
+
+### Features
+
+* **landing:** join a board by pasting its link ([62e2880](https://github.com/maoudia/RetroBoard/commit/62e2880712b04e08479420d2957ea5dafd72dae3))
+
 ## [1.27.0](https://github.com/maoudia/RetroBoard/compare/v1.26.0...v1.27.0) (2026-11-02)
 
 
