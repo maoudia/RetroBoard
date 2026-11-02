@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/maoudia/RetroBoard/compare/v1.29.0...v1.30.0) (2026-11-02)
+
+
+### Features
+
+* **creation:** suggest the next sprint title from the last board ([11a9525](https://github.com/maoudia/RetroBoard/commit/11a95256562f034f28045ded32ef341eeb4d9ccd))
+
 ## [1.29.0](https://github.com/maoudia/RetroBoard/compare/v1.28.0...v1.29.0) (2026-11-02)
 
 
