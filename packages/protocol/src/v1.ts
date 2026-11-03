@@ -72,6 +72,7 @@ export const CommandSchema = v.variant('t', [
     maxVotesPerItem: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(LIMITS.maxVotes))),
     votable: v.optional(v.picklist(['notes', 'clusters', 'both'])),
     secretVoting: v.optional(v.boolean()),
+    votingEnabled: v.optional(v.boolean()),
     locked: v.optional(v.boolean()),
     browserAgentsAllowed: v.optional(v.boolean()),
     openFacilitation: v.optional(v.boolean()),

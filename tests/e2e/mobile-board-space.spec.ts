@@ -43,7 +43,7 @@ test('the voting bar is one compact row with the votes left as a pill on a phone
   expect((await bar.boundingBox())!.height).toBeLessThan(56)
   const pill = page.locator('.votebar .mid')
   const first = (await pill.boundingBox())!
-  const left = (await page.locator('.votebar .seg').boundingBox())!
+  const left = (await page.locator('.votebar .state').boundingBox())!
   expect(first.x).toBeLessThan(left.x)
   await expect(page.getByTestId('votes-left')).toBeVisible()
 })

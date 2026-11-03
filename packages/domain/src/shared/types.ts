@@ -97,6 +97,8 @@ export interface BoardSettings {
   secretVoting: boolean
   /** Voting phase over: no more votes, hidden counts are revealed to everyone at once. */
   votingClosed: boolean
+  /** Voting feature on or off for the whole board (chosen at creation); absent means on. */
+  votingEnabled?: boolean
   locked: boolean
   /** Facilitator policy: may participants let AI agents in their browser use this board (WebMCP)? */
   browserAgentsAllowed: boolean

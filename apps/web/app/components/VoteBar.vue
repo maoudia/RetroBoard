@@ -2,17 +2,8 @@
 import { votingState } from '@retroboard/application'
 const { t } = useT()
 const board = useBoardStore()
-const drafts = useDraftsStore()
-const { publish } = usePublish()
 const limit = computed(() => board.settings?.voteLimit ?? 0)
 const ui = useUiStore()
-/** Voting is not available in this phase (agenda rules): the voting buttons say so instead of staying active. */
-const gate = computed(() => board.availability('vote.add'))
-const votingOffTitle = computed(() => (gate.value.closedBy ? t('gated.vote.closed', { phase: t(`agenda.phase.${gate.value.closedBy}`) }) : undefined))
-/** Publishing is closed by the phase for me (facilitators are never blocked): the button says so instead of failing (#275). */
-const publishGate = computed(() => board.availability('note.addMany'))
-const publishClosed = computed(() => !publishGate.value.allowed && !!publishGate.value.closedBy)
-const publishOffTitle = computed(() => (publishClosed.value ? t('gated.publish.closed', { phase: t(`agenda.phase.${publishGate.value.closedBy}` as never) }) : undefined))
 const vstate = computed(() => (board.snapshot ? votingState(board.snapshot) : 'open'))
 const stateText = computed(() => {
   if (vstate.value === 'closed') return t('votebar.stateClosed')
@@ -20,6 +11,11 @@ const stateText = computed(() => {
   if (vstate.value === 'phase-closed') return t('votebar.statePhase')
   return t('votebar.stateOpen')
 })
+const isOpen = computed(() => vstate.value === 'open' || vstate.value === 'overridden')
+/** One word for the chip: what is true now. */
+const chipText = computed(() => t(isOpen.value ? 'votebar.voteOpen' : vstate.value === 'phase-closed' ? 'votebar.voteWaiting' : 'votebar.voteClosed'))
+const chipTitle = computed(() => (board.access.canSteer ? (isOpen.value ? t('votebar.closeAction') : t('votebar.openAction')) : t('roles.askFacilitator')))
+function toggleVoting() { if (isOpen.value) board.commands.closeVoting(); else openVoting() }
 /** Open voting: reopen after a close, or open it now outside the Vote phase (until the next phase change). */
 function openVoting() {
   if (vstate.value === 'closed') board.commands.reopenVoting()
@@ -29,32 +25,27 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 </script>
 
 <template>
+  <!-- One calm strip: my votes left, the state of voting as ONE clear chip (a facilitator taps it to open or close), then results and options.
+       Publishing all drafts lives in the toolbar. The whole bar only exists when voting is enabled on the board. -->
   <div class="votebar glass" data-testid="votebar">
-    <div class="left">
-      <span class="pill pill-votes" :title="t('votebar.votes', { n: limit })"><Icon name="lucide:thumbs-up" /><span class="sr-only">{{ t('votebar.votes', { n: limit }) }}</span></span>
-      <span v-if="board.locked" class="pill lock" :title="t('votebar.locked')"><Icon name="lucide:lock" /><span class="sr-only">{{ t('votebar.locked') }}</span></span>
-      <span v-if="board.votingClosed" class="pill closed" :title="t('votebar.closed')" data-testid="voting-closed"><Icon name="lucide:flag" /><span class="sr-only">{{ t('votebar.closed') }}</span></span>
-    </div>
-    <div class="mid" aria-live="polite">
+    <div class="mid" aria-live="polite" :title="t('votebar.votes', { n: limit })">
       <span class="dots" aria-hidden="true">
         <span v-for="i in limit" :key="i" class="d" :class="{ used: i > board.votesLeft }" />
       </span>
       <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span>
     </div>
+    <span v-if="board.locked" class="pill lock" :title="t('votebar.locked')"><Icon name="lucide:lock" /><span class="sr-only">{{ t('votebar.locked') }}</span></span>
     <div class="right">
-      <!-- Voting state, in words (change facilitator-controls-v2): facilitators switch it, everyone reads it. -->
-      <div class="seg" role="group" :aria-label="t('votebar.state')" :title="stateText" data-testid="voting-state" :data-state="vstate">
-        <button
-          type="button" class="segb" :class="{ on: vstate !== 'closed' && vstate !== 'phase-closed' }" :aria-pressed="vstate === 'open' || vstate === 'overridden'"
-          :disabled="!board.access.canSteer || vstate === 'open' || vstate === 'overridden'" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')"
-          data-testid="voting-open" @click="openVoting"
-        ><Icon name="lucide:lock-open" /><span class="lbl">{{ t(vstate === 'phase-closed' && board.access.canSteer ? 'votebar.openNow' : 'votebar.open') }}</span></button>
-        <button
-          type="button" class="segb" :class="{ on: vstate === 'closed' || vstate === 'phase-closed' }" :aria-pressed="vstate === 'closed' || vstate === 'phase-closed'"
-          :disabled="!board.access.canSteer || vstate === 'closed' || vstate === 'phase-closed'" :title="votingOffTitle"
-          data-testid="close-voting" @click="board.commands.closeVoting()"
-        ><Icon name="lucide:flag" /><span class="lbl">{{ t(board.secretVoting && vstate !== 'closed' && vstate !== 'phase-closed' ? 'votebar.closeReveal' : 'votebar.closedSeg') }}</span></button>
-      </div>
+      <button
+        type="button" class="state" :data-state="vstate" :aria-label="`${chipText}. ${stateText}`" :title="chipTitle ?? stateText"
+        :disabled="!board.access.canSteer"
+        :data-testid="isOpen ? 'close-voting' : 'voting-open'" data-voting-state-chip @click="toggleVoting"
+      >
+        <span class="dot" aria-hidden="true" />
+        <Icon :name="isOpen ? 'lucide:lock-open' : vstate === 'phase-closed' ? 'lucide:clock' : 'lucide:lock'" />
+        <span class="lbl">{{ chipText }}</span>
+        <span v-if="board.votingClosed" data-testid="voting-closed" class="sr-only" />
+      </button>
       <span class="state-text" role="status" data-testid="voting-state-text">{{ stateText }}</span>
       <button v-if="board.votingClosed" class="btn btn-sm ico-btn" type="button" :title="t('votebar.results')" data-testid="open-ranking" @click="ui.open('ranking')">
         <Icon name="lucide:trophy" /><span class="sr-only">{{ t('votebar.results') }}</span>
@@ -73,56 +64,43 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
           <button class="dd-item" type="button" role="menuitem" :disabled="board.locked || revealing" :title="t('votebar.reveal.title')" data-testid="reveal-all" @click="board.commands.revealDrafts(); close()">
             <Icon name="lucide:sparkles" /> {{ t('votebar.reveal') }}
           </button>
+          <button class="dd-item" type="button" role="menuitem" data-testid="voting-disable" @click="board.commands.updateSettings({ votingEnabled: false }); close()">
+            <Icon name="lucide:vote" /> {{ t('votebar.disable') }}
+          </button>
         </template>
       </Dropdown>
-      <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked || publishClosed" :title="publishOffTitle ?? t('votebar.publishAll')" data-testid="publish-all" @click="publish()">
-        <Icon name="lucide:send" /><span class="sr-only">{{ t('votebar.publishAll') }}<template v-if="drafts.count"> ({{ drafts.count }})</template></span><span v-if="drafts.count" aria-hidden="true">{{ drafts.count }}</span>
-      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.votebar { display: flex; align-items: center; justify-content: space-between; gap: .75rem 1.5rem; flex-wrap: wrap; padding: .5rem 1rem; border-bottom: 1px solid var(--border); }
-.left, .mid, .right { display: flex; align-items: center; gap: .6rem; }
-.right { flex-wrap: wrap; }
-.mid { font-size: var(--fs-md); }
+.votebar { display: flex; align-items: center; gap: .6rem 1rem; padding: .4rem 1rem; border-bottom: 1px solid var(--border); }
+.right { display: flex; align-items: center; gap: .5rem; margin-inline-start: auto; }
+.mid { display: flex; align-items: center; gap: .5rem; font-size: var(--fs-md); }
 .dots { display: inline-flex; gap: 5px; }
 .d { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 60%, transparent); transition: transform .3s var(--ease), background .3s, box-shadow .3s; }
 .d.used { background: var(--border); box-shadow: none; transform: scale(.75); }
-.closed { background: var(--accent-soft); color: var(--accent); }
 .lock { background: color-mix(in oklab, var(--danger) 18%, transparent); color: var(--danger); }
-.seg { display: inline-flex; flex: none; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
-.segb { display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: .2rem .75rem; border: 0; background: transparent; color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
-.segb:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 12%, transparent); }
-.segb.on { background: var(--accent-soft); color: var(--accent); }
-.segb:disabled { cursor: default; }
-.segb:disabled:not(.on) { opacity: .6; }
+/* The state of voting as one chip: colour says it (green open, neutral closed, dashed waiting), one word says it too. */
+.state { --tone: var(--success); display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: 0 .9rem 0 .75rem; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--tone) 55%, var(--border)); background: color-mix(in oklab, var(--tone) 14%, transparent); color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+.state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
+.state:disabled { cursor: default; }
+.state:hover:not(:disabled) { background: color-mix(in oklab, var(--tone) 24%, transparent); }
+.state[data-state="closed"] { --tone: var(--muted); }
+.state[data-state="phase-closed"] { --tone: var(--muted); border-style: dashed; }
 .state-text { font-size: var(--fs-sm); color: var(--muted); }
-/* One control height for the whole bar: the segmented switch, the buttons and the menu line up (change ux-irritants-wave-2). */
-.right .btn { min-height: 32px; }
-/* Icon-led strip: the inactive half of the switch and the secondary buttons show an icon only (text stays for assistive tech). */
-.segb:not(.on) .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.segb:not(.on) { padding-inline: .6rem; }
+.right .btn { min-height: 36px; }
 .ico-btn { width: 36px; padding: 0; justify-content: center; }
-/* Narrower than a wide desktop the long state sentence would push the buttons to a third row: it stays for screen readers. */
 @media (max-width: 1280px) {
   .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
-/* Phone: the bar stays two short rows. The pill repeats the dots, the state text stays for screen readers. */
-@media (max-width: 720px) {
-  .votebar { gap: .35rem 1rem; padding: .4rem .75rem; }
-  .pill-votes { display: none; }
-  .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-}
-/* Small screens: one row that slides sideways like the top toolbar, so the bar never takes column height. */
+/* Phone: one row that slides sideways like the toolbar, votes left as a pill at the start. */
+@media (max-width: 720px) { .votebar { gap: .35rem .6rem; padding: .35rem .75rem; } }
 @media (max-width: 600px) {
-  .votebar { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .votebar { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .votebar::-webkit-scrollbar { display: none; }
-  .left, .mid, .right { flex: none; flex-wrap: nowrap; white-space: nowrap; }
-  /* The votes left read as one compact pill at the start of the row (change mobile-board-space). */
-  .mid { order: -1; gap: .4rem; padding: .15rem .6rem; border-radius: var(--r-pill); background: var(--accent-soft); font-size: var(--fs-sm); }
+  .mid, .right { flex: none; white-space: nowrap; }
+  .mid { gap: .4rem; padding: .15rem .6rem; border-radius: var(--r-pill); background: var(--accent-soft); font-size: var(--fs-sm); }
   .d { width: 9px; height: 9px; }
 }
-.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 </style>

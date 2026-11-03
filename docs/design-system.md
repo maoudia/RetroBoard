@@ -53,6 +53,12 @@ Type roles: body `--fs-md`; secondary text and hints `--fs-sm` in `--muted`; bad
 - Setting rows with wide controls stack under their label under 600 px.
 - Time is shown as m:ss, then `1h05`, then `2d`; the phase clock stops when the planned time of the whole retro is used up.
 
+## 4c. Notifications (change toast-notifications-v2)
+
+- Toasts are floating cards docked under the header, never over a writing area or the board; fixed position, no layout shift. At most 3, newest last.
+- They wrap their text, stay inside the viewport minus 1rem gutters and safe areas, carry a tone icon and accent (ok, info, warn), and offer a 44 px action and a close button.
+- A thin line shows the time left; hover or focus pauses it; reduced motion removes the slide. Warnings use role alert, the others role status.
+
 ## 5. Adding or changing UI: checklist
 
 1. Use tokens from section 2; run `pnpm test` (the guard fails on off-scale sizes or radii).

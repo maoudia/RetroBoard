@@ -86,7 +86,7 @@ test.describe('time-boxed agenda', () => {
     await next(page)
     await expect(page.getByTestId('agenda-phase')).toHaveText('Écriture')
     await expect(noteByText(page, 'Votable idea').locator('[data-testid^="vote-"]')).toHaveCount(0)
-    await expect(page.getByTestId('close-voting')).toBeDisabled()
+    await expect(page.getByTestId('voting-open')).toBeVisible()
     await next(page)
     await next(page)
     await expect(page.getByTestId('agenda-phase')).toHaveText('Vote')

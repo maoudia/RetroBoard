@@ -189,8 +189,8 @@ html { scroll-padding-top: calc(var(--toolbar-actual, var(--toolbar-h, 64px)) + 
 main:focus { outline: none; }
 
 /* Personal placement of toasts and the time-up popup (setting notifyPos). Centre is the default. */
-:root[data-notify="left"] .toasts { left: 16px; translate: 0 0; justify-items: start; }
-:root[data-notify="right"] .toasts { left: auto; right: 16px; translate: 0 0; justify-items: end; }
+:root[data-notify="left"] .toasts { left: 16px; translate: 0 0; }
+:root[data-notify="right"] .toasts { left: auto; right: 16px; translate: 0 0; }
 :root[data-notify="left"] .end.end { left: 16px; translate: 0 0; animation: none; }
 :root[data-notify="right"] .end.end { left: auto; right: 16px; translate: 0 0; animation: none; }
 

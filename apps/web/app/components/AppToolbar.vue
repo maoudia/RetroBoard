@@ -6,6 +6,12 @@ const chat = useChatStore()
 const layout = useLayoutStore()
 const theme = useThemeStore()
 const settings = useSettingsStore()
+const drafts = useDraftsStore()
+const { publish } = usePublish()
+/** Publishing is closed by the phase for me (facilitators are never blocked): the button says so instead of failing (#275). */
+const publishGate = computed(() => board.availability('note.addMany'))
+const publishClosed = computed(() => !publishGate.value.allowed && !!publishGate.value.closedBy)
+const publishOffTitle = computed(() => (publishClosed.value ? t('gated.publish.closed', { phase: t(`agenda.phase.${publishGate.value.closedBy}` as never) }) : undefined))
 
 // The toolbar can wrap on narrow screens: keep the scroll padding (WCAG 2.4.11) equal to its real height.
 const el = useTemplateRef<HTMLElement>('toolbarEl')
@@ -64,6 +70,10 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
       <button class="icon-btn" type="button" data-testid="btn-filter" :aria-pressed="ui.filterOpen" @click="ui.filterOpen ? (ui.resetFilter(), ui.filterOpen = false) : (ui.filterOpen = true)"><Icon name="lucide:search" class="ico" /><span>{{ t('toolbar.filter') }}</span><KeyCap k="/" /></button>
       <button class="icon-btn" type="button" data-testid="btn-presenter" :aria-pressed="ui.presenter" @click="ui.presenter = !ui.presenter"><Icon name="lucide:presentation" class="ico" /><span>{{ t('toolbar.presenter') }}</span><KeyCap k="P" /></button>
       <button class="icon-btn" type="button" data-testid="btn-writing" :aria-pressed="!layout.writingHidden" @click="layout.setWritingHidden(!layout.writingHidden)"><Icon :name="layout.writingHidden ? 'lucide:pencil' : 'lucide:pencil-off'" class="ico" /><span>{{ t(layout.writingHidden ? 'toolbar.writing.show' : 'toolbar.writing.hide') }}</span><KeyCap k="W" /></button>
+      <!-- Publish every draft at once: lives with the writing controls, shown only while there is something to publish. -->
+      <button v-if="drafts.count" class="icon-btn publish-all" type="button" :disabled="board.locked || publishClosed" :title="publishOffTitle ?? t('toolbar.publishAll')" data-testid="publish-all" @click="publish()">
+        <Icon name="lucide:send" class="ico" /><span>{{ t('toolbar.publishAll') }}</span><span class="badge">{{ drafts.count }}</span>
+      </button>
       <ExportMenu />
       <ActivityFeed />
       <button class="icon-btn" type="button" data-testid="btn-options" @click="ui.open('options')"><Icon name="lucide:settings" class="ico" /><span>{{ t('toolbar.options') }}</span></button>

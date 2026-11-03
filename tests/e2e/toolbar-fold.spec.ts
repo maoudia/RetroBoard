@@ -64,8 +64,8 @@ test('the creation switch keeps the menu bar in presentation mode (change ux-irr
 
 test('the vote bar controls share one height and the bar stays on one or two rows (change ux-irritants-wave-2)', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
-  const heights = await page.getByTestId('votebar').locator('.segb, .right .btn').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)))
-  expect(heights.length).toBeGreaterThanOrEqual(3)
+  const heights = await page.getByTestId('votebar').locator('.state, .right .btn').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)))
+  expect(heights.length).toBeGreaterThanOrEqual(2)
   expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(2)
   expect((await page.getByTestId('votebar').boundingBox())!.height).toBeLessThan(100)
 })
@@ -80,7 +80,6 @@ test('the chevron is the last item at the right and the vote strip is one icon-l
   const strip = (await page.getByTestId('votebar').boundingBox())!
   expect(strip.height).toBeLessThanOrEqual(56)
   // Texts stay for assistive tech: the buttons keep their names.
-  await expect(page.getByRole('button', { name: /Publish all|Tout publier/ })).toBeVisible()
   await expect(page.getByTestId('votebar-more')).toHaveAccessibleName(/More|Plus/)
 })
 

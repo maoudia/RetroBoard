@@ -175,7 +175,7 @@ watch(needsSetup, (need) => {
 function sendSetup(s: SetupResult) {
   board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value, openFacilitation: s.facilitation !== 'one', ...(s.announceArrivals === false ? { announceArrivals: false } : {}), ...(s.votable ? { votable: s.votable } : {}) })
   // Votes per person and sealed ballot chosen at creation (advanced mode).
-  if (s.voteLimit !== undefined || s.secretVoting) board.commands.updateSettings({ ...(s.voteLimit !== undefined ? { voteLimit: s.voteLimit } : {}), ...(s.secretVoting ? { secretVoting: true } : {}) })
+  if (s.voteLimit !== undefined || s.secretVoting || s.votingEnabled === false) board.commands.updateSettings({ ...(s.votingEnabled === false ? { votingEnabled: false } : {}), ...(s.voteLimit !== undefined ? { voteLimit: s.voteLimit } : {}), ...(s.secretVoting ? { secretVoting: true } : {}) })
   // One facilitator: the creator's tab is the lead (it never gets the takeover question).
   if (s.facilitation === 'one' && board.myKey) { ui.takeoverAsked = true; board.sendRole('role.claim', board.myKey) }
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
@@ -332,7 +332,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <PresenterWalk v-if="board.ready && ui.presenter" />
       <PresenterSpotlight v-if="board.ready && ui.presenter" />
       <TalkBanner v-if="board.ready" />
-      <VoteBar v-if="board.ready" />
+      <VoteBar v-if="board.ready && board.votingEnabled" />
       <TurnBar v-if="board.ready && board.snapshot?.turn" />
       <RevealCountdown v-if="board.ready" />
       <BoardFilter v-if="board.ready && ui.filterOpen" />

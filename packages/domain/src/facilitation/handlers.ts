@@ -67,6 +67,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       maxVotesPerItem: Math.min(c.maxVotesPerItem ?? s.settings.maxVotesPerItem, c.voteLimit ?? s.settings.voteLimit),
       votable: c.votable ?? s.settings.votable,
       secretVoting: c.secretVoting ?? s.settings.secretVoting,
+      ...(c.votingEnabled !== undefined || s.settings.votingEnabled !== undefined ? { votingEnabled: c.votingEnabled ?? s.settings.votingEnabled } : {}),
       locked: c.locked ?? s.settings.locked,
       browserAgentsAllowed: c.browserAgentsAllowed ?? s.settings.browserAgentsAllowed,
       openFacilitation: c.openFacilitation ?? s.settings.openFacilitation,

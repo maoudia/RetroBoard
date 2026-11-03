@@ -44,7 +44,7 @@ function create({ passcode, ...form }: SetupResult) {
   const setup: SetupResult = {
     ...form,
     ...(carry.value.length ? { importActions: carry.value } : {}),
-    ...(a.enabled && a.phases.length ? { agenda: { phases: a.phases, rules: a.rules, autoPublish: a.autoPublish, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
+    ...(a.enabled && a.phases.length ? { agenda: { phases: form.votingEnabled === false ? a.phases.filter((p) => p.kind !== 'vote' && p.kind !== 'rank') : a.phases, rules: a.rules, autoPublish: a.autoPublish, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
   }
   const ring = { ...newKeyRing(), ...(passcode && !soloMode.value ? { passcode: true } : {}) }
   if (soloMode.value) markSolo(ring.roomId)

@@ -61,6 +61,10 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 
       <section class="grp">
         <h3>{{ t('options.votes') }}</h3>
+        <label class="line">
+          <span><strong>{{ t('setup.voting.enabled') }}</strong><small class="muted">{{ t('setup.voting.enabled.hint') }}</small></span>
+          <input type="checkbox" role="switch" class="switch" :checked="s.votingEnabled !== false" data-testid="opt-voting-enabled" @change="set({ votingEnabled: ($event.target as HTMLInputElement).checked })" />
+        </label>
         <div class="line">
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
           <span class="stepper">

@@ -80,7 +80,7 @@ function onDrop() {
       <button v-if="ui.presenter" class="mini-btn" type="button" :aria-label="t('presenter.spotlight.open')" :title="t('presenter.spotlight.open')" :data-testid="`note-spotlight-${note.id}`" @click.stop="ui.spotlightNoteId = note.id"><Icon name="lucide:expand" /></button>
       <LiveMarkers :peers="live.onNote.get(note.id)" :testid="`live-note-${note.id}`" />
       <!-- Notes inside a votable cluster are voted through the cluster. -->
-      <VoteControl v-if="note.votable" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />
+      <VoteControl v-if="note.votable && board.votingEnabled" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />
       <NoteMenu :note="note" :in-group="inGroup" @edit="startEdit" />
     </footer>
   </article>

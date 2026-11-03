@@ -51,3 +51,42 @@ test('leaving with unpublished drafts asks first', async ({ page, isMobile }) =>
   await page.close({ runBeforeUnload: true })
   expect(await dialog).toBe('beforeunload')
 })
+
+test('the publish toast floats under the header, never over a writing area, on a phone (change toast-notifications-v2)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Floating')
+  const toast = page.getByTestId('toasts').locator('.toast').first()
+  await expect(toast).toBeVisible()
+  const t = (await toast.boundingBox())!
+  const bar = (await page.locator('.toolbar').boundingBox())!
+  expect(t.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1)
+  expect(t.x).toBeGreaterThanOrEqual(0)
+  expect(t.x + t.width).toBeLessThanOrEqual(390)
+  const field = (await page.getByTestId(`draft-${(await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')}`).boundingBox())!
+  expect(t.y + t.height).toBeLessThan(field.y)
+  const action = (await page.getByTestId('undo-publish').boundingBox())!
+  expect(action.height).toBeGreaterThanOrEqual(44)
+  await toast.hover()
+  await page.waitForTimeout(500)
+  await expect(toast).toBeVisible()
+  await toast.getByRole('button', { name: /Fermer|Dismiss/ }).click()
+  await expect(toast).toHaveCount(0)
+})
+
+test('on a phone the field keeps focus after Add; Publish sends the whole stack of the column and closes the keyboard (change toast-notifications-v2)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const col = column(page, 0)
+  const field = col.locator('textarea')
+  await field.fill('First')
+  await col.locator('[data-testid^="compose-add-"]').click()
+  await expect(field).toBeFocused()
+  await field.fill('Second')
+  await col.locator('[data-testid^="compose-add-"]').click()
+  await expect(field).toBeFocused()
+  await field.fill('Third')
+  await col.locator('[data-testid^="compose-publish-"]').click()
+  for (const t of ['First', 'Second', 'Third']) await expect(noteByText(page, t)).toBeVisible()
+  await expect(field).not.toBeFocused()
+})

@@ -113,6 +113,8 @@ export const useBoardStore = defineStore('board', () => {
   const noteLimit = computed(() => snapshot.value?.settings.noteMaxLength ?? DEFAULT_NOTE_MAX_LENGTH)
   const locked = computed(() => snapshot.value?.settings.locked ?? false)
   const secretVoting = computed(() => snapshot.value?.settings.secretVoting ?? false)
+  /** The voting feature is on unless the board was created without it. */
+  const votingEnabled = computed(() => snapshot.value?.settings.votingEnabled !== false)
   const votingClosed = computed(() => snapshot.value?.settings.votingClosed ?? false)
   /** Counts are hidden while secret voting is on and voting is still open. */
   const countsHidden = computed(() => secretVoting.value && !votingClosed.value)
@@ -134,7 +136,7 @@ export const useBoardStore = defineStore('board', () => {
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, localCopy, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
-    settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
+    settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingEnabled, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,
   }
 })

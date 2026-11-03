@@ -2,7 +2,7 @@
 import { DEFAULT_VOTE_LIMIT, LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 import { nextTitle } from '~/utils/next-title'
 
-export interface SetupResult { voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
+export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
 /** Simple keeps title and format; theme, facilitation, popups, voting columns and passcode are advanced (change simple-advanced-mode). */
@@ -25,6 +25,8 @@ const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
 /** Votes per person and sealed ballot (advanced): applied right after the board exists. */
 const voteLimit = ref<number>(DEFAULT_VOTE_LIMIT)
 const secretVoting = ref(false)
+/** Voting on or off for the whole board: off removes the voting bar, the vote buttons and the vote phases. */
+const votingOn = ref(true)
 const passcode = ref('')
 /** "Everyone facilitates" is the default; "One facilitator" keeps the roles. */
 const facilitation = ref<'everyone' | 'one'>('everyone')
@@ -48,7 +50,7 @@ watch(() => agent.setupDraft, (draft) => {
 
 /** Creating without a passcode is an informed choice: the risks are stated first. */
 const confirmOpen = ref(false)
-const result = (): SetupResult => ({ templateId: templateId.value, themeId: props.themeId, title: title.value.trim() || t('setup.fallbackTitle'), locale: locale.value, facilitation: facilitation.value, announceArrivals: announceArrivals.value, ...(advanced.value && voteLimit.value !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit.value) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced.value && secretVoting.value ? { secretVoting: true } : {}), ...(customVotable.value ? { votable: [...votable.value] } : {}), ...(props.withPasscode && passcode.value ? { passcode: passcode.value } : {}) })
+const result = (): SetupResult => ({ templateId: templateId.value, themeId: props.themeId, title: title.value.trim() || t('setup.fallbackTitle'), locale: locale.value, facilitation: facilitation.value, announceArrivals: announceArrivals.value, ...(advanced.value && voteLimit.value !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit.value) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced.value && !votingOn.value ? { votingEnabled: false } : {}), ...(advanced.value && votingOn.value && secretVoting.value ? { secretVoting: true } : {}), ...(customVotable.value ? { votable: [...votable.value] } : {}), ...(props.withPasscode && passcode.value ? { passcode: passcode.value } : {}) })
 function onSubmit() {
   if (props.withPasscode && !passcode.value.trim()) { confirmOpen.value = true; return }
   emit('submit', result())
@@ -84,6 +86,11 @@ function onSubmit() {
 
       <fieldset class="tile votes" data-testid="setup-voting">
         <legend class="lbl">{{ t('setup.voting') }}</legend>
+        <label class="line">
+          <span><strong>{{ t('setup.voting.enabled') }}</strong><small class="muted">{{ t('setup.voting.enabled.hint') }}</small></span>
+          <input v-model="votingOn" type="checkbox" role="switch" class="switch" data-testid="setup-voting-enabled" />
+        </label>
+        <template v-if="votingOn">
         <label class="opt votes-per">
           <input v-model.number="voteLimit" class="field num" type="number" :min="LIMITS.minVotes" :max="LIMITS.maxVotes" inputmode="numeric" data-testid="setup-vote-limit" />
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
@@ -92,6 +99,7 @@ function onSubmit() {
           <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
           <input v-model="secretVoting" type="checkbox" role="switch" class="switch" data-testid="setup-secret" />
         </label>
+        </template>
       </fieldset>
 
       <details v-if="tpl" class="tile votable" data-testid="setup-votable" open>
