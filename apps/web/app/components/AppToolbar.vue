@@ -43,13 +43,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
           <NuxtLink to="/new" class="boards-new" data-testid="boards-new" @click="close()"><Icon name="lucide:plus" /> {{ t('toolbar.boards.new') }}</NuxtLink>
         </template>
       </Dropdown>
-      <!-- The menus slide away and a chevron stays to bring them back: by hand, on scroll on phones, and by default in
-      presenter mode (changes mobile-board-space and ux-irritants-wave-2). -->
-      <button
-      class="mini-btn chrome-toggle" type="button" :aria-expanded="!ui.chromeHidden" :aria-label="t(ui.chromeHidden ? 'toolbar.showMenus' : 'toolbar.hideMenus')"
-      :title="t(ui.chromeHidden ? 'toolbar.showMenus' : 'toolbar.hideMenus')" :data-testid="ui.chromeHidden ? 'chrome-show' : 'chrome-hide'" @click="ui.chromeHidden = !ui.chromeHidden"
-      ><Icon :name="ui.chromeHidden ? 'lucide:chevrons-down' : 'lucide:chevrons-up'" /></button>
-    </div>
+      </div>
 
     <!-- With an agenda, the phase ring is the shared countdown; otherwise the plain timer. -->
     <AgendaRing v-if="board.snapshot?.agenda" class="timer-slot" />
@@ -82,11 +76,17 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
       </button>
       <ProfileButton class="me" />
     </nav>
+    <!-- The menus slide away and a chevron stays to bring them back: by hand, on scroll on phones, and by default in
+      presenter mode (changes mobile-board-space and ux-irritants-wave-2). -->
+      <button
+      class="mini-btn chrome-toggle" type="button" :aria-expanded="!ui.chromeHidden" :aria-label="t(ui.chromeHidden ? 'toolbar.showMenus' : 'toolbar.hideMenus')"
+      :title="t(ui.chromeHidden ? 'toolbar.showMenus' : 'toolbar.hideMenus')" :data-testid="ui.chromeHidden ? 'chrome-show' : 'chrome-hide'" @click="ui.chromeHidden = !ui.chromeHidden"
+      ><Icon :name="ui.chromeHidden ? 'lucide:chevrons-down' : 'lucide:chevrons-up'" /></button>
   </header>
 </template>
 
 <style scoped>
-.toolbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; min-height: var(--toolbar-h); padding: .35rem 1rem; border-bottom: 1px solid var(--border); }
+.toolbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 1rem; min-height: var(--toolbar-h); padding: .35rem 1rem; border-bottom: 1px solid var(--border); }
 .brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
 .logo:hover { transform: rotate(-8deg) scale(1.08); }
@@ -102,8 +102,9 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 .tools > *, .tools :deep(.icon-btn) { flex: none; }
 .me { margin-left: .5rem; }
 @media (max-width: 1100px) {
-  .toolbar { grid-template-columns: 1fr auto; }
+  .toolbar { grid-template-columns: 1fr auto auto; }
   .timer-slot { grid-column: 2; grid-row: 1; }
+  .chrome-toggle { grid-column: 3; grid-row: 1; }
   /* One row that slides sideways instead of wrapping: the columns keep their space (change toolbar-mobile-scroll). */
   .tools {
     grid-column: 1 / -1; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none;
@@ -118,5 +119,5 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 @media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } .toolbar { padding-inline: 1rem; row-gap: .15rem; } }
 .toolbar[data-folded] { row-gap: 0; }
 /* The chevron sits next to the board switch and stays when the menus are away. */
-.chrome-toggle { flex: none; }
+.chrome-toggle { flex: none; align-self: center; justify-self: end; }
 </style>

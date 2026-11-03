@@ -218,7 +218,14 @@ watch(() => ui.presenter, (on) => {
     if (useSettingsStore().s.presenterHideMenus) ui.chromeHidden = true
   } else { delete document.documentElement.dataset.presenter; ui.focusColumn = null; ui.chromeHidden = menusBefore }
 })
-watch(() => ui.focusColumn, async (i) => { if (i === null) return; await nextTick(); document.querySelector('.col[data-focused]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }) })
+watch(() => ui.focusColumn, async (i) => {
+  if (i === null) return
+  await nextTick()
+  const go = () => document.querySelector('.col[data-focused]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  go()
+  // The accordion animates widths: the column moves while it grows, so aim again once it has settled (change ux-irritants-wave-3).
+  setTimeout(go, 450)
+})
 // Column focus (presenter-mode-v2): the attribute drives the layout in base.css.
 watch(() => [ui.presenter, ui.focusColumn, ui.focusStyle] as const, ([on, col, style]) => {
   const d = document.documentElement.dataset

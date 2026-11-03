@@ -69,3 +69,34 @@ test('the vote bar controls share one height and the bar stays on one or two row
   expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(2)
   expect((await page.getByTestId('votebar').boundingBox())!.height).toBeLessThan(100)
 })
+
+test('the chevron is the last item at the right and the vote strip is one icon-led row on a phone (change ux-irritants-wave-3)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  const chev = (await page.getByTestId('chrome-hide').boundingBox())!
+  expect(chev.x + chev.width).toBeGreaterThan(390 - 24)
+  const timer = (await page.locator('header.toolbar .timer-slot').boundingBox())!
+  expect(chev.x).toBeGreaterThanOrEqual(timer.x + timer.width - 1)
+  const strip = (await page.getByTestId('votebar').boundingBox())!
+  expect(strip.height).toBeLessThanOrEqual(56)
+  // Texts stay for assistive tech: the buttons keep their names.
+  await expect(page.getByRole('button', { name: /Publish all|Tout publier/ })).toBeVisible()
+  await expect(page.getByTestId('votebar-more')).toHaveAccessibleName(/More|Plus/)
+})
+
+test('the writing area shows no explanatory sentence, only icons and a chevron, with names kept (change ux-irritants-wave-3)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  const area = page.locator('section.priv').first()
+  const visible = await area.evaluate((el) => {
+    const out: string[] = []
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const p = n.parentElement!
+      if (p.closest('.sr-only') || !n.textContent!.trim()) continue
+      if (getComputedStyle(p).visibility !== 'hidden') out.push(n.textContent!.trim())
+    }
+    return out
+  })
+  expect(visible.join(' ')).not.toMatch(/Only you|Seulement toi|Write here|PRIVATE|Privé/i)
+  await expect(area.getByRole('button', { name: /Add|Ajouter/ })).toBeVisible()
+})

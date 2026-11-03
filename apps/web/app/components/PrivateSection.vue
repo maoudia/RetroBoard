@@ -103,7 +103,8 @@ function onKey(e: KeyboardEvent) {
     <div class="priv-clip" :inert="folded">
   <section class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
     <header>
-      <span class="title"><Icon name="lucide:eye-off" /> {{ t('private.title') }}</span>
+      <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
+      <GatedHint compact :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
       <Dropdown menu>
         <template #trigger="{ toggle, open }">
           <button class="mini-btn" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('private.area')" :title="t('private.area')" :data-testid="`area-menu-${column.id}`" @click="toggle">
@@ -118,7 +119,7 @@ function onKey(e: KeyboardEvent) {
       </Dropdown>
       <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevron-down" /></button>
       <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
-        <Icon name="lucide:send" /> {{ t('private.publish') }} ({{ mine.length }})
+        <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
     </header>
 
@@ -132,7 +133,6 @@ function onKey(e: KeyboardEvent) {
       </li>
     </ul>
 
-    <GatedHint :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
     <label class="composer" :class="{ gated: closed }" :style="{ '--c': `var(--note-${colour})` }">
       <span class="sr-only">{{ t('private.newIn', { title: column.title }) }}</span>
       <textarea
@@ -141,7 +141,7 @@ function onKey(e: KeyboardEvent) {
         :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         :style="fieldH ? { minHeight: `${fieldH}px`, height: `${fieldH}px` } : undefined" @keydown="onKey"
       />
-      <small class="hint-row"><span>{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
+      <small class="hint-row"><span class="sr-only">{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
       <span
         class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
         :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @keydown="growKey"
@@ -170,8 +170,8 @@ function onKey(e: KeyboardEvent) {
         </template>
         <p class="help-text">{{ t('private.keys') }}</p>
       </Dropdown>
-      <button class="btn btn-sm" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /> {{ t('private.publishNow') }}</button>
-      <button class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /> {{ t('private.add') }}</button>
+      <button class="btn btn-sm act act-publish" type="button" :title="t('private.publishNow')" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /><span class="sr-only">{{ t('private.publishNow') }}</span></button>
+      <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('private.add')" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /><span class="sr-only">{{ t('private.add') }}</span></button>
     </div>
     <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
@@ -180,7 +180,7 @@ function onKey(e: KeyboardEvent) {
   </section>
     </div>
     <button v-if="folded" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
-      <Icon name="lucide:pencil" /> {{ t('private.open') }}<span v-if="mine.length" class="n">({{ mine.length }})</span>
+      <Icon name="lucide:chevron-up" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
     </button>
   </div>
 </template>
@@ -226,6 +226,13 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .colour-btn .dot { position: absolute; right: 3px; bottom: 3px; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px var(--border); }
 .help-text { margin: 0; padding: .5rem .65rem; font-size: var(--fs-sm); color: var(--text); }
 .compose-actions > .sig-group { margin-right: 0; }
+/* Icon-led actions: colour carries the intent (add = outline accent, publish = filled accent), text stays for assistive tech. */
+.act { width: 42px; min-height: 36px; padding: 0; justify-content: center; border-radius: var(--r-pill); }
+.act-publish { margin-left: auto; border-color: var(--accent); color: var(--accent); background: transparent; }
+.act-publish:hover:not(:disabled) { background: var(--accent-soft); }
+.act-add { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.act-add:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 88%, #000); }
+.hint-row { justify-content: flex-end; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(24px, 1fr)); gap: 5px; padding: 0 .2rem; }
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }
 .sw.on { border-color: var(--text); }

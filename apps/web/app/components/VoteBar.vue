@@ -31,9 +31,9 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 <template>
   <div class="votebar glass" data-testid="votebar">
     <div class="left">
-      <span class="pill pill-votes"><Icon name="lucide:thumbs-up" /> {{ t('votebar.votes', { n: limit }) }}</span>
-      <span v-if="board.locked" class="pill lock"><Icon name="lucide:lock" /> {{ t('votebar.locked') }}</span>
-      <span v-if="board.votingClosed" class="pill closed" data-testid="voting-closed"><Icon name="lucide:flag" /> {{ t('votebar.closed') }}</span>
+      <span class="pill pill-votes" :title="t('votebar.votes', { n: limit })"><Icon name="lucide:thumbs-up" /><span class="sr-only">{{ t('votebar.votes', { n: limit }) }}</span></span>
+      <span v-if="board.locked" class="pill lock" :title="t('votebar.locked')"><Icon name="lucide:lock" /><span class="sr-only">{{ t('votebar.locked') }}</span></span>
+      <span v-if="board.votingClosed" class="pill closed" :title="t('votebar.closed')" data-testid="voting-closed"><Icon name="lucide:flag" /><span class="sr-only">{{ t('votebar.closed') }}</span></span>
     </div>
     <div class="mid" aria-live="polite">
       <span class="dots" aria-hidden="true">
@@ -48,22 +48,22 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
           type="button" class="segb" :class="{ on: vstate !== 'closed' && vstate !== 'phase-closed' }" :aria-pressed="vstate === 'open' || vstate === 'overridden'"
           :disabled="!board.access.canSteer || vstate === 'open' || vstate === 'overridden'" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')"
           data-testid="voting-open" @click="openVoting"
-        ><Icon name="lucide:lock-open" /> {{ t(vstate === 'phase-closed' && board.access.canSteer ? 'votebar.openNow' : 'votebar.open') }}</button>
+        ><Icon name="lucide:lock-open" /><span class="lbl">{{ t(vstate === 'phase-closed' && board.access.canSteer ? 'votebar.openNow' : 'votebar.open') }}</span></button>
         <button
           type="button" class="segb" :class="{ on: vstate === 'closed' || vstate === 'phase-closed' }" :aria-pressed="vstate === 'closed' || vstate === 'phase-closed'"
           :disabled="!board.access.canSteer || vstate === 'closed' || vstate === 'phase-closed'" :title="votingOffTitle"
           data-testid="close-voting" @click="board.commands.closeVoting()"
-        ><Icon name="lucide:flag" /> {{ t(board.secretVoting && vstate !== 'closed' && vstate !== 'phase-closed' ? 'votebar.closeReveal' : 'votebar.closedSeg') }}</button>
+        ><Icon name="lucide:flag" /><span class="lbl">{{ t(board.secretVoting && vstate !== 'closed' && vstate !== 'phase-closed' ? 'votebar.closeReveal' : 'votebar.closedSeg') }}</span></button>
       </div>
       <span class="state-text" role="status" data-testid="voting-state-text">{{ stateText }}</span>
-      <button v-if="board.votingClosed" class="btn btn-sm" type="button" data-testid="open-ranking" @click="ui.open('ranking')">
-        <Icon name="lucide:trophy" /> {{ t('votebar.results') }}
+      <button v-if="board.votingClosed" class="btn btn-sm ico-btn" type="button" :title="t('votebar.results')" data-testid="open-ranking" @click="ui.open('ranking')">
+        <Icon name="lucide:trophy" /><span class="sr-only">{{ t('votebar.results') }}</span>
       </button>
       <!-- Facilitator-only controls grouped in one menu (change facilitator-controls-v2). -->
       <Dropdown v-if="board.access.canSteer" menu>
         <template #trigger="{ toggle, open }">
-          <button class="btn btn-sm" type="button" aria-haspopup="menu" :aria-expanded="open" data-testid="votebar-more" @click="toggle">
-            <Icon name="lucide:sliders-horizontal" /> {{ t('votebar.more') }}
+          <button class="btn btn-sm ico-btn" type="button" aria-haspopup="menu" :aria-expanded="open" :title="t('votebar.more')" data-testid="votebar-more" @click="toggle">
+            <Icon name="lucide:sliders-horizontal" /><span class="sr-only">{{ t('votebar.more') }}</span>
           </button>
         </template>
         <template #default="{ close }">
@@ -75,8 +75,8 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
           </button>
         </template>
       </Dropdown>
-      <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked || publishClosed" :title="publishOffTitle" data-testid="publish-all" @click="publish()">
-        <Icon name="lucide:send" /> {{ t('votebar.publishAll') }}<span v-if="drafts.count"> ({{ drafts.count }})</span>
+      <button class="btn btn-sm btn-primary" type="button" :disabled="!drafts.count || board.locked || publishClosed" :title="publishOffTitle ?? t('votebar.publishAll')" data-testid="publish-all" @click="publish()">
+        <Icon name="lucide:send" /><span class="sr-only">{{ t('votebar.publishAll') }}<template v-if="drafts.count"> ({{ drafts.count }})</template></span><span v-if="drafts.count" aria-hidden="true">{{ drafts.count }}</span>
       </button>
     </div>
   </div>
@@ -101,6 +101,10 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 .state-text { font-size: var(--fs-sm); color: var(--muted); }
 /* One control height for the whole bar: the segmented switch, the buttons and the menu line up (change ux-irritants-wave-2). */
 .right .btn { min-height: 32px; }
+/* Icon-led strip: the inactive half of the switch and the secondary buttons show an icon only (text stays for assistive tech). */
+.segb:not(.on) .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.segb:not(.on) { padding-inline: .6rem; }
+.ico-btn { width: 36px; padding: 0; justify-content: center; }
 /* Narrower than a wide desktop the long state sentence would push the buttons to a third row: it stays for screen readers. */
 @media (max-width: 1280px) {
   .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

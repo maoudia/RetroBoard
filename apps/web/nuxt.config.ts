@@ -11,7 +11,7 @@ const dynamicIcons = [
   'palette', 'wand-sparkles', 'sparkles', 'layers', 'ungroup', 'copy', 'link', 'file-text',
   'file-spreadsheet', 'file-json', 'send', 'user-round', 'chevron-down', 'grip-vertical', 'moon',
   'arrow-left', 'arrow-right', 'arrow-up', 'arrow-down', 'plus', 'dices', 'wifi-off', 'loader',
-  'columns-3', 'message-square-plus', 'folder-output', 'list-plus', 'circle-check', 'triangle-alert', 'compass', 'monitor-x', 'pencil-off', 'chevrons-down', 'chevrons-up', 'octagon-x', 'minimize-2', 'maximize-2', 'move-horizontal', 'bug', 'lightbulb', 'message-circle', 'link-2-off',
+  'columns-3', 'message-square-plus', 'folder-output', 'list-plus', 'circle-check', 'triangle-alert', 'compass', 'monitor-x', 'pencil-off', 'chevrons-down', 'chevrons-up', 'octagon-x', 'chevron-up', 'minimize-2', 'maximize-2', 'move-horizontal', 'bug', 'lightbulb', 'message-circle', 'link-2-off',
 ].map((n) => `lucide:${n}`)
 
 export default defineNuxtConfig({

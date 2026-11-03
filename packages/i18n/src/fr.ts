@@ -1004,7 +1004,7 @@ export const fr = {
   'private.signedHint': 'Ton nom apparaît sur les post-its que tu publies. Clique pour rester anonyme.',
   'private.anonymousHint': 'Tes post-its sont anonymes. Clique pour les signer de ton nom.',
   'private.publishNow': 'Publier maintenant',
-  'private.placeholderTouch': 'Écris ici, puis touche Ajouter ou Publier.',
+  'private.placeholderTouch': "Écris une idée...",
   'private.publishOne': 'Publier ce post-it',
   'private.deleteDraft': 'Supprimer le brouillon',
   'private.newIn': 'Nouveau post-it privé dans {title}',

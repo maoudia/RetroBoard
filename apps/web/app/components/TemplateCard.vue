@@ -33,6 +33,6 @@ defineEmits<{ pick: [] }>()
 .desc { color: var(--muted); font-size: var(--fs-sm); }
 .cols { display: flex; flex-wrap: wrap; gap: 6px; }
 .col { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; border-radius: 999px; font-size: var(--fs-xs); font-weight: 700; background: var(--c); color: var(--note-ink); }
-.why { display: flex; align-items: center; gap: .4rem; color: var(--success); font-size: var(--fs-xs); font-weight: 600; }
+.why { display: flex; align-items: center; gap: .4rem; color: color-mix(in oklab, var(--success) 65%, var(--text)); font-size: var(--fs-xs); font-weight: 600; }
 .best { position: absolute; top: -10px; right: 12px; display: inline-flex; gap: .3rem; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 800; background: var(--accent2); color: var(--accent-ink); }
 </style>

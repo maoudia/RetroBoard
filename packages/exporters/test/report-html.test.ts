@@ -14,7 +14,7 @@ function board() {
   const meetings = Object.keys(h.state.notes)[1]!
   h.run({ t: 'vote.add', kind: 'note', id: meetings })
   h.run({ t: 'action.add', text: 'Cache deps', owner: 'Ana', due: '2026-11-01' })
-  h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }] })
+  h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }, { kind: 'vote', minutes: 5 }] })
   h.run({ t: 'agenda.start' })
   h.tick(6 * MIN)
   h.run({ t: 'agenda.end' })

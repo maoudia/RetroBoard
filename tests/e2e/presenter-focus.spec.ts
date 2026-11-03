@@ -186,3 +186,20 @@ test('on a phone the presenter controls do not overlap and the walk button is an
   }
   expect((await page.getByTestId('walk-start').boundingBox())!.width).toBeLessThan(60)
 })
+
+test('accordion on a phone keeps the focused column fully visible going forward and backward (change ux-irritants-wave-3)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-presenter').click()
+  await page.getByTestId('focus-accordion').click()
+  const visible = async () => {
+    const b = (await page.locator('.col[data-focused]').boundingBox())!
+    expect(b.x).toBeGreaterThanOrEqual(-1)
+    expect(b.x + b.width).toBeLessThanOrEqual(391)
+  }
+  for (const key of ['ArrowRight', 'ArrowRight', 'ArrowLeft', 'ArrowLeft', 'ArrowRight']) {
+    await page.keyboard.press(key)
+    await expect(page.locator('.col[data-focused]')).toHaveCount(1)
+    await expect(visible).toPass()
+  }
+})

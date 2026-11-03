@@ -1005,7 +1005,7 @@ export const en: Record<keyof typeof fr, string> = {
   'private.signedHint': 'Your name is shown on the notes you publish. Click to stay anonymous.',
   'private.anonymousHint': 'Your notes are anonymous. Click to sign them with your name.',
   'private.publishNow': 'Publish now',
-  'private.placeholderTouch': 'Write here, then tap Add or Publish.',
+  'private.placeholderTouch': "Write an idea...",
   'private.publishOne': 'Publish this note',
   'private.deleteDraft': 'Delete draft',
   'private.newIn': 'New private note in {title}',
