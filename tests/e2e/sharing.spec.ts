@@ -113,11 +113,14 @@ test('the share dialog gives the link and its buttons full, thumb-sized rows on 
   await page.setViewportSize({ width: 390, height: 780 })
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await page.getByTestId('btn-share').click()
-  const url = (await page.getByTestId('share-url').boundingBox())!
-  const copy = (await page.getByTestId('copy-link').boundingBox())!
-  expect(copy.y).toBeGreaterThan(url.y + url.height - 1)
-  expect(Math.abs(copy.width - url.width)).toBeLessThan(4)
-  expect(copy.height).toBeGreaterThanOrEqual(43)
+  // The dialog scales in: measure once its animation is over.
+  await expect(async () => {
+    const url = (await page.getByTestId('share-url').boundingBox())!
+    const copy = (await page.getByTestId('copy-link').boundingBox())!
+    expect(copy.y).toBeGreaterThan(url.y + url.height - 1)
+    expect(Math.abs(copy.width - url.width)).toBeLessThan(4)
+    expect(copy.height).toBeGreaterThanOrEqual(43)
+  }).toPass()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 
