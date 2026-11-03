@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.37.0](https://github.com/maoudia/RetroBoard/compare/v1.36.0...v1.37.0) (2026-11-03)
+
+
+### Features
+
+* **clock:** chronometer stops at the global planned time; docs: ux-irritants-wave-3 change ([586546d](https://github.com/maoudia/RetroBoard/commit/586546d82fd92d9172da62a0b214e6e7131fc3a2))
+* **facilitation:** column turns with zoom and mask; fix(profile): stacked setting rows; docs: calm controls ([10bb977](https://github.com/maoudia/RetroBoard/commit/10bb977761c89a978a27a72fbf4941594e5e9e53))
+* **ui:** calm icon-led writing area and vote strip, chevron at the right, accordion fix on phones ([89810d1](https://github.com/maoudia/RetroBoard/commit/89810d1aebc4f31418d3b578d3b44a37d22ae6a6))
+
 ## [1.36.0](https://github.com/maoudia/RetroBoard/compare/v1.35.0...v1.36.0) (2026-11-02)
 
 
