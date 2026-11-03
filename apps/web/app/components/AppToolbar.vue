@@ -130,6 +130,15 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 @media (prefers-reduced-motion: no-preference) { .tools { scroll-behavior: smooth; } }
 /* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
 @media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } .toolbar { padding-inline: 1rem; row-gap: .15rem; } }
+/* Phone: the board title (not its theme line) and the shield share the first row with the compact clock; the board switcher stays in the profile and on the home page. */
+@media (max-width: 520px) {
+  .toolbar { gap: .5rem; }
+  .brand { gap: .35rem; }
+  .logo { width: 34px; height: 34px; }
+  .title { padding-inline: .25rem; }
+  .title small { display: none; }
+  .brand :deep(.boards-btn) { display: none; }
+}
 .toolbar[data-folded] { row-gap: 0; }
 /* The chevron sits next to the board switch and stays when the menus are away. */
 .chrome-toggle { flex: none; align-self: center; justify-self: end; }

@@ -150,6 +150,14 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
 .go { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-md); cursor: pointer; transition: transform .15s var(--ease); }
 .go:hover { transform: scale(1.08); }
 .ring { display: inline-flex; align-items: center; gap: .6rem; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text); cursor: pointer; }
+/* Phone: a compact pill (smaller ring, no caption) so the board title keeps its place beside it. */
+@media (max-width: 520px) {
+  .clockrow { --ring-size: 40px; gap: .25rem; }
+  .ring { gap: .4rem; }
+  .ring :deep(svg) { width: 40px; height: 40px; }
+  .txt small { display: none; }
+  .txt strong { font-size: var(--fs-md); }
+}
 .txt { display: grid; line-height: 1.1; text-align: left; }
 .txt strong { font-size: var(--fs-lg); }
 .txt small { font-size: var(--fs-xs); color: var(--muted); }
