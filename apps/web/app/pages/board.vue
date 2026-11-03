@@ -279,8 +279,18 @@ function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventD
 const phaseEnd = usePhaseEnd()
 useBoardAnnouncements()
 useShortcuts()
-onMounted(() => { document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
-onBeforeUnmount(() => { if (ui.presenter && board.ready) board.commands.setPresenting(false); document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
+/** Ctrl/Cmd+Z takes back my latest group, move, edit or colour change (change board-undo-rewind); fields keep their own undo. */
+function onUndoKey(e: KeyboardEvent) {
+  if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z') return
+  const owner = keyboardOwner(e.target)
+  if (owner.typing) return
+  e.preventDefault()
+  const done = board.commands.undo()
+  if (!done) { push(t('undo.nothing'), 'info'); return }
+  push(t(done.result.ok ? `undo.${done.label}` : 'undo.failed'), done.result.ok ? 'ok' : 'warn')
+}
+onMounted(() => { document.addEventListener('keydown', onUndoKey); document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
+onBeforeUnmount(() => { if (ui.presenter && board.ready) board.commands.setPresenting(false); document.removeEventListener('keydown', onUndoKey); document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
 const shareAfterReview = ref(false)
 watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog === null && (!shareAfterReview.value || ui.reviewDone), (go) => {
   if (!go) return

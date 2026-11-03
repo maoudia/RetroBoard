@@ -93,7 +93,9 @@ export const useBoardStore = defineStore('board', () => {
   const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
   const exportBoardFile = () => transport?.exportBoardFile?.() ?? Promise.resolve(null)
   const importBoardFile = (text: string) => transport?.importBoardFile?.(text) ?? Promise.resolve(null)
-  const commands = createBoardCommands({ channel: () => transport, view: () => snapshot.value })
+  /** How many of my reversible actions can still be undone (Ctrl+Z). */
+  const undoDepth = ref(0)
+  const commands = createBoardCommands({ channel: () => transport, view: () => snapshot.value, onHistory: (n) => { undoDepth.value = n } })
   /** Subscribe to snapshot transitions (animations need the previous one). */
   function onSnapshot(fn: (prev: Snapshot | null, next: Snapshot) => void) {
     listeners.add(fn)
@@ -135,7 +137,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, localCopy, roomFull, roomCode, links, myKey,
-    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
+    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
     settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingEnabled, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,
   }

@@ -1,6 +1,7 @@
 import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
+import { createUndoStack, inverseOf, type UndoLabel } from './history'
 
 /** Errors a board use case can return before or instead of reaching the room. */
 export type BoardError = ErrorCode | 'offline'
@@ -11,6 +12,8 @@ export interface BoardCommandDeps {
   channel(): BoardChannel | null
   /** Latest snapshot seen by this participant, null before the first one. */
   view(): Snapshot | null
+  /** Called with the number of actions that can be undone, after each change of the history. */
+  onHistory?(size: number): void
 }
 
 export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
@@ -25,6 +28,16 @@ export function createBoardCommands(deps: BoardCommandDeps) {
   const send = (cmd: Command): BoardResult => (deps.channel()?.send(cmd) ? ok() : err('offline'))
   const locked = () => deps.view()?.settings.locked ?? false
   const whenOpen = (cmd: Command): BoardResult => (locked() ? err('locked') : send(cmd))
+  // Reversible actions of this participant, undone with compensating commands (change board-undo-rewind).
+  const history = createUndoStack()
+  const changed = () => deps.onHistory?.(history.size)
+  /** Sends a reversible command and remembers how to take it back; the inverse is computed from the state before it. */
+  const tracked = (cmd: Command, guarded: boolean): BoardResult => {
+    const inverse = inverseOf(cmd, deps.view())
+    const r = guarded ? whenOpen(cmd) : send(cmd)
+    if (r.ok && inverse) { history.push(inverse); changed() }
+    return r
+  }
 
   return {
     /** Publishes drafts in batches the protocol accepts; stops at the first failure. */
@@ -36,13 +49,13 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       }
       return ok()
     },
-    editNote: (id: string, text: string) => whenOpen({ t: 'note.edit', id, text }),
+    editNote: (id: string, text: string) => tracked({ t: 'note.edit', id, text }, true),
     deleteNote: (id: string) => whenOpen({ t: 'note.delete', id }),
-    moveNote: (id: string, columnId: string) => whenOpen({ t: 'note.move', id, columnId }),
-    recolorNote: (id: string, color: number) => send({ t: 'note.color', id, color }),
+    moveNote: (id: string, columnId: string) => tracked({ t: 'note.move', id, columnId }, true),
+    recolorNote: (id: string, color: number) => tracked({ t: 'note.color', id, color }, false),
     recolorGroup: (id: string, color: number) => send({ t: 'group.recolor', id, color }),
-    groupNotes: (id: string, ontoId: string) => (id === ontoId ? ok() : whenOpen({ t: 'note.group', id, ontoId })),
-    ungroupNote: (id: string) => whenOpen({ t: 'note.ungroup', id }),
+    groupNotes: (id: string, ontoId: string) => (id === ontoId ? ok() : tracked({ t: 'note.group', id, ontoId }, true)),
+    ungroupNote: (id: string) => tracked({ t: 'note.ungroup', id }, true),
     freeze: (id: string) => send({ t: 'note.freeze', id }),
     pin: (id: string) => send({ t: 'note.pin', id }),
     unpin: (id: string) => send({ t: 'note.unpin', id }),
@@ -52,6 +65,18 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     moveGroup: (id: string, columnId: string) => whenOpen({ t: 'group.move', id, columnId }),
     mergeGroups: (id: string, ontoId: string) => (id === ontoId ? ok() : whenOpen({ t: 'group.merge', id, ontoId })),
 
+    /** Takes back my latest reversible action (group, ungroup, move, edit, colour). Returns what was undone, or null when nothing can be. */
+    undo(): { result: BoardResult; label: UndoLabel } | null {
+      const step = history.pop()
+      if (!step) return null
+      changed()
+      for (const c of step.commands) {
+        const r = locked() ? err('locked') : send(c)
+        if (!r.ok) return { result: r, label: step.label }
+      }
+      return { result: ok(), label: step.label }
+    },
+    canUndo: () => history.size > 0,
     /** Adds one vote, checking locally what the participant can already know (budget, cap, phase). */
     addVote(kind: VotableKind, id: string): BoardResult {
       const view = deps.view()
