@@ -216,6 +216,9 @@ test('board file: export, then restore into the same link after the board is gon
   // Nobody holds the board: the facilitator's new browser waits instead of inventing a second board.
   await expect(fresh.getByTestId('board-waiting')).toBeVisible()
   await expect(fresh.getByTestId('board')).toHaveCount(0)
+  // A dead end never: the home page and the retention setting are one tap away (change toast-notifications-v2).
+  await expect(fresh.getByTestId('waiting-home')).toHaveAttribute('href', '/')
+  await expect(fresh.getByTestId('waiting-profile')).toBeVisible()
   // "Try again" reconnects without leaving the page (change board-recovery).
   await expect(fresh.getByTestId('waiting-local')).toContainText(/Aucune copie|No copy/)
   await fresh.getByTestId('waiting-retry').dispatchEvent('click') // the name dialog sits above the screen

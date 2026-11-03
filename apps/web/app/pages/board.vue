@@ -312,6 +312,11 @@ watch(() => board.snapshot?.agenda?.current, (cur, prev) => {
   if (a.autoPublish && a.phases[prev]?.kind === 'write' && drafts.count > 0) publishDrafts()
 })
 
+// The Write phase is for writing: entering it (or opening the board during it) unfolds every writing area.
+const layoutStore = useLayoutStore()
+const phaseKind = computed(() => { const a = board.snapshot?.agenda; return a && a.current >= 0 ? a.phases[a.current]?.kind : undefined })
+watch(phaseKind, (k) => { if (k === 'write' && (layoutStore.writingHidden || Object.keys(layoutStore.current.writeOff ?? {}).length)) layoutStore.setWritingHidden(false) }, { immediate: true })
+
 const offline = computed(() => board.status === 'reconnecting' || board.status === 'connecting')
 </script>
 

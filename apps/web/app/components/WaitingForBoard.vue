@@ -12,6 +12,7 @@ onMounted(() => { timer = setInterval(() => emit('retry'), 20_000) })
 onBeforeUnmount(() => clearInterval(timer))
 const { t } = useT()
 const board = useBoardStore()
+const ui = useUiStore()
 const { push } = useToasts()
 const fileInput = ref<HTMLInputElement | null>(null)
 const confirmOpen = ref(false)
@@ -35,6 +36,10 @@ async function restore(e: Event) {
     <p class="muted diag" data-testid="waiting-local">{{ board.localCopy === null ? t('board.waiting.local.error') : board.localCopy ? t('board.waiting.local.some', { n: board.localCopy }) : t('board.waiting.local.none') }}</p>
     <p v-if="useSettingsStore().s.retentionDays === 0" class="muted diag" data-testid="waiting-tab-only">{{ t('board.waiting.local.tabOnly') }}</p>
     <button class="btn" type="button" data-testid="waiting-retry" @click="emit('retry')"><Icon name="lucide:refresh-cw" /> {{ t('board.waiting.retry') }}</button>
+    <div class="actions">
+      <NuxtLink class="btn" to="/" data-testid="waiting-home"><Icon name="lucide:house" /> {{ t('service.home') }}</NuxtLink>
+      <button class="btn" type="button" data-testid="waiting-profile" @click="ui.open('profile')"><Icon name="lucide:user-round-cog" /> {{ t('board.waiting.profile') }}</button>
+    </div>
     <div v-if="canStart" class="actions">
       <button class="btn" type="button" data-testid="waiting-restore" @click="fileInput?.click()"><Icon name="lucide:file-up" /> {{ t('boardFile.import') }}</button>
       <input ref="fileInput" type="file" accept=".retro,application/json" class="visually-hidden" tabindex="-1" aria-hidden="true" data-testid="waiting-restore-input" @change="restore" />

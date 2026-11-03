@@ -429,6 +429,7 @@ export const fr = {
   'board.reconnecting': 'Connexion perdue. Tes modifications sont gardées et envoyées dès que tu es de retour.',
   'board.replicaFailing': 'Cet appareil ne peut pas enregistrer le board (stockage plein ou bloqué). Exporte un fichier de board pour garder ton travail.',
   'board.waiting.retry': 'Réessayer',
+  'board.waiting.profile': 'Regler la conservation des boards',
   'board.waiting.local.none': "Aucune copie de ce board dans ce navigateur : il vient d'un autre appareil, d'un autre navigateur ou d'une autre adresse.",
   'board.waiting.local.error': "La copie locale de ce navigateur n'a pas pu être lue (stockage bloqué).",
   'board.waiting.local.some': "{n} événement(s) trouvés dans ce navigateur, mais sans l'ouverture du board : le lien est peut-être incomplet.",

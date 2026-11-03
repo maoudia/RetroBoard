@@ -431,6 +431,7 @@ export const en: Record<keyof typeof fr, string> = {
   'board.reconnecting': 'Connection lost. Your changes are kept and sent as soon as you are back.',
   'board.replicaFailing': 'This device cannot save the board (storage full or blocked). Export a board file to keep your work.',
   'board.waiting.retry': 'Try again',
+  'board.waiting.profile': 'Set how long boards are kept',
   'board.waiting.local.none': "No copy of this board in this browser: it comes from another device, another browser or another address.",
   'board.waiting.local.error': "This browser's local copy could not be read (storage blocked).",
   'board.waiting.local.some': "{n} event(s) found in this browser, but not the board opening: the link may be incomplete.",

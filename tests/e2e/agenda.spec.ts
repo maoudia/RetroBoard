@@ -25,6 +25,16 @@ test.describe('time-boxed agenda', () => {
     })
   })
 
+  test('entering the Write phase unfolds the writing areas that were folded (change toast-notifications-v2)', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue' })
+    const id = (await page.locator('section[data-testid^="column-"]').first().getAttribute('data-testid'))!.replace('column-', '')
+    await page.getByTestId('btn-writing').click()
+    await expect(page.getByTestId(`draft-${id}`)).toBeHidden()
+    await panel(page, () => page.getByTestId('agenda-start').click())
+    for (let i = 0; i < 4 && !(await page.getByTestId(`draft-${id}`).isVisible()); i++) await next(page)
+    await expect(page.getByTestId(`draft-${id}`)).toBeVisible()
+  })
+
   test('activity rings: outer, phase and step rings follow the agenda, in the theme colours', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     const rings = page.getByTestId('activity-rings')
