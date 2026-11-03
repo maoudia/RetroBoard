@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.1](https://github.com/maoudia/RetroBoard/compare/v1.40.0...v1.40.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **board:** Write phase unfolds the writing areas; waiting screen offers home and retention setting ([fe97b05](https://github.com/maoudia/RetroBoard/commit/fe97b05e2e5095fa949cbc973cce69db851dac87))
+
 ## [1.40.0](https://github.com/maoudia/RetroBoard/compare/v1.39.0...v1.40.0) (2026-11-03)
 
 
