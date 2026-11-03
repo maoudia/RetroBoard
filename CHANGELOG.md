@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.41.0](https://github.com/maoudia/RetroBoard/compare/v1.40.1...v1.41.0) (2026-11-03)
+
+
+### Features
+
+* **board:** writing size per column, and a Write chevron to size every writing area at once ([00e4bd0](https://github.com/maoudia/RetroBoard/commit/00e4bd055a3e33f90bc3b73a995b0de288649177))
+* **export:** published JSON Schema of the JSON export, validated by a unit test ([d26dde4](https://github.com/maoudia/RetroBoard/commit/d26dde49bcd82d279c3fee4b1088b7405c141d77))
+* **layout:** chat side and filter bar remembered per screen class ([79eec42](https://github.com/maoudia/RetroBoard/commit/79eec42448e52b91331aeb68e84bd736e67d896a))
+* **notes:** advanced palette with tints and shades of the theme colours, all readable with the note ink ([d7025de](https://github.com/maoudia/RetroBoard/commit/d7025de7a7b5a530ff60943815f2b22294e2dad1))
+* **presenter:** laser pointer shown to everybody, peer to peer ([e1479f8](https://github.com/maoudia/RetroBoard/commit/e1479f8033438349e8d702a4f941c2eb4e129b55))
+
+
+### Bug Fixes
+
+* **a11y:** the Write size chevron no longer overlaps its neighbour (WCAG 2.2 target size) ([9893f5b](https://github.com/maoudia/RetroBoard/commit/9893f5b7ce8055d6f5b2ddfeacd8e97e9eaedc39))
+* **export:** keep the JSON Schema inside packages/exporters so the mutation sandbox has it ([96ec879](https://github.com/maoudia/RetroBoard/commit/96ec8798160cf9ce737a05634be851fe8d64b38f))
+
 ## [1.40.1](https://github.com/maoudia/RetroBoard/compare/v1.40.0...v1.40.1) (2026-11-03)
 
 
