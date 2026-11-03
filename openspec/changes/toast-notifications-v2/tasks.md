@@ -7,6 +7,10 @@
 - [x] 1.3 Docs: design-system section on notifications
 
 
+## 2. Chat drawer and form controls
+
+- [x] 2.1 Chat as a floating lateral drawer (left or right, close, minimise to a bubble with unread count, people strip with connection status); never shifts the columns
+- [x] 2.2 Selects, toggle chips and dropdown rows share the pill style of the buttons
 
 ## 3. Presentation and timer player
 
