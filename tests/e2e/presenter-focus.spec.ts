@@ -203,3 +203,16 @@ test('accordion on a phone keeps the focused column fully visible going forward 
     await expect(visible).toPass()
   }
 })
+
+test('in presentation a long word never leaves its note, and notes grow with the screen (change toast-notifications-v2)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Supercalifragilisticexpialidocious-and-a-very-long-unbroken-token-that-must-wrap')
+  await page.getByTestId('btn-presenter').click()
+  const note = page.locator('article.note').first()
+  const n = (await note.boundingBox())!
+  const over = await note.locator('.text').evaluate((el) => el.scrollWidth - el.clientWidth)
+  expect(over).toBeLessThanOrEqual(1)
+  const t = (await note.locator('.text').boundingBox())!
+  expect(t.x + t.width).toBeLessThanOrEqual(n.x + n.width + 1)
+  expect(n.width).toBeGreaterThan(210)
+})

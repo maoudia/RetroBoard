@@ -89,6 +89,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     setRoti: (score: number) => send({ t: 'roti.set', score }),
     postChat: (text: string) => send({ t: 'chat.post', text }),
     clearChat: () => send({ t: 'chat.clear' }),
+    setPresenting: (on: boolean) => send({ t: 'presenter.set', on }),
     setTurn: (columnId: string | null) => send({ t: 'turn.set', columnId }),
     closeVoting: () => send({ t: 'vote.close' }),
     reopenVoting: () => send({ t: 'vote.reopen' }),

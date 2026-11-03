@@ -65,6 +65,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     roti: rotiSummary(state, viewer.cid),
     chat: (state.chat ?? []).map((m) => ({ id: m.id, name: m.name, mine: m.cid === viewer.cid, at: m.at, text: m.text })),
     turn: state.turn ?? null,
+    presenting: state.presenting ? { name: state.presenting.name, mine: state.presenting.cid === viewer.cid, at: state.presenting.at } : null,
     peers,
     votesLeft: Math.max(0, state.settings.voteLimit - used),
   }

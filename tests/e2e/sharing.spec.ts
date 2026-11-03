@@ -120,3 +120,14 @@ test('the share dialog gives the link and its buttons full, thumb-sized rows on 
   expect(copy.height).toBeGreaterThanOrEqual(43)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
+
+test('starting the presentation view tells everyone who did it; notes stay inside their card (change toast-notifications-v2)', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
+  const link = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  const bob = await join(browser, link, 'Bob')
+  await page.getByTestId('btn-presenter').click()
+  await expect(bob.page.getByTestId('toasts')).toContainText('Alice')
+  await expect(page.getByTestId('toasts')).not.toContainText('Alice')
+  await bob.ctx.close()
+})

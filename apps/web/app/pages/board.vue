@@ -218,6 +218,14 @@ watch(() => ui.presenter, (on) => {
     if (useSettingsStore().s.presenterHideMenus) ui.chromeHidden = true
   } else { delete document.documentElement.dataset.presenter; ui.focusColumn = null; ui.chromeHidden = menusBefore }
 })
+// Presentation view: tell the room who started it (change toast-notifications-v2). Everybody gets a popup, the presenter does not.
+watch(() => ui.presenter, (on) => { if (board.ready) board.commands.setPresenting(on) })
+let announcedAt = 0
+watch(() => board.snapshot?.presenting, (p) => {
+  if (!p || p.mine || p.at === announcedAt) return
+  announcedAt = p.at
+  push(p.name ? t('presenter.announce', { name: p.name }) : t('presenter.announce.anon'), 'info', 9000)
+}, { immediate: true })
 // A new column turn brings the open column into view (change ux-irritants-wave-3).
 watch(() => board.snapshot?.turn, async (turn) => {
   if (!turn) return
@@ -270,7 +278,7 @@ const phaseEnd = usePhaseEnd()
 useBoardAnnouncements()
 useShortcuts()
 onMounted(() => { document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
-onBeforeUnmount(() => { document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
+onBeforeUnmount(() => { if (ui.presenter && board.ready) board.commands.setPresenting(false); document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
 const shareAfterReview = ref(false)
 watch(() => shareOnReady.value && !!board.settings?.initialized && ui.dialog === null && (!shareAfterReview.value || ui.reviewDone), (go) => {
   if (!go) return

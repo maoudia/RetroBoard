@@ -65,6 +65,7 @@ export type Command =
   | { t: 'chat.post'; text: string }
   | { t: 'chat.clear' }
   | { t: 'turn.set'; columnId: string | null }
+  | { t: 'presenter.set'; on: boolean }
   | { t: 'talk.assign'; speaker: string; label: string | null }
   | { t: 'talk.end' }
   | { t: 'talk.self' }

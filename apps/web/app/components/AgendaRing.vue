@@ -24,6 +24,8 @@ const closing = computed(() => {
   const i = agenda.value.phases.findIndex((p) => p.kind === 'close')
   return i < 0 || agenda.value.current >= i
 })
+/** Inner ring: one segment per phase, done ones lit (change toast-notifications-v2). */
+const steps = computed(() => ({ count: agenda.value.phases.length, done: Math.max(0, Math.min(agenda.value.phases.length, agenda.value.current)), current: agenda.value.current >= 0 && agenda.value.current < agenda.value.phases.length ? agenda.value.current : -1 }))
 const pct = (n: number) => Math.round(n * 100)
 const summary = computed(() => t('rings.summary', {
   outer: pct(rings.value.outer.fill), phase: caption.value, current: pct(rings.value.current?.fill ?? 0), over: rings.value.overtime ? t('rings.over') : '',
@@ -68,13 +70,13 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
 
 <template>
   <div class="clockrow">
-  <Dropdown width="340px" align="start">
+  <Dropdown width="340px" align="start" tall>
     <template #trigger="{ toggle, open }">
       <button
         class="ring" type="button" :aria-expanded="open"
         :class="{ over: clock.overtime, paused: clock.paused }" data-testid="agenda-ring" @click="toggle"
       >
-        <ActivityRings :progress="rings" />
+        <ActivityRings :progress="rings" :steps="steps" />
         <span class="txt">
           <span class="visually-hidden">{{ t('agenda.title') }}: {{ summary }} </span>
           <strong class="mono" data-testid="agenda-time">{{ centre }}</strong>
@@ -84,36 +86,52 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
     </template>
 
     <div class="panel" data-testid="agenda-panel">
-      <div class="big"><ActivityRings :progress="rings" :size="96" /></div>
+      <!-- Player: the rings are the cover, the centre is the play button (facilitators), the chapters are the phases. -->
+      <div class="deck">
+        <div class="cover">
+          <ActivityRings :progress="rings" :steps="steps" :size="132" />
+          <button
+            v-if="canSteer && agenda.current < agenda.phases.length" class="play" type="button" :data-testid="playing ? 'agenda-pause' : 'agenda-start'"
+            :aria-label="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')" :title="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')"
+            @click="playing ? board.commands.pauseAgenda() : board.commands.startAgenda()"
+          ><Icon :name="playing ? 'lucide:pause' : 'lucide:play'" /></button>
+        </div>
+        <div class="legend" aria-hidden="true">
+          <span class="lg l1"><i />{{ t('rings.legend.total') }}</span>
+          <span class="lg l2"><i />{{ t('rings.legend.phase') }}</span>
+          <span class="lg l3"><i />{{ t('rings.legend.steps', { done: steps.done, count: steps.count }) }}</span>
+        </div>
+      </div>
       <ol class="phases">
         <li v-for="(p, i) in agenda.phases" :key="p.id" :class="{ now: i === agenda.current, past: i < agenda.current }" :aria-current="i === agenda.current ? 'step' : undefined" :data-testid="`phase-${i}`">
+          <Icon :name="i < agenda.current ? 'lucide:circle-check' : i === agenda.current ? 'lucide:circle-dot' : 'lucide:circle'" class="pi" />
           <span class="nm">{{ phaseName(p.kind) }}</span>
           <span class="mono muted">
             <template v-if="i === agenda.current">{{ fmt(clock.remainingMs) }} / </template>{{ minutes(p.plannedMs) }} min
           </span>
         </li>
       </ol>
-      <button class="btn btn-sm btn-ghost" type="button" :aria-pressed="settings.s.ringTime === 'elapsed'" data-testid="ring-mode" @click="settings.patch({ ringTime: settings.s.ringTime === 'elapsed' ? 'remaining' : 'elapsed' })">
-        <Icon name="lucide:timer" /> {{ t(`profile.time.${settings.s.ringTime}` as never) }}
-      </button>
       <p v-if="clock.capped" class="note" role="status" data-testid="agenda-capped"><Icon name="lucide:octagon-x" /> {{ t('agenda.capped') }}</p>
       <p v-else-if="clock.overtime && canSteer" class="note" role="status" data-testid="agenda-overtime">{{ t('agenda.overtime') }}</p>
-      <div v-if="canSteer" class="ctl">
-        <button v-if="!started || clock.paused" class="btn btn-sm btn-primary" type="button" data-testid="agenda-start" :disabled="agenda.current >= agenda.phases.length" @click="board.commands.startAgenda()">
-          <Icon name="lucide:play" /> {{ t(agenda.current < 0 ? 'agenda.start' : 'agenda.resume') }}
-        </button>
-        <button v-else class="btn btn-sm" type="button" data-testid="agenda-pause" @click="board.commands.pauseAgenda()"><Icon name="lucide:pause" /> {{ t('agenda.pause') }}</button>
-        <button class="btn btn-sm" type="button" data-testid="agenda-prev" :disabled="agenda.current <= 0" @click="board.commands.previousPhase()"><Icon name="lucide:skip-back" /> {{ t('agenda.prev') }}</button>
-        <button class="btn btn-sm" type="button" data-testid="agenda-next" :disabled="!started" @click="board.commands.nextPhase()"><Icon name="lucide:skip-forward" /> {{ t('agenda.next') }}</button>
-        <span class="ext">
-          <button class="btn btn-sm" type="button" data-testid="agenda-plus1" :disabled="!started" @click="board.commands.extendPhase(1, borrow)">+1</button>
-          <button class="btn btn-sm" type="button" data-testid="agenda-plus3" :disabled="!started" @click="board.commands.extendPhase(3, borrow)">+3</button>
-        </span>
-        <label class="borrow"><input v-model="borrow" type="checkbox" data-testid="agenda-borrow" /> {{ t('agenda.borrow') }}</label>
-        <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : undefined" @click="ui.open('toClose')"><Icon name="lucide:flag" /> {{ t('agenda.toClose.label') }}</button>
-        <button class="btn btn-sm btn-ghost" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()"><Icon name="lucide:square" /> {{ t('agenda.end') }}</button>
+      <!-- Transport bar: icons only, names for assistive tech. -->
+      <div v-if="canSteer" class="transport" role="group" :aria-label="t('agenda.title')">
+        <button class="tb" type="button" data-testid="agenda-prev" :disabled="agenda.current <= 0" :title="t('agenda.prev')" @click="board.commands.previousPhase()"><Icon name="lucide:skip-back" /><span class="sr-only">{{ t('agenda.prev') }}</span></button>
+        <button class="tb" type="button" data-testid="agenda-plus1" :disabled="!started" :title="t('agenda.plus', { n: 1 })" @click="board.commands.extendPhase(1, borrow)"><Icon name="lucide:plus" /><span aria-hidden="true">1</span><span class="sr-only">{{ t('agenda.plus', { n: 1 }) }}</span></button>
+        <button class="tb" type="button" data-testid="agenda-plus3" :disabled="!started" :title="t('agenda.plus', { n: 3 })" @click="board.commands.extendPhase(3, borrow)"><Icon name="lucide:plus" /><span aria-hidden="true">3</span><span class="sr-only">{{ t('agenda.plus', { n: 3 }) }}</span></button>
+        <button class="tb" type="button" data-testid="agenda-next" :disabled="!started" :title="t('agenda.next')" @click="board.commands.nextPhase()"><Icon name="lucide:skip-forward" /><span class="sr-only">{{ t('agenda.next') }}</span></button>
       </div>
-      <p class="muted small">{{ t('agenda.total', { planned: `${minutes(clock.totalPlannedMs)} min`, elapsed: spent(clock.totalElapsedMs) }) }}</p>
+      <div class="opts">
+        <label class="borrow" :title="t('agenda.borrow')"><Icon name="lucide:arrow-right-left" /><span class="sr-only">{{ t('agenda.borrow') }}</span><input v-if="canSteer" v-model="borrow" type="checkbox" role="switch" class="switch" data-testid="agenda-borrow" /></label>
+        <button class="tb" type="button" :aria-pressed="settings.s.ringTime === 'elapsed'" :title="t(`profile.time.${settings.s.ringTime}` as never)" data-testid="ring-mode" @click="settings.patch({ ringTime: settings.s.ringTime === 'elapsed' ? 'remaining' : 'elapsed' })">
+          <Icon :name="settings.s.ringTime === 'elapsed' ? 'lucide:timer' : 'lucide:hourglass'" /><span class="sr-only">{{ t(`profile.time.${settings.s.ringTime}` as never) }}</span>
+        </button>
+        <span class="total mono muted" :title="t('agenda.total', { planned: `${minutes(clock.totalPlannedMs)} min`, elapsed: spent(clock.totalElapsedMs) })">{{ spent(clock.totalElapsedMs) }} / {{ minutes(clock.totalPlannedMs) }} min</span>
+      </div>
+      <!-- The two ways out, the same kind of button: skip to the closing phase, or end the retro. -->
+      <div v-if="canSteer" class="exits">
+        <button class="btn btn-sm exit" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : undefined" @click="ui.open('toClose')"><Icon name="lucide:flag" /> {{ t('agenda.toClose.label') }}</button>
+        <button class="btn btn-sm exit danger" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()"><Icon name="lucide:square" /> {{ t('agenda.end') }}</button>
+      </div>
     </div>
   </Dropdown>
   <!-- Start or pause from the clock itself (facilitator-controls-v2): pausing stops the phase clock too. -->
@@ -137,21 +155,40 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
 .txt small { font-size: var(--fs-xs); color: var(--muted); }
 .over .txt strong { color: var(--danger); }
 .paused .txt strong { opacity: .6; }
-.panel { display: grid; gap: .6rem; padding: .25rem; }
+.panel { display: grid; gap: .75rem; padding: .35rem; }
+.deck { display: grid; justify-items: center; gap: .5rem; }
+.cover { position: relative; display: grid; place-items: center; }
+.play { position: absolute; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-xl); cursor: pointer; box-shadow: var(--shadow-1); transition: transform .15s var(--ease); }
+.play:hover { transform: scale(1.08); }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem .9rem; font-size: var(--fs-xs); color: var(--muted); }
+.lg { display: inline-flex; align-items: center; gap: .35rem; }
+.lg i { width: 9px; height: 9px; border-radius: 50%; background: var(--ring-1); }
+.lg.l2 i { background: var(--ring-2); }
+.lg.l3 i { background: var(--ring-3); }
 .phases { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-.phases li { display: flex; justify-content: space-between; gap: .5rem; padding: .3rem .5rem; border-radius: var(--r-sm); }
+.phases li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem; padding: .3rem .5rem; border-radius: var(--r-sm); }
 .phases li.now { background: var(--accent-soft); font-weight: 700; }
-.phases li.past .nm { text-decoration: line-through; color: var(--muted); }
-.ctl { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-.ext { display: inline-flex; gap: .25rem; }
-.borrow { display: inline-flex; gap: .35rem; align-items: center; font-size: var(--fs-sm); }
+.phases li.past .nm { color: var(--muted); }
+.phases .pi { color: var(--muted); }
+.phases li.now .pi, .phases li.past .pi { color: var(--accent); }
+/* One family of round icon buttons, like a media player. */
+.transport { display: flex; justify-content: center; gap: .5rem; }
+.tb { display: inline-flex; align-items: center; justify-content: center; gap: .1rem; min-width: 42px; height: 42px; padding: 0 .6rem; border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.tb:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.tb:disabled { opacity: .45; cursor: default; }
+.tb[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.opts { display: flex; align-items: center; gap: .6rem; }
+.opts .total { margin-inline-start: auto; font-size: var(--fs-sm); }
+.borrow { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); }
+.exits { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.exit { justify-content: center; min-height: 40px; }
+.exit.danger { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 55%, var(--border)); }
+.exit.danger:hover:not(:disabled) { background: color-mix(in oklab, var(--danger) 14%, transparent); }
 .note { margin: 0; padding: .4rem .6rem; border-radius: var(--r-sm); background: color-mix(in oklab, var(--danger) 14%, transparent); color: var(--danger); font-weight: 600; }
-.small { margin: 0; font-size: var(--fs-xs); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 </style>
 
 <style>
 /* TV screens: the toolbar rings grow. Presenter mode zooms the columns only, never the toolbar (#228). */
 @media (min-width: 2200px) { :root { --ring-size: 96px; } .ring .rings { width: 96px; height: 96px; } }
-.panel .big { display: grid; justify-items: center; }
 </style>

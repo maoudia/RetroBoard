@@ -25,10 +25,11 @@ test.describe('time-boxed agenda', () => {
     })
   })
 
-  test('activity rings: three concentric rings follow the phase, in the theme colours', async ({ page }) => {
+  test('activity rings: outer, phase and step rings follow the agenda, in the theme colours', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     const rings = page.getByTestId('activity-rings')
-    await expect(rings.locator('circle.track')).toHaveCount(3)
+    await expect(rings.locator('circle.track')).toHaveCount(2)
+    await expect(rings.locator('circle.seg')).toHaveCount(8)
     await panel(page, () => page.getByTestId('agenda-start').click())
     await next(page)
     await expect(rings.locator('[data-ring="outer"]')).toHaveCount(1)
@@ -37,7 +38,7 @@ test.describe('time-boxed agenda', () => {
     expect(token).toMatch(/^#[0-9a-f]{6}$/i)
     expect(stroke).not.toBe('none')
     // Large rings in the panel; the toolbar rings do not change in presenter mode.
-    await panel(page, async () => { await expect(page.getByTestId('agenda-panel').getByTestId('activity-rings')).toHaveAttribute('width', '96') })
+    await panel(page, async () => { await expect(page.getByTestId('agenda-panel').getByTestId('activity-rings')).toHaveAttribute('width', '132') })
     const small = (await rings.first().boundingBox())!.width
     await page.getByTestId('btn-presenter').click()
     // Presenter mode zooms the columns, never the toolbar: the rings keep their size.
@@ -157,10 +158,10 @@ test.describe('time-boxed agenda', () => {
       await expect(page.getByTestId('phase-0')).toContainText('5 min')
       await page.getByTestId('agenda-plus3').click()
       await expect(page.getByTestId('phase-0')).toContainText('8 min')
-      await expect(page.getByTestId('agenda-panel')).toContainText('sur 60 min')
+      await expect(page.getByTestId('agenda-panel')).toContainText('/ 60 min')
       await page.getByTestId('agenda-borrow').uncheck()
       await page.getByTestId('agenda-plus1').click()
-      await expect(page.getByTestId('agenda-panel')).toContainText('sur 61 min')
+      await expect(page.getByTestId('agenda-panel')).toContainText('/ 61 min')
     })
   })
 
@@ -217,4 +218,21 @@ test.describe('phase stepper (board-activity-feed)', () => {
     const found = (await new AxeBuilder({ page }).include('[data-testid="stepper"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
   })
+})
+
+test('the timer panel is a player: play in the rings, same-style exit buttons, steps ring, no scrollbar when it fits (change toast-notifications-v2)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('agenda-ring').click()
+  const panel = page.getByTestId('agenda-panel')
+  await expect(panel).toBeVisible()
+  await expect(panel.getByTestId('agenda-start')).toBeVisible()
+  await panel.getByTestId('agenda-start').click()
+  await expect(panel.getByTestId('agenda-pause')).toBeVisible()
+  const a = (await panel.getByTestId('agenda-to-close').boundingBox())!
+  const b = (await panel.getByTestId('agenda-end').boundingBox())!
+  expect(Math.abs(a.height - b.height)).toBeLessThan(2)
+  expect(Math.abs(a.width - b.width)).toBeLessThan(2)
+  expect(await page.locator('.dd-panel.tall:popover-open').evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true)
+  await expect(page.getByTestId('ring-steps').first()).toBeAttached()
 })

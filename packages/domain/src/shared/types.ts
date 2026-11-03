@@ -159,6 +159,8 @@ export interface BoardState {
   chat?: ChatMessage[]
   /** Column the facilitator opened for writing, others are masked (change ux-irritants-wave-3). Null or absent: all open. */
   turn?: string | null
+  /** Who started the presentation view, announced to the room (change toast-notifications-v2). */
+  presenting?: { cid: string; name: string | null; at: number } | null
 }
 
 export interface Actor {
@@ -264,6 +266,8 @@ export interface Snapshot {
   chat?: SnapshotChatMessage[]
   /** Column open for writing right now, null when every column is (change ux-irritants-wave-3). */
   turn?: string | null
+  /** Who is presenting right now: name (null if anonymous), whether it is me, since when. */
+  presenting?: { name: string | null; mine: boolean; at: number } | null
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */

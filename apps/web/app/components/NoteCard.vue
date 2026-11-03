@@ -92,13 +92,15 @@ function onDrop() {
   background: var(--c); color: var(--note-ink); border-radius: calc(var(--r-card) / 3 + 2px);
   box-shadow: var(--shadow-1), inset 0 -22px 30px -26px rgb(0 0 0 / .25); transform: rotate(var(--tilt, 0deg));
   cursor: grab; transition: box-shadow .2s, transform .25s var(--ease), outline-color .2s; outline: 2px solid transparent; min-width: 0;
+  /* The text never leaves the card: the single track is capped to the card width and long words break. */
+  grid-template-columns: minmax(0, 1fr);
 }
 .note:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .note:hover { transform: rotate(0) translateY(-3px) scale(1.015); box-shadow: var(--shadow-2); z-index: 2; }
 .note:active { cursor: grabbing; }
 .note.over { outline-color: var(--accent); transform: scale(1.04); }
 .note::after { content: ''; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: .0; }
-.text { overflow-wrap: anywhere; white-space: pre-wrap; font-weight: 500; line-height: 1.3; }
+.text { min-width: 0; max-width: 100%; word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; font-weight: 500; line-height: 1.3; }
 footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem; }
 .grow { flex: 1; }
 .abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }

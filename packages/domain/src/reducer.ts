@@ -1,6 +1,7 @@
 import { actionHandlers } from './action-tracking/handlers'
 import { chatHandlers } from './presence/chat'
 import { turnHandlers } from './facilitation/turn'
+import { presentingHandlers } from './facilitation/presenting'
 import { facilitationHandlers } from './facilitation/handlers'
 import { freezeHandlers, touchesFrozen } from './ideation/freeze'
 import { pinHandlers } from './ideation/pin'
@@ -24,6 +25,7 @@ const handlers: HandlerMap<Command['t']> = {
   ...rotiHandlers,
   ...chatHandlers,
   ...turnHandlers,
+  ...presentingHandlers,
 }
 
 /** Pure: same state, command, actor and context always give the same outcome. */

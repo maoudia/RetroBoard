@@ -7,7 +7,7 @@ import type { Ring, RingProgress } from '@retroboard/application'
  * from the theme (--ring-*). A ring that closes plays a short pulse, none under reduced motion.
  * Decorative: the text alternative lives in the parent (rings.summary).
  */
-const props = withDefaults(defineProps<{ progress: RingProgress; size?: number }>(), { size: 56 })
+const props = withDefaults(defineProps<{ progress: RingProgress; size?: number; steps?: { count: number; done: number; current: number } }>(), { size: 56 })
 
 const STROKE = 5
 const radii = [24, 16.5, 9]
@@ -18,8 +18,15 @@ interface Layer { key: string; r: number; ring: Ring | null; color: string }
 const layers = computed<Layer[]>(() => [
   { key: 'outer', r: radii[0]!, ring: props.progress.outer, color: 'var(--ring-1)' },
   { key: 'current', r: radii[1]!, ring: props.progress.current, color: 'var(--ring-2)' },
-  { key: 'next', r: radii[2]!, ring: props.progress.next, color: 'var(--ring-3)' },
+  ...(props.steps && props.steps.count > 0 ? [] : [{ key: 'next', r: radii[2]!, ring: props.progress.next, color: 'var(--ring-3)' }]),
 ])
+/** Inner ring as steps (change toast-notifications-v2): one segment per phase, finished ones lit, the running one softer. */
+const segs = computed(() => {
+  const n = props.steps?.count ?? 0
+  if (!n) return []
+  const r = radii[2]!, c = circ(r), gap = n > 1 ? 1.6 : 0, len = c / n - gap
+  return Array.from({ length: n }, (_, i) => ({ i, dash: `${Math.max(0.5, len)} ${c}`, offset: -(i * c / n), lit: i < (props.steps?.done ?? 0), now: i === props.steps?.current, r }))
+})
 
 // Celebration: a ring that goes from open to closed.
 const closed = reactive<Record<string, boolean>>({})
@@ -49,6 +56,12 @@ watch(layers, (ls) => {
         :stroke-dasharray="dash(l.r, l.ring.over)"
       />
     </g>
+    <g v-if="segs.length" transform="rotate(-90 28 28)" data-testid="ring-steps">
+      <circle
+        v-for="g in segs" :key="g.i" class="seg" :class="{ lit: g.lit, now: g.now }" cx="28" cy="28" :r="g.r" :stroke-width="STROKE"
+        :stroke-dasharray="g.dash" :stroke-dashoffset="g.offset"
+      />
+    </g>
   </svg>
 </template>
 
@@ -57,6 +70,9 @@ watch(layers, (ls) => {
 circle { fill: none; stroke-linecap: round; }
 .track { stroke: var(--ring-track); }
 .over { stroke: var(--ring-over); }
+.seg { stroke: var(--ring-track); stroke-linecap: butt; }
+.seg.now { stroke: color-mix(in oklab, var(--ring-3) 45%, var(--ring-track)); }
+.seg.lit { stroke: var(--ring-3); }
 .pulse { animation: ring-pulse 1.1s ease-out 1; transform-origin: 28px 28px; transform-box: view-box; }
 @keyframes ring-pulse { 0% { opacity: 1; filter: none; } 40% { opacity: 1; filter: drop-shadow(0 0 4px var(--ring-1)); } 100% { opacity: 1; filter: none; } }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }

@@ -7,3 +7,8 @@
 - [x] 1.3 Docs: design-system section on notifications
 
 
+
+## 3. Presentation and timer player
+
+- [x] 3.1 Presenter announcement (domain command, snapshot, popup for the others); notes never overflow; presentation uses the large area
+- [x] 3.2 Timer panel as a player: centre play button, icon transport, same-style exit buttons, steps inner ring, no scrollbar when it fits

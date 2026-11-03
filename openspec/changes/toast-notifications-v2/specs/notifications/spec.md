@@ -31,3 +31,21 @@ Voting SHALL be switchable on or off for a board at creation and in the options;
 #### Scenario: State chip
 - **WHEN** voting is open and a facilitator taps the chip
 - **THEN** voting closes and the chip reads closed
+
+### Requirement: Presentation start is announced
+When someone starts the presentation view, every other participant SHALL see a popup naming who started it (or saying it was started when that person is anonymous). Presentation text SHALL stay inside its note and SHALL use the available screen.
+
+#### Scenario: Alice presents
+- **WHEN** Alice opens the presentation view
+- **THEN** every other participant sees a notification that Alice started presentation mode
+
+### Requirement: The timer panel is a player
+The agenda panel SHALL present the rings as a player cover with the play or pause button in the centre, icon-only transport buttons for previous, extend and next, and two same-style buttons to go to the closing phase and to end. The inner ring SHALL show one segment per phase, lit as phases finish. The panel SHALL show everything without a scrollbar when it fits and a visible scrollbar only when it cannot.
+
+#### Scenario: Roomy screen
+- **WHEN** a facilitator opens the timer panel on a tall screen
+- **THEN** all phases and controls are visible without scrolling
+
+#### Scenario: Steps ring
+- **WHEN** two phases are finished
+- **THEN** two inner-ring segments are lit
