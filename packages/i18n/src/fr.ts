@@ -38,6 +38,8 @@ export const fr = {
   'votebar.results': 'Résultats',
   'options.perItem': 'Votes par idée',
   'options.perItem.hint': 'Combien de ses votes une personne peut mettre sur la même idée.',
+  'options.allOnOne': 'Tous les votes sur une idée',
+  'options.allOnOne.hint': 'Une personne peut mettre tout son budget de votes sur une seule idée.',
   'options.perItem.less': 'Moins de votes par idée',
   'options.perItem.more': 'Plus de votes par idée',
   'options.votable': 'Voter pour',

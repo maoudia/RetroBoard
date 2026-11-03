@@ -39,6 +39,8 @@ export const en: Record<keyof typeof fr, string> = {
   'votebar.results': 'Results',
   'options.perItem': 'Votes per idea',
   'options.perItem.hint': 'How many of their votes one person may put on the same idea.',
+  'options.allOnOne': 'All votes on one idea',
+  'options.allOnOne.hint': 'A person may spend their whole vote budget on a single idea.',
   'options.perItem.less': 'Fewer votes per idea',
   'options.perItem.more': 'More votes per idea',
   'options.votable': 'Vote on',

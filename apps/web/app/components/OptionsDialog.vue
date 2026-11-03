@@ -16,6 +16,9 @@ const resetVotesAsk = ref(false)
 const resetClockAsk = ref(false)
 watch(open, (v) => { if (v) title.value = board.settings?.title ?? '' })
 
+/** Everyone may put the whole budget on one idea. Keeps following the budget while it is on. */
+const allOnOne = computed(() => s.value.voteLimit > 1 && s.value.maxVotesPerItem >= s.value.voteLimit)
+function setLimit(n: number) { set(allOnOne.value ? { voteLimit: n, maxVotesPerItem: n } : { voteLimit: n }) }
 const set = (patch: SettingsPatch) => {
   board.commands.updateSettings(patch)
   // Switching an open board to one facilitator: whoever switches becomes the lead.
@@ -65,11 +68,13 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <div class="line">
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
           <span class="stepper">
-            <button class="mini-btn" type="button" :aria-label="t('options.less')" :disabled="s.voteLimit <= LIMITS.minVotes" @click="set({ voteLimit: s.voteLimit - 1 })"><Icon name="lucide:minus" /></button>
+            <button class="mini-btn" type="button" :aria-label="t('options.less')" :disabled="s.voteLimit <= LIMITS.minVotes" @click="setLimit(s.voteLimit - 1)"><Icon name="lucide:minus" /></button>
             <output class="mono" data-testid="opt-votes">{{ s.voteLimit }}</output>
-            <button class="mini-btn" type="button" :aria-label="t('options.more')" :disabled="s.voteLimit >= LIMITS.maxVotes" @click="set({ voteLimit: s.voteLimit + 1 })"><Icon name="lucide:plus" /></button>
+            <button class="mini-btn" type="button" :aria-label="t('options.more')" :disabled="s.voteLimit >= LIMITS.maxVotes" @click="setLimit(s.voteLimit + 1)"><Icon name="lucide:plus" /></button>
           </span>
         </div>
+        <!-- All votes on one idea: off by default; it is the per-idea cap set to the whole vote budget (change vote-all-on-one-idea). -->
+        <ToggleSwitch v-if="advanced" plain :label="t('options.allOnOne')" :hint="t('options.allOnOne.hint')" :model-value="allOnOne" :disabled="s.voteLimit <= 1" data-testid="opt-all-on-one" @update:model-value="(on: boolean) => set({ maxVotesPerItem: on ? s.voteLimit : 1 })" />
         <div v-if="advanced" class="line">
           <span><strong>{{ t('options.perItem') }}</strong><small class="muted">{{ t('options.perItem.hint') }}</small></span>
           <span class="stepper">

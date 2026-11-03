@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { closeShare, createBoard, join } from './helpers'
+import { closeShare, createBoard, join, noteByText, publishNote } from './helpers'
 
 /** Owner feedback 2026-11-03 (change feedback-wave-4): ten screenshots of UX defects. */
 async function twoPeople(page: import('@playwright/test').Page, browser: import('@playwright/test').Browser, template = 'start-stop-continue') {
@@ -119,4 +119,21 @@ test.describe('feedback wave 4', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     await bob.ctx.close()
   })
+})
+
+test('a person can spend all votes on one idea when the board allows it (change vote-all-on-one-idea)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await publishNote(page, 0, 'Une seule idee')
+  await page.getByTestId('btn-options').click()
+  const toggle = page.getByTestId('opt-all-on-one')
+  await expect(toggle).not.toBeChecked()
+  await toggle.check()
+  await expect(toggle).toBeChecked()
+  const budget = Number(await page.getByTestId('opt-votes').textContent())
+  await expect(page.getByTestId('opt-per-item')).toHaveText(String(budget))
+  await page.keyboard.press('Escape')
+  const vote = noteByText(page, 'Une seule idee').locator('[data-testid^="vote-"]')
+  for (let i = 0; i < budget; i++) await vote.click()
+  await expect(noteByText(page, 'Une seule idee').locator('[data-testid^="my-votes-"] i')).toHaveCount(budget)
+  await expect(page.getByTestId('votes-left')).toContainText('0')
 })
