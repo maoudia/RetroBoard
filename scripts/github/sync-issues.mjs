@@ -125,10 +125,19 @@ const PLAN = {
   'ux-irritants-wave-2': ['P11', 'A', []],
   'ux-irritants-wave-3': ['P11', 'A', []],
   'toast-notifications-v2': ['P11', 'A', []],
+  // Owner feedback 2026-11-03 (ten screenshots): picture fixes ship next, features are spec only.
+  'feedback-wave-4': ['P11', 'B', []],
+  'user-manual-and-tutorials': ['P12', 'C', []],
+  'vote-all-on-one-idea': ['P12', 'B', ['up-down-votes']],
+  'board-undo-rewind': ['P12', 'A', []],
+  'export-destinations-v2': ['P12', 'B', ['export-hub']],
+  'user-drive-storage': ['P12', 'A', []],
+  'agent-feedback-and-timeboxed-sessions': ['P12', 'C', ['retro-mcp-and-agent-sessions', 'agents-first-class']],
+  'funny-local-companion': ['P12', 'C', ['local-ai-companion']],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
-  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02', P11: 'P11 Live retro feedback 2026-11-02',
+  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02', P11: 'P11 Live retro feedback 2026-11-02', P12: 'P12 Ideas backlog 2026-11-03',
 }
 // Roadmap: every change belongs to one release milestone (the GitHub roadmap is built from these).
 // Target dates are planning targets, revisited at each release review.
@@ -168,6 +177,9 @@ const ROADMAP = {
   // Live retro 2026-11-02: phones and editing first.
   'mobile-board-space': 'R1', 'board-layout-v2': 'R2', 'presenter-accordion-motion': 'R2', 'edit-published-notes': 'R1', 'board-chat': 'R3', 'ux-irritants-wave-2': 'R1', 'ux-irritants-wave-3': 'R1',
   'toast-notifications-v2': 'R1',
+  // Owner feedback 2026-11-03: picture fixes in the next release, ideas spec only.
+  'feedback-wave-4': 'R1', 'vote-all-on-one-idea': 'R2', 'board-undo-rewind': 'R2', 'export-destinations-v2': 'R3', 'user-drive-storage': 'R3',
+  'user-manual-and-tutorials': 'R3', 'agent-feedback-and-timeboxed-sessions': 'R4', 'funny-local-companion': 'R4',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
 // Bugs are standalone `bug` issues labelled priority:1-urgent; every change gets one of the other levels.
@@ -186,7 +198,7 @@ const PRIORITY = {
   'clusters-v2': 2, 'board-type-migration': 2,
   'column-visibility': 2, 'time-display-options': 2, 'presence-status': 2, 'note-pin': 2, 'button-icons-everywhere': 2, 'toolbar-mobile-scroll': 2, 'agenda-clock-v2': 2,
   'quality-gates-v2': 3, 'automated-semver-release': 3, 'allure-report-aggregation': 3, 'self-rename-event': 1, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
-  'password-by-default': 2, 'ui-coherence-pass': 2, 'mode-parity': 2, 'community-feedback': 2, 'mobile-board-space': 1, 'board-layout-v2': 2, 'presenter-accordion-motion': 2, 'edit-published-notes': 1, 'board-chat': 2, 'ux-irritants-wave-2': 1, 'ux-irritants-wave-3': 1,
+  'password-by-default': 2, 'ui-coherence-pass': 2, 'mode-parity': 2, 'community-feedback': 2, 'mobile-board-space': 1, 'board-layout-v2': 2, 'presenter-accordion-motion': 2, 'edit-published-notes': 1, 'board-chat': 2, 'ux-irritants-wave-2': 1, 'ux-irritants-wave-3': 1, 'feedback-wave-4': 1,
   'toast-notifications-v2': 1, 'device-layout-prefs': 2, 'solo-parity-and-dedup': 2, 'results-insights': 2, 'team-workspaces': 2,
 }
 const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]

@@ -22,6 +22,7 @@ Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a rea
 * `mode-parity` ([proposal](../openspec/changes/archive/2026-11-03-mode-parity/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
 * `ux-irritants-wave-3` ([proposal](../openspec/changes/archive/2026-11-03-ux-irritants-wave-3/proposal.md)) - live retro 2026-11-03: calm UI, menus, column turns, global timer cap
+* `feedback-wave-4` ([proposal](../openspec/changes/feedback-wave-4/proposal.md)) - owner feedback 2026-11-03, ten screenshots: chat, dialogs, buttons, hide for now, writing-area sizing, floor banner, voting menu, peer colours, shield. NEXT RELEASE
 * `mobile-board-space` ([proposal](../openspec/changes/archive/2026-11-03-mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
 * `edit-published-notes` ([proposal](../openspec/changes/archive/2026-11-03-edit-published-notes/proposal.md)) - live retro 2026-11-02
 * `ux-irritants-wave-2` ([proposal](../openspec/changes/archive/2026-11-03-ux-irritants-wave-2/proposal.md)) - live retro 2026-11-02, phone: UX irritants first, before any new feature
@@ -73,6 +74,11 @@ Quality items that do not block the beta moved here from R1 (`ci-toolchain-speed
 * `themes-pop-culture` ([proposal](../openspec/changes/themes-pop-culture/proposal.md))
 * `talk-time-v2` ([proposal](../openspec/changes/talk-time-v2/proposal.md))
 * `up-down-votes` ([proposal](../openspec/changes/up-down-votes/proposal.md))
+* `vote-all-on-one-idea` ([proposal](../openspec/changes/vote-all-on-one-idea/proposal.md)) - spec only, 2026-11-03
+* `board-undo-rewind` ([proposal](../openspec/changes/board-undo-rewind/proposal.md)) - spec only, 2026-11-03
+* `export-destinations-v2` ([proposal](../openspec/changes/export-destinations-v2/proposal.md)) - GitHub/GitLab, backup, SQLite, settings; spec only
+* `user-drive-storage` ([proposal](../openspec/changes/user-drive-storage/proposal.md)) - encrypted opt-in storage on the user's drives; spec only, key for adoption
+* `user-manual-and-tutorials` ([proposal](../openspec/changes/user-manual-and-tutorials/proposal.md)) - spec only
 * `agents-first-class` ([proposal](../openspec/changes/agents-first-class/proposal.md))
 * `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md))
 * `webmcp-browser-agents` ([proposal](../openspec/changes/webmcp-browser-agents/proposal.md))
@@ -84,6 +90,8 @@ Unchanged scope, dates shifted with R3.
 * `retro-mcp-and-agent-sessions` ([proposal](../openspec/changes/retro-mcp-and-agent-sessions/proposal.md))
 * `local-ai-companion` ([proposal](../openspec/changes/local-ai-companion/proposal.md))
 * `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md))
+* `agent-feedback-and-timeboxed-sessions` ([proposal](../openspec/changes/agent-feedback-and-timeboxed-sessions/proposal.md)) - spec only, 2026-11-03
+* `funny-local-companion` ([proposal](../openspec/changes/funny-local-companion/proposal.md)) - spec only, 2026-11-03
 
 ## Parked
 
