@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.0](https://github.com/maoudia/RetroBoard/compare/v1.39.0...v1.40.0) (2026-11-03)
+
+
+### Features
+
+* **chat:** floating lateral drawer with presence, and pill-style selects and chips ([c746839](https://github.com/maoudia/RetroBoard/commit/c746839175a3157c533c2e41496a4452c622319e))
+
 ## [1.39.0](https://github.com/maoudia/RetroBoard/compare/v1.38.1...v1.39.0) (2026-11-03)
 
 
