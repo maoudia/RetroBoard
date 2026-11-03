@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.1](https://github.com/maoudia/RetroBoard/compare/v1.38.0...v1.38.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **ui:** no column edge handle on touch screens; writing area icons sit left of the right-hand chevron ([c09ecbb](https://github.com/maoudia/RetroBoard/commit/c09ecbb0bf81d69a800329d127ae381c8b60a2fb))
+
 ## [1.38.0](https://github.com/maoudia/RetroBoard/compare/v1.37.0...v1.38.0) (2026-11-03)
 
 
