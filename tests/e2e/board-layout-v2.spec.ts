@@ -91,3 +91,10 @@ test('the toolbar writing switch folds and unfolds every column, even ones folde
   await expect(page.getByTestId(`draft-${a}`)).toBeVisible()
   await expect(page.getByTestId(`draft-${b}`)).toBeVisible()
 })
+
+test('no edge drag handle on a phone: a swipe there must not resize a column (change toast-notifications-v2)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 })
+  await createBoard(page, { template: 'start-stop-continue' })
+  const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
+  await expect(page.getByTestId(`col-grip-${id}`)).toBeHidden()
+})

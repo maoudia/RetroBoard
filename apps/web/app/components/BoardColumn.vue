@@ -158,6 +158,8 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 .col[data-size="custom"] { flex: 0 0 var(--w); min-width: min(var(--w), 92vw); max-width: none; }
 /* Drag the right edge to set the width (mouse, touch, keyboard arrows). */
 .col-grip { position: absolute; top: 12px; bottom: 12px; right: -13px; width: 10px; z-index: 3; cursor: col-resize; touch-action: none; border-radius: var(--r-pill); }
+/* Touch screens and phones: no drag handle on the edge (a swipe there resized the column to full width); the size menu does it. */
+@media (pointer: coarse), (max-width: 600px) { .col-grip { display: none; } }
 .col-grip::after { content: ''; position: absolute; inset: 30% 3px; border-radius: var(--r-pill); background: var(--border); opacity: 0; transition: opacity .15s; }
 .col:hover .col-grip::after, .col-grip:focus-visible::after, .col-grip:active::after { opacity: 1; background: var(--accent); }
 .col.over { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-1); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }

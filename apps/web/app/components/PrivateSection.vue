@@ -115,6 +115,9 @@ function onKey(e: KeyboardEvent) {
     <header>
       <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
       <GatedHint compact :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
+      <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
+        <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
+      </button>
       <Dropdown menu>
         <template #trigger="{ toggle, open }">
           <button class="mini-btn" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('private.area')" :title="t('private.area')" :data-testid="`area-menu-${column.id}`" @click="toggle">
@@ -128,9 +131,6 @@ function onKey(e: KeyboardEvent) {
         </template>
       </Dropdown>
       <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevrons-down" /></button>
-      <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
-        <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
-      </button>
     </header>
 
     <ul v-if="mine.length" class="drafts">
@@ -197,7 +197,9 @@ function onKey(e: KeyboardEvent) {
 
 <style scoped>
 .priv { display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); border-radius: 0 0 var(--r-card) var(--r-card); }
-header { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
+/* Privacy mark on the left, then everything else pushed to the right with the chevron last (smoother than a centred icon). */
+header { display: flex; align-items: center; gap: .35rem; min-height: 30px; }
+header > .title { margin-inline-end: auto; }
 .title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .similar { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; font-size: var(--fs-sm); color: var(--muted); }
 .similar .link { overflow-wrap: anywhere; text-align: left; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
@@ -205,7 +207,7 @@ header { display: flex; align-items: center; justify-content: space-between; min
 .priv-wrap[data-folded] { grid-template-rows: 0fr; }
 .priv-clip { min-height: 0; overflow: hidden; }
 .priv-wrap[data-folded] .priv-clip { visibility: hidden; transition: visibility 0s .3s; }
-.priv-handle { display: flex; align-items: center; justify-content: center; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-top: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.priv-handle { display: flex; align-items: center; justify-content: flex-end; padding-inline: .9rem; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-top: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
 .priv-handle:hover { color: var(--accent); background: var(--accent-soft); }
 .drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
 .draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: var(--r-sm); animation: pop-in .25s var(--ease); }
