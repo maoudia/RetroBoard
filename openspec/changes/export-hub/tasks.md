@@ -2,7 +2,7 @@
 
 ## 1. Exporters
 
-- [x] 1.1 Report read model and pure exporters (Markdown, HTML, CSV, JSON with schema, Jira CSV, Confluence/Docs HTML, Sheets TSV, Slack mrkdwn) with actions-only options; verify unit snapshot tests per format and schema validation (JSON Schema published in docs/schemas/retro-export.schema.json and validated by a unit test)
+- [x] 1.1 Report read model and pure exporters (Markdown, HTML, CSV, JSON with schema, Jira CSV, Confluence/Docs HTML, Sheets TSV, Slack mrkdwn) with actions-only options; verify unit snapshot tests per format and schema validation (JSON Schema published in packages/exporters/schema/retro-export.schema.json and validated by a unit test)
 - [ ] 1.2 Print stylesheet for PDF; verify a Playwright PDF render contains the actions table
 
 ## 2. Panel

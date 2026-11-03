@@ -5,7 +5,7 @@ import Ajv2020 from 'ajv/dist/2020'
 import { describe, expect, it } from 'vitest'
 import { toJson } from '../src'
 
-const schema = JSON.parse(readFileSync(new URL('../../../docs/schemas/retro-export.schema.json', import.meta.url), 'utf8')) as object
+const schema = JSON.parse(readFileSync(new URL('../schema/retro-export.schema.json', import.meta.url), 'utf8')) as object
 const validate = new Ajv2020({ allErrors: true, strict: false }).compile(schema)
 
 function board() {
@@ -17,7 +17,7 @@ function board() {
   return buildSnapshot(h.state, { cid: alice.cid }, [], h.now)
 }
 
-describe('published JSON Schema of the JSON export (docs/schemas/retro-export.schema.json)', () => {
+describe('published JSON Schema of the JSON export (packages/exporters/schema/retro-export.schema.json)', () => {
   it('accepts what the exporter writes, including an advanced-palette colour', () => {
     const doc = JSON.parse(toJson(board())) as unknown
     expect(validate(doc), JSON.stringify(validate.errors)).toBe(true)
