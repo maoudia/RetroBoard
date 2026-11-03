@@ -137,3 +137,10 @@ A note or group that is the source of actions SHALL show how many actions came f
 #### Scenario: Badge
 - **WHEN** an action is added from a note
 - **THEN** every participant sees "1 action" on that note
+
+### Requirement: Edit a published note
+The author of a published note and the facilitators SHALL be able to change its text; other participants SHALL NOT.
+
+#### Scenario: Facilitator fixes a typo
+- **WHEN** the facilitator edits Bob's published note
+- **THEN** everyone sees the new text with an edited mark and Bob's votes stay

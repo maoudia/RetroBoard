@@ -17,32 +17,32 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a real team needs first. Order of work: `reliable-board-sync` (last task), `password-by-default`, `ui-coherence-pass`, `mode-parity`, `community-feedback`. Delivered in R1 and waiting for archive: service pages, facilitation defaults, sticky notes v2, board lifecycle, keyboard, phase cues, name nudge, author name, draft-first composer, self rename.
 
 * `reliable-board-sync` ([proposal](../openspec/changes/reliable-board-sync/proposal.md))
-* `password-by-default` ([proposal](../openspec/changes/password-by-default/proposal.md))
-* `ui-coherence-pass` ([proposal](../openspec/changes/ui-coherence-pass/proposal.md))
-* `mode-parity` ([proposal](../openspec/changes/mode-parity/proposal.md))
+* `password-by-default` ([proposal](../openspec/changes/archive/2026-11-03-password-by-default/proposal.md))
+* `ui-coherence-pass` ([proposal](../openspec/changes/archive/2026-11-03-ui-coherence-pass/proposal.md))
+* `mode-parity` ([proposal](../openspec/changes/archive/2026-11-03-mode-parity/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
-* `mobile-board-space` ([proposal](../openspec/changes/mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
-* `edit-published-notes` ([proposal](../openspec/changes/edit-published-notes/proposal.md)) - live retro 2026-11-02
-* `ux-irritants-wave-2` ([proposal](../openspec/changes/ux-irritants-wave-2/proposal.md)) - live retro 2026-11-02, phone: UX irritants first, before any new feature
+* `mobile-board-space` ([proposal](../openspec/changes/archive/2026-11-03-mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
+* `edit-published-notes` ([proposal](../openspec/changes/archive/2026-11-03-edit-published-notes/proposal.md)) - live retro 2026-11-02
+* `ux-irritants-wave-2` ([proposal](../openspec/changes/archive/2026-11-03-ux-irritants-wave-2/proposal.md)) - live retro 2026-11-02, phone: UX irritants first, before any new feature
 
 ## R2 Facilitation and visuals (target 2026-12-06)
 
 Added 2026-11-02 after a live retro: `board-layout-v2` (hide and resize the writing area, drag column widths, shared board display) and `presenter-accordion-motion`.
 
-* `board-layout-v2` ([proposal](../openspec/changes/board-layout-v2/proposal.md))
-* `presenter-accordion-motion` ([proposal](../openspec/changes/presenter-accordion-motion/proposal.md))
+* `board-layout-v2` ([proposal](../openspec/changes/archive/2026-11-03-board-layout-v2/proposal.md))
+* `presenter-accordion-motion` ([proposal](../openspec/changes/archive/2026-11-03-presenter-accordion-motion/proposal.md))
 
 Quality items that do not block the beta moved here from R1 (`ci-toolchain-speed`, `edge-security-and-domain`, `p2p-presence-and-cursors`, `automated-semver-release`). New from P10: per-device layouts, solo parity with one engine, results insights; `short-links-and-join` now carries the short join code.
 
 * `device-layout-prefs` ([proposal](../openspec/changes/device-layout-prefs/proposal.md))
-* `solo-parity-and-dedup` ([proposal](../openspec/changes/solo-parity-and-dedup/proposal.md))
+* `solo-parity-and-dedup` ([proposal](../openspec/changes/archive/2026-11-03-solo-parity-and-dedup/proposal.md))
 * `results-insights` ([proposal](../openspec/changes/results-insights/proposal.md))
 * `short-links-and-join` ([proposal](../openspec/changes/short-links-and-join/proposal.md))
 * `presenter-mode-v2` ([proposal](../openspec/changes/presenter-mode-v2/proposal.md))
 * `composer-and-colour-v3` ([proposal](../openspec/changes/composer-and-colour-v3/proposal.md))
 * `activity-rings-timer` ([proposal](../openspec/changes/activity-rings-timer/proposal.md))
 * `cluster-reveal-motion` ([proposal](../openspec/changes/cluster-reveal-motion/proposal.md))
-* `voting-results-charts` ([proposal](../openspec/changes/voting-results-charts/proposal.md))
+* `voting-results-charts` ([proposal](../openspec/changes/archive/2026-11-03-voting-results-charts/proposal.md))
 * `voting-v2-and-ranking` ([proposal](../openspec/changes/voting-v2-and-ranking/proposal.md))
 * `postit-visual-system` ([proposal](../openspec/changes/postit-visual-system/proposal.md))
 * `publishing-ux-redesign` ([proposal](../openspec/changes/publishing-ux-redesign/proposal.md))
@@ -60,7 +60,7 @@ Quality items that do not block the beta moved here from R1 (`ci-toolchain-speed
 
 ## R3 Teams and themes (target 2027-01-10)
 
-* `board-chat` ([proposal](../openspec/changes/board-chat/proposal.md)) - added 2026-11-02 after a live retro
+* `board-chat` ([proposal](../openspec/changes/archive/2026-11-03-board-chat/proposal.md)) - added 2026-11-02 after a live retro
 
 `team-workspaces` (teams, projects, carry-over by team) leads; it folds the team part of `profile-avatars-and-team-space` and the team source of `actions-v2-and-carry-over`. The component library (`design-system-components`) follows the CSS coherence pass of R1.
 
