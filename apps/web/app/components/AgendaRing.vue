@@ -96,7 +96,8 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
       <button class="btn btn-sm btn-ghost" type="button" :aria-pressed="settings.s.ringTime === 'elapsed'" data-testid="ring-mode" @click="settings.patch({ ringTime: settings.s.ringTime === 'elapsed' ? 'remaining' : 'elapsed' })">
         <Icon name="lucide:timer" /> {{ t(`profile.time.${settings.s.ringTime}` as never) }}
       </button>
-      <p v-if="clock.overtime && canSteer" class="note" role="status" data-testid="agenda-overtime">{{ t('agenda.overtime') }}</p>
+      <p v-if="clock.capped" class="note" role="status" data-testid="agenda-capped"><Icon name="lucide:octagon-x" /> {{ t('agenda.capped') }}</p>
+      <p v-else-if="clock.overtime && canSteer" class="note" role="status" data-testid="agenda-overtime">{{ t('agenda.overtime') }}</p>
       <div v-if="canSteer" class="ctl">
         <button v-if="!started || clock.paused" class="btn btn-sm btn-primary" type="button" data-testid="agenda-start" :disabled="agenda.current >= agenda.phases.length" @click="board.commands.startAgenda()">
           <Icon name="lucide:play" /> {{ t(agenda.current < 0 ? 'agenda.start' : 'agenda.resume') }}

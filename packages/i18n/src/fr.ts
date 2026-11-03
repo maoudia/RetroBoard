@@ -143,6 +143,7 @@ export const fr = {
   'agenda.toClose.ok': 'Aller à la clôture',
   'agenda.borrow': 'Prendre sur les étapes suivantes',
   'agenda.overtime': 'Cette étape dépasse son temps. Prolonge-la ou passe à la suite.',
+  'agenda.capped': "Le temps prévu pour toute la rétro est épuisé : le chrono est arrêté.",
   'agenda.total': '{elapsed} sur {planned}',
   'agenda.title': 'Déroulé',
   'rings.summary': 'Rétro à {outer} %. {phase} : {current} %{over}',

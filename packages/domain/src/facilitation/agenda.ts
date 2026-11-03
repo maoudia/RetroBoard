@@ -15,10 +15,20 @@ export interface Phase {
   actualMs?: number
 }
 
+/**
+ * Time the running phase may still use: what the whole retro was planned for minus what the phases left behind
+ * took. The chronometer stops there instead of running forever (change ux-irritants-wave-3).
+ */
+export function phaseBudgetMs(a: AgendaState): number {
+  const total = a.phases.reduce((n, p) => n + p.plannedMs, 0)
+  const spent = a.phases.reduce((n, p, i) => n + (i === a.current ? 0 : (p.actualMs ?? 0)), 0)
+  return Math.max(0, total - spent)
+}
+
 /** The running phase with its actual time recorded (left by next or end). */
 export function closePhase(a: AgendaState, now: number): Phase[] {
   if (a.current < 0 || a.current >= a.phases.length) return a.phases
-  const spent = Math.max(0, (a.pausedAt ?? now) - a.startedAt)
+  const spent = Math.min(Math.max(0, (a.pausedAt ?? now) - a.startedAt), phaseBudgetMs(a))
   return a.phases.map((p, i) => (i === a.current ? { ...p, actualMs: spent } : p))
 }
 
@@ -78,6 +88,8 @@ export interface PhaseClock {
   remainingMs: number
   overtime: boolean
   paused: boolean
+  /** The whole retro time is used up: the clock is frozen. */
+  capped: boolean
   totalPlannedMs: number
   /** Time really spent: the recorded time of the phases left behind plus the running one (a skipped phase adds what it really took, never its plan). */
   totalElapsedMs: number
@@ -89,12 +101,14 @@ export function phaseClock(a: AgendaState, now: number): PhaseClock {
   const running = a.current >= 0 && a.current < a.phases.length
   if (!running) {
     const ended = a.current >= a.phases.length
-    return { index: a.current, phase: null, elapsedMs: 0, remainingMs: 0, overtime: false, paused: false, totalPlannedMs, totalElapsedMs: ended ? spent : 0 }
+    return { index: a.current, phase: null, elapsedMs: 0, remainingMs: 0, overtime: false, paused: false, capped: false, totalPlannedMs, totalElapsedMs: ended ? spent : 0 }
   }
   const phase = a.phases[a.current]!
-  const elapsedMs = Math.max(0, (a.pausedAt ?? now) - a.startedAt)
+  const raw = Math.max(0, (a.pausedAt ?? now) - a.startedAt)
+  const budget = phaseBudgetMs(a)
+  const elapsedMs = Math.min(raw, budget)
   const remainingMs = phase.plannedMs - elapsedMs
-  return { index: a.current, phase, elapsedMs, remainingMs, overtime: remainingMs < 0, paused: a.pausedAt !== null, totalPlannedMs, totalElapsedMs: spent + elapsedMs }
+  return { index: a.current, phase, elapsedMs, remainingMs, overtime: remainingMs < 0, paused: a.pausedAt !== null, capped: raw >= budget, totalPlannedMs, totalElapsedMs: spent + elapsedMs }
 }
 
 /**

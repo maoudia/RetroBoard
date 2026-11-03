@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import { harness } from '@retroboard/testkit'
-import { AGENDA_PRESETS, allowedInPhase, type AgendaState, extendPhase, MIN, newAgenda, PHASE_FLOOR_MS, PHASE_KINDS, phaseClock, presetPhases } from '../src'
+import { AGENDA_PRESETS, allowedInPhase, closePhase, type AgendaState, extendPhase, MIN, newAgenda, PHASE_FLOOR_MS, PHASE_KINDS, phaseClock, presetPhases } from '../src'
 
 const ids = () => { let i = 0; return () => `p${i++}` }
 /** Earlier phases ran exactly their plan, as recorded when they were left. */
@@ -200,5 +200,19 @@ describe('voting override and go to closing (facilitator-controls-v2)', () => {
     h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 5 }, { kind: 'vote', minutes: 5 }], rules: true })
     h.run({ t: 'agenda.start' })
     expect(h.run({ t: 'agenda.toClose' })).toEqual({ ok: false, error: 'not-found' })
+  })
+
+  it('the chronometer stops when the whole retro time is used up (change ux-irritants-wave-3)', () => {
+    const a = { ...newAgenda([{ kind: 'write', minutes: 5 }, { kind: 'vote', minutes: 5 }], () => 'idphase01'), current: 0, startedAt: 1_000 }
+    // First phase may overrun into the time of the next one, but never past the 10 planned minutes.
+    expect(phaseClock(a, 1_000 + 7 * MIN)).toMatchObject({ elapsedMs: 7 * MIN, overtime: true, capped: false })
+    const frozen = phaseClock(a, 1_000 + 3 * 60 * MIN)
+    expect(frozen).toMatchObject({ elapsedMs: 10 * MIN, capped: true, totalElapsedMs: 10 * MIN })
+    expect(phaseClock(a, 1_000 + 4 * MIN).capped).toBe(false)
+    // Closing records the capped time, not hours.
+    expect(closePhase(a, 1_000 + 3 * 60 * MIN)[0]!.actualMs).toBe(10 * MIN)
+    // After a short first phase, the second may use what is left of the global budget.
+    const b = { ...a, phases: a.phases.map((p, i) => (i === 0 ? { ...p, actualMs: 2 * MIN } : p)), current: 1 }
+    expect(phaseClock(b, 1_000 + 60 * MIN)).toMatchObject({ elapsedMs: 8 * MIN, capped: true })
   })
 })

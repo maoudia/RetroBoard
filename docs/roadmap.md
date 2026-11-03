@@ -21,6 +21,7 @@ Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a rea
 * `ui-coherence-pass` ([proposal](../openspec/changes/archive/2026-11-03-ui-coherence-pass/proposal.md))
 * `mode-parity` ([proposal](../openspec/changes/archive/2026-11-03-mode-parity/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
+* `ux-irritants-wave-3` ([proposal](../openspec/changes/ux-irritants-wave-3/proposal.md)) - live retro 2026-11-03: calm UI, menus, column turns, global timer cap
 * `mobile-board-space` ([proposal](../openspec/changes/archive/2026-11-03-mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
 * `edit-published-notes` ([proposal](../openspec/changes/archive/2026-11-03-edit-published-notes/proposal.md)) - live retro 2026-11-02
 * `ux-irritants-wave-2` ([proposal](../openspec/changes/archive/2026-11-03-ux-irritants-wave-2/proposal.md)) - live retro 2026-11-02, phone: UX irritants first, before any new feature

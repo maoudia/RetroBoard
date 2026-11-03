@@ -144,6 +144,7 @@ export const en: Record<keyof typeof fr, string> = {
   'agenda.toClose.ok': 'Go to closing',
   'agenda.borrow': 'Take from later phases',
   'agenda.overtime': 'This phase is over its time. Extend it or move on.',
+  'agenda.capped': "The planned time of the whole retro is used up: the clock is stopped.",
   'agenda.total': '{elapsed} of {planned}',
   'agenda.title': 'Agenda',
   'rings.summary': 'Retro {outer}% done. {phase}: {current}%{over}',
