@@ -98,3 +98,22 @@ test('no edge drag handle on a phone: a swipe there must not resize a column (ch
   const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   await expect(page.getByTestId(`col-grip-${id}`)).toBeHidden()
 })
+
+test('chat side and filter bar are remembered per screen class (change device-layout-prefs)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await createBoard(page, { template: 'start-stop-continue' })
+  await page.getByTestId('btn-filter').click()
+  await expect(page.getByTestId('board-filter')).toBeVisible()
+  await page.getByTestId('btn-chat').click()
+  await page.getByTestId('chat-flip').click()
+  await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-side', 'left')
+  await page.reload()
+  await expect(page.getByTestId('board-filter')).toBeVisible()
+  await page.getByTestId('btn-chat').click()
+  await expect(page.getByTestId('chat-panel')).toHaveAttribute('data-side', 'left')
+  // Another class keeps its own choices.
+  await page.setViewportSize({ width: 390, height: 780 })
+  await expect(async () => {
+    await expect(page.getByTestId('board-filter')).toBeHidden()
+  }).toPass()
+})

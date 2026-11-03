@@ -6,6 +6,9 @@ export type Density = 'comfortable' | 'compact'
 export interface ClassLayout {
   density?: Density
   focusStyle?: 'centre' | 'accordion'
+  /** Side of the chat drawer and whether the filter bar is open (change device-layout-prefs). */
+  chatSide?: 'left' | 'right'
+  filterOpen?: boolean
   /** Writing areas folded to a handle (change board-layout-v2). */
   writingHidden?: boolean
   /** board room id -> column id -> size */

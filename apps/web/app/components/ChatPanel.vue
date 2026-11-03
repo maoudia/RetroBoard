@@ -17,7 +17,8 @@ const text = ref('')
 const input = ref<HTMLTextAreaElement | null>(null)
 const log = ref<HTMLElement | null>(null)
 const clearAsk = ref(false)
-const side = computed(() => settings.s.chatSide)
+const layout = useLayoutStore()
+const side = computed(() => layout.chatSide ?? settings.s.chatSide)
 
 const time = (at: number) => new Date(at).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
 const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
@@ -61,7 +62,7 @@ watch(() => chat.open, (v) => { if (v) { scrollDown(); void nextTick(() => input
 function onEscape(e: KeyboardEvent) { if (e.key === 'Escape' && chat.open && !clearAsk.value) { e.stopPropagation(); chat.close() } }
 onMounted(() => document.addEventListener('keydown', onEscape, true))
 onBeforeUnmount(() => document.removeEventListener('keydown', onEscape, true))
-const flip = () => settings.patch({ chatSide: side.value === 'right' ? 'left' : 'right' })
+const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
 </script>
 
 <template>

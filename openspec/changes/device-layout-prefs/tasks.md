@@ -7,7 +7,7 @@
 ## 2. Remembered choices
 
 - [x] 2.1 Column widths, composer height, density and zoom saved per class; verify e2e resizing at 1440 then 390 px
-- [ ] 2.2 Drawer and filter states, actions panel width and presenter focus style per class; verify e2e
+- [x] 2.2 Drawer and filter states, actions panel width and presenter focus style per class; verify e2e
 
 ## 3. Profile
 

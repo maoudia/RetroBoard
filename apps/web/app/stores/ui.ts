@@ -64,7 +64,7 @@ export const useUiStore = defineStore('ui', () => {
   const walkIndex = ref<number | null>(null)
   /** My view filter (text, colours, author, has votes). Never shared. */
   const filter = ref<NoteFilter>({ ...EMPTY_FILTER })
-  const filterOpen = ref(false)
+  const filterOpen = computed({ get: () => layout.filterOpen, set: (v: boolean) => layout.setFilterOpen(v) })
   const resetFilter = () => { filter.value = { ...EMPTY_FILTER } }
 
   const open = (name: Exclude<DialogName, null>) => { dialog.value = name }
