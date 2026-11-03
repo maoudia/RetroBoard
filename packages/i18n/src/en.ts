@@ -473,6 +473,7 @@ export const en: Record<keyof typeof fr, string> = {
   'chat.clear.ok': 'Clear',
   "toolbar.writing.hide": "Write",
   "toolbar.writing.show": "Write",
+  "toolbar.writing.sizes": "Size of every writing area",
   "private.fold": "Hide the writing area of this column",
   "private.open": "Write",
   "kbd.writing.toggle": "Hide or show the writing area",

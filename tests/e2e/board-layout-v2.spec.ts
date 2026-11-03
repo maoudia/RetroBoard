@@ -117,3 +117,28 @@ test('chat side and filter bar are remembered per screen class (change device-la
     await expect(page.getByTestId('board-filter')).toBeHidden()
   }).toPass()
 })
+
+test('the writing size is per column, and the Write chevron sets every column at once (change toast-notifications-v2)', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the toolbar chevron is a desktop control')
+  await createBoard(page, { template: 'start-stop-continue' })
+  const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
+  const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
+  const h = async (id: string) => (await page.getByTestId(`draft-${id}`).boundingBox())!.height
+  const normal = await h(a)
+  // One column only.
+  await page.getByTestId(`area-menu-${a}`).click()
+  await page.getByTestId(`area-large-${a}`).click()
+  await expect(async () => expect(await h(a)).toBeGreaterThan(normal + 30)).toPass()
+  expect(Math.abs((await h(b)) - normal)).toBeLessThan(4)
+  // The chevron beside Write: all columns, and the column with its own size is aligned again.
+  await page.getByTestId('btn-writing-sizes').click()
+  await expect(page.getByTestId('writing-all-large')).toHaveAttribute('aria-checked', 'false')
+  await page.getByTestId('writing-all-large').click()
+  await expect(async () => expect(await h(b)).toBeGreaterThan(normal + 30)).toPass()
+  expect(Math.abs((await h(a)) - (await h(b)))).toBeLessThan(4)
+  await page.getByTestId('btn-writing-sizes').click()
+  await expect(page.getByTestId('writing-all-large')).toHaveAttribute('aria-checked', 'true')
+  await page.getByTestId('writing-all-small').click()
+  await expect(async () => expect(await h(a)).toBeLessThan(normal - 2)).toPass()
+  expect(Math.abs((await h(a)) - (await h(b)))).toBeLessThan(4)
+})

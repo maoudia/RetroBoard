@@ -30,6 +30,12 @@ export const useUiStore = defineStore('ui', () => {
   }
   const columnWidths = computed<Record<string, number>>(() => (roomId.value ? (layout.current.widths?.[roomId.value] ?? {}) : {}))
   const writeHeight = computed<number | null>(() => (roomId.value ? (layout.current.writeH?.[roomId.value] ?? null) : null))
+  /** Writing size and dragged height of one column: its own, else the room's (change toast-notifications-v2). */
+  const writeSizeOf = (columnId: string): WriteSize => (roomId.value ? ((layout.current.writeCol?.[roomId.value]?.[columnId] as WriteSize | undefined) ?? writeSize.value) : 'normal')
+  const writeHeightOf = (columnId: string): number | null => (roomId.value ? (layout.current.writeHCol?.[roomId.value]?.[columnId] ?? writeHeight.value) : null)
+  const setColumnWriteSize = (room: string | null, columnId: string, size: WriteSize) => { if (room) layout.setColumnWrite(room, columnId, size === writeSize.value ? null : size) }
+  const setColumnWriteHeight = (room: string | null, columnId: string, px: number | null) => { if (room) layout.setColumnWriteHeight(room, columnId, px) }
+  const setAllWriteSize = (room: string | null, size: WriteSize) => { if (room) layout.setAllWrite(room, size) }
   const setWriteHeight = (room: string | null, px: number | null) => { if (room) layout.setWriteHeight(room, px) }
   const setColumnWidth = (room: string | null, columnId: string, px: number | null) => { if (room) layout.setWidth(room, columnId, px) }
   const setColumnSize = (room: string | null, columnId: string, size: ColumnSize) => {
@@ -87,5 +93,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, dragGroupId }
+  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
 })

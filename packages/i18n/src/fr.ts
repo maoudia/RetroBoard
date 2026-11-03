@@ -472,6 +472,7 @@ export const fr = {
   'chat.clear.ok': 'Vider',
   "toolbar.writing.hide": "Saisie",
   "toolbar.writing.show": "Saisie",
+  "toolbar.writing.sizes": "Taille de toutes les zones de saisie",
   "private.fold": "Masquer la zone d'écriture de cette colonne",
   "private.open": "Écrire",
   "kbd.writing.toggle": "Masquer ou afficher la saisie",

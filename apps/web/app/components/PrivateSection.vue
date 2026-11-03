@@ -21,7 +21,7 @@ const text = computed({ get: () => drafts.compose(props.column.id), set: (v: str
 /** Drag the grip under the writing field to set its height (mouse, touch, keyboard); a preset clears it (change board-layout-v2). */
 const fieldEl = ref<HTMLTextAreaElement | null>(null)
 const dragH = ref<number | null>(null)
-const fieldH = computed(() => dragH.value ?? ui.writeHeight)
+const fieldH = computed(() => dragH.value ?? ui.writeHeightOf(props.column.id))
 function startGrow(e: PointerEvent) {
   const grip = e.currentTarget as HTMLElement
   const start = fieldEl.value?.getBoundingClientRect().height ?? 52
@@ -30,7 +30,7 @@ function startGrow(e: PointerEvent) {
   const move = (ev: PointerEvent) => { dragH.value = Math.max(MIN_WRITE_PX, Math.min(MAX_WRITE_PX, start + ev.clientY - y0)) }
   const up = () => {
     grip.removeEventListener('pointermove', move)
-    if (dragH.value !== null) ui.setWriteHeight(board.roomId, dragH.value)
+    if (dragH.value !== null) ui.setColumnWriteHeight(board.roomId, props.column.id, dragH.value)
     dragH.value = null
   }
   grip.addEventListener('pointermove', move)
@@ -41,7 +41,7 @@ function growKey(e: KeyboardEvent) {
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
   e.preventDefault()
   const now = fieldH.value ?? fieldEl.value?.getBoundingClientRect().height ?? 52
-  ui.setWriteHeight(board.roomId, now + (e.key === 'ArrowDown' ? 24 : -24))
+  ui.setColumnWriteHeight(board.roomId, props.column.id, now + (e.key === 'ArrowDown' ? 24 : -24))
 }
 /** On touch screens the keyboard's return key adds a line; the buttons act. */
 const coarse = ref(false)
@@ -111,7 +111,7 @@ function onKey(e: KeyboardEvent) {
        one handle brings it back (changes board-layout-v2 and ux-irritants-wave-2). -->
   <div class="priv-wrap" :data-folded="folded ? '' : undefined">
     <div class="priv-clip" :inert="folded">
-  <section class="priv" :data-area="ui.writeSize" :aria-label="t('private.section', { title: column.title })">
+  <section class="priv" :data-area="ui.writeSizeOf(column.id)" :aria-label="t('private.section', { title: column.title })">
     <header>
       <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
       <GatedHint compact :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
@@ -125,8 +125,8 @@ function onKey(e: KeyboardEvent) {
           </button>
         </template>
         <template #default="{ close }">
-          <button v-for="z in WRITE_SIZES" :key="z" class="dd-item" type="button" role="menuitemradio" :aria-checked="ui.writeSize === z" :data-testid="`area-${z}-${column.id}`" @click="ui.setWriteSize(board.roomId, z); close()">
-            <Icon :name="ui.writeSize === z ? 'lucide:check' : 'lucide:minus'" /> {{ t(`private.area.${z}` as never) }}
+          <button v-for="z in WRITE_SIZES" :key="z" class="dd-item" type="button" role="menuitemradio" :aria-checked="ui.writeSizeOf(column.id) === z" :data-testid="`area-${z}-${column.id}`" @click="ui.setColumnWriteSize(board.roomId, column.id, z); close()">
+            <Icon :name="ui.writeSizeOf(column.id) === z ? 'lucide:check' : 'lucide:minus'" /> {{ t(`private.area.${z}` as never) }}
           </button>
         </template>
       </Dropdown>

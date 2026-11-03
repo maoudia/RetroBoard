@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classOf, copyClass, layoutOf, legacySizes, resetClass, setSize, setWrite, withLayout } from '../app/utils/layout'
+import { classOf, copyClass, layoutOf, legacySizes, resetClass, setAllWrite, setColumnWrite, setColumnWriteHeight, setSize, setWrite, withLayout } from '../app/utils/layout'
 
 describe('layout per screen class', () => {
   it('classifies widths', () => {
@@ -47,5 +47,33 @@ describe('writing field height (change board-layout-v2)', () => {
     book = setWrite(book, 'desktop', 'r1', 'large')
     expect(layoutOf(book, 'desktop').writeH).toEqual({ r2: 120 })
     expect(layoutOf(setWriteHeight(book, 'desktop', 'r2', null), 'desktop').writeH).toEqual({})
+  })
+})
+
+describe('writing size per column (change toast-notifications-v2)', () => {
+  it('a column keeps its own size, a dragged height is replaced by a preset, and null follows the room again', () => {
+    let b = setWrite({}, 'desktop', 'r1', 'normal')
+    b = setColumnWriteHeight(b, 'desktop', 'r1', 'c1', 150)
+    expect(layoutOf(b, 'desktop').writeHCol?.r1?.c1).toBe(150)
+    b = setColumnWrite(b, 'desktop', 'r1', 'c1', 'large')
+    expect(layoutOf(b, 'desktop').writeCol?.r1?.c1).toBe('large')
+    expect(layoutOf(b, 'desktop').writeHCol?.r1?.c1).toBeUndefined()
+    b = setColumnWrite(b, 'desktop', 'r1', 'c1', null)
+    expect(layoutOf(b, 'desktop').writeCol?.r1?.c1).toBeUndefined()
+  })
+
+  it('the heights are clamped and the other columns are untouched', () => {
+    let b = setColumnWriteHeight({}, 'phone', 'r1', 'c1', 5)
+    b = setColumnWriteHeight(b, 'phone', 'r1', 'c2', 9999)
+    expect(layoutOf(b, 'phone').writeHCol?.r1).toEqual({ c1: 40, c2: 420 })
+  })
+
+  it('one size for all clears every column of its own, in that room only', () => {
+    let b = setColumnWrite({}, 'desktop', 'r1', 'c1', 'large')
+    b = setColumnWrite(b, 'desktop', 'r2', 'c1', 'small')
+    b = setAllWrite(b, 'desktop', 'r1', 'small')
+    expect(layoutOf(b, 'desktop').write.r1).toBe('small')
+    expect(layoutOf(b, 'desktop').writeCol?.r1).toEqual({})
+    expect(layoutOf(b, 'desktop').writeCol?.r2?.c1).toBe('small')
   })
 })

@@ -19,6 +19,10 @@ export interface ClassLayout {
   widths?: Record<string, Record<string, number>>
   /** board room id -> writing field height in px set by dragging (change board-layout-v2); a preset clears it. */
   writeH?: Record<string, number>
+  /** board room id -> column id -> writing size of that column alone; the room size is the default (change toast-notifications-v2). */
+  writeCol?: Record<string, Record<string, string>>
+  /** board room id -> column id -> writing field height in px of that column alone. */
+  writeHCol?: Record<string, Record<string, number>>
   /** board room id -> column ids whose writing area is folded (change ux-irritants-wave-2). */
   writeOff?: Record<string, string[]>
 }
@@ -68,6 +72,29 @@ export function setColumnWriteHidden(book: LayoutBook, cls: ScreenClass, room: s
   const cur = layoutOf(book, cls)
   const rest = (cur.writeOff?.[room] ?? []).filter((id) => id !== columnId)
   return withLayout(book, cls, { writeOff: { ...(cur.writeOff ?? {}), [room]: hidden ? [...rest, columnId] : rest } })
+}
+
+/** Writing size of one column (null: follow the room size). A size of its own replaces a height dragged on that column. */
+export function setColumnWrite(book: LayoutBook, cls: ScreenClass, room: string, columnId: string, size: string | null): LayoutBook {
+  const cur = layoutOf(book, cls)
+  const without = <T>(m: Record<string, T> | undefined) => Object.fromEntries(Object.entries(m ?? {}).filter(([k]) => k !== columnId))
+  const sizes = size === null ? without(cur.writeCol?.[room]) : { ...without(cur.writeCol?.[room]), [columnId]: size }
+  return withLayout(book, cls, { writeCol: { ...(cur.writeCol ?? {}), [room]: sizes }, writeHCol: { ...(cur.writeHCol ?? {}), [room]: without(cur.writeHCol?.[room]) } })
+}
+
+/** Writing field height of one column set by dragging (null clears it). Clamped; never mutates the input. */
+export function setColumnWriteHeight(book: LayoutBook, cls: ScreenClass, room: string, columnId: string, px: number | null): LayoutBook {
+  const cur = layoutOf(book, cls)
+  const rest = Object.fromEntries(Object.entries(cur.writeHCol?.[room] ?? {}).filter(([k]) => k !== columnId))
+  const next = px === null ? rest : { ...rest, [columnId]: Math.round(Math.max(MIN_WRITE_PX, Math.min(MAX_WRITE_PX, px))) }
+  return withLayout(book, cls, { writeHCol: { ...(cur.writeHCol ?? {}), [room]: next } })
+}
+
+/** One size for every writing area of the room: the room size changes and every column of its own is cleared. */
+export function setAllWrite(book: LayoutBook, cls: ScreenClass, room: string, size: string): LayoutBook {
+  const next = setWrite(book, cls, room, size)
+  const cur = layoutOf(next, cls)
+  return withLayout(next, cls, { writeCol: { ...(cur.writeCol ?? {}), [room]: {} }, writeHCol: { ...(cur.writeHCol ?? {}), [room]: {} } })
 }
 
 export const resetClass = (book: LayoutBook, cls: ScreenClass): LayoutBook => {
