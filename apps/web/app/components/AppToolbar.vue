@@ -129,7 +129,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 .tools > *, .tools :deep(.icon-btn) { flex: none; }
 .me { margin-left: .5rem; }
 .split { display: inline-flex; align-items: center; flex: none; }
-.split-more { margin-left: -.35rem; width: 22px; min-width: 22px; padding: 0; }
+.split-more { margin-left: .15rem; width: 28px; min-width: 28px; min-height: 28px; padding: 0; }
 @media (max-width: 1100px) {
   .toolbar { grid-template-columns: 1fr auto auto; }
   .timer-slot { grid-column: 2; grid-row: 1; }
