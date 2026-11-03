@@ -59,7 +59,8 @@ export const column = (page: Page, i: number) => page.locator('section[data-test
 export async function settle(page: Page) {
   await page.evaluate(() => Promise.all(
     document.getAnimations()
-      .filter((a) => (a.effect?.getComputedTiming().iterations ?? 1) !== Infinity)
+      // Long countdowns (toast progress lines) are not motion to wait for.
+      .filter((a) => (a.effect?.getComputedTiming().iterations ?? 1) !== Infinity && Number(a.effect?.getComputedTiming().duration ?? 0) < 3000)
       .map((a) => a.finished.catch(() => undefined)),
   ))
 }

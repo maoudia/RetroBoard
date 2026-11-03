@@ -228,9 +228,10 @@ watch(() => ui.focusColumn, async (i) => {
   if (i === null) return
   await nextTick()
   const go = () => document.querySelector('.col[data-focused]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
-  go()
-  // The accordion animates widths: the column moves while it grows, so aim again once it has settled (change ux-irritants-wave-3).
-  setTimeout(go, 450)
+  // The accordion animates widths: the column moves while it grows, so aiming now sweeps past the next column and comes back.
+  // Aim once, when the widths have settled (changes ux-irritants-wave-3 and toast-notifications-v2).
+  if (ui.focusStyle === 'accordion') setTimeout(go, 450)
+  else go()
 })
 // Column focus (presenter-mode-v2): the attribute drives the layout in base.css.
 watch(() => [ui.presenter, ui.focusColumn, ui.focusStyle] as const, ([on, col, style]) => {
