@@ -155,6 +155,8 @@ export interface BoardState {
   roti?: Record<string, number>
   /** Chat messages, oldest first, at most CHAT_MAX_MESSAGES (change board-chat). */
   chat?: ChatMessage[]
+  /** Column the facilitator opened for writing, others are masked (change ux-irritants-wave-3). Null or absent: all open. */
+  turn?: string | null
 }
 
 export interface Actor {
@@ -258,6 +260,8 @@ export interface Snapshot {
   roti?: { counts: number[]; total: number; average: number | null; mine: number | null }
   /** Board chat, oldest first (change board-chat). */
   chat?: SnapshotChatMessage[]
+  /** Column open for writing right now, null when every column is (change ux-irritants-wave-3). */
+  turn?: string | null
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */

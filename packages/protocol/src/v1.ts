@@ -44,6 +44,7 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('drafts.reveal'), seconds: v.optional(v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(30))) }),
   v.object({ t: v.literal('chat.post'), text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(CHAT_TEXT_MAX)) }),
   v.object({ t: v.literal('chat.clear') }),
+  v.object({ t: v.literal('turn.set'), columnId: v.nullable(Id) }),
   v.object({ t: v.literal('roti.set'), score: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5)) }),
   v.object({ t: v.literal('vote.close') }),
   v.object({ t: v.literal('vote.reopen') }),

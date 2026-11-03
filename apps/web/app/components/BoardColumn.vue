@@ -26,6 +26,7 @@ const NOTE_FS = { small: '.85em', normal: '1em', large: '1.25em' } as const
 /** TV and meeting-room screens (2200 px and more) read from afar: the chosen display is scaled up so the room reads it (change board-layout-v2). */
 const WALL = 1.5
 const wall = computed(() => layoutStore.cls === 'wall')
+const turnState = computed(() => { const t = board.snapshot?.turn ?? null; return t === null ? undefined : t === props.column.id ? 'on' : 'off' })
 const display = computed(() => {
   const w = parseFloat(NOTE_W[board.settings?.noteSize ?? 'normal'])
   const f = parseFloat(NOTE_FS[board.settings?.noteText ?? 'normal'])
@@ -71,7 +72,7 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </script>
 
 <template>
-  <section ref="colEl" tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey" @click="unfold">
+  <section ref="colEl" tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :data-turn="turnState" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey" @click="unfold">
     <header>
       <span class="badge-ico"><Icon :name="`lucide:${column.icon}`" /></span>
       <div class="titles">
@@ -138,6 +139,14 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 </template>
 
 <style scoped>
+/* Column turns (change ux-irritants-wave-3): the open column zooms and glows, the others get a light hatch mask and a dead writing area. */
+.col.col[data-turn="on"] { flex: 1.5 1 470px; min-width: min(470px, 92vw); max-width: 700px; outline: 2px solid var(--accent); outline-offset: -2px; box-shadow: var(--shadow-2); z-index: 2; }
+.col.col[data-turn="off"] { flex: 1 1 270px; min-width: min(270px, 86vw); opacity: .82; }
+.col.col[data-turn="off"] :deep(.priv-wrap) { position: relative; pointer-events: none; filter: saturate(.35); opacity: .6; }
+.col.col[data-turn="off"] :deep(.priv-wrap)::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in oklab, var(--text) 7%, transparent) 8px 16px); }
+.col.col { transition: flex-grow .35s var(--ease), max-width .35s var(--ease), opacity .3s, outline-color .3s; }
+@media (prefers-reduced-motion: reduce) { .col.col { transition: none; } }
+
 .col {
   --note-w: 150px; position: relative; display: flex; flex-direction: column; min-height: 0; height: 100%; flex: 1 1 340px; min-width: min(340px, 86vw); max-width: 520px;
   background: color-mix(in oklab, var(--surface) 88%, transparent); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-1);

@@ -92,3 +92,12 @@ describe('chat commands (change board-chat)', () => {
     expect(parseCommand({ t: 'chat.clear' })).toEqual({ t: 'chat.clear' })
   })
 })
+
+describe('turn command (change ux-irritants-wave-3)', () => {
+  it('takes a column id or null, nothing else', () => {
+    expect(parseCommand({ t: 'turn.set', columnId: 'abcd1234' })).toEqual({ t: 'turn.set', columnId: 'abcd1234' })
+    expect(parseCommand({ t: 'turn.set', columnId: null })).toEqual({ t: 'turn.set', columnId: null })
+    expect(parseCommand({ t: 'turn.set' })).toBeNull()
+    expect(parseCommand({ t: 'turn.set', columnId: 42 })).toBeNull()
+  })
+})

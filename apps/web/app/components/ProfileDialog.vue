@@ -233,6 +233,8 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .hue.on { border-color: var(--text); }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line > span:first-child { display: grid; gap: 2px; min-width: 0; }
+/* Narrow screens: a row with a wide control (language, light or dark) puts the control under its label instead of squeezing the text (change ux-irritants-wave-3). */
+@media (max-width: 600px) { .line:has(> .seg, > .pick-seg, > .scale) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg, > .scale) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
 .line small { font-size: var(--fs-sm); }
 .sel { width: auto; min-width: 170px; }
 .mine { display: grid; gap: .4rem; padding: .7rem; border-radius: var(--r-control); background: var(--surface2); }

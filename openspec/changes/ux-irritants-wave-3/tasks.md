@@ -17,9 +17,9 @@
 
 ## 4. Column turns
 
-- [ ] 4.1 Domain: open column turns (command, privilege, snapshot); verify unit tests
-- [ ] 4.2 UI: zoom of the open column and mask on the others; verify e2e two contexts
+- [x] 4.1 Domain: open column turns (command, privilege, snapshot); verify unit tests
+- [x] 4.2 UI: zoom of the open column and mask on the others; verify e2e two contexts
 
 ## 5. Dialogs
 
-- [ ] 5.1 Stacked setting rows on narrow screens (profile language and theme variant); verify e2e
+- [x] 5.1 Stacked setting rows on narrow screens (profile language and theme variant); verify e2e

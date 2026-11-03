@@ -100,3 +100,16 @@ test('the writing area shows no explanatory sentence, only icons and a chevron, 
   expect(visible.join(' ')).not.toMatch(/Only you|Seulement toi|Write here|PRIVATE|Privé/i)
   await expect(area.getByRole('button', { name: /Add|Ajouter/ })).toBeVisible()
 })
+
+test('profile rows with wide controls stack under their label on a phone (change ux-irritants-wave-3)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-profile').click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByTestId('mode-advanced').click()
+  const line = dialog.locator('.line', { has: page.getByTestId('lang-auto') })
+  const label = (await line.locator('span').first().boundingBox())!
+  const control = (await line.locator('.pick-seg').boundingBox())!
+  expect(control.y).toBeGreaterThanOrEqual(label.y + label.height - 1)
+  expect(label.width).toBeGreaterThan(200)
+})

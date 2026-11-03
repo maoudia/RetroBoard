@@ -218,6 +218,12 @@ watch(() => ui.presenter, (on) => {
     if (useSettingsStore().s.presenterHideMenus) ui.chromeHidden = true
   } else { delete document.documentElement.dataset.presenter; ui.focusColumn = null; ui.chromeHidden = menusBefore }
 })
+// A new column turn brings the open column into view (change ux-irritants-wave-3).
+watch(() => board.snapshot?.turn, async (turn) => {
+  if (!turn) return
+  await nextTick()
+  setTimeout(() => document.querySelector(`[data-testid="column-${turn}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }), 200)
+})
 watch(() => ui.focusColumn, async (i) => {
   if (i === null) return
   await nextTick()
@@ -327,6 +333,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <PresenterSpotlight v-if="board.ready && ui.presenter" />
       <TalkBanner v-if="board.ready" />
       <VoteBar v-if="board.ready" />
+      <TurnBar v-if="board.ready && board.snapshot?.turn" />
       <RevealCountdown v-if="board.ready" />
       <BoardFilter v-if="board.ready && ui.filterOpen" />
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>

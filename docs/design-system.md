@@ -45,6 +45,14 @@ Type roles: body `--fs-md`; secondary text and hints `--fs-sm` in `--muted`; bad
 - Empty states invite an action ("Write the first idea").
 - Every string has an `fr` and an `en` key. French is the source language.
 
+## 4b. Calm controls and menu order (change ux-irritants-wave-3)
+
+- Icon first: buttons show an icon and keep their text for assistive tech (`.sr-only`); visible text stays for the few actions that need a word (the active half of a switch, dialog confirmations). Colour carries intent: accent filled for the main action, accent outline for the secondary one, danger colour for destructive ones, neutral for the rest.
+- One chevron opens and closes a foldable area (writing area, menus); the hide-menus chevron is the last item at the right on every screen size.
+- Toolbar order, the same on every size: invite, people, actions, chat, find, writing area, presentation, export, notifications, settings, theme, profile.
+- Setting rows with wide controls stack under their label under 600 px.
+- Time is shown as m:ss, then `1h05`, then `2d`; the phase clock stops when the planned time of the whole retro is used up.
+
 ## 5. Adding or changing UI: checklist
 
 1. Use tokens from section 2; run `pnpm test` (the guard fails on off-scale sizes or radii).

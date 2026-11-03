@@ -208,6 +208,8 @@ h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; le
 .line > .btn, .line > .seg { flex: none; white-space: nowrap; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
+/* Narrow screens: a row with a wide control (language, light or dark) puts the control under its label instead of squeezing the text (change ux-irritants-wave-3). */
+@media (max-width: 600px) { .line:has(> .seg, > .pick-seg, > .scale) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg, > .scale) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
 .line small { font-size: var(--fs-sm); }
 .stepper { display: inline-flex; align-items: center; gap: .3rem; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 800; }

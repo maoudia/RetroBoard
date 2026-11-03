@@ -46,7 +46,8 @@ onMounted(() => { coarse.value = window.matchMedia('(pointer: coarse)').matches 
 const mine = computed(() => drafts.forColumn(props.column.id))
 /** Writing closed by the current phase: greyed composer with the reason (facilitators keep it open). */
 const gate = computed(() => board.availability('note.addMany'))
-const closed = computed(() => !gate.value.allowed)
+const turnOff = computed(() => { const t = board.snapshot?.turn ?? null; return t !== null && t !== props.column.id })
+const closed = computed(() => !gate.value.allowed || turnOff.value)
 /** Look-alike ideas already published in this column, computed on this device while I type. */
 const similar = computed(() => (text.value.trim().length >= 4 ? similarIdeas(text.value, board.snapshot?.notes ?? [], props.column.id, 1)[0] ?? null : null))
 function showSimilar(id: string) {
@@ -138,7 +139,7 @@ function onKey(e: KeyboardEvent) {
       <textarea
         ref="fieldEl" v-model="text" :maxlength="board.noteLimit" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
         :aria-describedby="gate.closedBy ? `gated-${column.id}` : undefined"
-        :placeholder="board.locked ? t('private.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
+        :placeholder="board.locked ? t('private.locked') : turnOff ? t('turn.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         :style="fieldH ? { minHeight: `${fieldH}px`, height: `${fieldH}px` } : undefined" @keydown="onKey"
       />
       <small class="hint-row"><span class="sr-only">{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>

@@ -64,6 +64,7 @@ export type Command =
   | { t: 'roti.set'; score: number }
   | { t: 'chat.post'; text: string }
   | { t: 'chat.clear' }
+  | { t: 'turn.set'; columnId: string | null }
   | { t: 'talk.assign'; speaker: string; label: string | null }
   | { t: 'talk.end' }
   | { t: 'talk.self' }
