@@ -92,6 +92,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .field::placeholder { color: var(--muted); opacity: .85; }
 .field:focus-visible { outline-offset: 0; border-color: var(--accent); }
 textarea.field { resize: vertical; min-height: 4.5rem; }
+/* Select lists share the button language (change toast-notifications-v2): a pill, bold label, a drawn chevron, an accent ring when open. */
+select.field {
+  appearance: none; -webkit-appearance: none; min-height: 40px; padding: .45rem 2.4rem .45rem 1rem; border-radius: 999px; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--control, var(--border)); background-color: var(--surface2); color: var(--text); text-overflow: ellipsis;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 1.15rem) 52%, calc(100% - .8rem) 52%; background-size: .35rem .35rem; background-repeat: no-repeat;
+  transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+select.field:hover { border-color: var(--accent); background-color: var(--accent-soft); }
+select.field:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+select.field option { font-weight: 500; background: var(--surface); color: var(--text); }
+/* Toggle chip: a check in a pill, the input stays a real checkbox laid over it. */
+.chip { position: relative; display: inline-flex; align-items: center; gap: .4rem; min-height: 40px; padding: 0 .9rem; border-radius: 999px; border: 1px solid var(--control, var(--border)); background: var(--surface2); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.chip input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.chip:has(input:focus-visible) { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
 label.lbl { display: grid; gap: .35rem; font-weight: 600; font-size: var(--fs-sm); color: var(--muted); }
 
 /* Surfaces */
@@ -105,7 +122,11 @@ label.lbl { display: grid; gap: .35rem; font-weight: 600; font-size: var(--fs-sm
   display: flex; align-items: center; gap: .6rem; width: 100%; padding: .5rem .65rem; border: 0; border-radius: var(--r-sm);
   background: transparent; text-align: left; cursor: pointer; font-weight: 500;
 }
+/* Menu rows: the same round, icon-led look as the buttons; the checked row is a lit pill. */
+.dd-item { border-radius: 999px; padding: .5rem .85rem; font-weight: 600; transition: background-color .12s, color .12s; }
 .dd-item:hover, .dd-item:focus-visible { background: var(--accent-soft); }
+.dd-item[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); }
+.dd-item:disabled { opacity: .5; cursor: default; }
 .dd-item.danger { color: var(--danger); }
 .dd-sep { height: 1px; background: var(--border); margin: .25rem 0; }
 @keyframes dd-in { from { opacity: 0; transform: translateY(-4px) scale(.97); } }

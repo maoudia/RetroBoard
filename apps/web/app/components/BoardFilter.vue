@@ -40,9 +40,9 @@ onMounted(() => input.value?.focus())
       <option value="">{{ t('filter.anyAuthor') }}</option>
       <option v-for="a in authors" :key="a" :value="a">{{ a }}</option>
     </select>
-    <label class="chk">
+    <label class="chip">
       <input type="checkbox" :checked="ui.filter.voted" data-testid="filter-voted" @change="ui.filter = { ...ui.filter, voted: ($event.target as HTMLInputElement).checked }" />
-      {{ t('filter.voted') }}
+      <Icon name="lucide:thumbs-up" /> {{ t('filter.voted') }}
     </label>
     <span class="count muted" role="status" data-testid="filter-count">{{ active ? t('filter.count', { n: shown, total: notes.length }) : '' }}</span>
     <button class="mini-btn" type="button" :aria-label="t('filter.close')" data-testid="filter-close" @click="close"><Icon name="lucide:x" /></button>
@@ -51,12 +51,11 @@ onMounted(() => input.value?.focus())
 
 <style scoped>
 .filter { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 1rem 0; padding: .4rem .6rem; border-radius: var(--r-card); border: 1px solid var(--border); }
-.field { min-width: 0; flex: 1 1 12rem; }
+.field { min-width: 0; flex: 1 1 12rem; border-radius: 999px; min-height: 40px; }
 .sel { flex: 0 1 12rem; }
 .swatches { display: inline-flex; gap: 4px; }
 .sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; }
 .sw[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface); }
-.chk { display: inline-flex; align-items: center; gap: .3rem; font-size: var(--fs-sm); white-space: nowrap; }
 .count { font-size: var(--fs-sm); min-width: 4rem; }
 .c-0 { --c: var(--note-0); } .c-1 { --c: var(--note-1); } .c-2 { --c: var(--note-2); } .c-3 { --c: var(--note-3); }
 .c-4 { --c: var(--note-4); } .c-5 { --c: var(--note-5); } .c-6 { --c: var(--note-6); } .c-7 { --c: var(--note-7); }

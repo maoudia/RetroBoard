@@ -48,6 +48,8 @@ export interface LocalSettings {
   phaseWarning: boolean
   /** System notification when time is up and the tab is hidden (asked on opt-in only). */
   systemNotify: boolean
+  /** Side of the floating chat drawer (personal). */
+  chatSide: 'left' | 'right'
   /** Sort of the voted ideas list in the actions panel. */
   votedSort: 'votes' | 'column' | 'newest' | 'author'
 }
@@ -60,7 +62,7 @@ const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
-  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, votedSort: 'votes',
+  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', votedSort: 'votes',
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

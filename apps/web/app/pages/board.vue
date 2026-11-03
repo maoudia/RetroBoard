@@ -396,7 +396,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
 <style scoped>
 .page { position: relative; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-.page > :not(.ambient) { position: relative; z-index: 1; }
+.page > :not(.ambient, .chat, .bubble) { position: relative; z-index: 1; }
 /* Folded menus on phones: only the slim top bar stays (change mobile-board-space). */
 .page :deep(.tools), .page :deep(.stepper), .page :deep(.votebar) { max-height: 220px; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s; }
 .chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { max-height: 0; opacity: 0; padding-block: 0; margin-block: 0; overflow: hidden; pointer-events: none; visibility: hidden; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s, visibility 0s .3s; }
