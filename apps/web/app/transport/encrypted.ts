@@ -500,7 +500,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     if (live.t === 'presence') { this.presence.set(live.conn, live); this.emit(); return }
     const name = this.liveName(live.conn)
     if (name === undefined) return
-    if (live.t === 'cursor') this.handlers.onCursor?.({ conn: live.conn, anchor: live.anchor, x: live.x, y: live.y, drag: live.drag }, name)
+    if (live.t === 'cursor') this.handlers.onCursor?.({ conn: live.conn, anchor: live.anchor, x: live.x, y: live.y, drag: live.drag, ...(live.laser ? { laser: true } : {}) }, name)
     else this.handlers.onFocus?.({ conn: live.conn, column: live.column, note: live.note, typing: live.typing }, name)
   }
 

@@ -64,6 +64,9 @@ export const useUiStore = defineStore('ui', () => {
   const walkIndex = ref<number | null>(null)
   /** My view filter (text, colours, author, has votes). Never shared. */
   const filter = ref<NoteFilter>({ ...EMPTY_FILTER })
+  /** Presenter laser pointer: my pointer is shown to everybody while on (change presenter-mode-v2). */
+  const laser = ref(false)
+  watch(presenter, (on) => { if (!on) laser.value = false })
   const filterOpen = computed({ get: () => layout.filterOpen, set: (v: boolean) => layout.setFilterOpen(v) })
   const resetFilter = () => { filter.value = { ...EMPTY_FILTER } }
 
@@ -84,5 +87,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, dragGroupId }
+  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, dragGroupId }
 })

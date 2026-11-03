@@ -18,7 +18,8 @@ let tick: ReturnType<typeof setInterval> | undefined
 const ui = useUiStore()
 const { isLeadConn } = useLead()
 const enabled = computed(() => settings.s.showCursors && !coarse.value && !ui.presenter)
-const cursors = computed(() => (enabled.value ? live.visible : []))
+// The presenter's laser is drawn for everybody, on touch screens and in presenter mode too.
+const cursors = computed(() => (enabled.value ? live.visible : live.visible.filter((c) => c.laser)))
 
 function bindEl(conn: string, el: unknown) {
   if (el instanceof HTMLElement) els.set(conn, el); else { els.delete(conn); pos.delete(conn) }
@@ -61,8 +62,9 @@ const label = (c: LiveCursor) => c.name || t('common.anonymous')
   <!-- On body: page-level stacking rules (position: relative on page children) must not apply. -->
   <Teleport to="body">
     <div class="cursors" aria-hidden="true">
-      <div v-for="c in cursors" :key="c.conn" :ref="(el) => bindEl(c.conn, el)" class="cursor" :class="`c-${c.color}`" :data-testid="`cursor-${c.conn}`" hidden>
-        <svg viewBox="0 0 16 16" width="18" height="18"><path d="M1 1l5.5 14 2-6 6-2z" /></svg>
+      <div v-for="c in cursors" :key="c.conn" :ref="(el) => bindEl(c.conn, el)" class="cursor" :class="[`c-${c.color}`, { laser: c.laser }]" :data-testid="`cursor-${c.conn}`" hidden>
+        <span v-if="c.laser" class="dot" :data-testid="`laser-${c.conn}`" />
+        <svg v-else viewBox="0 0 16 16" width="18" height="18"><path d="M1 1l5.5 14 2-6 6-2z" /></svg>
         <span class="label"><Icon v-if="isLeadConn(c.conn)" class="crown" name="lucide:crown" :data-testid="`crown-${c.conn}`" /><span v-if="isLeadConn(c.conn)" class="sr-only">{{ t('roles.facilitator') }}: </span>{{ label(c) }}</span>
       </div>
     </div>
@@ -75,6 +77,9 @@ const label = (c: LiveCursor) => c.name || t('common.anonymous')
 .cursor svg { display: block; fill: var(--c); stroke: var(--ink); stroke-width: 1; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .3)); }
 .label { position: absolute; left: 14px; top: 14px; padding: .1rem .4rem; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; border-radius: var(--r-xs); background: var(--c); color: var(--ink); }
 .crown { position: absolute; left: 0; top: -15px; width: 14px; height: 14px; color: var(--ink); filter: drop-shadow(0 0 1px var(--c)); }
+.cursor.laser .dot { display: block; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 4px color-mix(in oklab, var(--danger) 35%, transparent), 0 0 18px 6px color-mix(in oklab, var(--danger) 55%, transparent); animation: laser-pulse 1.2s ease-in-out infinite; }
+@keyframes laser-pulse { 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .cursor.laser .dot { animation: none; } }
 .c-0 { --c: var(--note-0); } .c-1 { --c: var(--note-1); } .c-2 { --c: var(--note-2); } .c-3 { --c: var(--note-3); }
 .c-4 { --c: var(--note-4); } .c-5 { --c: var(--note-5); } .c-6 { --c: var(--note-6); } .c-7 { --c: var(--note-7); }
 </style>

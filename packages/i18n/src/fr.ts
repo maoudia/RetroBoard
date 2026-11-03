@@ -181,6 +181,7 @@ export const fr = {
   'presenter.focus.centre': 'Zoom au centre',
   'presenter.focus.accordion': 'Accordéon',
   'presenter.focus.all': 'Toutes les colonnes',
+  'presenter.laser': 'Pointeur laser (visible par tous)',
   'stepper.label': 'Étapes de la rétro',
   'stepper.left': '{time} restantes',
   'stepper.over': '{time} de dépassement',

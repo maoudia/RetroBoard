@@ -182,6 +182,7 @@ export const en: Record<keyof typeof fr, string> = {
   'presenter.focus.centre': 'Centre zoom',
   'presenter.focus.accordion': 'Accordion',
   'presenter.focus.all': 'All columns',
+  'presenter.laser': 'Laser pointer (everybody sees it)',
   'stepper.label': 'Retro steps',
   'stepper.left': '{time} left',
   'stepper.over': '{time} over',

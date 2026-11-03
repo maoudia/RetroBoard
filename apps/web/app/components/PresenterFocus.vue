@@ -21,6 +21,7 @@ function step(d: 1 | -1) {
     <span class="sep" aria-hidden="true" />
     <button class="mini-btn" type="button" :aria-pressed="ui.focusStyle === 'centre'" :aria-label="t('presenter.focus.centre')" :title="t('presenter.focus.centre')" data-testid="focus-centre" :class="{ on: ui.focusStyle === 'centre' }" @click="ui.focusStyle = 'centre'"><Icon name="lucide:focus" /></button>
     <button class="mini-btn" type="button" :aria-pressed="ui.focusStyle === 'accordion'" :aria-label="t('presenter.focus.accordion')" :title="t('presenter.focus.accordion')" data-testid="focus-accordion" :class="{ on: ui.focusStyle === 'accordion' }" @click="ui.focusStyle = 'accordion'"><Icon name="lucide:columns-3" /></button>
+    <button class="mini-btn" type="button" :class="{ on: ui.laser }" :aria-pressed="ui.laser" :aria-label="t('presenter.laser')" :title="t('presenter.laser')" data-testid="focus-laser" @click="ui.laser = !ui.laser"><Icon name="lucide:crosshair" /></button>
     <button class="mini-btn" type="button" :aria-label="t('presenter.focus.all')" :title="t('presenter.focus.all')" :disabled="ui.focusColumn === null" data-testid="focus-all" @click="ui.focusColumn = null"><Icon name="lucide:maximize" /></button>
   </div>
 </template>

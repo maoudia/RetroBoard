@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, publishNote } from './helpers'
+import { createBoard, join, noteByText, publishNote, settle } from './helpers'
 
 test.describe('presenter column focus (presenter-mode-v2)', () => {
   test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
@@ -215,4 +215,33 @@ test('in presentation a long word never leaves its note, and notes grow with the
   const t = (await note.locator('.text').boundingBox())!
   expect(t.x + t.width).toBeLessThanOrEqual(n.x + n.width + 1)
   expect(n.width).toBeGreaterThan(210)
+})
+
+test('the laser pointer: the presenter shows a red dot to everybody, even with pointers hidden, and turns it off (change presenter-mode-v2)', async ({ page, browser, isMobile }) => {
+  test.skip(isMobile, 'presenter mode is for large screens')
+  await page.setViewportSize({ width: 1100, height: 760 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
+  const link = await page.getByTestId('share-url').inputValue()
+  await page.keyboard.press('Escape')
+  await publishNote(page, 1, 'Laser target')
+  const bob = await join(browser, link, 'Bob')
+  await expect(noteByText(bob.page, 'Laser target')).toBeVisible()
+  // Alice shares no pointer at all: only the laser goes out.
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('set-share-cursor').uncheck()
+  await page.keyboard.press('Escape')
+  await page.getByTestId('btn-presenter').click()
+  await page.getByTestId('focus-laser').click()
+  await settle(page)
+  const box = (await noteByText(page, 'Laser target').boundingBox())!
+  // The direct link may still be opening: keep moving until the dot shows.
+  await expect(async () => {
+    await page.mouse.move(box.x + 20, box.y + 20)
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 4 })
+    await expect(bob.page.locator('[data-testid^="laser-"]')).toBeVisible({ timeout: 1500 })
+  }).toPass({ timeout: 20_000 })
+  await expect(bob.page.locator('[data-testid^="cursor-"]')).toHaveCount(1)
+  await page.getByTestId('focus-laser').click()
+  await expect(bob.page.locator('[data-testid^="laser-"]')).toHaveCount(0, { timeout: 15_000 })
+  await bob.ctx.close()
 })

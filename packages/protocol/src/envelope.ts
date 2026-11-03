@@ -114,6 +114,7 @@ export const CursorSchema = v.strictObject({
   x: Fraction,
   y: Fraction,
   drag: v.boolean(),
+  laser: v.optional(v.boolean()),
 })
 export type Cursor = v.InferOutput<typeof CursorSchema>
 

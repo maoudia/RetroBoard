@@ -26,6 +26,8 @@ export interface CursorFrame {
   readonly y: number
   /** True while dragging (the only time a touch device sends a cursor). */
   readonly drag: boolean
+  /** The presenter's laser pointer: drawn for everybody, even when pointers are hidden (change presenter-mode-v2). */
+  readonly laser?: boolean
 }
 
 export interface FocusFrame {

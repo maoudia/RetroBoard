@@ -42,21 +42,21 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   }
 
   function point(target: EventTarget | null, x: number, y: number, drag: boolean) {
-    if (!settings.s.shareCursor) return
+    if (!settings.s.shareCursor && !ui.laser) return
     const el = anchorOf(target)
     if (!el?.dataset.anchor) return
-    queue({ anchor: el.dataset.anchor, ...anchorPoint(el.getBoundingClientRect(), x, y), drag })
+    queue({ anchor: el.dataset.anchor, ...anchorPoint(el.getBoundingClientRect(), x, y), drag, ...(ui.laser ? { laser: true } : {}) })
   }
 
   function onMove(e: PointerEvent) {
     const dragging = !!(ui.dragNoteId || ui.dragGroupId)
-    if (e.pointerType === 'touch' && !dragging) return
+    if (e.pointerType === 'touch' && !dragging && !ui.laser) return
     point(e.target, e.clientX, e.clientY, dragging)
   }
   // Native drag and drop fires dragover, not pointermove.
   const onDragOver = (e: DragEvent) => point(e.target, e.clientX, e.clientY, true)
   function onLeave(e: PointerEvent) {
-    if (e.pointerType === 'touch' || !settings.s.shareCursor) return
+    if ((e.pointerType === 'touch' && !ui.laser) || (!settings.s.shareCursor && !ui.laser)) return
     queue({ anchor: null, x: 0, y: 0, drag: false })
   }
 
@@ -111,7 +111,7 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   watch(() => board.columns.length, () => nextTick(observeColumns))
   watch(() => ui.dragNoteId, () => sendFocus())
   // Turned off: the others drop my pointer right away.
-  watch(() => settings.s.shareCursor, (on) => { if (!on) { pending = null; board.sendCursor({ anchor: null, x: 0, y: 0, drag: false }) } })
+  watch(() => [settings.s.shareCursor, ui.laser] as const, ([on, laser]) => { if (!on && !laser) { pending = null; board.sendCursor({ anchor: null, x: 0, y: 0, drag: false }) } })
   // Peers that join later learn my focus within a few seconds.
   watch(() => board.peers.length, () => sendFocus(true))
 
