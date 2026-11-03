@@ -999,6 +999,8 @@ export const fr = {
   'profile.shortcuts': "Raccourcis clavier",
   'profile.shortcuts.hint': "Touches simples sur le board. Aide avec ?",
   'note.palette': 'Palette de couleurs',
+  'note.palette.more': 'Plus de nuances',
+  'note.palette.less': 'Moins de nuances',
   'note.color': 'Couleur',
   'note.colorN': 'Couleur {n}',
   'note.ungroup': 'Retirer du groupe',

@@ -41,6 +41,8 @@ export const LIMITS = {
 } as const
 
 export const NOTE_COLOR_COUNT = 8
+/** Base colours plus their soft tints (8..15) and deep shades (16..23): the advanced palette (change composer-and-colour-v3). */
+export const NOTE_COLOR_EXTENDED = 24
 export const DEFAULT_VOTE_LIMIT = 3
 export const DEFAULT_TIMER_MS = 5 * 60_000
 

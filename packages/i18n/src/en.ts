@@ -1000,6 +1000,8 @@ export const en: Record<keyof typeof fr, string> = {
   'profile.shortcuts': "Keyboard shortcuts",
   'profile.shortcuts.hint': "Single keys on the board. Help with ?",
   'note.palette': 'Colour palette',
+  'note.palette.more': 'More shades',
+  'note.palette.less': 'Fewer shades',
   'note.color': 'Colour',
   'note.colorN': 'Colour {n}',
   'note.ungroup': 'Remove from group',

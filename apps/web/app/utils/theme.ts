@@ -1,4 +1,4 @@
-import { NOTE_COLOR_COUNT } from '@retroboard/domain'
+import { NOTE_COLOR_EXTENDED } from '@retroboard/domain'
 import { STICKY_INK, type ThemeDefinition, type ThemeVariant, controlColor, ringColors, stickyColor, tokensFor } from '@retroboard/themes'
 
 /** Writes a theme as CSS custom properties and data attributes. Pure DOM, no framework. */
@@ -14,7 +14,7 @@ export function applyTheme(theme: ThemeDefinition, variant: ThemeVariant = theme
   }
   const r = ringColors(t)
   Object.assign(vars, { '--ring-1': r.ring1, '--ring-2': r.ring2, '--ring-3': r.ring3, '--ring-over': r.over, '--ring-track': r.track })
-  for (let i = 0; i < NOTE_COLOR_COUNT; i++) vars[`--note-${i}`] = stickyColor(i, variant)
+  for (let i = 0; i < NOTE_COLOR_EXTENDED; i++) vars[`--note-${i}`] = stickyColor(i, variant)
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v)
   root.style.colorScheme = variant
   root.dataset.theme = theme.id

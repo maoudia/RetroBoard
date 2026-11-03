@@ -1,5 +1,5 @@
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
-import { DEFAULT_NOTE_MAX_LENGTH, LIMITS, NOTE_COLOR_COUNT } from '../shared/limits'
+import { DEFAULT_NOTE_MAX_LENGTH, LIMITS, NOTE_COLOR_EXTENDED } from '../shared/limits'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { makeNote, normalizeGroups } from './notes'
 
@@ -9,7 +9,7 @@ type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete'
 
 /** A peer that ignores the board's note length limit is refused by everyone. */
 const tooLong = (s: { settings: { noteMaxLength?: number } }, text: string) => text.length > (s.settings.noteMaxLength ?? DEFAULT_NOTE_MAX_LENGTH)
-const validColor = (n: number) => Number.isInteger(n) && n >= 0 && n < NOTE_COLOR_COUNT
+const validColor = (n: number) => Number.isInteger(n) && n >= 0 && n < NOTE_COLOR_EXTENDED
 
 /** Ideation context: notes, groups (clusters) and columns. */
 export const ideationHandlers: HandlerMap<IdeationCommand> = {

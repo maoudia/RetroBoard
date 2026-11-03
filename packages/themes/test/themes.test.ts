@@ -60,6 +60,19 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
   })
 })
 
+describe('advanced palette', () => {
+  it.each(['light', 'dark'] as const)('has 24 distinct colours, all readable with the note ink, in the %s variant', (variant) => {
+    const all = Array.from({ length: 24 }, (_, i) => stickyColor(i, variant))
+    expect(new Set(all).size).toBe(24)
+    all.forEach((c, i) => expect(contrast(STICKY_INK, c), `colour ${i}`).toBeGreaterThanOrEqual(4.5))
+    // Tints are lighter and shades darker than their base colour.
+    for (let i = 0; i < 8; i++) {
+      expect(contrast('#000000', all[i + 8]!)).toBeGreaterThan(contrast('#000000', all[i]!))
+      expect(contrast('#000000', all[i + 16]!)).toBeLessThan(contrast('#000000', all[i]!))
+    }
+  })
+})
+
 describe('registry', () => {
   it('has unique ids and a safe fallback', () => {
     expect(new Set(THEMES.map((t) => t.id)).size).toBe(THEMES.length)
@@ -92,8 +105,8 @@ describe('sticky-note palette', () => {
     }
   })
   it('wraps unknown indexes onto the palette', () => {
-    expect(stickyColor(8, 'light')).toBe(stickyColor(0, 'light'))
-    expect(stickyColor(-1, 'dark')).toBe(stickyColor(7, 'dark'))
+    expect(stickyColor(24, 'light')).toBe(stickyColor(0, 'light'))
+    expect(stickyColor(-1, 'dark')).toBe(stickyColor(23, 'dark'))
   })
 })
 

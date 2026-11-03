@@ -1,10 +1,10 @@
 /** Wire format of RetroBoard v1 (plaintext commands): valibot schemas for every message that crosses the network. */
 import * as v from 'valibot'
-import { CHAT_TEXT_MAX, COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_COUNT, NOTE_TEXT_MIN, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
+import { CHAT_TEXT_MAX, COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_EXTENDED, NOTE_TEXT_MIN, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
 
 const Id = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
 const Text = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.noteText))
-const Color = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(NOTE_COLOR_COUNT - 1))
+const Color = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(NOTE_COLOR_EXTENDED - 1))
 const Icon = v.picklist(COLUMN_ICONS)
 const ColumnTitle = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.columnTitle))
 const ColumnSubtitle = v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.columnSubtitle))

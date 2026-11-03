@@ -49,6 +49,27 @@ for (const scheme of ['light', 'dark'] as const) test.describe(`accessibility (a
     expect(await audit(page)).toEqual([])
   })
 
+  test('advanced palette: more shades of the theme colours, no free picker, accessible (change composer-and-colour-v3)', async ({ page }) => {
+    await createBoard(page)
+    await publishNote(page, 0, 'Nuance')
+    const note = page.locator('article.note', { hasText: 'Nuance' })
+    const id = (await note.getAttribute('data-testid'))!.replace('note-', '')
+    await note.hover()
+    await page.getByTestId(`note-menu-${id}`).click()
+    await page.getByTestId(`palette-open-${id}`).click()
+    await expect(page.locator('[data-testid^="palette-"][role="radio"]')).toHaveCount(8)
+    await page.getByTestId('palette-more').click()
+    await expect(page.locator('[data-testid^="palette-"][role="radio"]')).toHaveCount(24)
+    await expect(page.locator('input[type="color"]')).toHaveCount(0)
+    await page.waitForTimeout(500)
+    expect(await audit(page)).toEqual([])
+    await page.getByTestId('palette-17').click()
+    await expect(note).toHaveCSS('background-color', await page.evaluate(() => {
+      const probe = document.createElement('i'); probe.style.background = 'var(--note-17)'; document.body.append(probe)
+      const c = getComputedStyle(probe).backgroundColor; probe.remove(); return c
+    }))
+  })
+
   test('reveal countdown and the rename dialog', async ({ page, browser, isMobile }) => {
     test.skip(isMobile, 'facilitator menus are covered on desktop')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })

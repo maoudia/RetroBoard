@@ -2,7 +2,7 @@
  * Personal view filters and the similar-idea hint (change postit-visual-system). Computed on the
  * device only: filtering never changes the board for the others.
  */
-import type { SnapshotNote } from '@retroboard/domain'
+import { NOTE_COLOR_COUNT, type SnapshotNote } from '@retroboard/domain'
 import type { ColumnItem } from './column-items'
 
 export interface NoteFilter {
@@ -24,7 +24,7 @@ export const isFilterActive = (f: NoteFilter): boolean => f.text.trim() !== '' |
 export function matchesFilter(n: SnapshotNote, f: NoteFilter): boolean {
   const q = foldText(f.text.trim())
   if (q && !foldText(n.text).includes(q)) return false
-  if (f.colors.length && !f.colors.includes(n.color)) return false
+  if (f.colors.length && !f.colors.includes(n.color % NOTE_COLOR_COUNT)) return false
   if (f.author !== null && n.author !== f.author) return false
   if (f.voted && !((n.votes ?? 0) > 0 || n.voted)) return false
   return true

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { alice, bob, harness } from '@retroboard/testkit'
-import { LIMITS, NOTE_COLOR_COUNT, reduce } from '@retroboard/domain'
+import { LIMITS, NOTE_COLOR_COUNT, NOTE_COLOR_EXTENDED, reduce } from '@retroboard/domain'
 
 type H = ReturnType<typeof harness>
 const note = (h: H, text: string, col = 0, who = alice) => {
@@ -130,7 +130,12 @@ describe('note.delete, move, colour', () => {
     expect(h.state.notes[id]!.color).toBe(3)
     expect(h.state.notes[other]!.color).not.toBe(3)
     expect(h.run({ t: 'note.color', id: 'ghost-note', color: 1 })).toEqual({ ok: false, error: 'not-found' })
-    expect(h.run({ t: 'note.color', id, color: NOTE_COLOR_COUNT })).toEqual({ ok: false, error: 'invalid' })
+    // The advanced palette extends the range (tints and shades); beyond it is refused.
+    expect(h.run({ t: 'note.color', id, color: NOTE_COLOR_COUNT }).ok).toBe(true)
+    expect(h.state.notes[id]!.color).toBe(NOTE_COLOR_COUNT)
+    expect(h.run({ t: 'note.color', id, color: NOTE_COLOR_EXTENDED - 1 }).ok).toBe(true)
+    expect(h.run({ t: 'note.color', id, color: NOTE_COLOR_EXTENDED })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'note.color', id, color: -1 })).toEqual({ ok: false, error: 'invalid' })
   })
 })
 
@@ -228,7 +233,7 @@ describe('note.group, ungroup and group commands', () => {
     expect(dirtyOf(out)?.notes.sort()).toEqual([a, b].sort())
     expect(h.state.notes[a]!.color).toBe(5)
     expect(h.state.notes[free]!.color).not.toBe(5)
-    expect(h.run({ t: 'group.recolor', id, color: NOTE_COLOR_COUNT })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'group.recolor', id, color: NOTE_COLOR_EXTENDED })).toEqual({ ok: false, error: 'invalid' })
     expect(h.run({ t: 'group.recolor', id: 'ghost-group', color: 1 })).toEqual({ ok: false, error: 'not-found' })
   })
 
@@ -315,7 +320,7 @@ describe('columns', () => {
     expect(h.state.columns.at(-1)).toMatchObject({ color: 2, votable: false })
     h.run({ t: 'column.add', title: 'Votable', votable: true })
     expect('votable' in h.state.columns.at(-1)!).toBe(false)
-    expect(h.run({ t: 'column.add', title: 'Bad', color: NOTE_COLOR_COUNT })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'column.add', title: 'Bad', color: NOTE_COLOR_EXTENDED })).toEqual({ ok: false, error: 'invalid' })
     while (h.state.columns.length < LIMITS.maxColumns) h.run({ t: 'column.add', title: 'x' })
     expect(h.run({ t: 'column.add', title: 'one too many' })).toEqual({ ok: false, error: 'limit-reached' })
   })
@@ -336,7 +341,7 @@ describe('columns', () => {
     h.run({ t: 'column.update', id, votable: true })
     expect('votable' in h.state.columns[0]!).toBe(false)
     expect(h.run({ t: 'column.update', id: 'ghost-col', title: 'x' })).toEqual({ ok: false, error: 'not-found' })
-    expect(h.run({ t: 'column.update', id, color: NOTE_COLOR_COUNT })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'column.update', id, color: NOTE_COLOR_EXTENDED })).toEqual({ ok: false, error: 'invalid' })
   })
 
   it('delete removes the column with its notes and groups and reports them; the last column stays', () => {
