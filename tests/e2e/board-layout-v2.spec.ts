@@ -78,3 +78,16 @@ test('one column can fold its own writing area with a slide, the others keep the
   await page.getByTestId(`write-handle-${a}`).click()
   await expect(page.getByTestId(`draft-${a}`)).toBeVisible()
 })
+
+test('the toolbar writing switch folds and unfolds every column, even ones folded on their own (change ux-irritants-wave-3)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue' })
+  const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
+  const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
+  await page.getByTestId(`write-hide-${a}`).click()
+  await page.getByTestId('btn-writing').click()
+  await expect(page.getByTestId(`draft-${a}`)).toBeHidden()
+  await expect(page.getByTestId(`draft-${b}`)).toBeHidden()
+  await page.getByTestId('btn-writing').click()
+  await expect(page.getByTestId(`draft-${a}`)).toBeVisible()
+  await expect(page.getByTestId(`draft-${b}`)).toBeVisible()
+})

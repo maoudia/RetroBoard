@@ -10,7 +10,10 @@ const board = useBoardStore()
 const drafts = useDraftsStore()
 const layout = useLayoutStore()
 const folded = computed(() => layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id))
-function unfold() { layout.setWritingHidden(false); layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, false) }
+function unfold() {
+  if (layout.writingHidden) { layout.setWritingHidden(false); return }
+  layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, false)
+}
 const identity = useIdentityStore()
 const ui = useUiStore()
 const { publish } = usePublish()
@@ -118,7 +121,7 @@ function onKey(e: KeyboardEvent) {
           </button>
         </template>
       </Dropdown>
-      <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevron-down" /></button>
+      <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevrons-down" /></button>
       <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
@@ -181,7 +184,7 @@ function onKey(e: KeyboardEvent) {
   </section>
     </div>
     <button v-if="folded" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
-      <Icon name="lucide:chevron-up" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
+      <Icon name="lucide:chevrons-up" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
     </button>
   </div>
 </template>

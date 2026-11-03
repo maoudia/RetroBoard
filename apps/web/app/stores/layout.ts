@@ -18,7 +18,8 @@ export const useLayoutStore = defineStore('layout', () => {
     density: computed<Density | null>(() => current.value.density ?? null),
     setDensity: (d: Density) => commit(withLayout(book.value, cls.value, { density: d })),
     writingHidden: computed(() => current.value.writingHidden === true),
-    setWritingHidden: (v: boolean) => commit(withLayout(book.value, cls.value, { writingHidden: v })),
+    // The toolbar switch rules every column: it also clears the per-column folds so open/close always applies to all.
+    setWritingHidden: (v: boolean) => commit(withLayout(book.value, cls.value, { writingHidden: v, writeOff: {} })),
     columnWriteHidden: (room: string, columnId: string) => (current.value.writeOff?.[room] ?? []).includes(columnId),
     setColumnWriteHidden: (room: string, columnId: string, hidden: boolean) => commit(setColumnWriteHidden(book.value, cls.value, room, columnId, hidden)),
     setFocusStyle: (s: 'centre' | 'accordion') => commit(withLayout(book.value, cls.value, { focusStyle: s })),
