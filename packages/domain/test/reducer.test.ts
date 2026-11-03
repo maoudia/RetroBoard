@@ -310,7 +310,7 @@ describe('column default colour', () => {
     const h = harness()
     const col = h.col(0)
     const before = h.state.columns[0]!.color
-    expect(h.run({ t: 'column.update', id: col, color: 8 })).toEqual({ ok: false, error: 'invalid' })
+    expect(h.run({ t: 'column.update', id: col, color: 24 })).toEqual({ ok: false, error: 'invalid' })
     expect(h.run({ t: 'column.update', id: col, color: 1.5 })).toEqual({ ok: false, error: 'invalid' })
     expect(h.run({ t: 'column.add', title: 'x', color: -1 })).toEqual({ ok: false, error: 'invalid' })
     expect(h.state.columns[0]!.color).toBe(before)
