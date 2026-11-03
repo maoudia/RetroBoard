@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.0](https://github.com/maoudia/RetroBoard/compare/v1.38.1...v1.39.0) (2026-11-03)
+
+
+### Features
+
+* **ui:** presentation start announced to all, notes stay in their card, timer panel as a player with a steps ring ([ba99e11](https://github.com/maoudia/RetroBoard/commit/ba99e11236eb9d33067bb42ec92ff2d68fc46de6))
+
 ## [1.38.1](https://github.com/maoudia/RetroBoard/compare/v1.38.0...v1.38.1) (2026-11-03)
 
 
