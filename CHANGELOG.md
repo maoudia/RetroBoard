@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.38.0](https://github.com/maoudia/RetroBoard/compare/v1.37.0...v1.38.0) (2026-11-03)
+
+
+### Features
+
+* **ui:** floating toasts, calm voting bar with optional voting, keep keyboard while stacking notes ([0596e82](https://github.com/maoudia/RetroBoard/commit/0596e82ce6157fa0ad9055ed921c8287039845e0))
+
+
+### Bug Fixes
+
+* **presenter:** aim the accordion once the widths settle; fix(e2e): settle ignores long countdowns ([0ec6dfc](https://github.com/maoudia/RetroBoard/commit/0ec6dfcd4f2b2f93ac859540bc323de6ad09a695))
+* **share:** thumb-sized full-width rows and aligned icons in the share dialog on small screens ([391ea6e](https://github.com/maoudia/RetroBoard/commit/391ea6e3389018efd8bf802b79599bf428ebdfcc))
+* **ui:** toolbar writing switch rules every column; double chevrons in the writing area ([25462f7](https://github.com/maoudia/RetroBoard/commit/25462f7598a342f5020adddd4dec0334974245ed))
+
 ## [1.37.0](https://github.com/maoudia/RetroBoard/compare/v1.36.0...v1.37.0) (2026-11-03)
 
 
