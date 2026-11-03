@@ -28,10 +28,7 @@ const remove = (i: number) => patch({ phases: model.value.phases.filter((_, k) =
 
 <template>
   <section class="agenda" data-testid="agenda-editor">
-    <label class="head">
-      <span><strong>{{ t('agenda.use') }}</strong><small class="muted">{{ t('agenda.use.hint') }}</small></span>
-      <input type="checkbox" role="switch" class="switch" :checked="model.enabled" data-testid="agenda-enabled" @change="patch({ enabled: ($event.target as HTMLInputElement).checked })" />
-    </label>
+    <ToggleSwitch plain :label="t('agenda.use')" :hint="t('agenda.use.hint')" :model-value="model.enabled" data-testid="agenda-enabled" @update:model-value="(on: boolean) => patch({ enabled: on })" />
     <template v-if="model.enabled">
       <div class="presets" role="group" :aria-label="t('agenda.title')">
         <button v-for="n in PRESETS" :key="n" type="button" class="btn btn-sm" :class="{ on: total === n && model.phases.length === 8 }" :data-testid="`agenda-preset-${n}`" @click="usePreset(n)">{{ t('agenda.preset', { n }) }}</button>

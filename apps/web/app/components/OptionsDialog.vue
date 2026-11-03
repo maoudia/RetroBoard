@@ -61,10 +61,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 
       <section class="grp">
         <h3>{{ t('options.votes') }}</h3>
-        <label class="line">
-          <span><strong>{{ t('setup.voting.enabled') }}</strong><small class="muted">{{ t('setup.voting.enabled.hint') }}</small></span>
-          <input type="checkbox" role="switch" class="switch" :checked="s.votingEnabled !== false" data-testid="opt-voting-enabled" @change="set({ votingEnabled: ($event.target as HTMLInputElement).checked })" />
-        </label>
+        <ToggleSwitch plain :label="t('setup.voting.enabled')" :hint="t('setup.voting.enabled.hint')" :model-value="s.votingEnabled !== false" data-testid="opt-voting-enabled" @update:model-value="(on: boolean) => set({ votingEnabled: on })" />
         <div class="line">
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
           <span class="stepper">
@@ -91,33 +88,15 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           <span><strong>{{ t('options.votableColumns') }}</strong><small class="muted">{{ t('options.votableColumns.hint') }}</small></span>
           <ul class="collist">
             <li v-for="c in board.columns" :key="c.id">
-              <label class="line">
-                <span>{{ c.title }}</span>
-                <input type="checkbox" role="switch" class="switch" :checked="c.votable !== false" :data-testid="`opt-votable-col-${c.id}`" @change="board.commands.updateColumn(c.id, { votable: ($event.target as HTMLInputElement).checked })" />
-              </label>
+              <ToggleSwitch plain :label="c.title" :model-value="c.votable !== false" :data-testid="`opt-votable-col-${c.id}`" @update:model-value="(on: boolean) => board.commands.updateColumn(c.id, { votable: on })" />
             </li>
           </ul>
         </div>
-        <label class="line">
-          <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
-          <input type="checkbox" role="switch" class="switch" :checked="s.secretVoting" data-testid="opt-secret" @change="set({ secretVoting: ($event.target as HTMLInputElement).checked })" />
-        </label>
-        <label v-if="advanced" class="line">
-          <span><strong>{{ t('options.arrivals') }}</strong><small class="muted">{{ t('options.arrivals.hint') }}</small></span>
-          <input type="checkbox" role="switch" class="switch" :checked="s.announceArrivals !== false" data-testid="opt-arrivals" @change="set({ announceArrivals: ($event.target as HTMLInputElement).checked })" />
-        </label>
-        <label class="line">
-          <span><strong>{{ t('options.lock') }}</strong><small class="muted">{{ t('options.lock.hint') }}</small></span>
-          <input type="checkbox" role="switch" class="switch" :checked="s.locked" data-testid="opt-lock" @change="set({ locked: ($event.target as HTMLInputElement).checked })" />
-        </label>
-        <label v-if="advanced" class="line">
-          <span><strong>{{ t('options.browserAgents') }}</strong><small class="muted">{{ t('options.browserAgents.hint') }}</small></span>
-          <input type="checkbox" role="switch" class="switch" :checked="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @change="set({ browserAgentsAllowed: ($event.target as HTMLInputElement).checked })" />
-        </label>
-        <label v-if="board.access.role !== 'participant'" class="line">
-          <span><strong>{{ t('roles.open') }}</strong><small class="muted">{{ t('roles.open.hint') }}</small></span>
-          <input type="checkbox" role="switch" class="switch" :checked="s.openFacilitation" data-testid="opt-open-facilitation" @change="set({ openFacilitation: ($event.target as HTMLInputElement).checked })" />
-        </label>
+        <ToggleSwitch plain :label="t('options.secret')" :hint="t('options.secret.hint')" :model-value="s.secretVoting" data-testid="opt-secret" @update:model-value="(on: boolean) => set({ secretVoting: on })" />
+        <ToggleSwitch v-if="advanced" plain :label="t('options.arrivals')" :hint="t('options.arrivals.hint')" :model-value="s.announceArrivals !== false" data-testid="opt-arrivals" @update:model-value="(on: boolean) => set({ announceArrivals: on })" />
+        <ToggleSwitch plain :label="t('options.lock')" :hint="t('options.lock.hint')" :model-value="s.locked" data-testid="opt-lock" @update:model-value="(on: boolean) => set({ locked: on })" />
+        <ToggleSwitch v-if="advanced" plain :label="t('options.browserAgents')" :hint="t('options.browserAgents.hint')" :model-value="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @update:model-value="(on: boolean) => set({ browserAgentsAllowed: on })" />
+        <ToggleSwitch v-if="board.access.role !== 'participant'" plain :label="t('roles.open')" :hint="t('roles.open.hint')" :model-value="s.openFacilitation" data-testid="opt-open-facilitation" @update:model-value="(on: boolean) => set({ openFacilitation: on })" />
       </section>
 
       <section v-if="advanced" class="grp">
@@ -145,10 +124,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
               <button v-for="m in [1, 2, 3, 5]" :key="m" type="button" :class="{ on: s.talkBudgetMs === m * 60_000 }" :aria-pressed="s.talkBudgetMs === m * 60_000" :data-testid="`opt-talk-budget-${m}`" @click="set({ talkBudgetSec: m * 60 })">{{ m }} min</button>
             </span>
           </div>
-          <label class="line">
-            <span><strong>{{ t('talk.selfStart') }}</strong><small class="muted">{{ t('talk.selfStart.hint') }}</small></span>
-            <input type="checkbox" role="switch" class="switch" :checked="s.talkSelfStart" data-testid="opt-talk-self" @change="set({ talkSelfStart: ($event.target as HTMLInputElement).checked })" />
-          </label>
+          <ToggleSwitch plain :label="t('talk.selfStart')" :hint="t('talk.selfStart.hint')" :model-value="s.talkSelfStart" data-testid="opt-talk-self" @update:model-value="(on: boolean) => set({ talkSelfStart: on })" />
         </template>
       </section>
 

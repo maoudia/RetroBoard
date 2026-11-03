@@ -49,10 +49,7 @@ function save() {
           </button>
         </div>
       </fieldset>
-      <label class="line">
-        <span><strong>{{ t('column.votable') }}</strong><small class="muted">{{ t('column.votable.hint') }}</small></span>
-        <input v-model="votable" type="checkbox" role="switch" class="switch" data-testid="col-votable" />
-      </label>
+      <ToggleSwitch v-model="votable" plain :label="t('column.votable')" :hint="t('column.votable.hint')" data-testid="col-votable" />
       <fieldset>
         <legend class="lbl">{{ t('column.color') }}</legend>
         <div class="swatches" role="radiogroup" :aria-label="t('column.color')">

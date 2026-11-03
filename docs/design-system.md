@@ -70,3 +70,12 @@ Type roles: body `--fs-md`; secondary text and hints `--fs-sm` in `--muted`; bad
 ## 6. Status and next steps
 
 The token layer and the guard exist. The component primitives (Button, Segmented, Menu as Vue components in `packages/ui`) and the choice of a base library are tracked in the `design-system-components` change (spike and ADR first). Marketing pages (`pages/index.vue`, `components/Landing*`) keep their own look and are exempt from the radius rule.
+
+## Switches, state icons and in-place controls (feedback-wave-4)
+
+- **One on/off control.** Every setting that is on or off uses `ToggleSwitch` (label, optional hint and icon, `role="switch"`); `plain` inside a settings list, the padded form inside menus. No other checkbox-as-switch, no on/off written in the label ("Secret voting: off" becomes a switch labelled "Secret votes"). `data-testid` lands on the input.
+- **State as an icon with its explanation on demand.** The encryption state is a shield (`shield-check` passcode, `shield` link only, `shield-off` not encrypted) with a tooltip on hover and focus and a popover on tap; never a sentence in a menu.
+- **Say a fact once.** A state shown by a chip (voting open or closed) is not repeated as text; the text stays for assistive technology only (`.sr-only`).
+- **Size where it is used.** The writing size is set on the writing area itself (S M L, a link to apply it to every column, a grip to drag the height, double-click to reset); the toolbar Write button only shows or hides.
+- **Segmented choices use `.pick-seg`**, including the Simple / Advanced switch.
+- **Participants wear their own colour.** Peers show the avatar colour they chose, broadcast with their presence (`Peer.hue`); the name-derived colour is only the fallback before it arrives.

@@ -179,8 +179,8 @@ function onKey(e: KeyboardEvent) {
         </template>
         <p class="help-text">{{ t('private.keys') }}</p>
       </Dropdown>
-      <button class="btn btn-sm act act-publish" type="button" :title="t('private.publishNow')" :disabled="board.locked || closed || (!text.trim() && !mine.length)" @mousedown.prevent :data-testid="`compose-publish-${column.id}`" @click="publishNow"><Icon name="lucide:send" /><span class="sr-only">{{ t('private.publishNow') }}</span></button>
-      <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('private.add')" :disabled="board.locked || closed || !text.trim()" @mousedown.prevent :data-testid="`compose-add-${column.id}`" @click="add"><Icon name="lucide:plus" /><span class="sr-only">{{ t('private.add') }}</span></button>
+      <button class="btn btn-sm act act-publish" type="button" :title="t('private.publishNow')" :disabled="board.locked || closed || (!text.trim() && !mine.length)" :data-testid="`compose-publish-${column.id}`" @mousedown.prevent @click="publishNow"><Icon name="lucide:send" /><span class="sr-only">{{ t('private.publishNow') }}</span></button>
+      <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('private.add')" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @mousedown.prevent @click="add"><Icon name="lucide:plus" /><span class="sr-only">{{ t('private.add') }}</span></button>
     </div>
     <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}

@@ -35,6 +35,10 @@ describe('envelope v2', () => {
     expect(parseSignedEvent({ id: env.id, at: 1, author: key, sig: 'short', body: { t: 'role.delegate', key } })).toBeNull()
     expect(parseSignedEvent({ id: env.id, at: 1, author: key, sig, body: { t: 'cmd', cmd: { t: 'nope' }, name: null, showName: false } })).toBeNull()
     expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: 'Ana', showName: true })).not.toBeNull()
+    // The avatar hue chosen in the profile travels with the presence, display only, bounded.
+    expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: 'Ana', showName: true, hue: 175 })).not.toBeNull()
+    expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: 'Ana', showName: true, hue: 360 })).toBeNull()
+    expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: 'Ana', showName: true, hue: 1.5 })).toBeNull()
   })
 })
 

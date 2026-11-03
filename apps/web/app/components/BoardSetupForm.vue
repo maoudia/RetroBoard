@@ -86,35 +86,23 @@ function onSubmit() {
 
       <fieldset class="tile votes" data-testid="setup-voting">
         <legend class="lbl">{{ t('setup.voting') }}</legend>
-        <label class="line">
-          <span><strong>{{ t('setup.voting.enabled') }}</strong><small class="muted">{{ t('setup.voting.enabled.hint') }}</small></span>
-          <input v-model="votingOn" type="checkbox" role="switch" class="switch" data-testid="setup-voting-enabled" />
-        </label>
+        <ToggleSwitch v-model="votingOn" plain :label="t('setup.voting.enabled')" :hint="t('setup.voting.enabled.hint')" data-testid="setup-voting-enabled" />
         <template v-if="votingOn">
         <label class="opt votes-per">
           <input v-model.number="voteLimit" class="field num" type="number" :min="LIMITS.minVotes" :max="LIMITS.maxVotes" inputmode="numeric" data-testid="setup-vote-limit" />
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
         </label>
-        <label class="line">
-          <span><strong>{{ t('options.secret') }}</strong><small class="muted">{{ t('options.secret.hint') }}</small></span>
-          <input v-model="secretVoting" type="checkbox" role="switch" class="switch" data-testid="setup-secret" />
-        </label>
+        <ToggleSwitch v-model="secretVoting" plain :label="t('options.secret')" :hint="t('options.secret.hint')" data-testid="setup-secret" />
         </template>
       </fieldset>
 
       <details v-if="tpl" class="tile votable" data-testid="setup-votable" open>
         <summary class="lbl">{{ t('setup.votable') }}</summary>
         <p class="muted small">{{ t('setup.votable.hint') }}</p>
-        <label v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" class="line">
-          <span><strong>{{ c.title }}</strong></span>
-          <input v-model="votable[i]" type="checkbox" role="switch" class="switch" :data-testid="`setup-votable-${i}`" />
-        </label>
+        <ToggleSwitch v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" v-model="votable[i]" plain :label="c.title" :data-testid="`setup-votable-${i}`" />
       </details>
 
-      <label class="tile line" data-testid="setup-arrivals-row">
-        <span><strong>{{ t('setup.arrivals') }}</strong><small class="muted">{{ t('setup.arrivals.hint') }}</small></span>
-        <input v-model="announceArrivals" type="checkbox" role="switch" class="switch" data-testid="setup-arrivals" />
-      </label>
+      <ToggleSwitch v-model="announceArrivals" plain :label="t('setup.arrivals')" :hint="t('setup.arrivals.hint')" data-testid="setup-arrivals" />
     </div>
 
     <ConfirmDialog v-model:open="confirmOpen" danger confirm-icon="lucide:unlock" :title="t('setup.passcode.noneTitle')" :message="t('setup.passcode.noneMsg')" :confirm-label="t('setup.passcode.noneOk')" @confirm="emit('submit', result())" />

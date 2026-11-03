@@ -38,14 +38,14 @@ const end = () => (mine.value ? board.commands.giveBackFloor() : board.commands.
 </script>
 
 <template>
-  <div v-if="turn && clock" class="talk glass" :class="{ over: clock.overtime }" role="status" data-testid="talk-banner" :data-overtime="clock.overtime">
+  <div v-if="turn && clock" class="talk glass float" :class="{ over: clock.overtime }" role="status" data-testid="talk-banner" :data-overtime="clock.overtime">
     <svg class="ring" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
       <circle cx="20" cy="20" :r="R" class="track" />
       <circle cx="20" cy="20" :r="R" class="left" :stroke-dasharray="`${dash} ${C}`" />
       <text x="20" y="25" text-anchor="middle" class="ini">{{ name.slice(0, 1).toUpperCase() }}</text>
     </svg>
     <span class="who"><strong>{{ t('talk.speaking', { name }) }}</strong><small class="mono" data-testid="talk-time">{{ mmss(clock.remainingMs) }}</small></span>
-    <button v-if="canEnd" class="btn btn-sm" type="button" :aria-label="t(mine ? 'talk.done' : 'talk.end')" data-testid="talk-end" @click="end"><Icon name="lucide:check" /> {{ t(mine ? 'talk.done' : 'talk.end') }}</button>
+    <button v-if="canEnd" class="btn btn-sm" type="button" :aria-label="t(mine ? 'talk.done' : 'talk.end')" data-testid="talk-end" @click="end"><Icon name="lucide:check" /> <span class="lbl">{{ t(mine ? 'talk.done' : 'talk.end') }}</span></button>
   </div>
 </template>
 
@@ -64,8 +64,8 @@ const end = () => (mine.value ? board.commands.giveBackFloor() : board.commands.
 @media (max-width: 600px) {
   .talk { left: 8px; right: 8px; max-width: none; bottom: 8px; border-radius: var(--r-card); }
   .who { flex: 1; }
-  .talk .btn { padding-inline: .55rem; font-size: 0; gap: 0; }
-  .talk .btn :deep(svg) { font-size: var(--fs-lg); }
+  .talk .btn { padding-inline: .55rem; }
+  .talk .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 .who small { color: var(--muted); }
 .over .who small { color: var(--danger); font-weight: 700; }

@@ -79,14 +79,8 @@ function create({ passcode, ...form }: SetupResult) {
         <RecentBoards :limit="3" testid="new-resume-list" />
       </section>
       <section class="card panel">
-        <label class="solo-line" data-testid="new-solo-line">
-          <span><strong>{{ t('new.soloMode') }}</strong><small class="muted">{{ t('new.soloMode.hint') }}</small></span>
-          <input v-model="soloMode" type="checkbox" role="switch" class="switch" data-testid="new-solo-switch" />
-        </label>
-        <label class="solo-line" data-testid="new-presenter-line">
-          <span><strong>{{ t('new.presenterMenus') }}</strong><small class="muted">{{ t('new.presenterMenus.hint') }}</small></span>
-          <input :checked="settings.s.presenterHideMenus" type="checkbox" role="switch" class="switch" data-testid="new-presenter-switch" @change="settings.patch({ presenterHideMenus: ($event.target as HTMLInputElement).checked })" />
-        </label>
+        <ToggleSwitch v-model="soloMode" plain :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
+        <ToggleSwitch plain :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
         <BoardSetupForm :with-passcode="!soloMode" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
       <section v-if="advanced" class="card panel">

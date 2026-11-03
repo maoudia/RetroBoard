@@ -46,7 +46,7 @@ const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.commands
 </script>
 
 <template>
-  <div ref="el" class="timer glass" role="group" :aria-label="t('timer.label')" :class="{ low, running }" :style="{ '--p': ratio }">
+  <div ref="el" class="timer glass float" role="group" :aria-label="t('timer.label')" :class="{ low, running }" :style="{ '--p': ratio }">
     <span class="clock mono" role="timer" data-testid="clock">{{ label }}</span>
     <button class="mini-btn go" type="button" :aria-label="running ? t('timer.pause') : t('timer.start')" data-testid="timer-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="toggle">
       <Icon :name="running ? 'lucide:pause' : 'lucide:play'" />

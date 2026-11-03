@@ -11,7 +11,7 @@ Owner feedback of 2026-11-03 (ten screenshots of the live app) lists visual and 
 3. Profile dialog: the Erase button is fixed (no clipped outline).
 4. Simple / Advanced mode switch: same button style as the rest of the app, no special outline.
 5. "Hide for now" in the column menu works for every role, including when everybody is facilitator (open facilitation).
-6. Writing-area sizing is redesigned: drag the top edge of the writing area (grip), tap the size chip to cycle S/M/L, double-click to reset; one "Apply to all columns" choice in the Display popover; the toolbar chevron of the Write button is removed (the button only shows or hides).
+6. Writing-area sizing is redesigned: S M L and a link toggle in the writing-area header, the grip to drag the height and double-click to reset; the toolbar chevron of the Write button is removed (the button only shows or hides).
 7. Mobile: the "has the floor" banner wraps and truncates cleanly, never overflows, and stays one coherent component at 320 px and up.
 8. Voting menu: each fact appears once, short labels, meaningful icons, and one shared toggle component for every on/off setting in the app.
 9. Participants menu shows each person's own chosen colour and avatar, taken from the profile every peer broadcasts on connect, not a colour derived from the key.

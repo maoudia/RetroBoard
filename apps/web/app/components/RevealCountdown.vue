@@ -41,7 +41,7 @@ watch([now, endsAt], () => {
   <!-- On body: page-level stacking rules (position: relative on page children) must not apply. -->
   <Teleport to="body">
     <p class="sr-only" role="status" data-testid="reveal-status">{{ message }}</p>
-    <div v-if="active" class="reveal glass" data-testid="reveal-countdown" :data-left="left">
+    <div v-if="active" class="reveal glass float" data-testid="reveal-countdown" :data-left="left">
       <strong class="mono big" aria-hidden="true">{{ left }}</strong>
       <div class="txt">
         <span class="ttl">{{ t('reveal.title', { n: left }) }}</span>

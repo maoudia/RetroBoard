@@ -16,7 +16,7 @@ const dismissed = ref(false)
 <template>
   <!-- On body: page children are position: relative (board.vue), which would break fixed. -->
   <Teleport to="body">
-    <aside v-if="url && !dismissed" class="join glass" :class="{ folded }" :aria-label="t('presenter.join')" data-testid="presenter-join">
+    <aside v-if="url && !dismissed" class="join glass float" :class="{ folded }" :aria-label="t('presenter.join')" data-testid="presenter-join">
       <header>
         <strong>{{ t('presenter.join') }}</strong>
         <button class="mini-btn" type="button" :aria-expanded="!folded" :aria-label="t(folded ? 'presenter.unfold' : 'presenter.fold')" @click="folded = !folded">

@@ -14,7 +14,7 @@ function step(d: 1 | -1) {
 </script>
 
 <template>
-  <div class="pfocus glass" role="group" :aria-label="t('presenter.focus.label')" data-testid="presenter-focus">
+  <div class="pfocus glass float" role="group" :aria-label="t('presenter.focus.label')" data-testid="presenter-focus">
     <button class="mini-btn" type="button" :aria-label="t('presenter.focus.prev')" data-testid="focus-prev" @click="step(-1)"><Icon name="lucide:chevron-left" /></button>
     <span class="cur" role="status" data-testid="focus-current">{{ label }}</span>
     <button class="mini-btn" type="button" :aria-label="t('presenter.focus.next')" data-testid="focus-next" @click="step(1)"><Icon name="lucide:chevron-right" /></button>

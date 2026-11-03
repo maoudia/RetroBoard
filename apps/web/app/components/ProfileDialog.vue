@@ -38,11 +38,10 @@ const resetLayout = () => { layout.reset(); settings.apply() }
 const copyLayout = (from: ScreenClass) => { layout.copyFrom(from); settings.apply() }
 /** System notifications: the browser permission is asked here, on opt-in, and nowhere else. */
 const notifyDenied = ref(typeof Notification !== 'undefined' && Notification.permission === 'denied')
-async function toggleNotify(box: HTMLInputElement) {
-  if (!box.checked) { set({ systemNotify: false }); return }
+async function toggleNotify(on: boolean) {
+  if (!on) { set({ systemNotify: false }); return }
   const ok = await askNotifyPermission()
   notifyDenied.value = !ok
-  box.checked = ok
   set({ systemNotify: ok })
 }
 const { $ports } = useNuxtApp()
@@ -69,10 +68,7 @@ async function wipe() {
       <div class="hues" role="radiogroup" :aria-label="t('profile.avatarColor')">
         <button v-for="h in AVATAR_HUES" :key="h" type="button" role="radio" :aria-checked="settings.s.avatarHue === h" class="hue" :class="{ on: settings.s.avatarHue === h }" :style="{ background: `hsl(${h} 75% 78%)` }" :aria-label="t('profile.hue', { n: h })" @click="set({ avatarHue: h })" />
       </div>
-      <label class="line">
-        <span><strong>{{ t('profile.showName') }}</strong><small class="muted">{{ t('profile.showName.hint') }}</small></span>
-        <input v-model="show" type="checkbox" role="switch" class="switch" data-testid="profile-show" @change="touched = true; saveIdentity()" />
-      </label>
+      <ToggleSwitch v-model="show" plain :label="t('profile.showName')" :hint="t('profile.showName.hint')" data-testid="profile-show" @update:model-value="touched = true; saveIdentity()" />
     </section>
 
     <section class="grp">
@@ -103,10 +99,7 @@ async function wipe() {
           <option v-for="th in THEMES" :key="th.id" :value="th.id">{{ th.name }}</option>
         </select>
       </div>
-      <label v-if="advanced" class="line">
-        <span><strong>{{ t('profile.ambient') }}</strong><small class="muted">{{ t('profile.ambient.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.ambient" data-testid="set-ambient" @change="set({ ambient: ($event.target as HTMLInputElement).checked })" />
-      </label>
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.ambient')" :hint="t('profile.ambient.hint')" :model-value="settings.s.ambient" data-testid="set-ambient" @update:model-value="(on: boolean) => set({ ambient: on })" />
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.motion') }}</strong><small class="muted">{{ t('profile.motion.hint') }}</small></span>
         <span class="pick-seg">
@@ -121,14 +114,8 @@ async function wipe() {
           <button type="button" :class="{ on: density === 'compact' }" data-testid="density-compact" @click="setDensity('compact')">{{ t('profile.density.compact') }}</button>
         </span>
       </div>
-      <label v-if="advanced" class="line">
-        <span><strong>{{ t('profile.shortcuts') }}</strong><small class="muted">{{ t('profile.shortcuts.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.shortcuts" data-testid="set-shortcuts" @change="set({ shortcuts: ($event.target as HTMLInputElement).checked })" />
-      </label>
-      <label v-if="advanced" class="line">
-        <span><strong>{{ t('profile.keyHints') }}</strong><small class="muted">{{ t('profile.keyHints.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.keyHints" :disabled="!settings.s.shortcuts" data-testid="set-key-hints" @change="set({ keyHints: ($event.target as HTMLInputElement).checked })" />
-      </label>
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.shortcuts')" :hint="t('profile.shortcuts.hint')" :model-value="settings.s.shortcuts" data-testid="set-shortcuts" @update:model-value="(on: boolean) => set({ shortcuts: on })" />
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.keyHints')" :hint="t('profile.keyHints.hint')" :model-value="settings.s.keyHints" :disabled="!settings.s.shortcuts" data-testid="set-key-hints" @update:model-value="(on: boolean) => set({ keyHints: on })" />
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.notifyPos') }}</strong></span>
         <span class="pick-seg">
@@ -147,19 +134,10 @@ async function wipe() {
           <button v-for="m in (['elapsed', 'remaining'] as const)" :key="m" type="button" :class="{ on: settings.s.ringTime === m }" :aria-pressed="settings.s.ringTime === m" :data-testid="`ring-time-${m}`" @click="set({ ringTime: m })">{{ t(`profile.time.${m}` as never) }}</button>
         </span>
       </div>
-      <label v-if="advanced" class="line">
-        <span><strong>{{ t('profile.phaseWarning') }}</strong></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.phaseWarning" data-testid="set-phase-warning" @change="set({ phaseWarning: ($event.target as HTMLInputElement).checked })" />
-      </label>
-      <label v-if="advanced && canNotify()" class="line">
-        <span><strong>{{ t('profile.systemNotify') }}</strong><small class="muted">{{ notifyDenied ? t('profile.systemNotify.denied') : t('profile.systemNotify.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.systemNotify" data-testid="set-system-notify" @change="toggleNotify(($event.target as HTMLInputElement))" />
-      </label>
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.phaseWarning')" :model-value="settings.s.phaseWarning" data-testid="set-phase-warning" @update:model-value="(on: boolean) => set({ phaseWarning: on })" />
+      <ToggleSwitch v-if="advanced && canNotify()" plain :label="t('profile.systemNotify')" :hint="notifyDenied ? t('profile.systemNotify.denied') : t('profile.systemNotify.hint')" :model-value="settings.s.systemNotify" data-testid="set-system-notify" @update:model-value="toggleNotify" />
       <ToggleSwitch :model-value="settings.s.chatStatus" class="line-toggle" :label="t('profile.chatStatus')" :hint="t('profile.chatStatus.hint')" icon="lucide:message-circle" data-testid="set-chat-status" @update:model-value="(on: boolean) => set({ chatStatus: on })" />
-      <label class="line">
-        <span><strong>{{ t('profile.sound') }}</strong></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.sound" data-testid="set-sound" @change="set({ sound: ($event.target as HTMLInputElement).checked })" />
-      </label>
+      <ToggleSwitch plain :label="t('profile.sound')" :model-value="settings.s.sound" data-testid="set-sound" @update:model-value="(on: boolean) => set({ sound: on })" />
     </section>
 
     <section class="grp">
@@ -172,18 +150,9 @@ async function wipe() {
           </button>
         </span>
       </div>
-      <label class="line">
-        <span><strong>{{ t('profile.shareCursor') }}</strong><small class="muted">{{ t('profile.shareCursor.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.shareCursor" data-testid="set-share-cursor" @change="set({ shareCursor: ($event.target as HTMLInputElement).checked })" />
-      </label>
-      <label v-if="advanced" class="line">
-        <span><strong>{{ t('profile.p2p') }}</strong><small class="muted">{{ t('profile.p2p.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.p2p" data-testid="set-p2p" @change="set({ p2p: ($event.target as HTMLInputElement).checked })" />
-      </label>
-      <label v-if="advanced" class="line">
-        <span><strong>{{ t('profile.showCursors') }}</strong></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.showCursors" data-testid="set-show-cursors" @change="set({ showCursors: ($event.target as HTMLInputElement).checked })" />
-      </label>
+      <ToggleSwitch plain :label="t('profile.shareCursor')" :hint="t('profile.shareCursor.hint')" :model-value="settings.s.shareCursor" data-testid="set-share-cursor" @update:model-value="(on: boolean) => set({ shareCursor: on })" />
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.p2p')" :hint="t('profile.p2p.hint')" :model-value="settings.s.p2p" data-testid="set-p2p" @update:model-value="(on: boolean) => set({ p2p: on })" />
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.showCursors')" :model-value="settings.s.showCursors" data-testid="set-show-cursors" @update:model-value="(on: boolean) => set({ showCursors: on })" />
     </section>
 
     <section v-if="advanced" class="grp" data-testid="layout-section">
@@ -197,10 +166,7 @@ async function wipe() {
 
     <section v-if="advanced" class="grp">
       <h3>{{ t('profile.agents') }}</h3>
-      <label class="line">
-        <span><strong>{{ t('profile.browserAgents') }}</strong><small class="muted">{{ t('profile.browserAgents.hint') }}</small></span>
-        <input type="checkbox" role="switch" class="switch" :checked="settings.s.browserAgents" data-testid="set-browser-agents" @change="set({ browserAgents: ($event.target as HTMLInputElement).checked })" />
-      </label>
+      <ToggleSwitch plain :label="t('profile.browserAgents')" :hint="t('profile.browserAgents.hint')" :model-value="settings.s.browserAgents" data-testid="set-browser-agents" @update:model-value="(on: boolean) => set({ browserAgents: on })" />
     </section>
 
     <section class="grp">
@@ -213,7 +179,7 @@ async function wipe() {
       <h3>{{ t('profile.local') }}</h3>
       <div class="line">
         <span><strong>{{ t('profile.wipe') }}</strong><small class="muted">{{ t('profile.wipe.hint') }}</small></span>
-        <button class="btn btn-danger btn-sm" type="button" data-testid="wipe-local" @click="wipeAsk = true"><Icon name="lucide:trash" /> {{ t('profile.wipeBtn') }}</button>
+        <button class="btn btn-danger btn-sm" type="button" data-testid="wipe-local" @click="wipeAsk = true"><Icon name="lucide:eraser" /> {{ t('profile.wipeBtn') }}</button>
       </div>
     </section>
     <ConfirmDialog v-model:open="wipeAsk" danger :title="t('profile.wipe.title')" :confirm-label="t('profile.wipeBtn')" :message="t('profile.wipe.msg')" @confirm="wipe" />
