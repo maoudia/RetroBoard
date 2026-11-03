@@ -9,7 +9,7 @@ const MEASURE = () => {
     const cs = getComputedStyle(el)
     if (r.width < 4 || r.height < 4 || cs.visibility === 'hidden' || cs.display === 'none') continue
     // Content = the icon and the label (not the key hint caps or badges that sit in a corner).
-    const parts = [...el.childNodes].filter((n) => !(n instanceof HTMLElement && n.matches('kbd, .badge, .kbd, .dot')) && !(n.nodeType === 3 && !n.textContent!.trim()))
+    const parts = [...el.childNodes].filter((n) => !(n instanceof HTMLElement && n.matches('kbd, .badge, .kbd, .dot, .sr-only')) && !(n.nodeType === 3 && !n.textContent!.trim()))
     const range = document.createRange()
     if (parts.length) { range.setStartBefore(parts[0]!); range.setEndAfter(parts[parts.length - 1]!) } else range.selectNodeContents(el)
     const c = range.getBoundingClientRect()

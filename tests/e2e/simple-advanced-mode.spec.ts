@@ -154,6 +154,8 @@ test('voting can be turned off at creation: no voting bar, no vote buttons, and 
   await page.getByTestId('setup-voting-enabled').uncheck()
   await page.getByTestId('setup-submit').click()
   await enterName(page, 'Alice')
+  await expect(page.getByTestId('share-url')).toBeVisible()
+  await page.keyboard.press('Escape')
   await expect(page.getByTestId('board')).toBeVisible()
   await expect(page.getByTestId('votebar')).toHaveCount(0)
   await page.getByTestId('btn-options').click()
