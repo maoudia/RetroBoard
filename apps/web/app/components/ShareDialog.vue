@@ -161,9 +161,10 @@ onBeforeUnmount(() => host.stop())
 .code .lbl { font-weight: 600; white-space: nowrap; }
 .qrbox { margin: 0 auto; }
 .how { list-style: none; margin: .25rem 0 .5rem; padding: 0; display: grid; gap: .3rem; font-size: var(--fs-sm); }
-.how li { display: flex; gap: .5rem; align-items: center; }
+.how li { display: flex; gap: .6rem; align-items: flex-start; line-height: 1.4; }
+.how li :deep(svg), .notes li :deep(svg) { flex: none; margin-top: .2em; }
 .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: var(--fs-sm); }
-.notes li { display: flex; gap: .5rem; align-items: center; }
+.notes li { display: flex; gap: .6rem; align-items: flex-start; line-height: 1.4; }
 .notes .warn { color: var(--text); font-weight: 600; }
 .fac { display: grid; gap: .5rem; padding-top: .5rem; border-top: 1px solid var(--border); }
 .fac summary { cursor: pointer; font-weight: 600; }
@@ -174,4 +175,21 @@ h3 { font-size: var(--fs-md); margin: 0; }
 .knocks { display: grid; gap: .5rem; width: 100%; margin: 0; padding: 0; list-style: none; }
 .knocks li { display: grid; gap: .25rem; padding: .6rem .75rem; border: 1px solid var(--border); border-radius: var(--r-card); }
 .kb { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* Small screens: breathing room and full-width, thumb-sized controls instead of a squeezed row of pills. */
+.fac summary { display: flex; align-items: center; gap: .5rem; min-height: 44px; }
+@media (max-width: 600px) {
+  .how { gap: .6rem; margin: .5rem 0 .75rem; }
+  .row { flex-direction: column; gap: .6rem; }
+  .row .btn { width: 100%; justify-content: center; min-height: 44px; }
+  .row.code { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .row.code .field { flex: 1 1 8rem; }
+  .row.code .btn { width: auto; flex: 1 1 100%; }
+  .acts { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .acts .btn { justify-content: center; min-height: 44px; white-space: nowrap; }
+  .jc { justify-items: stretch; padding-top: .75rem; }
+  .jc > .btn { justify-content: center; min-height: 44px; }
+  .notes { gap: .6rem; padding-top: .25rem; }
+  .fac { padding-top: .75rem; }
+  .qrbox { max-width: min(100%, 240px); }
+}
 </style>

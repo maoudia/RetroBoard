@@ -108,3 +108,15 @@ test('everyone on a board sees the same three words, in the board language', asy
   await expect(bob.page.getByTestId('peers-room-code').locator('strong')).toHaveText(words)
   await bob.ctx.close()
 })
+
+test('the share dialog gives the link and its buttons full, thumb-sized rows on a phone (change toast-notifications-v2)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 })
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-share').click()
+  const url = (await page.getByTestId('share-url').boundingBox())!
+  const copy = (await page.getByTestId('copy-link').boundingBox())!
+  expect(copy.y).toBeGreaterThan(url.y + url.height - 1)
+  expect(Math.abs(copy.width - url.width)).toBeLessThan(4)
+  expect(copy.height).toBeGreaterThanOrEqual(43)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
