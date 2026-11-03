@@ -10,7 +10,7 @@ export const LIMITS = {
   columnSubtitle: 90,
   groupTitle: 60,
   boardTitle: 60,
-  actionText: 200,
+  actionText: 500,
   actionOwner: 40,
   displayName: 24,
   maxNotes: 300,

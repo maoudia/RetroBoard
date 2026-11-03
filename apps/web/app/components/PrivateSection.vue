@@ -37,6 +37,12 @@ function startGrow(e: PointerEvent) {
   grip.addEventListener('pointerup', up, { once: true })
   grip.addEventListener('pointercancel', up, { once: true })
 }
+/** Double-click on the grip: back to the column's default height and size. */
+function resetSize() { ui.setColumnWriteHeight(board.roomId, props.column.id, null) }
+function setSize(z: (typeof WRITE_SIZES)[number]) {
+  if (ui.writeAll) ui.setAllWriteSize(board.roomId, z)
+  else ui.setColumnWriteSize(board.roomId, props.column.id, z)
+}
 function growKey(e: KeyboardEvent) {
   if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
   e.preventDefault()
@@ -118,18 +124,11 @@ function onKey(e: KeyboardEvent) {
       <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
-      <Dropdown menu>
-        <template #trigger="{ toggle, open }">
-          <button class="mini-btn" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('private.area')" :title="t('private.area')" :data-testid="`area-menu-${column.id}`" @click="toggle">
-            <Icon name="lucide:text-cursor-input" />
-          </button>
-        </template>
-        <template #default="{ close }">
-          <button v-for="z in WRITE_SIZES" :key="z" class="dd-item" type="button" role="menuitemradio" :aria-checked="ui.writeSizeOf(column.id) === z" :data-testid="`area-${z}-${column.id}`" @click="ui.setColumnWriteSize(board.roomId, column.id, z); close()">
-            <Icon :name="ui.writeSizeOf(column.id) === z ? 'lucide:check' : 'lucide:minus'" /> {{ t(`private.area.${z}` as never) }}
-          </button>
-        </template>
-      </Dropdown>
+      <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
+      <span class="pick-seg size-seg" role="group" :aria-label="t('private.area')">
+        <button v-for="z in WRITE_SIZES" :key="z" type="button" :class="{ on: ui.writeSizeOf(column.id) === z }" :aria-pressed="ui.writeSizeOf(column.id) === z" :aria-label="t(`private.area.${z}` as never)" :title="t(`private.area.${z}` as never)" :data-testid="`area-${z}-${column.id}`" @click="setSize(z)">{{ z === 'small' ? 'S' : z === 'normal' ? 'M' : 'L' }}</button>
+      </span>
+      <button class="mini-btn" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon :name="ui.writeAll ? 'lucide:link' : 'lucide:unlink'" /></button>
       <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevrons-down" /></button>
     </header>
 
@@ -154,7 +153,7 @@ function onKey(e: KeyboardEvent) {
       <small class="hint-row"><span class="sr-only">{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
       <span
         class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
-        :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @keydown="growKey"
+        :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @dblclick="resetSize" @keydown="growKey"
       />
     </label>
     <div v-if="colorsOpen" class="swatches" role="group" :aria-label="t('note.color')" :data-testid="`compose-colors-${column.id}`">
@@ -221,6 +220,7 @@ header > .title { margin-inline-end: auto; }
 .composer { position: relative; display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
+.size-seg button { padding: .15rem .5rem; min-width: 28px; min-height: 28px; }
 .grow-grip { position: absolute; right: 0; bottom: 0; width: 24px; height: 24px; cursor: ns-resize; touch-action: none; display: grid; place-items: center; border-radius: var(--r-pill); }
 .grow-grip::after { content: ''; width: 12px; height: 12px; background: linear-gradient(135deg, transparent 0 45%, color-mix(in oklab, var(--note-ink) 55%, transparent) 45% 55%, transparent 55% 70%, color-mix(in oklab, var(--note-ink) 55%, transparent) 70% 80%, transparent 80%); transition: opacity .15s; opacity: .7; }
 .grow-grip:hover::after, .grow-grip:focus-visible::after, .grow-grip:active::after { opacity: 1; }

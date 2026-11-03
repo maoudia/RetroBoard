@@ -45,19 +45,28 @@ const end = () => (mine.value ? board.commands.giveBackFloor() : board.commands.
       <text x="20" y="25" text-anchor="middle" class="ini">{{ name.slice(0, 1).toUpperCase() }}</text>
     </svg>
     <span class="who"><strong>{{ t('talk.speaking', { name }) }}</strong><small class="mono" data-testid="talk-time">{{ mmss(clock.remainingMs) }}</small></span>
-    <button v-if="canEnd" class="btn btn-sm" type="button" data-testid="talk-end" @click="end"><Icon name="lucide:check" /> {{ t(mine ? 'talk.done' : 'talk.end') }}</button>
+    <button v-if="canEnd" class="btn btn-sm" type="button" :aria-label="t(mine ? 'talk.done' : 'talk.end')" data-testid="talk-end" @click="end"><Icon name="lucide:check" /> {{ t(mine ? 'talk.done' : 'talk.end') }}</button>
   </div>
 </template>
 
 <style scoped>
-.talk { position: fixed; z-index: 45; left: 1rem; bottom: 1rem; display: flex; align-items: center; gap: .6rem; padding: .4rem .8rem .4rem .4rem; border-radius: 999px; border: 1px solid var(--border); box-shadow: var(--shadow-2); }
+.talk { box-sizing: border-box; max-width: calc(100vw - 2rem); position: fixed; z-index: 45; left: 1rem; bottom: 1rem; display: flex; align-items: center; gap: .6rem; padding: .4rem .8rem .4rem .4rem; border-radius: 999px; border: 1px solid var(--border); box-shadow: var(--shadow-2); }
 .ring { transform: rotate(-90deg); flex: none; }
 .track { fill: var(--surface); stroke: var(--border); stroke-width: 4; }
 .left { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transition: stroke-dasharray .5s linear; }
 .over .left { stroke: var(--danger); }
 .over { border-color: var(--danger); }
 .ini { transform: rotate(90deg); transform-origin: 20px 20px; font-size: var(--fs-sm); font-weight: 800; fill: var(--text); }
-.who { display: grid; line-height: 1.2; }
+.who { display: grid; line-height: 1.2; min-width: 0; }
+.who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.talk .btn { flex: none; }
+/* Phone: never wider than the screen; the name truncates and the button keeps only its icon. */
+@media (max-width: 600px) {
+  .talk { left: 8px; right: 8px; max-width: none; bottom: 8px; border-radius: var(--r-card); }
+  .who { flex: 1; }
+  .talk .btn { padding-inline: .55rem; font-size: 0; gap: 0; }
+  .talk .btn :deep(svg) { font-size: var(--fs-lg); }
+}
 .who small { color: var(--muted); }
 .over .who small { color: var(--danger); font-weight: 700; }
 </style>

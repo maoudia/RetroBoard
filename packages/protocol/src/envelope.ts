@@ -92,6 +92,8 @@ export const PresenceSchema = v.strictObject({
   conn: ConnId,
   name: Name,
   showName: v.boolean(),
+  /** Avatar hue chosen in the profile (display only). */
+  hue: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(359))),
   /** Session signing key, so peers can show roles. A hint only: rights come from the signed log. */
   key: v.optional(Key),
   /** Facilitator public key when this browser holds the facilitator link (public: it is in the genesis). */

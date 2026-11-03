@@ -243,6 +243,8 @@ export interface Peer {
   renamed?: boolean
   /** Relay connection id, to match live presence (cursors, focus). Not stable across reconnects. */
   conn?: string
+  /** Avatar hue (0-359) the participant chose in the profile; display only, absent on older clients. */
+  hue?: number
 }
 
 export interface Snapshot {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { groupByAuthorPlan, groupSimilarPlan } from '@retroboard/application'
 import type { Column } from '@retroboard/domain'
+import { errorLabel } from '~/utils/labels'
 const { t } = useT()
 
 const props = defineProps<{ column: Column; index: number; count: number; noteCount: number }>()
@@ -36,6 +37,11 @@ function undoGrouping() {
   ui.autoGrouped = { ...ui.autoGrouped, [props.column.id]: [] }
 }
 const visibleCount = computed(() => board.columns.filter((c) => !c.hidden).length)
+/** A refused hide is never silent: the person gets the reason (change feedback-wave-4). */
+function hide() {
+  const r = board.commands.hideColumn(props.column.id)
+  if (!r.ok && r.error && r.error !== 'offline') push(errorLabel(r.error as never), 'warn')
+}
 const move = (to: number) => board.commands.moveColumn(props.column.id, to)
 </script>
 
@@ -55,7 +61,7 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
         <button class="dd-item" type="button" role="menuitem" :data-testid="`col-turn-${column.id}`" @click="board.commands.setTurn(board.snapshot?.turn === column.id ? null : column.id); close()">
           <Icon :name="board.snapshot?.turn === column.id ? 'lucide:lock-open' : 'lucide:scan-line'" /> {{ t(board.snapshot?.turn === column.id ? 'turn.stop' : 'turn.open') }}
         </button>
-        <button class="dd-item" type="button" role="menuitem" :disabled="visibleCount <= 1" :title="visibleCount <= 1 ? t('column.hide.last') : undefined" :data-testid="`col-hide-${column.id}`" @click="board.commands.hideColumn(column.id); close()">
+        <button class="dd-item" type="button" role="menuitem" :disabled="visibleCount <= 1" :title="visibleCount <= 1 ? t('column.hide.last') : undefined" :data-testid="`col-hide-${column.id}`" @click="hide(); close()">
           <Icon name="lucide:eye-off" /> {{ t('column.hide') }}
         </button>
         <button class="dd-item" type="button" role="menuitem" :data-testid="`col-group-author-${column.id}`" @click="ask('author'); close()">

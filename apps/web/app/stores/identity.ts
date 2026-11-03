@@ -36,6 +36,7 @@ export const useIdentityStore = defineStore('identity', () => {
 
   function stopNudging() { nudgeOff.value = true; persist() }
 
-  const identity = computed<Identity>(() => ({ cid: cid.value, name: name.value, showName: showName.value }))
+  const settings = useSettingsStore()
+  const identity = computed<Identity>(() => ({ cid: cid.value, name: name.value, showName: showName.value, hue: settings.s.avatarHue }))
   return { cid, name, showName, named, nudgeOff, identity, load, set, stopNudging }
 })

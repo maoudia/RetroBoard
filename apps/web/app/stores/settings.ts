@@ -50,6 +50,8 @@ export interface LocalSettings {
   systemNotify: boolean
   /** Side of the floating chat drawer (personal). */
   chatSide: 'left' | 'right'
+  /** Chat header line: connected and focused on the conversation (on by default). */
+  chatStatus: boolean
   /** Sort of the voted ideas list in the actions panel. */
   votedSort: 'votes' | 'column' | 'newest' | 'author'
 }
@@ -62,7 +64,7 @@ const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
-  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', votedSort: 'votes',
+  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatStatus: true, votedSort: 'votes',
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

@@ -41,6 +41,8 @@ function closeLocal() {
   // The transport deletes the encrypted copy itself and stays connected on purpose: a participant who was
   // offline can still learn about the closing from the peers that are here.
 }
+/** A new avatar colour reaches the others at once (the profile is broadcast on connect and whenever it changes). */
+watch(() => identity.identity.hue, (h, old) => { if (old !== undefined && h !== old && board.ready) board.updateIdentity(identity.identity) })
 watch(() => board.lastNotice, (n) => {
   if (!n) return
   // "Bob started Group" is only news on open boards, where anyone may move the phase.
@@ -401,7 +403,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
 <style scoped>
 .page { position: relative; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-.page > :not(.ambient, .chat, .bubble) { position: relative; z-index: 1; }
+.page > :not(.ambient, .chat, .bubble, .talk) { position: relative; z-index: 1; }
 /* Folded menus on phones: only the slim top bar stays (change mobile-board-space). */
 .page :deep(.tools), .page :deep(.stepper), .page :deep(.votebar) { max-height: 220px; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s; }
 .chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { max-height: 0; opacity: 0; padding-block: 0; margin-block: 0; overflow: hidden; pointer-events: none; visibility: hidden; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s, visibility 0s .3s; }

@@ -28,7 +28,6 @@ test('the writing area can be made large and keeps its size after a reload', asy
   const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const area = page.getByTestId(`draft-${id}`)
   const small = (await area.boundingBox())!.height
-  await page.getByTestId(`area-menu-${id}`).click()
   await page.getByTestId(`area-large-${id}`).click()
   await expect(async () => expect((await area.boundingBox())!.height).toBeGreaterThan(small + 40)).toPass()
   await page.reload()

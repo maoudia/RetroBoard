@@ -58,15 +58,11 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
           </button>
         </template>
         <template #default="{ close }">
-          <button class="dd-item" type="button" role="menuitemcheckbox" :aria-checked="board.secretVoting" data-testid="secret-toggle" @click="board.commands.updateSettings({ secretVoting: !board.secretVoting }); close()">
-            <Icon :name="board.secretVoting ? 'lucide:eye-off' : 'lucide:eye'" /> {{ t('votebar.secret', { state: board.secretVoting ? t('votebar.on') : t('votebar.off') }) }}
-          </button>
+          <ToggleSwitch :model-value="board.secretVoting" icon="lucide:eye-off" :label="t('votebar.secret')" data-testid="secret-toggle" @update:model-value="(on: boolean) => { board.commands.updateSettings({ secretVoting: on }); close() }" />
           <button class="dd-item" type="button" role="menuitem" :disabled="board.locked || revealing" :title="t('votebar.reveal.title')" data-testid="reveal-all" @click="board.commands.revealDrafts(); close()">
             <Icon name="lucide:sparkles" /> {{ t('votebar.reveal') }}
           </button>
-          <button class="dd-item" type="button" role="menuitem" data-testid="voting-disable" @click="board.commands.updateSettings({ votingEnabled: false }); close()">
-            <Icon name="lucide:vote" /> {{ t('votebar.disable') }}
-          </button>
+          <ToggleSwitch :model-value="true" icon="lucide:vote" :label="t('votebar.enabled')" data-testid="voting-disable" @update:model-value="close(); board.commands.updateSettings({ votingEnabled: false })" />
         </template>
       </Dropdown>
     </div>
@@ -88,12 +84,9 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 .state:hover:not(:disabled) { background: color-mix(in oklab, var(--tone) 24%, transparent); }
 .state[data-state="closed"] { --tone: var(--muted); }
 .state[data-state="phase-closed"] { --tone: var(--muted); border-style: dashed; }
-.state-text { font-size: var(--fs-sm); color: var(--muted); }
+.state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* the chip already says it: read by assistive technology only */
 .right .btn { min-height: 36px; }
 .ico-btn { width: 36px; padding: 0; justify-content: center; }
-@media (max-width: 1280px) {
-  .state-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-}
 /* Phone: one row that slides sideways like the toolbar, votes left as a pill at the start. */
 @media (max-width: 720px) { .votebar { gap: .35rem .6rem; padding: .35rem .75rem; } }
 @media (max-width: 600px) {

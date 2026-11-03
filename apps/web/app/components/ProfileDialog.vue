@@ -155,6 +155,7 @@ async function wipe() {
         <span><strong>{{ t('profile.systemNotify') }}</strong><small class="muted">{{ notifyDenied ? t('profile.systemNotify.denied') : t('profile.systemNotify.hint') }}</small></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.systemNotify" data-testid="set-system-notify" @change="toggleNotify(($event.target as HTMLInputElement))" />
       </label>
+      <ToggleSwitch :model-value="settings.s.chatStatus" class="line-toggle" :label="t('profile.chatStatus')" :hint="t('profile.chatStatus.hint')" icon="lucide:message-circle" data-testid="set-chat-status" @update:model-value="(on: boolean) => set({ chatStatus: on })" />
       <label class="line">
         <span><strong>{{ t('profile.sound') }}</strong></span>
         <input type="checkbox" role="switch" class="switch" :checked="settings.s.sound" data-testid="set-sound" @change="set({ sound: ($event.target as HTMLInputElement).checked })" />
@@ -244,4 +245,7 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .recents strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .danger-zone h3 { color: var(--danger); }
+/* The Erase button never shrinks (its label and red border were cut) and keeps room for its focus ring and hover lift inside the scrolling dialog body. */
+.danger-zone { padding-bottom: .5rem; }
+.danger-zone .btn { flex: none; white-space: nowrap; margin: 3px; }
 </style>

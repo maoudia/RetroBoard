@@ -9,6 +9,8 @@ export interface Identity {
   cid: string
   name: string
   showName: boolean
+  /** Avatar hue (0-359) from the profile, broadcast so peers show my own colour. */
+  hue?: number
 }
 
 /** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"). */

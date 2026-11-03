@@ -50,6 +50,8 @@ export const useUiStore = defineStore('ui', () => {
   const autoGrouped = ref<Record<string, string[]>>({})
   /** Cluster being dragged (drop on another cluster to merge). */
   const dragGroupId = ref<string | null>(null)
+  /** Writing-area size choices apply to every column while this is on (feedback-wave-4). */
+  const writeAll = ref(false)
   const openGroupId = ref<string | null>(null)
   /** Column being edited in the column dialog; null with dialog='column' means "add". */
   const editingColumnId = ref<string | null>(null)
@@ -93,5 +95,5 @@ export const useUiStore = defineStore('ui', () => {
   function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
 
-  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
+  return { chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
 })

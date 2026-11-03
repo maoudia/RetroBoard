@@ -448,7 +448,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private async announce(): Promise<void> {
     if (!this.conn || !this.identity) return
     const p: Presence = {
-      t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, key: this.deps.session.publicKey,
+      t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, ...(this.identity.hue !== undefined ? { hue: this.identity.hue } : {}), key: this.deps.session.publicKey,
       ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}), ...(this.log.size > 0 ? { ready: true } : {}),
     }
     await this.sendEph(p)
@@ -796,9 +796,9 @@ export class EncryptedRelayTransport implements BoardTransport {
     const mine = this.deps.session.publicKey
     const myOwn = this.identity?.showName ? this.identity.name || null : null
     const list: Peer[] = this.conns.map((c) => {
-      if (c === this.conn) return { ...named(mine, myOwn), me: true, key: mine, role: this.myRole(), conn: c }
+      if (c === this.conn) return { ...named(mine, myOwn), me: true, key: mine, role: this.myRole(), conn: c, ...(this.identity?.hue !== undefined ? { hue: this.identity.hue } : {}) }
       const p = this.presence.get(c)
-      return { ...named(p?.key, p?.showName ? p.name : null), me: false, conn: c, ...describe(p?.key, p?.fkey) }
+      return { ...named(p?.key, p?.showName ? p.name : null), me: false, conn: c, ...(p?.hue !== undefined ? { hue: p.hue } : {}), ...describe(p?.key, p?.fkey) }
     })
     if (!list.some((p) => p.me)) list.unshift({ ...named(mine, myOwn), me: true, key: mine, role: this.myRole() })
     return list.sort((x, y) => Number(y.me) - Number(x.me) || (x.name ?? '').localeCompare(y.name ?? ''))

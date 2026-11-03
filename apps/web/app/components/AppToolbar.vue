@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { WRITE_SIZES } from '~/stores/ui'
 const { t } = useT()
 const board = useBoardStore()
 const ui = useUiStore()
 const chat = useChatStore()
 const layout = useLayoutStore()
 /** The size every writing area shares, or null when columns differ (some have their own). */
-const allWriteSize = computed(() => { const sizes = new Set(board.columns.filter((c) => !c.hidden).map((c) => ui.writeSizeOf(c.id))); return sizes.size === 1 ? [...sizes][0]! : null })
 const theme = useThemeStore()
 const settings = useSettingsStore()
 const drafts = useDraftsStore()
@@ -38,6 +36,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
         <strong>{{ board.settings?.title }}</strong>
         <small class="muted">{{ theme.theme.name }}</small>
       </button>
+      <EncryptionBadge />
       <!-- Switch board: the recent boards of this device, one click away (change recent-boards-visible). -->
       <Dropdown align="start" width="260px">
         <template #trigger="{ toggle, open: menuOpen }">
@@ -72,21 +71,8 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
       </button>
       <button class="icon-btn" type="button" data-testid="btn-filter" :aria-pressed="ui.filterOpen" @click="ui.filterOpen ? (ui.resetFilter(), ui.filterOpen = false) : (ui.filterOpen = true)"><Icon name="lucide:search" class="ico" /><span>{{ t('toolbar.filter') }}</span><KeyCap k="/" /></button>
       <button class="icon-btn" type="button" data-testid="btn-presenter" :aria-pressed="ui.presenter" @click="ui.presenter = !ui.presenter"><Icon name="lucide:presentation" class="ico" /><span>{{ t('toolbar.presenter') }}</span><KeyCap k="P" /></button>
-      <!-- Write: folds every writing area; the chevron beside it sets the size of all of them at once (a column keeps its own with its own menu). -->
-      <span class="split">
-        <button class="icon-btn" type="button" data-testid="btn-writing" :aria-pressed="!layout.writingHidden" @click="layout.setWritingHidden(!layout.writingHidden)"><Icon :name="layout.writingHidden ? 'lucide:pencil' : 'lucide:pencil-off'" class="ico" /><span>{{ t(layout.writingHidden ? 'toolbar.writing.show' : 'toolbar.writing.hide') }}</span><KeyCap k="W" /></button>
-        <Dropdown menu>
-          <template #trigger="{ toggle, open: menuOpen }">
-            <button class="mini-btn split-more" type="button" aria-haspopup="menu" :aria-expanded="menuOpen" :aria-label="t('toolbar.writing.sizes')" :title="t('toolbar.writing.sizes')" data-testid="btn-writing-sizes" @click="toggle"><Icon name="lucide:chevron-down" /></button>
-          </template>
-          <template #default="{ close }">
-            <span class="boards-head muted">{{ t('toolbar.writing.sizes') }}</span>
-            <button v-for="z in WRITE_SIZES" :key="z" class="dd-item" type="button" role="menuitemradio" :aria-checked="allWriteSize === z" :data-testid="`writing-all-${z}`" @click="ui.setAllWriteSize(board.roomId, z); close()">
-              <Icon :name="allWriteSize === z ? 'lucide:check' : 'lucide:minus'" /> {{ t(`private.area.${z}` as never) }}
-            </button>
-          </template>
-        </Dropdown>
-      </span>
+      <!-- Write only shows or hides the writing areas; their size is set on the area itself (change feedback-wave-4). -->
+      <button class="icon-btn" type="button" data-testid="btn-writing" :aria-pressed="!layout.writingHidden" @click="layout.setWritingHidden(!layout.writingHidden)"><Icon :name="layout.writingHidden ? 'lucide:pencil' : 'lucide:pencil-off'" class="ico" /><span>{{ t(layout.writingHidden ? 'toolbar.writing.show' : 'toolbar.writing.hide') }}</span><KeyCap k="W" /></button>
       <!-- Publish every draft at once: lives with the writing controls, shown only while there is something to publish. -->
       <button v-if="drafts.count" class="icon-btn publish-all" type="button" :disabled="board.locked || publishClosed" :title="publishOffTitle ?? t('toolbar.publishAll')" data-testid="publish-all" @click="publish()">
         <Icon name="lucide:send" class="ico" /><span>{{ t('toolbar.publishAll') }}</span><span class="badge">{{ drafts.count }}</span>
@@ -128,8 +114,6 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 /* Buttons never shrink below their content: the row slides sideways instead (labels stay centred). */
 .tools > *, .tools :deep(.icon-btn) { flex: none; }
 .me { margin-left: .5rem; }
-.split { display: inline-flex; align-items: center; flex: none; }
-.split-more { margin-left: .15rem; width: 28px; min-width: 28px; min-height: 28px; padding: 0; }
 @media (max-width: 1100px) {
   .toolbar { grid-template-columns: 1fr auto auto; }
   .timer-slot { grid-column: 2; grid-row: 1; }

@@ -49,6 +49,10 @@ const workflow = computed(() => board.settings?.actionMode === 'workflow')
 const carried = computed(() => board.actions.filter((a) => a.carriedFrom !== null))
 const fresh = computed(() => board.actions.filter((a) => a.carriedFrom === null))
 
+const area = ref<HTMLTextAreaElement | null>(null)
+/** Grows with the content up to a cap, then scrolls. */
+function grow() { const el = area.value; if (!el) return; el.style.height = 'auto'; el.style.height = `${Math.min(el.scrollHeight, 240)}px` }
+watch(text, () => nextTick(grow))
 function add() {
   if (!text.value.trim() || !gate.value.allowed) return
   board.commands.addAction(text.value, owner.value, due.value || undefined, source.value?.sourceId)
@@ -80,7 +84,8 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 <template>
   <BaseDialog v-model:open="open" :title="t('actions.title')" width="640px">
     <form class="add" data-testid="action-form" @submit.prevent="add">
-      <input v-model="text" class="field" :maxlength="LIMITS.actionText" :placeholder="t('actions.placeholder')" :aria-label="t('actions.newLabel')" data-testid="action-text" />
+      <!-- A real writing area: actions matter, they get room to be written (change feedback-wave-4). -->
+      <textarea ref="area" v-model="text" class="field action-area" rows="3" :maxlength="LIMITS.actionText" :placeholder="t('actions.placeholder')" :aria-label="t('actions.newLabel')" data-testid="action-text" @input="grow" @keydown.ctrl.enter.prevent="add" @keydown.meta.enter.prevent="add" />
       <OwnerCombobox v-model="owner" />
       <input v-model="due" class="field due" type="date" :aria-label="t('actions.due')" :title="t('actions.due')" data-testid="action-due" />
       <p v-if="source" class="src" data-testid="action-source">
@@ -181,7 +186,8 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 li { display: grid; grid-template-columns: auto 1fr auto auto; gap: .7rem; align-items: center; padding: .6rem 0; border-top: 1px solid var(--border); animation: pop-in .25s var(--ease); }
 li input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
 .status { padding: .25rem .4rem; font-size: var(--fs-sm); }
-.txt { display: grid; overflow-wrap: anywhere; }
+.txt { display: grid; overflow-wrap: anywhere; white-space: pre-line; }
+.action-area { grid-column: 1 / -1; min-height: 5.5rem; max-height: 15rem; resize: vertical; line-height: 1.4; font: inherit; }
 .from { font-size: var(--fs-xs); }
 .srclink { justify-self: start; display: inline-flex; gap: .3rem; align-items: center; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: var(--fs-xs); text-align: left; cursor: pointer; text-decoration: underline; }
 li.hl { background: var(--accent-soft); border-radius: var(--r-sm); }
