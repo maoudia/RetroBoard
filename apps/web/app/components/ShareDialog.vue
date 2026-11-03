@@ -156,6 +156,8 @@ onBeforeUnmount(() => host.stop())
 .row .field { min-width: 0; flex: 1; }
 .code-words { margin: 0; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
 .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
+.acts .btn { flex: 1 1 auto; justify-content: center; min-width: 0; white-space: nowrap; }
+@media (max-width: 480px) { .acts .btn { flex-basis: 100%; } }
 .acts a.btn { text-decoration: none; }
 .code { align-items: center; }
 .code .lbl { font-weight: 600; white-space: nowrap; }

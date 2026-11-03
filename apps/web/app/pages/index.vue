@@ -293,6 +293,8 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .foot { display: flex; justify-content: space-between; max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; border-top: 1px solid var(--line); color: var(--ink2); font-size: var(--fs-sm); } .foot a { color: var(--ink2); }
 
 @media (max-width: 900px) { .links { display: none; } .bento { grid-template-columns: 1fr 1fr; } .card.wide { grid-column: span 2; } .stats { grid-template-columns: 1fr 1fr; row-gap: 2rem; } .steps { grid-template-columns: 1fr; } .privacy { grid-template-columns: 1fr 1fr; } }
+/* Small phones: the header keeps every control inside the screen (Create was cut at 360 px). */
+@media (max-width: 420px) { .nav-in { gap: .5rem; padding: 0 .75rem; } .right { gap: .4rem; } .cta.sm { padding: .4rem .75rem; } .brand { gap: .4rem; } }
 @media (max-width: 600px) { .bento { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
 @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; } .tilt { transition: none; } }
 </style>
