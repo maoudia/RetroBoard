@@ -102,7 +102,7 @@ function onSubmit() {
         <ToggleSwitch v-for="(c, i) in tpl.columns" :key="`${templateId}-${i}`" v-model="votable[i]" plain :label="c.title" :data-testid="`setup-votable-${i}`" />
       </details>
 
-      <ToggleSwitch v-model="announceArrivals" plain :label="t('setup.arrivals')" :hint="t('setup.arrivals.hint')" data-testid="setup-arrivals" />
+      <ToggleSwitch v-model="announceArrivals" plain row-class="tile line" row-testid="setup-arrivals-row" :label="t('setup.arrivals')" :hint="t('setup.arrivals.hint')" data-testid="setup-arrivals" />
     </div>
 
     <ConfirmDialog v-model:open="confirmOpen" danger confirm-icon="lucide:unlock" :title="t('setup.passcode.noneTitle')" :message="t('setup.passcode.noneMsg')" :confirm-label="t('setup.passcode.noneOk')" @confirm="emit('submit', result())" />

@@ -79,8 +79,8 @@ function create({ passcode, ...form }: SetupResult) {
         <RecentBoards :limit="3" testid="new-resume-list" />
       </section>
       <section class="card panel">
-        <ToggleSwitch v-model="soloMode" plain :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
-        <ToggleSwitch plain :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
+        <ToggleSwitch v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
+        <ToggleSwitch plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
         <BoardSetupForm :with-passcode="!soloMode" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
       <section v-if="advanced" class="card panel">

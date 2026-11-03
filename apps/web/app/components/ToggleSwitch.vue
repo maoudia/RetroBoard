@@ -4,12 +4,12 @@
  * Attributes such as data-testid land on the input itself so tests and assistive technologies talk to the switch.
  */
 defineOptions({ inheritAttrs: false })
-defineProps<{ label: string; hint?: string; icon?: string; disabled?: boolean; /** In a settings list: no padding or hover, the row layout is the list's. */ plain?: boolean }>()
+defineProps<{ label: string; hint?: string; icon?: string; disabled?: boolean; /** In a settings list: no padding or hover, the row layout is the list's. */ plain?: boolean; /** Class and test id of the row itself (the attributes go to the input). */ rowClass?: string; rowTestid?: string }>()
 const model = defineModel<boolean>({ default: false })
 </script>
 
 <template>
-  <label class="tgl" :class="{ off: disabled, plain }">
+  <label class="tgl" :class="[rowClass, { off: disabled, plain }]" :data-testid="rowTestid">
     <Icon v-if="icon" :name="icon" class="tgl-ico" />
     <span class="tgl-text"><strong>{{ label }}</strong><small v-if="hint" class="muted">{{ hint }}</small></span>
     <input v-bind="$attrs" v-model="model" type="checkbox" role="switch" class="switch" :disabled="disabled">

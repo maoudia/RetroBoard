@@ -42,9 +42,9 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <h3>{{ t('options.display') }}</h3>
         <div v-for="k in (['noteSize', 'noteText'] as const)" :key="k" class="line">
           <span><strong>{{ t(`options.${k}` as never) }}</strong></span>
-          <span class="scale" role="group" :aria-label="t(`options.${k}` as never)">
+          <span class="pick-seg" role="group" :aria-label="t(`options.${k}` as never)">
             <button
-              v-for="z in DISPLAY_SCALES" :key="z" class="btn btn-sm" type="button" :aria-pressed="(s[k] ?? 'normal') === z" :disabled="!board.access.canSteer"
+              v-for="z in DISPLAY_SCALES" :key="z" type="button" :class="{ on: (s[k] ?? 'normal') === z }" :aria-pressed="(s[k] ?? 'normal') === z" :disabled="!board.access.canSteer"
               :data-testid="`opt-${k}-${z}`" @click="set({ [k]: z })"
             ><Icon :name="`lucide:${SCALE_ICON[z]}`" /> {{ t(`options.scale.${z}` as never) }}</button>
           </span>
@@ -186,15 +186,13 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 .readonly { display: flex; gap: .5rem; align-items: center; margin: 0; padding: .6rem .8rem; border-radius: var(--r-control); background: var(--surface2); font-weight: 600; }
 .grp { display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
-.scale { display: inline-flex; flex: none; border: 1px solid var(--control, var(--border)); border-radius: var(--r-pill); overflow: hidden; }
-.scale .btn { min-height: 36px; padding: .2rem .7rem; border: 0; border-radius: 0; background: transparent; box-shadow: none; white-space: nowrap; }
-.scale .btn:hover { background: color-mix(in oklab, var(--accent) 12%, transparent); }
-.scale .btn[aria-pressed="true"] { color: var(--text); background: var(--accent-soft); font-weight: 700; box-shadow: inset 0 0 0 1px var(--accent); }
+.pick-seg button { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; }
+.pick-seg button:disabled { opacity: .5; cursor: default; }
 .line > .btn, .line > .seg { flex: none; white-space: nowrap; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
 /* Narrow screens: a row with a wide control (language, light or dark) puts the control under its label instead of squeezing the text (change ux-irritants-wave-3). */
-@media (max-width: 600px) { .line:has(> .seg, > .pick-seg, > .scale) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg, > .scale) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
+@media (max-width: 600px) { .line:has(> .seg, > .pick-seg) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
 .line small { font-size: var(--fs-sm); }
 .stepper { display: inline-flex; align-items: center; gap: .3rem; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 800; }
