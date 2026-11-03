@@ -12,10 +12,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
   },
   "dependencies": {
-    "@retroboard/domain": "workspace:*",
-    "@retroboard/application": "workspace:*"
+    "@retroboard/application": "workspace:*",
+    "@retroboard/domain": "workspace:*"
   },
   "devDependencies": {
-    "@retroboard/testkit": "workspace:*"
+    "@retroboard/testkit": "workspace:*",
+    "ajv": "8.20.0"
   }
 }

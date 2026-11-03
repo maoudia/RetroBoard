@@ -197,6 +197,9 @@ importers:
       '@retroboard/testkit':
         specifier: workspace:*
         version: link:../testkit
+      ajv:
+        specifier: 8.20.0
+        version: 8.20.0
 
   packages/i18n:
     devDependencies:

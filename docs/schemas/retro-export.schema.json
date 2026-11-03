@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://retroboard.maoudia.com/schemas/retro-export.schema.json",
+  "title": "RetroBoard JSON export",
+  "description": "Board content as written by the JSON export: settings, columns, notes, clusters and actions. Per-viewer fields (mine, voted) are never exported. Colours are indexes 0..23 into the theme palette (0..7 base, 8..15 tints, 16..23 shades).",
+  "type": "object",
+  "required": ["settings", "columns", "notes", "groups", "actions"],
+  "properties": {
+    "settings": {
+      "type": "object",
+      "required": ["title", "voteLimit", "votable", "actionMode", "themeId"],
+      "properties": {
+        "title": { "type": "string" },
+        "voteLimit": { "type": "integer", "minimum": 0 },
+        "votable": { "enum": ["notes", "clusters", "both"] },
+        "actionMode": { "enum": ["checkbox", "workflow"] },
+        "themeId": { "type": "string" },
+        "templateId": { "type": ["string", "null"] },
+        "locale": { "enum": ["fr", "en"] }
+      }
+    },
+    "columns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "subtitle": { "type": "string" },
+          "icon": { "type": "string" },
+          "color": { "type": "integer", "minimum": 0, "maximum": 23 },
+          "hidden": { "type": "boolean" },
+          "votable": { "type": "boolean" }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "columnId", "text", "color", "author", "groupId", "createdAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "columnId": { "type": "string" },
+          "text": { "type": "string" },
+          "color": { "type": "integer", "minimum": 0, "maximum": 23 },
+          "author": { "type": ["string", "null"] },
+          "groupId": { "type": ["string", "null"] },
+          "votes": { "type": ["integer", "null"], "minimum": 0 },
+          "createdAt": { "type": "number" },
+          "frozen": { "type": "boolean" },
+          "pinned": { "type": "number" },
+          "edited": { "const": true }
+        },
+        "not": { "anyOf": [{ "required": ["mine"] }, { "required": ["voted"] }] }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "columnId", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "columnId": { "type": "string" },
+          "title": { "type": ["string", "null"] },
+          "votes": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "owner", "status", "done"],
+        "properties": {
+          "id": { "type": "string" },
+          "text": { "type": "string" },
+          "owner": { "type": "string" },
+          "done": { "type": "boolean" },
+          "status": { "enum": ["todo", "doing", "done", "blocked", "dropped"] },
+          "due": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+          "carriedFrom": { "type": ["string", "null"] },
+          "sourceNote": { "type": "string" },
+          "createdAt": { "type": "number" }
+        }
+      }
+    }
+  }
+}
