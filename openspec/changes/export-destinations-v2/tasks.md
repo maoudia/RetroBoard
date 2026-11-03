@@ -2,7 +2,7 @@
 
 ## 1. Pure exporters
 - [ ] 1.1 SQLite exporter with versioned schema and snapshot test; verify unit tests and size budget
-- [ ] 1.2 Optional passphrase encryption for any file export and user settings export/import; verify round-trip unit tests
+- [ ] 1.2 Optional passphrase encryption for any file export and user settings export/import (done: plain settings export and import with validation, unit tests and e2e; pending: passphrase encryption)
 
 ## 2. Panel
 - [ ] 2.1 Better icons per destination and file type; verify design-tokens test and e2e

@@ -137,3 +137,21 @@ test('a person can spend all votes on one idea when the board allows it (change 
   await expect(noteByText(page, 'Une seule idee').locator('[data-testid^="my-votes-"] i')).toHaveCount(budget)
   await expect(page.getByTestId('votes-left')).toContainText('0')
 })
+
+test('settings can be exported to a file and imported back (change export-destinations-v2)', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('btn-profile').click()
+  const sound = page.getByTestId('set-sound')
+  await sound.uncheck()
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('settings-export').click()])
+  const path = await download.path()
+  const { readFileSync } = await import('node:fs')
+  const text = readFileSync(path!, 'utf8')
+  expect(JSON.parse(text)).toMatchObject({ format: 'retroboard-settings', version: 1, settings: { sound: false } })
+  await sound.check()
+  await page.getByTestId('settings-import-file').setInputFiles({ name: 'retroboard-settings.json', mimeType: 'application/json', buffer: Buffer.from(text) })
+  await expect(sound).not.toBeChecked()
+  // A foreign file is refused.
+  await page.getByTestId('settings-import-file').setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') })
+  await expect(page.getByText(/pas un fichier de réglages RetroBoard/)).toBeVisible()
+})

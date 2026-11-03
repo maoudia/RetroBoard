@@ -60,7 +60,7 @@ export type { ThemeVariantPref } from '~/utils/settings-migration'
 const KEY = 'retroboard:settings'
 
 export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
-const DEFAULTS: LocalSettings = {
+export const DEFAULTS: LocalSettings = {
   ambient: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: 30, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,

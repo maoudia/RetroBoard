@@ -2,10 +2,11 @@
 import { LIMITS } from '@retroboard/domain'
 import { hasChosen, showNameAfterTyping } from '~/utils/show-name'
 import { THEMES } from '@retroboard/themes'
-import { AVATAR_HUES } from '~/stores/settings'
+import { AVATAR_HUES, DEFAULTS  } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
 import type { ScreenClass } from '~/utils/layout'
 import { askNotifyPermission, canNotify } from '~/utils/system-notify'
+import { buildSettingsFile, parseSettingsFile } from '~/utils/settings-file'
 const { t } = useT()
 
 const ui = useUiStore()
@@ -45,6 +46,19 @@ async function toggleNotify(on: boolean) {
   set({ systemNotify: ok })
 }
 const { $ports } = useNuxtApp()
+/** Personal settings as a file: take them to another browser (change export-destinations-v2). */
+const settingsInput = ref<HTMLInputElement | null>(null)
+const exportSettings = () => { $ports.file.save('retroboard-settings.json', buildSettingsFile({ ...settings.s }, new Date()), 'application/json'); push(t('profile.settingsFile.exported'), 'ok') }
+async function importSettings(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  const parsed = parseSettingsFile(await file.text(), DEFAULTS as unknown as Record<string, unknown>)
+  if (!parsed) { push(t('profile.settingsFile.invalid'), 'warn'); return }
+  set(parsed as Parameters<typeof settings.patch>[0])
+  push(t('profile.settingsFile.imported', { n: Object.keys(parsed).length }), 'ok')
+}
 async function wipe() {
   try { Object.keys(localStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => localStorage.removeItem(k)) } catch { /* ignore */ }
   try { Object.keys(sessionStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => sessionStorage.removeItem(k)) } catch { /* ignore */ }
@@ -175,6 +189,18 @@ async function wipe() {
       <RecentBoards v-else removable testid="recents" @open="ui.close()" />
     </section>
 
+    <section class="grp" data-testid="settings-file">
+      <h3>{{ t('profile.settingsFile') }}</h3>
+      <div class="line">
+        <span><strong>{{ t('profile.settingsFile.title') }}</strong><small class="muted">{{ t('profile.settingsFile.hint') }}</small></span>
+        <span class="file-acts">
+          <button class="btn btn-sm" type="button" data-testid="settings-export" @click="exportSettings"><Icon name="lucide:download" /> {{ t('profile.settingsFile.export') }}</button>
+          <button class="btn btn-sm" type="button" data-testid="settings-import" @click="settingsInput?.click()"><Icon name="lucide:upload" /> {{ t('profile.settingsFile.import') }}</button>
+          <input ref="settingsInput" class="sr-only" type="file" accept="application/json,.json" tabindex="-1" aria-hidden="true" data-testid="settings-import-file" @change="importSettings">
+        </span>
+      </div>
+    </section>
+
     <section class="grp danger-zone">
       <h3>{{ t('profile.local') }}</h3>
       <div class="line">
@@ -213,5 +239,7 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .danger-zone h3 { color: var(--danger); }
 /* The Erase button never shrinks (its label and red border were cut) and keeps room for its focus ring and hover lift inside the scrolling dialog body. */
 .danger-zone { padding-bottom: .5rem; }
+.file-acts { display: inline-flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; }
+.file-acts .btn { flex: none; white-space: nowrap; }
 .danger-zone .btn { flex: none; white-space: nowrap; margin: 3px; }
 </style>
