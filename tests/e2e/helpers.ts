@@ -7,11 +7,17 @@ export async function enterName(page: Page, name: string, show = true) {
   await page.getByTestId('name-save').click()
 }
 
-export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean; oneFacilitator?: boolean; passcode?: string } = {}) {
+export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean; oneFacilitator?: boolean; passcode?: string; autoAgenda?: boolean } = {}) {
   await page.goto('/new')
   // Tests that replace the stored settings come back in simple mode (the default): the helper needs every option.
   const advanced = page.getByTestId('mode-advanced')
   if ((await advanced.getAttribute('aria-pressed')) !== 'true') await advanced.click()
+  // Boards start with a running, chained agenda (change feedback-wave-6): most tests want a free board, so the clock starts only on request.
+  const auto = page.getByTestId('agenda-autostart')
+  if (!opts.autoAgenda) {
+    await auto.waitFor({ timeout: 5000 }).catch(() => {})
+    if ((await auto.count()) && (await auto.isChecked())) await auto.uncheck()
+  }
   if (opts.title) await page.getByTestId('setup-title').fill(opts.title)
   await page.getByTestId(`theme-${opts.theme ?? 'studio'}`).click()
   await page.getByTestId('tab-all').click()

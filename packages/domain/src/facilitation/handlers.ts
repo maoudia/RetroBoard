@@ -1,4 +1,4 @@
-import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, withoutOverride } from './agenda'
+import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, phaseClock, withoutOverride } from './agenda'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
 import { type BoardState, DISPLAY_SCALES } from '../shared/types'
@@ -8,7 +8,7 @@ import { emptyTalk } from './talk'
 
 type FacilitationCommand = 'drafts.reveal' | 'board.init' | 'template.apply' | 'settings.update'
   | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset' | 'board.destroy' | 'column.reset' | 'vote.reset'
-  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.prev' | 'agenda.extend' | 'agenda.end' | 'agenda.restart' | 'agenda.voteOpen' | 'agenda.toClose'
+  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.advance' | 'agenda.prev' | 'agenda.extend' | 'agenda.end' | 'agenda.restart' | 'agenda.voteOpen' | 'agenda.toClose'
 
 /** The end of the agenda closes voting (results shown): nobody keeps voting on a retro that is over (change feedback-wave-5). */
 const closeVoting = (s: BoardState): Pick<BoardState, 'settings'> => ({ settings: { ...s.settings, votingClosed: true } })
@@ -149,11 +149,11 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   // Agenda (time boxes). Phases can be replaced only before the start or after the end.
   'agenda.set': (s, c, _a, ctx) => {
     if (agendaRunning(s.agenda)) return fail('invalid')
-    return done({ ...s, agenda: newAgenda(c.phases, ctx.newId, { rules: c.rules, autoPublish: c.autoPublish }) }, { meta: true })
+    return done({ ...s, agenda: newAgenda(c.phases, ctx.newId, { rules: c.rules, autoPublish: c.autoPublish, chain: c.chain }) }, { meta: true })
   },
   'agenda.options': (s, c) => {
     if (!s.agenda) return fail('not-found')
-    return done({ ...s, agenda: { ...s.agenda, rules: c.rules ?? s.agenda.rules, autoPublish: c.autoPublish ?? s.agenda.autoPublish } }, { meta: true })
+    return done({ ...s, agenda: { ...s.agenda, rules: c.rules ?? s.agenda.rules, autoPublish: c.autoPublish ?? s.agenda.autoPublish, chain: c.chain ?? s.agenda.chain } }, { meta: true })
   },
   'agenda.clear': (s) => done({ ...s, agenda: null }, { meta: true }),
   'agenda.start': (s, _c, _a, ctx) => {
@@ -175,6 +175,16 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     if (!a || a.current >= a.phases.length) return fail('invalid')
     const finished = a.current + 1 >= a.phases.length
     return done({ ...s, ...(finished ? closeVoting(s) : {}), agenda: { ...withoutOverride(a), phases: closePhase(a, ctx.now), current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
+  },
+  /**
+   * Automatic hand-over (change feedback-wave-6): sent by a facilitator client when the planned time is over.
+   * Idempotent: it only counts for the phase it names, once the time is really up, never from the last phase.
+   */
+  'agenda.advance': (s, c, _a, ctx) => {
+    const a = s.agenda
+    if (!agendaRunning(a) || !a.chain || a.pausedAt !== null || a.current !== c.from || a.current + 1 >= a.phases.length) return done(s, {})
+    if (phaseClock(a, ctx.now).remainingMs > 1500) return done(s, {})
+    return done({ ...s, agenda: { ...withoutOverride(a), phases: closePhase(a, ctx.now), current: a.current + 1, startedAt: ctx.now, pausedAt: null } }, { meta: true })
   },
   /** Back to the previous phase, which resumes with the time it had left. */
   'agenda.prev': (s, _c, _a, ctx) => {

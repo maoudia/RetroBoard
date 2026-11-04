@@ -353,6 +353,8 @@ export class EncryptedRelayTransport implements BoardTransport {
     return added
   }
 
+  private lastAdvance = -1
+
   /** Tells the page about a reset or phase step made by someone else just now (history replays stay silent). */
   private noticeIfLive(event: SignedEvent): void {
     const body = event.body
@@ -364,6 +366,15 @@ export class EncryptedRelayTransport implements BoardTransport {
     else if (c.t === 'vote.reset') this.handlers.onNotice({ kind: 'reset.votes', by })
     else if (c.t === 'timer.reset' && c.agendaClock) this.handlers.onNotice({ kind: 'reset.clock', by })
     else if (c.t === 'agenda.prev') this.handlers.onNotice({ kind: 'phase.prev', by })
+    else if (c.t === 'agenda.advance') {
+      // Automatic hand-over: announced once, only if it really moved the agenda (duplicates from other facilitators are ignored).
+      const agenda = board.agenda
+      const phase = agenda?.phases[agenda.current]?.kind
+      if (agenda && phase && agenda.current === c.from + 1 && this.lastAdvance !== agenda.current) {
+        this.lastAdvance = agenda.current
+        this.handlers.onNotice({ kind: 'phase.auto', by: null, phase })
+      }
+    }
     else if (c.t === 'agenda.next') {
       const agenda = board.agenda
       const phase = agenda?.phases[agenda.current]?.kind

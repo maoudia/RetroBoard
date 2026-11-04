@@ -244,4 +244,49 @@ describe('voting override and go to closing (facilitator-controls-v2)', () => {
     expect(h.state.settings.votingClosed).toBe(false)
     expect(phaseClock(h.state.agenda!, h.now)).toMatchObject({ elapsedMs: 0, totalElapsedMs: 0 })
   })
+
+  describe('automatic hand-over (agenda.advance)', () => {
+    const run = (chain: boolean) => {
+      const h = harness()
+      h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 2 }, { kind: 'vote', minutes: 1 }, { kind: 'close', minutes: 1 }], chain })
+      h.run({ t: 'agenda.start' })
+      return h
+    }
+    it('moves on only once the planned time is over', () => {
+      const h = run(true)
+      h.tick(MIN)
+      h.run({ t: 'agenda.advance', from: 0 })
+      expect(h.state.agenda!.current).toBe(0)
+      h.tick(MIN + 100)
+      h.run({ t: 'agenda.advance', from: 0 })
+      expect(h.state.agenda!.current).toBe(1)
+    })
+    it('is idempotent: a second send for the same phase changes nothing', () => {
+      const h = run(true)
+      h.tick(2 * MIN + 100)
+      h.run({ t: 'agenda.advance', from: 0 })
+      h.tick(10)
+      h.run({ t: 'agenda.advance', from: 0 })
+      expect(h.state.agenda!.current).toBe(1)
+    })
+    it('waits when the facilitator adds minutes, and never runs without the chain option', () => {
+      const h = run(true)
+      h.tick(2 * MIN - 1000)
+      h.run({ t: 'agenda.extend', minutes: 3, borrow: false })
+      h.tick(MIN)
+      h.run({ t: 'agenda.advance', from: 0 })
+      expect(h.state.agenda!.current).toBe(0)
+      const off = run(false)
+      off.tick(5 * MIN)
+      off.run({ t: 'agenda.advance', from: 0 })
+      expect(off.state.agenda!.current).toBe(0)
+    })
+    it('never ends the retro by itself: the last phase stays open', () => {
+      const h = run(true)
+      h.tick(2 * MIN + 100); h.run({ t: 'agenda.advance', from: 0 })
+      h.tick(MIN + 100); h.run({ t: 'agenda.advance', from: 1 })
+      h.tick(5 * MIN); h.run({ t: 'agenda.advance', from: 2 })
+      expect(h.state.agenda!.current).toBe(2)
+    })
+  })
 })

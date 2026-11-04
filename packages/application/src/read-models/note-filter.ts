@@ -60,27 +60,68 @@ const STOP = new Set([
   'se', 'sa', 'son', 'ses', 'leur', 'notre', 'nos', 'je', 'tu', 'fait', 'faire', 'trop', 'peu', 'bien', 'mal',
   'the', 'an', 'and', 'or', 'of', 'to', 'in', 'on', 'for', 'with', 'is', 'are', 'be', 'was', 'not', 'no', 'too', 'very',
   'we', 'you', 'it', 'they', 'this', 'that', 'our', 'my', 'your', 'at', 'by', 'from', 'as', 'do', 'does', 'have', 'has', 'more', 'so',
+  'mais', 'donc', 'car', 'ca', 'cela', 'etre', 'avoir', 'ete', 'a', 'y', 'toujours', 'souvent', 'parfois', 'beaucoup', 'tout', 'tous', 'toute', 'toutes', 'aussi', 'encore',
+  'but', 'been', 'were', 'will', 'would', 'should', 'could', 'can', 'all', 'some', 'any', 'also', 'just', 'always', 'often', 'still', 'lot', 'lots', 'their', 'there', 'than', 'then',
 ])
 // Stryker restore StringLiteral
 
-/** Meaningful tokens: folded, stop words out, plural "s" dropped ("tests" ~ "test"). */
+/** Crude stemmer: plurals (s, x, es) and the commonest English endings, so "meetings" ~ "meeting" and "deployed" ~ "deploy". */
+function stem(w: string): string {
+  let r = w
+  if (r.length > 4 && r.endsWith('es')) r = r.slice(0, -2)
+  else if (r.length > 3 && (r.endsWith('s') || r.endsWith('x'))) r = r.slice(0, -1)
+  if (r.length > 5 && r.endsWith('ing')) r = r.slice(0, -3)
+  else if (r.length > 4 && r.endsWith('ed')) r = r.slice(0, -2)
+  return r.length > 3 && r.endsWith('e') ? r.slice(0, -1) : r
+}
+
+/** Meaningful tokens: folded, stop words out, plurals and endings stemmed. */
 export function tokens(text: string): Set<string> {
   const out = new Set<string>()
   for (const w of foldText(text).match(/[\p{L}\p{N}]+/gu) ?? []) {
     if (w.length < 2 || STOP.has(w)) continue
-    out.add(w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w)
+    out.add(stem(w))
   }
   return out
 }
 
-/** Overlap coefficient: shared tokens over the smaller set. 1 when one idea contains the other. */
+const grams = (w: string): Set<string> => {
+  const p = `^${w}$`
+  const g = new Set<string>()
+  for (let i = 0; i + 3 <= p.length; i++) g.add(p.slice(i, i + 3))
+  return g
+}
+
+/** How alike two words are: 1 when equal, a Dice score on character trigrams for typos and close forms (0 under 0.7). */
+function wordMatch(a: string, b: string): number {
+  if (a === b) return 1
+  if (a.length < 5 || b.length < 5) return 0
+  const ga = grams(a)
+  const gb = grams(b)
+  let shared = 0
+  for (const g of ga) if (gb.has(g)) shared++
+  const dice = (2 * shared) / (ga.size + gb.size)
+  return dice >= 0.7 ? dice : 0
+}
+
+/**
+ * Soft overlap: each word of the smaller idea counts for its best match in the other (typos and close forms
+ * count a little less than exact words). A one-word idea only matches a long sentence weakly.
+ */
 export function similarity(a: string, b: string): number {
   const ta = tokens(a)
   const tb = tokens(b)
   if (!ta.size || !tb.size) return 0
-  let shared = 0
-  for (const t of ta) if (tb.has(t)) shared++
-  return shared / Math.min(ta.size, tb.size)
+  const [small, big] = ta.size <= tb.size ? [ta, tb] : [tb, ta]
+  let score = 0
+  for (const w of small) {
+    if (big.has(w)) { score += 1; continue }
+    let best = 0
+    for (const o of big) best = Math.max(best, wordMatch(w, o))
+    score += best
+  }
+  const overlap = score / small.size
+  return small.size === 1 && big.size > 2 ? overlap * 0.6 : overlap
 }
 
 export const SIMILAR_THRESHOLD = 0.75

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SnapshotGroup, SnapshotNote } from '@retroboard/domain'
-import { type ColumnItem, EMPTY_FILTER, filterItems, isFilterActive, matchesFilter, similarIdeas, similarity, tokens } from '../src'
+import { type ColumnItem, EMPTY_FILTER, filterItems, isFilterActive, matchesFilter, similarIdeas, SIMILAR_THRESHOLD, similarity, tokens } from '../src'
 
 const note = (id: string, o: Partial<SnapshotNote> = {}): SnapshotNote => ({
   id, columnId: 'c1', text: 'idea', color: 0, author: null, groupId: null, votes: 0, voted: false, myVotes: 0, votable: true, mine: false, createdAt: 1, ...o,
@@ -77,5 +77,18 @@ describe('similar ideas', () => {
     expect(similarIdeas('CI is slow', notes, 'c1').map((n) => n.id)).toEqual(['same'])
     expect(similarIdeas('the', notes, 'c1')).toEqual([])
     expect(similarIdeas('slow', [note('x', { text: 'slow' }), note('y', { text: 'slow', createdAt: 0 })], 'c1', 1).map((n) => n.id)).toEqual(['y'])
+  })
+})
+
+describe('similarity v2 (change feedback-wave-6)', () => {
+  it('matches accents, plurals and close forms', () => {
+    expect(similarity('Deploiements trop lents', 'Les déploiements sont lents')).toBeGreaterThanOrEqual(SIMILAR_THRESHOLD)
+    expect(similarity('Too many meetings', 'Too many meeting')).toBeGreaterThanOrEqual(SIMILAR_THRESHOLD)
+    expect(similarity('Communication problem', 'Comunication problems')).toBeGreaterThanOrEqual(SIMILAR_THRESHOLD)
+  })
+  it('keeps different ideas apart and does not merge a one-word idea into a long sentence', () => {
+    expect(similarity('Better coffee', 'Great team spirit')).toBe(0)
+    expect(similarity('Slack', 'Too many notifications on Slack during focus time')).toBeLessThan(SIMILAR_THRESHOLD)
+    expect(similarity('Slack', 'slack')).toBe(1)
   })
 })

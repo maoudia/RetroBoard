@@ -2,11 +2,12 @@
 import { DEFAULT_VOTE_LIMIT, LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 import { nextTitle } from '~/utils/next-title'
 
-export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
+export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean; chain?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
 /** Simple keeps title and format; theme, facilitation, popups, voting columns and passcode are advanced (change simple-advanced-mode). */
-const advanced = computed(() => useSettingsStore().s.uiMode === 'advanced')
+const appSettings = useSettingsStore()
+const advanced = computed(() => appSettings.s.uiMode === 'advanced')
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
 const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean }>()
 const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult]; 'update:minutes': [minutes: number] }>()
@@ -68,6 +69,7 @@ function onSubmit() {
     <section class="block" data-testid="setup-theme">
       <h3><span class="n">1</span> {{ t('setup.step1') }}</h3>
       <ThemePicker :model-value="themeId" @update:model-value="emit('update:themeId', $event)" />
+      <ToggleSwitch plain row-class="tile line" :label="t('setup.ambient')" :hint="t('setup.ambient.hint')" :model-value="appSettings.s.ambient" data-testid="setup-ambient" @update:model-value="(on: boolean) => appSettings.patch({ ambient: on })" />
     </section>
 
     <section class="block">

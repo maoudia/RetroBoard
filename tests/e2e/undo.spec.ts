@@ -11,6 +11,7 @@ test('Ctrl+Z takes back a wrong grouping', async ({ page }) => {
     await page.locator('[data-testid^="group-with-"]').click({ timeout: 2000 })
   }).toPass({ timeout: 10_000 })
   await page.locator('[data-testid^="group-onto-"]').filter({ hasText: 'Beta' }).click()
+  await page.getByTestId('group-bulk-go').click()
   await expect(noteByText(page, 'Alpha')).toHaveCount(0) // stacked in the cluster
 
   await page.locator('body').click({ position: { x: 5, y: 300 } })

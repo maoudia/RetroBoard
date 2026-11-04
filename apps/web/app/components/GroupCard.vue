@@ -7,6 +7,7 @@ const board = useBoardStore()
 const ui = useUiStore()
 const over = ref(false)
 const fromHere = computed(() => board.actionsBySource.get(props.item.group.id)?.length ?? 0)
+const dock = computed(() => !props.expanded && (fromHere.value > 0 || (!!props.item.group.votable && board.votingEnabled)))
 const top = computed(() => props.item.notes[0]!)
 
 function onDrop() {
@@ -72,7 +73,7 @@ onBeforeUnmount(cancelPeek)
   </section>
   <button
     v-else
-    ref="stackEl" type="button" class="stack" :class="{ over }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
+    ref="stackEl" type="button" class="stack" :class="{ over, docked: dock }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
     :style="{ '--c': `var(--note-${top.color})`, '--c2': `var(--note-${item.notes[1]?.color ?? top.color})` }"
     draggable="true" @dragstart="cancelPeek(); onDragStart($event)" @dragend="ui.dragGroupId = null"
     @pointerenter="schedulePeek" @pointerleave="cancelPeek"
@@ -98,14 +99,17 @@ onBeforeUnmount(cancelPeek)
       <li v-if="item.notes.length > PEEK_MAX" class="more">{{ t('group.peek.more', { n: item.notes.length - PEEK_MAX }) }}</li>
     </ul>
   </Teleport>
-  <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${item.group.id}`" @click.stop="ui.openActionsFor(item.group.id)">
-    <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
-  </button>
-  <!-- Outside the stack button (no nested buttons): a cluster is voted as one idea. -->
-  <VoteControl
-    v-if="item.group.votable && !expanded && board.votingEnabled" :id="item.group.id" class="gvote" kind="cluster"
-    :votes="item.group.votes" :my-votes="item.group.myVotes" :label="item.title"
-  />
+  <!-- Outside the stack button (no nested buttons). One band inside the face: badges wrap, nothing leaves the card (change feedback-wave-6). -->
+  <div v-if="dock" class="dock" :data-testid="`dock-${item.group.id}`">
+    <button v-if="fromHere" class="abadge" type="button" :aria-label="t('actions.countLabel', { n: fromHere })" :data-testid="`action-badge-${item.group.id}`" @click.stop="ui.openActionsFor(item.group.id)">
+      <Icon name="lucide:list-checks" aria-hidden="true" /> {{ t('actions.count', { n: fromHere }) }}
+    </button>
+    <!-- A cluster is voted as one idea. -->
+    <VoteControl
+      v-if="item.group.votable && !expanded && board.votingEnabled" :id="item.group.id" class="gvote" kind="cluster"
+      :votes="item.group.votes" :my-votes="item.group.myVotes" :label="item.title"
+    />
+  </div>
   </div>
 </template>
 
@@ -118,8 +122,11 @@ onBeforeUnmount(cancelPeek)
 .ibar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .ihead { display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; text-align: left; }
 .inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--note-w, 150px)), 1fr)); gap: .6rem; }
-.abadge { position: absolute; left: .55rem; bottom: .45rem; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
-.gvote { position: absolute; right: .55rem; bottom: .45rem; color: var(--note-ink); }
+.dock { position: absolute; left: .55rem; right: .55rem; bottom: .45rem; z-index: 2; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .3rem; min-width: 0; pointer-events: none; }
+.dock > * { pointer-events: auto; max-width: 100%; min-width: 0; }
+.stack.docked .face { padding-bottom: 2.9rem; min-height: 128px; }
+.abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
+.gvote { margin-left: auto; color: var(--note-ink); }
 .stack { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
 .stack:hover { transform: translateY(-3px) scale(1.015); }
 .stack.over { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--r-xs); }

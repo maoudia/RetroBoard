@@ -142,13 +142,14 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     setActionDone: (id: string, done: boolean) => send({ t: 'action.toggle', id, done }),
     deleteAction: (id: string) => send({ t: 'action.delete', id }),
 
-    setAgenda: (phases: { kind: PhaseKindName; minutes: number }[], opts: { rules?: boolean; autoPublish?: boolean } = {}) =>
+    setAgenda: (phases: { kind: PhaseKindName; minutes: number }[], opts: { rules?: boolean; autoPublish?: boolean; chain?: boolean } = {}) =>
       send({ t: 'agenda.set', phases: phases.slice(0, LIMITS.maxPhases), ...opts }),
-    agendaOptions: (opts: { rules?: boolean; autoPublish?: boolean }) => send({ t: 'agenda.options', ...opts }),
+    agendaOptions: (opts: { rules?: boolean; autoPublish?: boolean; chain?: boolean }) => send({ t: 'agenda.options', ...opts }),
     clearAgenda: () => send({ t: 'agenda.clear' }),
     startAgenda: () => send({ t: 'agenda.start' }),
     pauseAgenda: () => send({ t: 'agenda.pause' }),
     nextPhase: () => send({ t: 'agenda.next' }),
+    advanceAgenda: (from: number) => send({ t: 'agenda.advance', from }),
     previousPhase: () => send({ t: 'agenda.prev' }),
     extendPhase: (minutes: number, borrow: boolean) => send({ t: 'agenda.extend', minutes, borrow }),
     endAgenda: () => send({ t: 'agenda.end' }),

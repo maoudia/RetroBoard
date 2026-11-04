@@ -23,6 +23,7 @@ test('an open cluster never needs sideways scrolling', async ({ page }) => {
     await page.locator('[data-testid^="group-with-"]').click({ timeout: 2000 })
   }).toPass({ timeout: 10_000 })
   await page.locator('[data-testid^="group-onto-"]').filter({ hasText: 'Beta idea' }).click()
+  await page.getByTestId('group-bulk-go').click()
   await page.locator('[data-testid^="group-"]:not([data-testid*="with"]):not([data-testid*="onto"])').first().click().catch(() => {})
   const panel = page.getByTestId('group-panel')
   if (await panel.count()) {

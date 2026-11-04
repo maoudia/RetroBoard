@@ -27,7 +27,7 @@ const newTeamName = ref('')
 const project = ref('')
 const projectName = computed(() => project.value.trim() || null)
 /** Default: the one-hour agenda (spec: 8 phases, 60 minutes) unless the facilitator edits it. */
-const agenda = ref<AgendaDraft>({ enabled: true, phases: presetPhases(60), rules: true, autoPublish: true })
+const agenda = ref<AgendaDraft>({ enabled: true, phases: presetPhases(60), rules: true, autoPublish: true, autoStart: true, chain: true })
 /** The time available in the format picker picks the closest agenda preset, until the agenda is edited by hand (#224). */
 const agendaEdited = ref(false)
 function onAgenda(next: AgendaDraft) { agenda.value = next; agendaEdited.value = true }
@@ -44,7 +44,7 @@ function create({ passcode, ...form }: SetupResult) {
   const setup: SetupResult = {
     ...form,
     ...(carry.value.length ? { importActions: carry.value } : {}),
-    ...(a.enabled && a.phases.length ? { agenda: { phases: form.votingEnabled === false ? a.phases.filter((p) => p.kind !== 'vote' && p.kind !== 'rank') : a.phases, rules: a.rules, autoPublish: a.autoPublish, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
+    ...(a.enabled && a.phases.length ? { agenda: { phases: form.votingEnabled === false ? a.phases.filter((p) => p.kind !== 'vote' && p.kind !== 'rank') : a.phases, rules: a.rules, autoPublish: a.autoPublish, chain: a.chain !== false, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
   }
   const ring = { ...newKeyRing(), ...(passcode && !soloMode.value ? { passcode: true } : {}) }
   if (soloMode.value) markSolo(ring.roomId)

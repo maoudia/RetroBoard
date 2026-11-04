@@ -83,7 +83,29 @@ const colorsOpen = ref(false)
 /** Adding keeps the field focused: on a phone the keyboard stays open so several notes can be stacked in a row. */
 function add() {
   if (drafts.add(props.column.id, text.value, colour.value)) text.value = ''
-  fieldEl.value?.focus({ preventScroll: true })
+  keepFocus()
+}
+/**
+ * Phones close the keyboard when the field loses focus, and a tap on a button moves the focus on some browsers even
+ * with preventDefault on mousedown. So: the tap itself never takes the focus (pointerdown prevented), the action runs
+ * on pointerup, and the field is focused again now and on the next frame if anything stole it (change feedback-wave-6).
+ */
+function keepFocus() {
+  const el = fieldEl.value
+  if (!el) return
+  el.focus({ preventScroll: true })
+  requestAnimationFrame(() => { if (document.activeElement !== el && !el.disabled) el.focus({ preventScroll: true }) })
+}
+let tapDone = false
+function tapUp(e: PointerEvent, fn: () => void) {
+  if (e.pointerType === 'mouse' || (e.currentTarget as HTMLButtonElement).disabled) return
+  tapDone = true
+  setTimeout(() => { tapDone = false }, 500)
+  fn()
+}
+function tapClick(fn: () => void) {
+  if (tapDone) { tapDone = false; return }
+  fn()
 }
 /** Publish: the note being typed joins the stack, then everything stacked in this column goes out and the keyboard closes. */
 function publishNow() {
@@ -179,8 +201,8 @@ function onKey(e: KeyboardEvent) {
         </template>
         <p class="help-text">{{ t('private.keys') }}</p>
       </Dropdown>
-      <button class="btn btn-sm act act-publish" type="button" :title="t('private.publishNow')" :disabled="board.locked || closed || (!text.trim() && !mine.length)" :data-testid="`compose-publish-${column.id}`" @mousedown.prevent @click="publishNow"><Icon name="lucide:send" /><span class="sr-only">{{ t('private.publishNow') }}</span></button>
-      <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('private.add')" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @mousedown.prevent @click="add"><Icon name="lucide:plus" /><span class="sr-only">{{ t('private.add') }}</span></button>
+      <button class="btn btn-sm act act-publish" type="button" :title="t('private.publishNow')" :disabled="board.locked || closed || (!text.trim() && !mine.length)" :data-testid="`compose-publish-${column.id}`" @pointerdown.prevent @mousedown.prevent @pointerup="tapUp($event, publishNow)" @click="tapClick(publishNow)"><Icon name="lucide:send" /><span class="sr-only">{{ t('private.publishNow') }}</span></button>
+      <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('private.add')" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @pointerdown.prevent @mousedown.prevent @pointerup="tapUp($event, add)" @click="tapClick(add)"><Icon name="lucide:plus" /><span class="sr-only">{{ t('private.add') }}</span></button>
     </div>
     <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
@@ -220,15 +242,15 @@ header > .title { margin-inline-end: auto; }
 .composer { position: relative; display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
-.size-seg { border-color: transparent; background: var(--surface2); }
-.size-seg button { display: grid; place-items: center; padding: 0; min-width: 26px; min-height: 26px; background: transparent; border-right: 0; color: var(--muted); }
-.size-seg button:hover { color: var(--text); }
+/* Same look as every segmented control (.pick-seg); only the size of the buttons changes. No shadow: the selected one is simply filled. */
+.size-seg button { display: grid; place-items: center; padding: 0; min-width: 28px; min-height: 26px; color: var(--muted); box-shadow: none; }
+.size-seg button:hover:not(.on) { color: var(--text); }
 /* Three outlined squares of growing size say small, normal and large; no colour, the chosen one is filled and dark. */
 .sq { display: block; border-radius: 2px; border: 1.5px solid currentColor; background: transparent; }
 .sq.small { width: 7px; height: 7px; }
 .sq.normal { width: 11px; height: 11px; }
 .sq.large { width: 15px; height: 15px; }
-.size-seg button.on { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); border-radius: var(--r-pill); }
+.size-seg button.on { box-shadow: none; }
 .size-seg button.on .sq { background: currentColor; }
 .mini-btn.all { color: var(--muted); }
 .mini-btn.all[aria-pressed='true'] { color: var(--text); background: var(--surface2); }

@@ -28,7 +28,7 @@ test.describe('agenda clock v2', () => {
     await page.clock.install()
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await start(page)
-    await expect(page.getByTestId('agenda-time')).toHaveText('60:00')
+    await expect(page.getByTestId('agenda-time')).toHaveText(/^(60:00|1h00)$/)
     await page.clock.fastForward(60_000)
     await page.getByTestId('agenda-ring').click()
     await page.getByTestId('agenda-next').click()

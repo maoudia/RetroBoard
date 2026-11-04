@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
-import { LIMITS } from '@retroboard/domain'
+import { LIMITS, phaseClock } from '@retroboard/domain'
 import { isSolo } from '~/utils/solo'
 import { boardHash, inviteFromHash, inviteRoomId, isRetiredLink } from '~/utils/invite'
 import { errorLabel } from '~/utils/labels'
@@ -182,7 +182,7 @@ function sendSetup(s: SetupResult) {
   if (s.facilitation === 'one' && board.myKey) { ui.takeoverAsked = true; board.sendRole('role.claim', board.myKey) }
   // Carry-over chosen at creation: imported once the board exists, keeping status and owner.
   if (s.importActions?.length) board.commands.importActions(s.importActions)
-  if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish })
+  if (s.agenda?.phases.length) board.commands.setAgenda(s.agenda.phases, { rules: s.agenda.rules, autoPublish: s.agenda.autoPublish, chain: s.agenda.chain })
   // The facilitator asked for the clock to run as soon as the board exists (facilitator-controls-v2).
   if (s.agenda?.phases.length && s.agenda.autoStart) board.commands.startAgenda()
   setupOpen.value = false
@@ -315,6 +315,18 @@ watch(() => board.columns.map((c) => c.id).join(), () => { if (board.columns.len
 watch(() => board.snapshot?.groups, (g) => { if (ui.openGroupId && !g?.some((x) => x.id === ui.openGroupId)) ui.openGroupId = null })
 
 watch(() => board.lastError, (e) => { if (e) push(errorLabel(e.code), 'warn') })
+
+// Automatic hand-over: one facilitator tab sends `agenda.advance` when the planned time is over. The command is
+// idempotent (the domain checks phase and clock), so several facilitators sending it converge on the same state.
+const autoTick = ref<ReturnType<typeof setInterval> | null>(null)
+function checkAutoAdvance() {
+  const a = board.snapshot?.agenda
+  if (!a?.chain || a.pausedAt !== null || a.current < 0 || a.current + 1 >= a.phases.length) return
+  if (!board.access.canSteer) return
+  if (phaseClock(a, Date.now()).remainingMs <= 0) board.commands.advanceAgenda(a.current)
+}
+onMounted(() => { autoTick.value = setInterval(checkAutoAdvance, 1000) })
+onBeforeUnmount(() => { if (autoTick.value) clearInterval(autoTick.value) })
 
 // Auto-publish: when the Write phase ends, everyone's drafts are published (if the agenda says so).
 const { publish: publishDrafts } = usePublish()

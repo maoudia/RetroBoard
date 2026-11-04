@@ -109,9 +109,14 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
           </button>
         </template>
         <template #default="{ close }">
-          <button v-for="z in COLUMN_SIZES" :key="z" class="dd-item" type="button" role="menuitemradio" :aria-checked="size === z" :data-testid="`size-${z}-${column.id}`" @click="ui.setColumnSize(board.roomId, column.id, z); close()">
-            <Icon :name="size === z ? 'lucide:check' : 'lucide:minus'" /> {{ t(`column.size.${z}` as never) }}
-          </button>
+          <!-- No words: four outlined bars of growing width, same look as the writing-size control (change feedback-wave-6). -->
+          <span class="pick-seg width-seg" role="group" :aria-label="t('column.size')">
+            <button
+              v-for="z in COLUMN_SIZES" :key="z" type="button" role="menuitemradio" :class="{ on: size === z }" :aria-checked="size === z"
+              :aria-label="t(`column.size.${z}` as never)" :title="t(`column.size.${z}` as never)" :data-testid="`size-${z}-${column.id}`"
+              @click="ui.setColumnSize(board.roomId, column.id, z); close()"
+            ><span class="wbar" :class="z" aria-hidden="true" /></button>
+          </span>
         </template>
       </Dropdown>
       <ColumnMenu :column="column" :index="index" :count="total" :note-count="noteCount" />
@@ -173,4 +178,12 @@ h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-s
 .notes { position: relative; flex: 1; min-height: 120px; overflow-y: auto; overflow-x: hidden; padding: .6rem .8rem 1rem; scrollbar-width: thin; }
 .grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w), 1fr)); gap: .9rem; align-items: start; }
 .empty { text-align: center; padding: 1.5rem .5rem; font-style: italic; }
+.width-seg { margin: .2rem; }
+.width-seg button { display: grid; place-items: center; padding: 0; min-width: 40px; min-height: 36px; }
+.wbar { display: block; height: 12px; border-radius: 2px; border: 1.5px solid currentColor; }
+.wbar.narrow { width: 8px; }
+.wbar.normal { width: 13px; }
+.wbar.wide { width: 20px; }
+.wbar.full { width: 28px; background: currentColor; }
+.width-seg button.on .wbar { background: currentColor; }
 </style>

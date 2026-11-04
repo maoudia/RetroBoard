@@ -15,7 +15,7 @@ export interface Identity {
 
 /** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"). */
 export interface BoardNotice {
-  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next'
+  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next' | 'phase.auto'
   /** Name the author chose to show, or null. */
   by: string | null
   /** Column title, for reset.column. */

@@ -29,10 +29,12 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
        Publishing all drafts lives in the toolbar. The whole bar only exists when voting is enabled on the board. -->
   <div class="votebar glass" data-testid="votebar">
     <div class="mid" aria-live="polite" :title="t('votebar.votes', { n: limit })">
-      <span class="dots" aria-hidden="true">
-        <span v-for="i in limit" :key="i" class="d" :class="{ used: i > board.votesLeft }" />
+      <!-- Your tickets: a full ticket is a vote you still have, an empty one is spent. Many votes: one ticket and the count. -->
+      <span class="tickets" aria-hidden="true">
+        <template v-if="limit <= 8"><Icon v-for="i in limit" :key="i" name="lucide:ticket" class="tk" :class="{ used: i > board.votesLeft }" /></template>
+        <Icon v-else name="lucide:ticket" class="tk" />
       </span>
-      <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span>
+      <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong><span class="of mono">/{{ limit }}</span><span class="sr-only"> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span></span>
     </div>
     <span v-if="board.locked" class="pill lock" :title="t('votebar.locked')"><Icon name="lucide:lock" /><span class="sr-only">{{ t('votebar.locked') }}</span></span>
     <div class="right">
@@ -41,7 +43,6 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
         :disabled="!board.access.canSteer"
         :data-testid="isOpen ? 'close-voting' : 'voting-open'" data-voting-state-chip @click="toggleVoting"
       >
-        <span class="dot" aria-hidden="true" />
         <Icon :name="isOpen ? 'lucide:lock-open' : vstate === 'phase-closed' ? 'lucide:clock' : 'lucide:lock'" />
         <span class="lbl">{{ chipText }}</span>
         <span v-if="board.votingClosed" data-testid="voting-closed" class="sr-only" />
@@ -73,13 +74,13 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
 .votebar { display: flex; align-items: center; gap: .6rem 1rem; padding: .4rem 1rem; border-bottom: 1px solid var(--border); }
 .right { display: flex; align-items: center; gap: .5rem; margin-inline-start: auto; }
 .mid { display: flex; align-items: center; gap: .5rem; font-size: var(--fs-md); }
-.dots { display: inline-flex; gap: 5px; }
-.d { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 60%, transparent); transition: transform .3s var(--ease), background .3s, box-shadow .3s; }
-.d.used { background: var(--border); box-shadow: none; transform: scale(.75); }
+.tickets { display: inline-flex; gap: 3px; font-size: var(--fs-lg); }
+.tk { color: var(--accent); transition: transform .3s var(--ease), color .3s, opacity .3s; }
+.tk.used { color: var(--muted); opacity: .45; transform: scale(.85) rotate(-8deg); }
+.of { color: var(--muted); font-size: var(--fs-sm); }
 .lock { background: color-mix(in oklab, var(--danger) 18%, transparent); color: var(--danger); }
 /* The state of voting as one chip: colour says it (green open, neutral closed, dashed waiting), one word says it too. */
 .state { --tone: var(--success); display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: 0 .9rem 0 .75rem; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--tone) 55%, var(--border)); background: color-mix(in oklab, var(--tone) 14%, transparent); color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
-.state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
 .state:disabled { cursor: default; }
 .state:hover:not(:disabled) { background: color-mix(in oklab, var(--tone) 24%, transparent); }
 .state[data-state="closed"] { --tone: var(--muted); }
@@ -94,6 +95,5 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
   .votebar::-webkit-scrollbar { display: none; }
   .mid, .right { flex: none; white-space: nowrap; }
   .mid { gap: .4rem; padding: .15rem .6rem; border-radius: var(--r-pill); background: var(--accent-soft); font-size: var(--fs-sm); }
-  .d { width: 9px; height: 9px; }
 }
 </style>

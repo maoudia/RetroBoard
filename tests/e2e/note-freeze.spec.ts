@@ -44,6 +44,7 @@ test('a frozen cluster shows its badge and cannot be dissolved', async ({ page }
   await one.getByTestId(`note-menu-${oneId}`).click()
   await page.getByTestId(`group-with-${oneId}`).click()
   await page.getByTestId(`group-onto-${twoId}`).click()
+  await page.getByTestId('group-bulk-go').click()
   await page.locator('[data-testid^="group-"][data-source-id]').first().click()
   await page.getByTestId('group-freeze').click()
   await expect(page.getByTestId('group-dissolve')).toBeDisabled()

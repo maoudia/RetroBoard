@@ -21,6 +21,7 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
     await expect(target).toBeVisible()
     await target.focus()
     await page.keyboard.press('Enter')
+    await page.getByTestId('group-bulk-go').click()
 
     await expect(page.locator('[data-testid^="group-"]:not([data-testid^="group-with-"]):not([data-testid^="group-onto-"])').first()).toBeVisible()
     await expect(noteByText(page, 'Gamma')).toBeVisible()
@@ -41,6 +42,7 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
     const found = (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
     await page.locator('[data-testid^="group-onto-"]').filter({ hasText: 'Two' }).click()
+    await page.getByTestId('group-bulk-go').click()
     await expect(noteByText(page, 'One')).toHaveCount(0)
 
     // Menus need settle time (Firefox, WebKit): open and act together until it sticks.
@@ -51,6 +53,7 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
     const toGroup = page.locator('[data-testid^="group-onto-"]').first()
     await expect(toGroup).toContainText(/Groupe/)
     await toGroup.click()
+    await page.getByTestId('group-bulk-go').click()
     await expect(noteByText(page, 'Three')).toHaveCount(0)
     await page.locator('[data-testid^="group-"]:not([data-testid^="group-with-"]):not([data-testid^="group-onto-"])').first().click()
     await expect(page.getByTestId('group-panel').locator('article.note')).toHaveCount(3)

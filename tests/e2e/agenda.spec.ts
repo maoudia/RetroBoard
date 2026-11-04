@@ -151,8 +151,9 @@ test.describe('time-boxed agenda', () => {
     await page.getByTestId('theme-studio').click()
     await page.getByTestId('tab-all').click()
     await page.getByTestId('template-start-stop-continue').click()
-    await expect(page.getByTestId('agenda-autostart')).not.toBeChecked()
-    await page.getByTestId('agenda-autostart').check()
+    // Automatic by default (change feedback-wave-6): the clock starts with the board and chains by itself.
+    await expect(page.getByTestId('agenda-autostart')).toBeChecked()
+    await expect(page.getByTestId('agenda-chain')).toBeChecked()
     await page.getByTestId('setup-submit').click()
     await page.getByTestId('name-input').fill('Alice')
     await page.getByTestId('name-save').click()

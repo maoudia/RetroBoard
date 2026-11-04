@@ -91,10 +91,10 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
       </li>
     </ul>
     <p v-if="myState !== 'direct'" class="note muted" role="status" data-testid="my-conn">{{ t(myState === 'relay' ? 'presence.mine.relay' : 'presence.mine.reconnecting') }}</p>
-    <p v-if="board.links" class="note muted links" :data-p2p="board.links.p2p" data-testid="links-state">
-      <Icon :name="board.links.p2p ? 'lucide:waypoints' : 'lucide:server'" />
-      {{ board.links.p2p ? t('links.p2p', { n: board.links.peers }) : t('links.relay') }}
-    </p>
+    <div v-if="board.links" class="modes" :data-p2p="board.links.p2p" data-testid="links-state">
+      <p class="mode" :class="{ on: board.links.p2p }" data-mode="direct"><Icon name="lucide:zap" /><span>{{ board.links.p2p ? t('links.p2p', { n: board.links.peers }) : t('links.p2p.idle') }}</span></p>
+      <p class="mode" :class="{ on: !board.links.p2p }" data-mode="relay"><Icon name="lucide:radio-tower" /><span>{{ board.links.p2p ? t('links.relay.idle') : t('links.relay') }}</span></p>
+    </div>
   </Dropdown>
   <RenameDialog :open="renaming !== null" :name="renaming?.name ?? null" @update:open="(v: boolean) => { if (!v) renaming = null }" @save="(n: string) => renaming && rename(renaming, n)" />
   <ConfirmDialog
@@ -117,4 +117,8 @@ li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; bord
 .role { display: inline-flex; align-items: center; gap: .25rem; }
 .acts { display: inline-flex; gap: 2px; }
 .note { margin: .4rem .5rem 0; font-size: var(--fs-xs); }
+.modes { display: grid; gap: 2px; margin: .5rem .5rem 0; }
+.mode { display: flex; align-items: flex-start; gap: .4rem; margin: 0; padding: .3rem .45rem; border-radius: var(--r-sm); font-size: var(--fs-xs); color: var(--muted); }
+.mode :deep(svg) { flex: none; margin-top: .1rem; }
+.mode.on { color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 600; }
 </style>

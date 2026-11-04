@@ -44,6 +44,8 @@ export interface AgendaState {
   rules: boolean
   /** Publish everyone's drafts when the Write phase ends. */
   autoPublish: boolean
+  /** Hand over to the next phase when the planned time is over (change feedback-wave-6). */
+  chain?: boolean
   /** Facilitator override: voting is open outside the Vote phase. Cleared at the next phase change. */
   voteOpen?: boolean
 }
@@ -71,10 +73,10 @@ export interface PhaseInput { kind: PhaseKind; minutes: number }
 export const presetPhases = (total: keyof typeof AGENDA_PRESETS): PhaseInput[] =>
   PHASE_KINDS.map((kind) => ({ kind, minutes: AGENDA_PRESETS[total][kind] }))
 
-export function newAgenda(phases: readonly PhaseInput[], newId: () => string, opts: { rules?: boolean; autoPublish?: boolean } = {}): AgendaState {
+export function newAgenda(phases: readonly PhaseInput[], newId: () => string, opts: { rules?: boolean; autoPublish?: boolean; chain?: boolean } = {}): AgendaState {
   return {
     phases: phases.map((p) => ({ id: newId(), kind: p.kind, plannedMs: Math.round(p.minutes * MIN) })),
-    current: -1, startedAt: 0, pausedAt: null, rules: opts.rules ?? true, autoPublish: opts.autoPublish ?? true,
+    current: -1, startedAt: 0, pausedAt: null, rules: opts.rules ?? true, autoPublish: opts.autoPublish ?? true, chain: opts.chain ?? false,
   }
 }
 

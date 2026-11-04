@@ -15,6 +15,21 @@ const targets = computed(() => board.itemsFor(props.note.columnId, 'time').flatM
   return [{ key: i.group.id, onto: i.notes[0]!.id, label: t('note.groupWithGroup', { title: i.title }) }]
 }))
 const groupOpen = ref(false)
+const picks = ref(new Set<string>())
+function toggle(key: string) {
+  const next = new Set(picks.value)
+  if (!next.delete(key)) next.add(key)
+  picks.value = next
+}
+/** This idea joins the first ticked target (a cluster or an idea); every other ticked idea joins the resulting cluster. */
+function groupPicked() {
+  const chosen = targets.value.filter((g) => picks.value.has(g.key))
+  const [first, ...rest] = chosen
+  if (!first) return
+  board.commands.groupNotes(props.note.id, first.onto)
+  for (const g of rest) board.commands.groupNotes(g.onto, props.note.id)
+  picks.value = new Set()
+}
 const delAsk = ref(false)
 /** A pinned note is on the shared spotlight: ask before removing it (change ux-irritants-wave-2). */
 function askDelete() {
@@ -62,7 +77,16 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           <Icon name="lucide:group" /> {{ t('note.groupWith') }}
         </button>
         <div v-if="groupOpen" class="gw-list" role="group" :aria-label="t('note.groupWithList')">
-          <button v-for="g in targets" :key="g.key" class="dd-item" type="button" role="menuitem" :data-testid="`group-onto-${g.key}`" @click="board.commands.groupNotes(note.id, g.onto); close()">{{ clip(g.label) }}</button>
+          <!-- Tick several ideas, then group them all at once (change feedback-wave-6). -->
+          <button
+            v-for="g in targets" :key="g.key" class="dd-item gw-pick" type="button" role="menuitemcheckbox" :aria-checked="picks.has(g.key)"
+            :data-testid="`group-onto-${g.key}`" @click.stop="toggle(g.key)"
+          >
+            <Icon :name="picks.has(g.key) ? 'lucide:square-check' : 'lucide:square'" /> <span>{{ clip(g.label) }}</span>
+          </button>
+          <button class="btn btn-sm btn-primary gw-go" type="button" role="menuitem" :disabled="!picks.size" data-testid="group-bulk-go" @click.stop="groupPicked(); close()">
+            <Icon name="lucide:group" /> {{ t('note.groupN', { n: picks.size + 1 }) }}
+          </button>
         </div>
       </template>
       <template v-if="others.length">
@@ -91,4 +115,7 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
 .sw.on { border-color: var(--text); }
 .gw-list { display: grid; max-height: 11rem; overflow: auto; padding-left: .6rem; }
 .lbl-sm { font-size: var(--fs-xs); font-weight: 700; padding: .3rem .65rem 0; text-transform: uppercase; letter-spacing: .05em; }
+.gw-pick { display: flex; align-items: flex-start; gap: .45rem; text-align: left; }
+.gw-pick span { overflow-wrap: anywhere; }
+.gw-go { margin: .3rem .5rem .2rem; width: calc(100% - 1rem); justify-content: center; }
 </style>

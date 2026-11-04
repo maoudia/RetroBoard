@@ -70,8 +70,9 @@ export type Command =
   | { t: 'talk.end' }
   | { t: 'talk.self' }
   | { t: 'talk.done' }
-  | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number }[]; rules?: boolean; autoPublish?: boolean }
-  | { t: 'agenda.options'; rules?: boolean; autoPublish?: boolean }
+  | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number }[]; rules?: boolean; autoPublish?: boolean; chain?: boolean }
+  | { t: 'agenda.options'; rules?: boolean; autoPublish?: boolean; chain?: boolean }
+  | { t: 'agenda.advance'; from: number }
   | { t: 'agenda.clear' }
   | { t: 'agenda.voteOpen'; on: boolean }
   | { t: 'agenda.toClose' }

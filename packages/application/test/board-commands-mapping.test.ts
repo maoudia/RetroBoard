@@ -35,6 +35,7 @@ describe('every use case sends the matching protocol command', () => {
     ['startAgenda', (c) => c.startAgenda(), { t: 'agenda.start' }],
     ['pauseAgenda', (c) => c.pauseAgenda(), { t: 'agenda.pause' }],
     ['nextPhase', (c) => c.nextPhase(), { t: 'agenda.next' }],
+    ['advanceAgenda', (c) => c.advanceAgenda(2), { t: 'agenda.advance', from: 2 }],
     ['extendPhase', (c) => c.extendPhase(3, true), { t: 'agenda.extend', minutes: 3, borrow: true }],
     ['endAgenda', (c) => c.endAgenda(), { t: 'agenda.end' }],
     ['restartAgenda', (c) => c.restartAgenda(), { t: 'agenda.restart' }],
