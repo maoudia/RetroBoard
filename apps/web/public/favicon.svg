@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RetroBoard">
+  <rect width="64" height="64" rx="14" fill="#0066cc"/>
+  <path d="M18 14h22l9 9v25a3 3 0 0 1-3 3H18a3 3 0 0 1-3-3V17a3 3 0 0 1 3-3z" fill="#fff4c2"/>
+  <path d="M40 14v9h9" fill="none" stroke="#0066cc" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M23 39a9 9 0 1 0 3.2-6.9" fill="none" stroke="#0066cc" stroke-width="3" stroke-linecap="round"/>
+  <path d="M22.5 28.5v5h5" fill="none" stroke="#0066cc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

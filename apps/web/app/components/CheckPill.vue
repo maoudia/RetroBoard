@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * The one tick-box of the app (change feedback-wave-7): a rounded pill with a check mark, filled when on.
- * The real checkbox stays in the pill (invisible, covering it) so keyboard, screen readers and tests talk to it.
+ * The real checkbox stays in the pill (invisible, covering it) so keyboard, screen readers and tests talk to it;
+ * the root is a label, so the text names the checkbox for assistive tech.
  * Attributes (data-testid, @change, ...) land on the input.
  */
 defineOptions({ inheritAttrs: false })
@@ -11,11 +12,11 @@ function onChange(e: Event) { model.value = (e.target as HTMLInputElement).check
 </script>
 
 <template>
-  <span class="pill-check" :class="{ on: model }">
+  <label class="pill-check" :class="{ on: model }">
     <input v-bind="$attrs" :checked="model" type="checkbox" @change="onChange">
     <Icon :name="icon ?? 'lucide:check'" class="tick" aria-hidden="true" />
     <span class="lbl">{{ label }}</span>
-  </span>
+  </label>
 </template>
 
 <style scoped>

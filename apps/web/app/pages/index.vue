@@ -115,7 +115,7 @@ onMounted(() => {
         <div><strong>0</strong><span>{{ t('landing.stat.accounts') }}</span></div>
         <div><strong>30</strong><span>{{ t('landing.stat.people') }}</span></div>
         <div><strong>{{ THEMES.length }}</strong><span>{{ t('landing.stat.themes') }}</span></div>
-        <div><strong>24 h</strong><span>{{ t('landing.stat.erase') }}</span></div>
+        <div><strong>E2E</strong><span>{{ t('landing.stat.e2e') }}</span></div>
       </section>
 
       <section id="features" class="sec">
@@ -137,7 +137,7 @@ onMounted(() => {
             <div class="vis v-timer" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" class="bg" /><circle cx="40" cy="40" r="32" class="fg" /></svg><span>05:00</span></div>
             <h3>{{ t('landing.f.timer.h') }}</h3><p>{{ t('landing.f.timer.p') }}</p>
           </article>
-          <article class="card wide" data-reveal :style="{ '--d': '80ms' }">
+          <article class="card" data-reveal :style="{ '--d': '80ms' }">
             <div class="vis v-suggest" aria-hidden="true"><span>Mad / Sad / Glad</span><span>4 Ls</span><span>Voilier</span></div>
             <h3>{{ t('landing.f.suggest.h') }}</h3><p>{{ t('landing.f.suggest.p') }}</p>
           </article>
@@ -290,11 +290,11 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .privacy strong { font-size: var(--fs-lg); } .privacy span { color: #a1a1a6; line-height: 1.45; font-size: var(--fs-md); }
 
 .final { display: grid; justify-items: center; gap: 1.8rem; padding: 7rem 1.25rem; text-align: center; }
-.foot { display: flex; justify-content: space-between; max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; border-top: 1px solid var(--line); color: var(--ink2); font-size: var(--fs-sm); } .foot a { color: var(--ink2); }
+.foot { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; justify-content: space-between; max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; border-top: 1px solid var(--line); color: var(--ink2); font-size: var(--fs-sm); } .foot a { color: var(--ink2); }
 
 @media (max-width: 900px) { .links { display: none; } .bento { grid-template-columns: 1fr 1fr; } .card.wide { grid-column: span 2; } .stats { grid-template-columns: 1fr 1fr; row-gap: 2rem; } .steps { grid-template-columns: 1fr; } .privacy { grid-template-columns: 1fr 1fr; } }
 /* Small phones: the header keeps every control inside the screen (Create was cut at 360 px). */
 @media (max-width: 420px) { .nav-in { gap: .5rem; padding: 0 .75rem; } .right { gap: .4rem; } .cta.sm { padding: .4rem .75rem; } .brand { gap: .4rem; } }
-@media (max-width: 600px) { .bento { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
+@media (max-width: 600px) { .foot > span { flex-basis: 100%; } .bento { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
 @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; } .tilt { transition: none; } }
 </style>

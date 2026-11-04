@@ -25,6 +25,12 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'fr' },
       title: 'RetroBoard',
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/x-icon', sizes: '32x32', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/manifest.webmanifest' },
+      ],
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'robots', content: 'noindex, nofollow' },
