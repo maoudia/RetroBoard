@@ -1,4 +1,4 @@
-import type { CloneColumn, ImportedAction, PhaseInput, Snapshot } from '@retroboard/domain'
+import type { CloneColumn, ColumnIcon, ImportedAction, PhaseInput, Snapshot } from '@retroboard/domain'
 
 /**
  * What a new board takes from an existing one (change feedback-wave-7). Never any idea, vote, chat or name:
@@ -29,7 +29,7 @@ export function cloneSpec(snap: Snapshot, kind: CloneKind, copyLabel: string): C
     kind,
     title: title ? `${title} - ${copyLabel}` : copyLabel,
     themeId: snap.settings.themeId,
-    columns: snap.columns.map((c) => ({ title: c.title, subtitle: c.subtitle, icon: c.icon, ...(c.color === undefined ? {} : { color: c.color }), ...(c.votable === false ? { votable: false } : {}) })),
+    columns: snap.columns.map((c) => ({ title: c.title, subtitle: c.subtitle, icon: c.icon as ColumnIcon, ...(c.color === undefined ? {} : { color: c.color }), ...(c.votable === false ? { votable: false } : {}) })),
     ...(a ? { agenda: { phases: a.phases.map((p) => ({ kind: p.kind, minutes: Math.max(1, Math.round(p.plannedMs / 60_000)) })), rules: a.rules, autoPublish: a.autoPublish, chain: a.chain !== false } } : {}),
   }
 }

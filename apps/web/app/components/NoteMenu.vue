@@ -16,7 +16,7 @@ const targets = computed(() => board.itemsFor(props.note.columnId, 'time').flatM
 }))
 const groupOpen = ref(false)
 const picks = ref(new Set<string>())
-function toggle(key: string) {
+function togglePick(key: string) {
   const next = new Set(picks.value)
   if (!next.delete(key)) next.add(key)
   picks.value = next
@@ -80,7 +80,7 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           <!-- Tick several ideas, then group them all at once (change feedback-wave-6). -->
           <button
             v-for="g in targets" :key="g.key" class="dd-item gw-pick" type="button" role="menuitemcheckbox" :aria-checked="picks.has(g.key)"
-            :data-testid="`group-onto-${g.key}`" @click.stop="toggle(g.key)"
+            :data-testid="`group-onto-${g.key}`" @click.stop="togglePick(g.key)"
           >
             <Icon :name="picks.has(g.key) ? 'lucide:square-check' : 'lucide:square'" /> <span>{{ clip(g.label) }}</span>
           </button>

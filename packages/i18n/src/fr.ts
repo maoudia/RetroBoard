@@ -31,6 +31,7 @@ export const fr = {
   'redo.ungroup': 'Idée sortie de son groupe à nouveau',
   'redo.move': 'Déplacement rétabli',
   'redo.edit': 'Modification rétablie',
+  'redo.delete': 'Idée supprimée à nouveau',
   'redo.color': 'Couleur appliquée à nouveau',
   'redo.nothing': 'Rien à rétablir',
   'undo.title': 'Annuler ma dernière action',

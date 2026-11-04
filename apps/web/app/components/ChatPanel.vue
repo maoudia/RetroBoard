@@ -204,9 +204,9 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .bub { border-inline-start: 4px solid var(--author, var(--border)); margin: 0; padding: .45rem .8rem; border-radius: var(--r-card) var(--r-card) var(--r-card) var(--r-xs); background: var(--surface2); border: 1px solid var(--border); font-size: var(--fs-md); line-height: 1.35; overflow-wrap: anywhere; white-space: pre-wrap; width: fit-content; max-width: 100%; }
 .grp.mine .bub { border-radius: var(--r-card) var(--r-card) var(--r-xs) var(--r-card); background: var(--accent); border-color: var(--accent); border-inline-start-color: var(--author, var(--accent)); color: var(--accent-ink); }
 .typing-line { margin: 0; padding: 0 1rem .25rem; font-size: var(--fs-xs); }
-.compose { display: flex; gap: .35rem; align-items: flex-end; margin: .5rem .75rem .75rem; padding: .25rem .3rem .25rem .5rem; border: 1px solid var(--control, var(--border)); border-radius: 26px; background: var(--surface2); }
+.compose { display: flex; gap: .35rem; align-items: flex-end; margin: .5rem .75rem .75rem; padding: .25rem .3rem .25rem .5rem; border: 1px solid var(--control, var(--border)); border-radius: var(--r-pill); background: var(--surface2); }
 .compose:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.compose textarea { flex: 1; min-width: 0; min-height: 40px; max-height: 7rem; resize: none; padding: .55rem .4rem; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; font-size: 16px; line-height: 1.3; outline: none; }
+.compose textarea { flex: 1; min-width: 0; min-height: 40px; max-height: 7rem; resize: none; padding: .55rem .4rem; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; font-size: var(--fs-md); line-height: 1.3; outline: none; }
 .send { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-lg); cursor: pointer; transition: transform .15s var(--ease), opacity .15s; }
 .send:hover:not(:disabled) { transform: scale(1.08); }
 .send:disabled { opacity: .4; cursor: default; }

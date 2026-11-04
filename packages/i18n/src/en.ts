@@ -32,6 +32,7 @@ export const en: Record<keyof typeof fr, string> = {
   'redo.ungroup': 'Idea taken out of its cluster again',
   'redo.move': 'Move restored',
   'redo.edit': 'Edit restored',
+  'redo.delete': 'Idea deleted again',
   'redo.color': 'Colour applied again',
   'redo.nothing': 'Nothing to redo',
   'undo.title': 'Undo my last action',

@@ -12,7 +12,7 @@ export type PhaseKindName = 'checkin' | 'review' | 'write' | 'group' | 'vote' | 
 export type ActionStatusName = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
 /** An action carried over from a previous retro (team profile, board file, JSON or CSV export). */
 export interface ImportedAction { text: string; owner: string; status: ActionStatusName; due?: string; from?: string }
-export interface CloneColumn { title: string; subtitle?: string; icon?: string; color?: number; votable?: boolean }
+export interface CloneColumn { title: string; subtitle?: string; icon?: ColumnIcon; color?: number; votable?: boolean }
 export interface NewNote { columnId: string; text: string; color?: number }
 
 export type Command =
