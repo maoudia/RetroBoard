@@ -37,6 +37,7 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 | Archive after merge | `/opsx:archive <change>` | `/opsx-archive <change>` |
 
 Rules:
+- **Work in progress is capped**: `pnpm wip` (part of `pnpm verify`) counts changes with some tasks ticked and some open and fails above the ceiling in `quality/wip-baseline.json`. The ceiling only goes down (target 3). Finish or split a change before starting another; lower the ceiling when the count drops.
 - Implement **one task group per PR**. Tick tasks in `tasks.md` as you finish them.
 - If the code must diverge from the spec, update the spec delta in the same PR and say why.
 - PR body must contain `Change: <change-name>` (spec gate). Docs or dependency-only PRs use the `no-spec` label.
@@ -45,7 +46,7 @@ Rules:
 
 ```bash
 pnpm install
-pnpm verify        # lint + typecheck + arch + duplication (jscpd) + unit + openspec validate --all --strict
+pnpm verify        # lint + typecheck + arch + duplication (jscpd) + knip + adr + wip ceiling + unit + openspec validate --all --strict
 pnpm generate      # static site + CSP hashes
 pnpm dev:worker    # http://localhost:8787 (site + relay)
 pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), about 7 minutes

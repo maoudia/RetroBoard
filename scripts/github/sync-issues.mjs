@@ -137,52 +137,78 @@ const PLAN = {
   'user-drive-storage': ['P12', 'A', []],
   'agent-feedback-and-timeboxed-sessions': ['P12', 'C', ['retro-mcp-and-agent-sessions', 'agents-first-class']],
   'funny-local-companion': ['P12', 'C', ['local-ai-companion']],
+  // Roadmap review 2026-11-04 (docs: diagnosis, vision, roadmap, business plan).
+  'stabilise-main': ['P13', 'A', []],
+  'brand-identity': ['P13', 'B', []],
+  'code-health-for-agents': ['P13', 'C', []],
+  'public-launch': ['P13', 'B', ['brand-identity']],
+  'open-source-business': ['P13', 'A', []],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
-  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02', P11: 'P11 Live retro feedback 2026-11-02', P12: 'P12 Ideas backlog 2026-11-03',
+  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02', P11: 'P11 Live retro feedback 2026-11-02', P12: 'P12 Ideas backlog 2026-11-03', P13: 'P13 Roadmap 2026-11-04',
 }
 // Roadmap: every change belongs to one release milestone (the GitHub roadmap is built from these).
 // Target dates are planning targets, revisited at each release review.
 const RELEASES = {
-  // Recalibrated 2026-11-02: R1 closes on what a beta team needs (sync, passcode by default, coherent UI, mode parity,
-  // a feedback channel); quality items not blocking the beta move to R2; teams move to R3 with the team workspaces.
-  R1: { title: 'R1 Beta ready', due: '2026-11-15', description: 'Stable, secure-by-default beta for real teams: reliable sync, passcode by default, coherent buttons and menus, the same simple and advanced modes everywhere, a feedback channel; plus the delivered service pages, facilitation defaults, sticky notes v2, board lifecycle and keyboard.' },
-  R2: { title: 'R2 Facilitation and visuals', due: '2026-12-06', description: 'Accessibility (WCAG 2.2 AA), phase-end popups, note to action and voted ideas, moderation, activity rings, cluster motion, results charts, publishing and note visuals, responsive and profile, exports and report.' },
-  R3: { title: 'R3 Teams and themes', due: '2027-01-10', description: 'Team workspaces (teams, projects, carry-over by team), avatars, component library, calendar import, genre themes, delivery harness, WebMCP rollout.' },
-  R4: { title: 'R4 Agents and growth', due: '2027-02-14', description: 'MCP server and agent sessions, local AI companion, landing v2 and product video.' },
-  PARKED: { title: 'Parked', due: null, description: 'On hold by owner decision (monetisation postponed on 2026-10-24).' },
+  // Re-planned 2026-11-04 (roadmap review): R1 stabilises, R2 is the public launch, R3 teams and action follow-up,
+  // R4 monetisation and growth, R5 agents. Titles are unchanged so existing issues keep their milestone.
+  R1: { title: 'R1 Beta ready', due: '2026-11-15', description: 'Stabilisation (plan 2026-11-04): feature freeze, main green, WIP limit, finish reliable-board-sync, landing truth fixes.' },
+  R2: { title: 'R2 Facilitation and visuals', due: '2026-12-13', description: 'Public launch (plan 2026-11-04): brand identity, landing v2, user manual, short links, report and insights, code health, CLA, launch kit.' },
+  R3: { title: 'R3 Teams and themes', due: '2027-01-31', description: 'Teams and action follow-up (plan 2026-11-04): team workspaces, carried-over actions, undo history, exports, polish.' },
+  R4: { title: 'R4 Agents and growth', due: '2027-03-14', description: 'Monetisation and growth (plan 2026-11-04): licensing, offers, sponsors, marketplace, services, premium themes.' },
+  R5: { title: 'R5 Agents', due: '2027-05-02', description: 'Agents (plan 2026-11-04): MCP, agent sessions, local AI companion.' },
+  PARKED: { title: 'Parked', due: null, description: 'On hold by owner decision.' },
 }
+
+// Release of each open change (plan 2026-11-04). Archived changes need no entry.
 const ROADMAP = {
-  'service-pages': 'R1', 'single-facilitator': 'R1', 'sticky-notes-v2': 'R1', 'board-lifecycle': 'R1',
-  'keyboard-shortcuts': 'R1',
-  'open-facilitation-default': 'R1', 'phase-availability-cues': 'R1', 'name-nudge': 'R1',
-  'reliable-board-sync': 'R1', 'author-name-by-default': 'R1', 'draft-first-composer': 'R1',
-  'accessibility-wcag': 'R2', 'phase-end-notifications': 'R2', 'note-to-action': 'R2', 'actions-from-votes': 'R2',
-  'facilitator-moderation': 'R2', 'activity-rings-timer': 'R2', 'cluster-reveal-motion': 'R2', 'voting-results-charts': 'R2', 'voting-v2-and-ranking': 'R2',
-  'publishing-ux-redesign': 'R2', 'postit-visual-system': 'R2', 'responsive-and-i18n-hardening': 'R2',
-  'export-hub': 'R2', 'retro-report': 'R2',
-  'composer-and-colour-v3': 'R2', 'facilitator-controls-v2': 'R2', 'board-activity-feed': 'R2',
-  'short-links-and-join': 'R2', 'presenter-mode-v2': 'R2', 'column-voting-scope': 'R2', 'recent-boards-visible': 'R2', 'board-recovery': 'R2', 'options-simple-mode': 'R2', 'join-by-link': 'R2', 'profile-simple-mode': 'R2', 'smart-title': 'R2', 'creation-voting': 'R2', 'boards-menu-new': 'R2', 'private-mode-recovery': 'R2', 'creation-polish': 'R2', 'simple-advanced-mode': 'R2', 'identity-conflicts': 'R2', 'quality-gates-v2': 'R2', 'clusters-v2': 'R2', 'board-type-migration': 'R2', 'allure-report-aggregation': 'R2', 'self-rename-event': 'R1',
-  // Onboarding is the first thing users see (owner, 2026-10-29): smart default creation moves to R2.
-  'board-creation-v2': 'R2',
-  'column-tools': 'R3', 'note-freeze': 'R3', 'talk-time-v2': 'R3', 'keyboard-shortcuts-v2': 'R3', 'agents-first-class': 'R3',
-  'calendar-agenda-import': 'R3', 'themes-pop-culture': 'R3', 'actions-v2-and-carry-over': 'R3',
-  'agentic-delivery-harness': 'R3', 'webmcp-browser-agents': 'R3',
-  'retro-mcp-and-agent-sessions': 'R4', 'local-ai-companion': 'R4', 'landing-v2-and-product-video': 'R4',
-  'column-visibility': 'R2', 'time-display-options': 'R2', 'presence-status': 'R2', 'note-pin': 'R3', 'up-down-votes': 'R3', 'button-icons-everywhere': 'R2', 'toolbar-mobile-scroll': 'R2', 'agenda-clock-v2': 'R2',
-  'licensing-and-monetization': 'PARKED',
-  // Recalibration 2026-11-02 .
-  'password-by-default': 'R1', 'ui-coherence-pass': 'R1', 'mode-parity': 'R1', 'community-feedback': 'R1',
-  'ci-toolchain-speed': 'R2', 'edge-security-and-domain': 'R2', 'p2p-presence-and-cursors': 'R2', 'automated-semver-release': 'R2',
-  'device-layout-prefs': 'R2', 'solo-parity-and-dedup': 'R2', 'results-insights': 'R2',
-  'team-workspaces': 'R3', 'profile-avatars-and-team-space': 'R3', 'design-system-components': 'R3',
-  // Live retro 2026-11-02: phones and editing first.
-  'mobile-board-space': 'R1', 'board-layout-v2': 'R2', 'presenter-accordion-motion': 'R2', 'edit-published-notes': 'R1', 'board-chat': 'R3', 'ux-irritants-wave-2': 'R1', 'ux-irritants-wave-3': 'R1',
-  'toast-notifications-v2': 'R1',
-  // Owner feedback 2026-11-03: picture fixes in the next release, ideas spec only.
-  'feedback-wave-4': 'R1', 'feedback-wave-5': 'R1', 'feedback-wave-6': 'R1', 'feedback-wave-7': 'R1', 'vote-all-on-one-idea': 'R2', 'board-undo-rewind': 'R2', 'export-destinations-v2': 'R3', 'user-drive-storage': 'R3',
-  'user-manual-and-tutorials': 'R3', 'agent-feedback-and-timeboxed-sessions': 'R4', 'funny-local-companion': 'R4',
+  'reliable-board-sync': 'R1',
+  'community-feedback': 'R1',
+  'quality-gates-v2': 'R1',
+  'landing-v2-and-product-video': 'R2',
+  'user-manual-and-tutorials': 'R2',
+  'short-links-and-join': 'R2',
+  'retro-report': 'R2',
+  'results-insights': 'R2',
+  'design-system-components': 'R2',
+  'responsive-and-i18n-hardening': 'R2',
+  'voting-v2-and-ranking': 'R2',
+  'activity-rings-timer': 'R2',
+  'p2p-presence-and-cursors': 'R2',
+  'webmcp-browser-agents': 'R2',
+  'allure-report-aggregation': 'R2',
+  'automated-semver-release': 'R2',
+  'ci-toolchain-speed': 'R2',
+  'edge-security-and-domain': 'R2',
+  'agentic-delivery-harness': 'R2',
+  'team-workspaces': 'R3',
+  'actions-v2-and-carry-over': 'R3',
+  'profile-avatars-and-team-space': 'R3',
+  'board-undo-rewind': 'R3',
+  'export-hub': 'R3',
+  'export-destinations-v2': 'R3',
+  'user-drive-storage': 'R3',
+  'postit-visual-system': 'R3',
+  'publishing-ux-redesign': 'R3',
+  'board-creation-v2': 'R3',
+  'cluster-reveal-motion': 'R3',
+  'facilitator-moderation': 'R3',
+  'talk-time-v2': 'R3',
+  'up-down-votes': 'R3',
+  'calendar-agenda-import': 'R3',
+  'licensing-and-monetization': 'R4',
+  'themes-pop-culture': 'R4',
+  'retro-mcp-and-agent-sessions': 'R5',
+  'local-ai-companion': 'R5',
+  'funny-local-companion': 'R5',
+  'agent-feedback-and-timeboxed-sessions': 'R5',
+  'agents-first-class': 'R5',
+  'stabilise-main': 'R1',
+  'brand-identity': 'R2',
+  'code-health-for-agents': 'R2',
+  'public-launch': 'R2',
+  'open-source-business': 'R4',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
 // Bugs are standalone `bug` issues labelled priority:1-urgent; every change gets one of the other levels.
@@ -194,19 +220,64 @@ const PRIORITY_LEVELS = [
 ]
 const PRIORITY = {
   'reliable-board-sync': 1,
-  'composer-and-colour-v3': 2, 'facilitator-controls-v2': 2, 'board-activity-feed': 2, 'design-system-components': 2, 'short-links-and-join': 2,
-  'board-creation-v2': 2, 'presenter-mode-v2': 2, 'column-voting-scope': 2, 'recent-boards-visible': 2, 'board-recovery': 2, 'options-simple-mode': 2, 'join-by-link': 2, 'profile-simple-mode': 2, 'smart-title': 2, 'creation-voting': 2, 'boards-menu-new': 2, 'private-mode-recovery': 2, 'creation-polish': 2, 'simple-advanced-mode': 2, 'identity-conflicts': 2, 'publishing-ux-redesign': 2,
-  'postit-visual-system': 2, 'responsive-and-i18n-hardening': 2, 'profile-avatars-and-team-space': 2, 'activity-rings-timer': 2,
-  'voting-results-charts': 2, 'cluster-reveal-motion': 2, 'column-tools': 2,
-  'clusters-v2': 2, 'board-type-migration': 2,
-  'column-visibility': 2, 'time-display-options': 2, 'presence-status': 2, 'note-pin': 2, 'button-icons-everywhere': 2, 'toolbar-mobile-scroll': 2, 'agenda-clock-v2': 2,
-  'quality-gates-v2': 3, 'automated-semver-release': 3, 'allure-report-aggregation': 3, 'self-rename-event': 1, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
-  'password-by-default': 2, 'ui-coherence-pass': 2, 'mode-parity': 2, 'community-feedback': 2, 'mobile-board-space': 1, 'board-layout-v2': 2, 'presenter-accordion-motion': 2, 'edit-published-notes': 1, 'board-chat': 2, 'ux-irritants-wave-2': 1, 'ux-irritants-wave-3': 1, 'feedback-wave-4': 1, 'feedback-wave-5': 1, 'feedback-wave-6': 1, 'feedback-wave-7': 1,
-  'toast-notifications-v2': 1, 'device-layout-prefs': 2, 'solo-parity-and-dedup': 2, 'results-insights': 2, 'team-workspaces': 2,
+  'community-feedback': 1,
+  'quality-gates-v2': 1,
+  'landing-v2-and-product-video': 2,
+  'user-manual-and-tutorials': 2,
+  'short-links-and-join': 2,
+  'retro-report': 2,
+  'results-insights': 2,
+  'design-system-components': 2,
+  'responsive-and-i18n-hardening': 2,
+  'voting-v2-and-ranking': 2,
+  'activity-rings-timer': 2,
+  'p2p-presence-and-cursors': 3,
+  'webmcp-browser-agents': 3,
+  'allure-report-aggregation': 3,
+  'automated-semver-release': 3,
+  'ci-toolchain-speed': 3,
+  'edge-security-and-domain': 3,
+  'agentic-delivery-harness': 3,
+  'team-workspaces': 2,
+  'actions-v2-and-carry-over': 2,
+  'profile-avatars-and-team-space': 4,
+  'board-undo-rewind': 4,
+  'export-hub': 4,
+  'export-destinations-v2': 4,
+  'user-drive-storage': 4,
+  'postit-visual-system': 4,
+  'publishing-ux-redesign': 4,
+  'board-creation-v2': 4,
+  'cluster-reveal-motion': 4,
+  'facilitator-moderation': 4,
+  'talk-time-v2': 4,
+  'up-down-votes': 4,
+  'calendar-agenda-import': 4,
+  'licensing-and-monetization': 4,
+  'themes-pop-culture': 4,
+  'retro-mcp-and-agent-sessions': 4,
+  'local-ai-companion': 4,
+  'funny-local-companion': 4,
+  'agent-feedback-and-timeboxed-sessions': 4,
+  'agents-first-class': 4,
+  'stabilise-main': 1,
+  'brand-identity': 2,
+  'code-health-for-agents': 3,
+  'public-launch': 2,
+  'open-source-business': 4,
 }
-const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]
+// A task group can sit in another release or priority than its change (plan 2026-11-04): key `change:group number`.
+const GROUP_OVERRIDES = {
+  'stabilise-main:5': { priority: 3 },
+  'open-source-business:1': { release: 'R2', priority: 3 },
+}
 // A change with every task ticked needs no priority (its issues only wait to be closed).
-const prioLabels = (c) => (c.groups.some((g) => g.tasks.length) ? [priorityOf(c.name)] : [])
+const prioLabels = (c, g) => {
+  if (!c.groups.some((x) => x.tasks.length)) return []
+  const level = (g && GROUP_OVERRIDES[`${c.name}:${g.n}`]?.priority) ?? PRIORITY[c.name] ?? 4
+  return [PRIORITY_LEVELS[level - 1][0]]
+}
+const releaseOf = (c, g) => RELEASES[(g && GROUP_OVERRIDES[`${c.name}:${g.n}`]?.release) ?? ROADMAP[c.name]]
 const LABELS = [
   ...PRIORITY_LEVELS,
   ['epic', '5319e7', 'One OpenSpec change'], ['task-group', '1d76db', 'One task group of a change, one PR'],
@@ -283,7 +354,7 @@ for (const name of ordered) {
   // A dependency is done once its change is archived (no longer in openspec/changes).
   const ready = deps.every((d) => !changes.includes(d)) && ROADMAP[name] !== 'PARKED'
   plan.push({ kind: 'epic', c, title: `[epic] ${name}`, body: epicBody(c, deps), labels: ['epic', `phase:${phase}`, `lane:${lane}`, ...prioLabels(c), ready ? 'agent:ready' : 'blocked'], phase })
-  for (const g of c.groups.filter((x) => x.tasks.length)) plan.push({ kind: 'group', c, g, title: `[${name}] ${g.n}. ${g.title}`, body: groupBody(c, g), labels: ['task-group', `phase:${phase}`, `lane:${lane}`, ...prioLabels(c), ready && g.n === '1' ? 'agent:ready' : 'blocked'], phase, parent: `[epic] ${name}` })
+  for (const g of c.groups.filter((x) => x.tasks.length)) plan.push({ kind: 'group', c, g, title: `[${name}] ${g.n}. ${g.title}`, body: groupBody(c, g), labels: ['task-group', `phase:${phase}`, `lane:${lane}`, ...prioLabels(c, g), ready && g.n === '1' ? 'agent:ready' : 'blocked'], phase, parent: `[epic] ${name}` })
 }
 
 console.log(`${APPLY ? 'Applying' : 'Dry run'} on ${REPO}: ${Object.keys(RELEASES).length} release milestones, ${LABELS.length} labels, ${plan.filter((p) => p.kind === 'epic').length} epics, ${plan.filter((p) => p.kind === 'group').length} task-group issues`)
@@ -298,7 +369,7 @@ for (const r of Object.values(RELEASES)) {
 }
 const issues = Object.fromEntries(ghAll(`repos/${REPO}/issues?state=all&per_page=100`).filter((i) => !i.pull_request).map((i) => [i.title, i]))
 for (const p of plan) {
-  const payload = { title: p.title, body: p.body, labels: p.labels, milestone: milestones[RELEASES[ROADMAP[p.c.name]].title] }
+  const payload = { title: p.title, body: p.body, labels: p.labels, milestone: milestones[releaseOf(p.c, p.g).title] }
   const found = issues[p.title]
   issues[p.title] = found ? gh('PATCH', `repos/${REPO}/issues/${found.number}`, { body: p.body, milestone: payload.milestone, labels: [...new Set([...found.labels.map((l) => l.name).filter((l) => !/^(agent:ready|blocked|priority:.+)$/.test(l)), ...p.labels])] }) : gh('POST', `repos/${REPO}/issues`, payload)
   console.log(`${found ? 'updated' : 'created'} #${issues[p.title].number} ${p.title}`)
