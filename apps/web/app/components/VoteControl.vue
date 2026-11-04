@@ -28,11 +28,16 @@ function add() { report(board.commands.addVote(props.kind, props.id)) }
 function remove() { report(board.commands.removeVote(props.kind, props.id)) }
 function main() { if (single.value && voted.value) remove(); else add() }
 
+let plusTimer: ReturnType<typeof setTimeout> | undefined
 watch(() => props.votes, (n, o) => {
   if (n === null || o === null || n === o) return
   bumped.value = false
   nextTick(() => { bumped.value = true; if (n > o) plus.value++ })
+  // Under reduced motion the floating +1 is hidden, so animationend never fires: clear it on a timer too.
+  clearTimeout(plusTimer)
+  plusTimer = setTimeout(() => { plus.value = 0 }, 1000)
 })
+onBeforeUnmount(() => clearTimeout(plusTimer))
 </script>
 
 <template>

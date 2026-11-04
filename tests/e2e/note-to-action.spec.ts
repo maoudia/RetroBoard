@@ -38,6 +38,8 @@ test.describe('create an action from a note', () => {
     await expect(page.getByTestId('actions')).toHaveCount(0)
 
     await page.getByTestId('owner-input').fill('Alice')
+    // The suggestion list covers the Add button on wide screens: Escape closes it (and only it).
+    await page.keyboard.press('Escape')
     await page.getByTestId('action-add').click()
     const created = page.locator('[data-testid^="action-"][data-status]').filter({ hasText: 'Release notes are late' })
     await expect(created).toContainText('Alice')

@@ -12,17 +12,18 @@ test('the facilitator sets the post-it and text size, everyone sees the same boa
   await createBoard(page, { template: 'start-stop-continue', oneFacilitator: true })
   await publishNote(page, 0, 'Big on the wall')
   const note = page.locator('.grid > *').first()
-  const tracks = () => page.locator('.grid').first().evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length)
-  expect(await tracks()).toBe(1)
+  // Columns use the full width, so the number of tracks depends on the screen; the post-it width is what the setting controls.
+  const noteW = () => page.locator('.grid').first().evaluate((el) => parseFloat(getComputedStyle(el).getPropertyValue('--note-w')))
+  const base = await noteW()
   const fs0 = await note.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
   await page.getByTestId('btn-options').click()
   await page.getByTestId('opt-noteSize-small').click()
-  await expect(async () => expect(await tracks()).toBeGreaterThan(1)).toPass()
+  await expect(async () => expect(await noteW()).toBeLessThan(base)).toPass()
   await page.getByTestId('opt-noteSize-large').click()
   await page.getByTestId('opt-noteText-large').click()
   await page.keyboard.press('Escape')
   await expect(async () => {
-    expect(await tracks()).toBe(1)
+    expect(await noteW()).toBeGreaterThan(base)
     expect(await note.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThan(fs0 * 1.1)
   }).toPass()
 

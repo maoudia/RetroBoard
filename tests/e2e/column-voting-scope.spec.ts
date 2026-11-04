@@ -35,6 +35,8 @@ test('the creation form lists the columns where people vote and a change is appl
   await page.getByTestId('theme-studio').click()
   await page.getByTestId('tab-all').click()
   await page.getByTestId('template-start-stop-continue').click()
+  // A new board starts a chained agenda (change feedback-wave-6); this test needs free voting.
+  await page.getByTestId('agenda-autostart').uncheck()
   // The group is open by default (change mode-parity).
   await expect(page.getByTestId('setup-votable')).toHaveAttribute('open', '')
   await expect(page.getByTestId('setup-votable-0')).toBeChecked()

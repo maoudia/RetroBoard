@@ -11,7 +11,7 @@ test('scrolling a column on a phone folds the menus away and gives the board roo
   const notes = page.locator('.notes').first()
   expect(await notes.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
   await notes.hover()
-  await page.mouse.wheel(0, 400)
+  await notes.evaluate((el) => el.scrollBy(0, 400)) // mouse.wheel is not supported in mobile WebKit
   await expect(page.locator('nav.tools')).toBeHidden()
   await expect(page.getByTestId('votebar')).toBeHidden()
   const after = (await board.boundingBox())!.height
