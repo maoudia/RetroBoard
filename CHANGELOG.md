@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.3](https://github.com/maoudia/RetroBoard/compare/v1.45.2...v1.45.3) (2026-11-04)
+
+
+### Bug Fixes
+
+* **board:** one merged publish toast and a full-width group card on phones ([717963f](https://github.com/maoudia/RetroBoard/commit/717963f818ff0f385326e5bc84301a5e389c6918))
+
 ## [1.45.2](https://github.com/maoudia/RetroBoard/compare/v1.45.1...v1.45.2) (2026-11-04)
 
 
