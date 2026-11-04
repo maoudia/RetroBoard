@@ -215,4 +215,19 @@ describe('voting override and go to closing (facilitator-controls-v2)', () => {
     const b = { ...a, phases: a.phases.map((p, i) => (i === 0 ? { ...p, actualMs: 2 * MIN } : p)), current: 1 }
     expect(phaseClock(b, 1_000 + 60 * MIN)).toMatchObject({ elapsedMs: 8 * MIN, capped: true })
   })
+
+  it('closes voting when the agenda ends, by the last phase or by ending it', () => {
+    const a = harness()
+    a.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 1 }, { kind: 'vote', minutes: 1 }] })
+    a.run({ t: 'agenda.start' })
+    a.run({ t: 'agenda.next' })
+    expect(a.state.settings.votingClosed).toBe(false)
+    a.run({ t: 'agenda.next' })
+    expect(a.state.settings.votingClosed).toBe(true)
+    const b = harness()
+    b.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 1 }, { kind: 'vote', minutes: 1 }] })
+    b.run({ t: 'agenda.start' })
+    b.run({ t: 'agenda.end' })
+    expect(b.state.settings.votingClosed).toBe(true)
+  })
 })

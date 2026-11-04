@@ -56,7 +56,9 @@ const toggleMode = () => settings.patch({ stepperTime: settings.s.stepperTime ==
       </li>
     </ol>
     <p class="line" data-testid="stepper-line" :data-mode="settings.s.stepperTime">
-      <button class="now modebtn" :class="{ over: overtime }" type="button" :title="t('stepper.mode')" :aria-label="`${line} - ${t('stepper.mode')}`" data-testid="stepper-mode" @click="toggleMode">{{ line }}</button>
+      <!-- Only a running phase has a figure to switch; "finished" and "not started" are plain text. -->
+      <span v-if="!label" class="now" data-testid="stepper-mode">{{ line }}</span>
+      <button v-else class="now modebtn" :class="{ over: overtime }" type="button" :title="t('stepper.mode')" :aria-label="`${line} - ${t('stepper.mode')}`" data-testid="stepper-mode" @click="toggleMode">{{ line }}</button>
       <strong v-if="overText" class="overtxt" role="status" data-testid="stepper-over">{{ overText }}</strong>
       <span v-if="s.next && !s.ended" class="next muted" data-testid="stepper-next">{{ t('stepper.next', { phase: name(s.next) }) }}</span>
     </p>
