@@ -52,7 +52,8 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     if (s.settings.locked) return fail('locked')
     const n = s.notes[c.id]
     if (!n) return fail('not-found')
-    if (n.ownerCid !== a.cid) return fail('forbidden')
+    // The author, or a facilitator removing a single idea (change feedback-wave-7, confirmed in the UI).
+    if (n.ownerCid !== a.cid && !a.moderator) return fail('forbidden')
     const notes = { ...s.notes }
     const groups = { ...s.groups }
     Reflect.deleteProperty(notes, n.id)

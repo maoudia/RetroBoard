@@ -43,10 +43,10 @@ const remove = (i: number) => patch({ phases: model.value.phases.filter((_, k) =
         </li>
       </ol>
       <p class="muted" data-testid="agenda-total">{{ t('agenda.totalPlanned', { n: total }) }}</p>
-      <label class="opt"><input type="checkbox" :checked="model.rules" data-testid="agenda-rules" @change="patch({ rules: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.rules') }}</label>
-      <label class="opt"><input type="checkbox" :checked="model.autoPublish" data-testid="agenda-autopublish" @change="patch({ autoPublish: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.autoPublish') }}</label>
-      <label class="opt"><input type="checkbox" :checked="model.chain !== false" data-testid="agenda-chain" @change="patch({ chain: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.chain') }}</label>
-      <label class="opt"><input type="checkbox" :checked="!!model.autoStart" data-testid="agenda-autostart" @change="patch({ autoStart: ($event.target as HTMLInputElement).checked })" /> {{ t('agenda.autoStart') }}</label>
+      <CheckPill :model-value="model.rules" :label="t('agenda.rules')" data-testid="agenda-rules" @change="patch({ rules: ($event.target as HTMLInputElement).checked })" />
+      <CheckPill :model-value="model.autoPublish" :label="t('agenda.autoPublish')" data-testid="agenda-autopublish" @change="patch({ autoPublish: ($event.target as HTMLInputElement).checked })" />
+      <CheckPill :model-value="model.chain !== false" :label="t('agenda.chain')" data-testid="agenda-chain" @change="patch({ chain: ($event.target as HTMLInputElement).checked })" />
+      <CheckPill :model-value="!!model.autoStart" :label="t('agenda.autoStart')" data-testid="agenda-autostart" @change="patch({ autoStart: ($event.target as HTMLInputElement).checked })" />
     </template>
   </section>
 </template>

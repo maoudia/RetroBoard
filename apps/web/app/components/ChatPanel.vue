@@ -31,7 +31,18 @@ const myState = computed(() => connectionState({ me: true, direct: board.links?.
 const typing = (p: Peer) => !p.me && live.status(p.conn).status === 'typing'
 const showAll = ref(false)
 /** More than four people: the chips would crowd the drawer, so they fold into a strip. */
-const compact = computed(() => people.value.length > 4)
+const small = ref(false)
+/** On a phone the people strip starts folded whatever the headcount: the messages need the room (change feedback-wave-7). */
+const compact = computed(() => small.value || people.value.length > 4)
+/** The sheet follows the visible part of the screen, so the keyboard never hides the messages or the field. */
+const vv = ref({ h: 0, top: 0 })
+function syncViewport() {
+  small.value = window.matchMedia('(max-width: 600px)').matches
+  const v = window.visualViewport
+  vv.value = v && small.value ? { h: Math.round(v.height), top: Math.round(v.offsetTop) } : { h: 0, top: 0 }
+}
+onMounted(() => { syncViewport(); window.addEventListener('resize', syncViewport); window.visualViewport?.addEventListener('resize', syncViewport); window.visualViewport?.addEventListener('scroll', syncViewport) })
+onBeforeUnmount(() => { window.removeEventListener('resize', syncViewport); window.visualViewport?.removeEventListener('resize', syncViewport); window.visualViewport?.removeEventListener('scroll', syncViewport) })
 /** Typing first, then me, then the others; at most seven faces in the strip. */
 const stripPeople = computed(() => [...people.value].sort((a, b) => Number(typing(b)) - Number(typing(a)) || Number(b.me) - Number(a.me)).slice(0, 7))
 const someoneTyping = computed(() => people.value.filter(typing).map((p) => p.name ?? t('common.anonymous')))
@@ -79,7 +90,7 @@ const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
 
 <template>
   <Transition name="chat">
-    <aside v-if="chat.open" class="chat" :data-side="side" :aria-label="t('chat.title')" data-testid="chat-panel">
+    <aside v-if="chat.open" class="chat" :data-side="side" :style="vv.h ? { height: `${vv.h}px`, top: `${vv.top}px` } : undefined" :aria-label="t('chat.title')" data-testid="chat-panel">
       <header>
         <h2><Icon name="lucide:message-circle" /> {{ t('chat.title') }}</h2>
         <span class="online" :data-state="myState" :title="t(`presence.${myState}`)" data-testid="chat-online"><ConnDot :state="myState" /> {{ t('chat.online', { n: people.length }) }}</span>
@@ -193,9 +204,9 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .bub { border-inline-start: 4px solid var(--author, var(--border)); margin: 0; padding: .45rem .8rem; border-radius: var(--r-card) var(--r-card) var(--r-card) var(--r-xs); background: var(--surface2); border: 1px solid var(--border); font-size: var(--fs-md); line-height: 1.35; overflow-wrap: anywhere; white-space: pre-wrap; width: fit-content; max-width: 100%; }
 .grp.mine .bub { border-radius: var(--r-card) var(--r-card) var(--r-xs) var(--r-card); background: var(--accent); border-color: var(--accent); border-inline-start-color: var(--author, var(--accent)); color: var(--accent-ink); }
 .typing-line { margin: 0; padding: 0 1rem .25rem; font-size: var(--fs-xs); }
-.compose { display: flex; gap: .5rem; align-items: flex-end; padding: .6rem .75rem .75rem; border-top: 1px solid var(--border); }
-.compose textarea { flex: 1; min-height: 42px; max-height: 7rem; resize: none; padding: .6rem 1rem; border: 1px solid var(--control, var(--border)); border-radius: var(--r-card); background: var(--surface); color: inherit; font: inherit; line-height: 1.3; }
-.compose textarea:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: none; }
+.compose { display: flex; gap: .35rem; align-items: flex-end; margin: .5rem .75rem .75rem; padding: .25rem .3rem .25rem .5rem; border: 1px solid var(--control, var(--border)); border-radius: 26px; background: var(--surface2); }
+.compose:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.compose textarea { flex: 1; min-width: 0; min-height: 40px; max-height: 7rem; resize: none; padding: .55rem .4rem; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; font-size: 16px; line-height: 1.3; outline: none; }
 .send { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-lg); cursor: pointer; transition: transform .15s var(--ease), opacity .15s; }
 .send:hover:not(:disabled) { transform: scale(1.08); }
 .send:disabled { opacity: .4; cursor: default; }
@@ -205,6 +216,16 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .stack { display: inline-flex; }
 .stack i { display: grid; place-items: center; width: 24px; height: 24px; margin-inline-start: -8px; border-radius: 50%; border: 2px solid var(--accent); font: 800 var(--fs-xs) var(--f-body, inherit); font-style: normal; color: #1b1b1b; }
 .stack i:first-child { margin-inline-start: 0; }
+
+/* Phones: a full-height sheet (the field stays above the keyboard through the visual viewport), compact header. */
+@media (max-width: 600px) {
+  .chat { inset: 0; top: 0; bottom: auto; width: 100%; height: 100dvh; border-radius: 0; border: 0; }
+  .chat[data-side] { left: 0; right: 0; }
+  header { padding-top: calc(.65rem + env(safe-area-inset-top, 0px)); }
+  .online { display: none; }
+  .people { padding-bottom: .4rem; }
+  .grp { max-width: 96%; }
+}
 
 /* Slide in from the chosen edge, bubbles pop, new lines rise; none of it under reduced motion. */
 .chat-enter-active, .chat-leave-active { transition: transform .38s var(--spring, cubic-bezier(.22, 1, .36, 1)), opacity .25s; }

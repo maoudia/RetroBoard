@@ -43,3 +43,10 @@ The voted-ideas walk-through SHALL NOT dim or hide the board: the idea in turn i
 #### Scenario: Step through the ranking
 - **WHEN** the presenter starts the walk-through
 - **THEN** the first idea is ringed on the board and the other ideas stay visible
+
+### Requirement: Groups shown in presentation
+Presentation mode SHALL show the ideas of each group by default, with a board setting to turn it off.
+
+#### Scenario: Present a group
+- **WHEN** a group is presented
+- **THEN** its ideas are listed

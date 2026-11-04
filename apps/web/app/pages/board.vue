@@ -175,7 +175,7 @@ watch(needsSetup, (need) => {
   }
 })
 function sendSetup(s: SetupResult) {
-  board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value, openFacilitation: s.facilitation !== 'one', ...(s.announceArrivals === false ? { announceArrivals: false } : {}), ...(s.votable ? { votable: s.votable } : {}) })
+  board.commands.initBoard({ templateId: s.templateId, themeId: s.themeId, title: s.title, locale: s.locale ?? locale.value, openFacilitation: s.facilitation !== 'one', ...(s.announceArrivals === false ? { announceArrivals: false } : {}), ...(s.votable ? { votable: s.votable } : {}), ...(s.columns?.length ? { columns: s.columns } : {}) })
   // Votes per person and sealed ballot chosen at creation (advanced mode).
   if (s.voteLimit !== undefined || s.secretVoting || s.votingEnabled === false) board.commands.updateSettings({ ...(s.votingEnabled === false ? { votingEnabled: false } : {}), ...(s.voteLimit !== undefined ? { voteLimit: s.voteLimit } : {}), ...(s.secretVoting ? { secretVoting: true } : {}) })
   // One facilitator: the creator's tab is the lead (it never gets the takeover question).

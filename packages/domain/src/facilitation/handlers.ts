@@ -1,4 +1,5 @@
 import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, phaseClock, withoutOverride } from './agenda'
+import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
 import { type BoardState, DISPLAY_SCALES } from '../shared/types'
@@ -21,7 +22,9 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     if (!tpl) return fail('not-found')
     return done({
       ...s,
-      columns: columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId, c.votable),
+      columns: c.columns?.length
+        ? c.columns.map((x) => ({ id: ctx.newId(), title: x.title, subtitle: x.subtitle ?? '', icon: x.icon ?? DEFAULT_COLUMN_ICON, ...(x.color === undefined ? {} : { color: x.color }), ...(x.votable === false ? { votable: false } : {}) }))
+        : columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId, c.votable),
       settings: { ...s.settings, initialized: true, templateId: tpl.id, themeId: c.themeId, title: c.title ?? s.settings.title, ...(c.locale ? { locale: c.locale } : {}), ...(c.openFacilitation !== undefined ? { openFacilitation: c.openFacilitation } : {}), ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}) },
     }, { meta: true, wipe: true })
   },

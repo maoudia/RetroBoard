@@ -12,6 +12,7 @@ export type PhaseKindName = 'checkin' | 'review' | 'write' | 'group' | 'vote' | 
 export type ActionStatusName = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
 /** An action carried over from a previous retro (team profile, board file, JSON or CSV export). */
 export interface ImportedAction { text: string; owner: string; status: ActionStatusName; due?: string; from?: string }
+export interface CloneColumn { title: string; subtitle?: string; icon?: string; color?: number; votable?: boolean }
 export interface NewNote { columnId: string; text: string; color?: number }
 
 export type Command =
@@ -44,7 +45,7 @@ export type Command =
   | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon; color?: number; votable?: boolean }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
-  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean; /** Votable flag per template column, in order (overrides the format's defaults). */ votable?: boolean[] }
+  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean; /** Votable flag per template column, in order (overrides the format's defaults). */ votable?: boolean[]; /** A cloned board: its own columns replace the format's (change feedback-wave-7). */ columns?: CloneColumn[] }
   /** `wipe: true` is the older spelling of mode `wipe`; `migrate` keeps notes, clusters and votes (change board-type-migration). */
   | { t: 'template.apply'; templateId: string; wipe?: boolean; mode?: 'wipe' | 'migrate'; locale?: Locale }
   | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }

@@ -45,7 +45,7 @@ watch([now, endsAt], () => {
       <strong class="mono big" aria-hidden="true">{{ left }}</strong>
       <div class="txt">
         <span class="ttl">{{ t('reveal.title', { n: left }) }}</span>
-        <label class="check"><input v-model="keep" type="checkbox" data-testid="reveal-keep" /> {{ t('reveal.keep') }}</label>
+        <CheckPill v-model="keep" :label="t('reveal.keep')" data-testid="reveal-keep" />
       </div>
     </div>
   </Teleport>

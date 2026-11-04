@@ -62,6 +62,8 @@ export const useUiStore = defineStore('ui', () => {
   const takeoverAsked = ref(false)
   /** Presenter mode (screen sharing, room screen): larger type, no drafts, no pointers, QR to join. */
   const presenter = ref(false)
+  // Entering or leaving presentation mode starts from the default view: the toggle means "expand" outside, "collapse" inside.
+  watch(presenter, () => { expandedColumns.value = new Set() })
   /** Presenter column focus (presenter-mode-v2): index of the focused column, null for the whole board. Local to this tab. */
   const focusColumn = ref<number | null>(null)
   /** Presenter focus style, remembered per screen class. */

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { DEFAULT_VOTE_LIMIT, LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type ImportedAction, type PhaseInput } from '@retroboard/domain'
+import { DEFAULT_VOTE_LIMIT, LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type CloneColumn, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 import { nextTitle } from '~/utils/next-title'
 
-export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean; chain?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
+export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; columns?: CloneColumn[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean; chain?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
 /** Simple keeps title and format; theme, facilitation, popups, voting columns and passcode are advanced (change simple-advanced-mode). */
 const appSettings = useSettingsStore()
 const advanced = computed(() => appSettings.s.uiMode === 'advanced')
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
-const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean }>()
+const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean; /** A cloned board proposes its title (change feedback-wave-7). */ cloneTitle?: string }>()
 const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult]; 'update:minutes': [minutes: number] }>()
 
 const d = new Date()
@@ -22,6 +22,7 @@ watch(() => recents.items[0]?.title, (prev) => {
   const next = nextTitle(prev)
   if (next && !typed.value && title.value === dated) title.value = next
 }, { immediate: true })
+watch(() => props.cloneTitle, (v) => { if (v) { title.value = v; typed.value = true } }, { immediate: true })
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
 /** Votes per person and sealed ballot (advanced): applied right after the board exists. */
 const voteLimit = ref<number>(DEFAULT_VOTE_LIMIT)

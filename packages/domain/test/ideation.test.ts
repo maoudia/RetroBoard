@@ -77,6 +77,16 @@ describe('note.edit by author and facilitator (change edit-published-notes)', ()
   })
 })
 
+describe('note.delete by a facilitator (change feedback-wave-7)', () => {
+  it('a moderator removes a single idea written by someone else; a participant may not', () => {
+    const h = harness()
+    const id = note(h, 'x')
+    expect(h.run({ t: 'note.delete', id }, bob)).toEqual({ ok: false, error: 'forbidden' })
+    const out = h.run({ t: 'note.delete', id }, { ...bob, moderator: true })
+    expect(dirtyOf(out)?.notes).toEqual([id])
+  })
+})
+
 describe('note.delete, move, colour', () => {
   it('delete refuses locked, unknown and foreign notes and reports the id', () => {
     const h = harness()

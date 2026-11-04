@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { groupByAuthorPlan, groupSimilarPlan } from '@retroboard/application'
+import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 import type { Column } from '@retroboard/domain'
 import { errorLabel } from '~/utils/labels'
 const { t } = useT()
@@ -32,6 +33,12 @@ function applyGrouping() {
   ui.autoGrouped = { ...ui.autoGrouped, [props.column.id]: plan.value.flatMap((p) => p.noteIds) }
   push(t('column.group.done', { n: plan.value.length }), 'ok')
 }
+/** Facilitator: one colour for every idea of the column (change feedback-wave-7). Ideas inside groups follow their own group colour rules, so only loose ideas and group members are recoloured by note. */
+function colourAll(color: number) {
+  const ids = (board.snapshot?.notes ?? []).filter((n) => n.columnId === props.column.id && n.color !== color).map((n) => n.id)
+  for (const id of ids) board.commands.recolorNote(id, color)
+  push(t('column.colourAll.done', { n: ids.length }), 'ok')
+}
 function undoGrouping() {
   for (const id of applied.value) if (board.noteById(id)?.groupId) board.commands.ungroupNote(id)
   ui.autoGrouped = { ...ui.autoGrouped, [props.column.id]: [] }
@@ -58,6 +65,13 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
       <button class="dd-item" type="button" role="menuitem" :disabled="index === count - 1" @click="move(index + 1); close()"><Icon name="lucide:arrow-right" /> {{ t('column.right') }}</button>
       <div class="dd-sep" />
       <template v-if="board.access.canSteer">
+        <p class="dd-label muted">{{ t('column.colourAll') }}</p>
+        <div class="swatches" role="group" :aria-label="t('column.colourAll')" :data-testid="`col-colour-all-${column.id}`">
+          <button
+            v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" role="menuitem" class="sw" :style="{ background: `var(--note-${i - 1})` }"
+            :aria-label="t('note.colorN', { n: i })" :data-testid="`col-colour-${column.id}-${i - 1}`" @click="colourAll(i - 1); close()"
+          />
+        </div>
         <button class="dd-item" type="button" role="menuitem" :data-testid="`col-turn-${column.id}`" @click="board.commands.setTurn(board.snapshot?.turn === column.id ? null : column.id); close()">
           <Icon :name="board.snapshot?.turn === column.id ? 'lucide:lock-open' : 'lucide:scan-line'" /> {{ t(board.snapshot?.turn === column.id ? 'turn.stop' : 'turn.open') }}
         </button>
@@ -97,3 +111,10 @@ const move = (to: number) => board.commands.moveColumn(props.column.id, to)
     @confirm="board.commands.deleteColumn(column.id)"
   />
 </template>
+
+<style scoped>
+.dd-label { margin: .35rem .6rem 0; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.swatches { display: grid; grid-template-columns: repeat(8, minmax(22px, 1fr)); gap: 5px; padding: .3rem .5rem; }
+.sw { aspect-ratio: 1; min-width: 22px; min-height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform .15s; }
+.sw:hover { transform: scale(1.2); }
+</style>

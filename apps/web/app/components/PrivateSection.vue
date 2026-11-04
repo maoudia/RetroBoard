@@ -10,7 +10,13 @@ const board = useBoardStore()
 const drafts = useDraftsStore()
 const layout = useLayoutStore()
 const folded = computed(() => layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id))
+/** Columns locked together (the columns icon): the double chevron folds and unfolds every column at once (change feedback-wave-7). */
+function fold() {
+  if (ui.writeAll) layout.setWritingHidden(true)
+  else layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, true)
+}
 function unfold() {
+  if (ui.writeAll) { layout.setWritingHidden(false); return }
   if (layout.writingHidden) { layout.setWritingHidden(false); return }
   layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, false)
 }
@@ -147,11 +153,11 @@ function onKey(e: KeyboardEvent) {
         <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
       <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
-      <span class="pick-seg size-seg" role="group" :aria-label="t('private.area')">
-        <button v-for="z in WRITE_SIZES" :key="z" type="button" :class="{ on: ui.writeSizeOf(column.id) === z }" :aria-pressed="ui.writeSizeOf(column.id) === z" :aria-label="t(`private.area.${z}` as never)" :title="t(`private.area.${z}` as never)" :data-testid="`area-${z}-${column.id}`" @click="setSize(z)"><i class="sq" :class="z" aria-hidden="true" /></button>
+      <span class="pick-seg seg-rects" role="group" :aria-label="t('private.area')">
+        <button v-for="z in WRITE_SIZES" :key="z" type="button" :class="{ on: ui.writeSizeOf(column.id) === z }" :aria-pressed="ui.writeSizeOf(column.id) === z" :aria-label="t(`private.area.${z}` as never)" :title="t(`private.area.${z}` as never)" :data-testid="`area-${z}-${column.id}`" @click="setSize(z)"><i class="rect" :class="z" aria-hidden="true" /></button>
       </span>
       <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
-      <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevrons-down" /></button>
+      <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-down" /></button>
     </header>
 
     <ul v-if="mine.length" class="drafts">
@@ -243,15 +249,7 @@ header > .title { margin-inline-end: auto; }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
 /* Same look as every segmented control (.pick-seg); only the size of the buttons changes. No shadow: the selected one is simply filled. */
-.size-seg button { display: grid; place-items: center; padding: 0; min-width: 28px; min-height: 26px; color: var(--muted); box-shadow: none; }
-.size-seg button:hover:not(.on) { color: var(--text); }
-/* Three outlined squares of growing size say small, normal and large; no colour, the chosen one is filled and dark. */
-.sq { display: block; border-radius: 2px; border: 1.5px solid currentColor; background: transparent; }
-.sq.small { width: 7px; height: 7px; }
-.sq.normal { width: 11px; height: 11px; }
-.sq.large { width: 15px; height: 15px; }
-.size-seg button.on { box-shadow: none; }
-.size-seg button.on .sq { background: currentColor; }
+
 .mini-btn.all { color: var(--muted); }
 .mini-btn.all[aria-pressed='true'] { color: var(--text); background: var(--surface2); }
 .grow-grip { position: absolute; right: 0; bottom: 0; width: 24px; height: 24px; cursor: ns-resize; touch-action: none; display: grid; place-items: center; border-radius: var(--r-pill); }

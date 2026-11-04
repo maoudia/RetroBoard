@@ -5,6 +5,8 @@ import type { SetupResult } from '~/components/BoardSetupForm.vue'
 import { suggestThemeForDate } from '@retroboard/domain'
 import { markSolo } from '~/utils/solo'
 import { boardHash, newKeyRing } from '~/utils/invite'
+import type { CloneSpec } from '@retroboard/application'
+import { CLONE_KEY } from '~/utils/clone'
 const { t } = useT()
 
 const theme = useThemeStore()
@@ -15,7 +17,20 @@ const recents = useRecentsStore()
 const advanced = computed(() => settings.s.uiMode === 'advanced')
 useHead({ title: computed(() => t('new.pageTitle')) })
 
-onMounted(() => { void theme.use(settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false) })
+/** A clone started from a board: its structure (or only its open actions) prefills this form (change feedback-wave-7). */
+const route = useRoute()
+const cloned = ref<CloneSpec | null>(null)
+onMounted(() => {
+  try {
+    const raw = sessionStorage.getItem(CLONE_KEY)
+    if (raw && route.query.clone) cloned.value = JSON.parse(raw) as CloneSpec
+    sessionStorage.removeItem(CLONE_KEY)
+  } catch { cloned.value = null }
+  void theme.use(cloned.value?.themeId ?? settings.s.defaultTheme ?? suggestThemeForDate(new Date()).themeId, false)
+  const c = cloned.value
+  if (c?.actions?.length) carry.value = c.actions
+  if (c?.agenda) { agenda.value = { enabled: true, phases: c.agenda.phases, rules: c.agenda.rules, autoPublish: c.agenda.autoPublish, autoStart: true, chain: c.agenda.chain }; agendaEdited.value = true }
+})
 
 /** Previous actions to carry over into the new board (team profile or a file). */
 const carry = ref<ImportedAction[]>([])
@@ -44,6 +59,7 @@ function create({ passcode, ...form }: SetupResult) {
   const setup: SetupResult = {
     ...form,
     ...(carry.value.length ? { importActions: carry.value } : {}),
+    ...(cloned.value?.columns?.length ? { columns: cloned.value.columns } : {}),
     ...(a.enabled && a.phases.length ? { agenda: { phases: form.votingEnabled === false ? a.phases.filter((p) => p.kind !== 'vote' && p.kind !== 'rank') : a.phases, rules: a.rules, autoPublish: a.autoPublish, chain: a.chain !== false, ...(a.autoStart ? { autoStart: true } : {}) } } : {}),
   }
   const ring = { ...newKeyRing(), ...(passcode && !soloMode.value ? { passcode: true } : {}) }
@@ -81,7 +97,8 @@ function create({ passcode, ...form }: SetupResult) {
       <section class="card panel">
         <ToggleSwitch v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
         <ToggleSwitch plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
-        <BoardSetupForm :with-passcode="!soloMode" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
+        <p v-if="cloned" class="clone-banner" role="status" data-testid="clone-banner"><Icon name="lucide:copy" /> {{ t(cloned.kind === 'actions' ? 'clone.banner.actions' : 'clone.banner') }}</p>
+        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
       <section v-if="advanced" class="card panel">
         <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
@@ -121,6 +138,7 @@ function create({ passcode, ...form }: SetupResult) {
 </template>
 
 <style scoped>
+.clone-banner { display: flex; gap: .5rem; align-items: flex-start; margin: 0 0 .75rem; padding: .6rem .8rem; border-radius: var(--r-sm); background: var(--accent-soft); font-size: var(--fs-sm); }
 .new { position: relative; min-height: 100dvh; }
 .top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; max-width: 1040px; margin: 0 auto; padding: 1rem; }
 .back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text); font-weight: 700; text-decoration: none; }

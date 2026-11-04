@@ -1,6 +1,14 @@
 <script setup lang="ts">
+import { type CloneKind, cloneSpec } from '@retroboard/application'
+import { CLONE_KEY } from '~/utils/clone'
 const { t } = useT()
 const runUndo = useUndo()
+const router = useRouter()
+function clone(kind: CloneKind) {
+  if (!board.snapshot) return
+  try { sessionStorage.setItem(CLONE_KEY, JSON.stringify(cloneSpec(board.snapshot, kind, t('clone.copy')))) } catch { /* the form simply opens empty */ }
+  void router.push({ path: '/new', query: { clone: kind } })
+}
 const board = useBoardStore()
 const ui = useUiStore()
 const chat = useChatStore()
@@ -50,6 +58,9 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
           <RecentBoards :exclude="board.roomId ?? undefined" :limit="8" testid="boards-menu" @open="close()" />
           <p v-if="!otherBoards" class="boards-none muted">{{ t('toolbar.boards.none') }}</p>
           <NuxtLink to="/new" class="boards-new" data-testid="boards-new" @click="close()"><Icon name="lucide:plus" /> {{ t('toolbar.boards.new') }}</NuxtLink>
+          <!-- Clone (change feedback-wave-7): the structure of this board, or only its open actions, in a new empty board. -->
+          <button class="boards-new" type="button" data-testid="boards-clone" @click="clone('board'); close()"><Icon name="lucide:copy" /> {{ t('clone.board') }}</button>
+          <button class="boards-new" type="button" data-testid="boards-clone-actions" :disabled="!board.openActions" @click="clone('actions'); close()"><Icon name="lucide:list-checks" /> {{ t('clone.actions') }}</button>
         </template>
       </Dropdown>
       </div>

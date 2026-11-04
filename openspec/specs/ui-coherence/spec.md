@@ -53,3 +53,10 @@ The writing-size control SHALL look like the other segmented controls, without s
 #### Scenario: Selected size
 - **WHEN** a size is selected
 - **THEN** it is shown with the shared selected style
+
+### Requirement: Rectangular size controls and shared tick
+Size controls SHALL use rectangles with a readable selected state, and ticks with a label SHALL use one shared component.
+
+#### Scenario: Selected size
+- **WHEN** a size is selected
+- **THEN** its rectangle is filled with the accent colour

@@ -68,7 +68,9 @@ const noteCount = computed(() => board.snapshot?.notes.filter((n) => n.columnId 
 const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupId) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
 const colorIndex = computed(() => props.column.color ?? props.index % 8)
 const hasClusters = computed(() => items.value.some((i) => i.kind === 'group'))
-const expanded = computed(() => ui.expandedColumns.has(props.column.id))
+const appSettings = useSettingsStore()
+/** In presentation mode the ideas of every group show by default (a preference, on); the toggle then collapses instead (change feedback-wave-7). */
+const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !ui.expandedColumns.has(props.column.id) : ui.expandedColumns.has(props.column.id)))
 </script>
 
 <template>
@@ -110,12 +112,12 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
         </template>
         <template #default="{ close }">
           <!-- No words: four outlined bars of growing width, same look as the writing-size control (change feedback-wave-6). -->
-          <span class="pick-seg width-seg" role="group" :aria-label="t('column.size')">
+          <span class="pick-seg seg-rects width-seg" role="group" :aria-label="t('column.size')">
             <button
               v-for="z in COLUMN_SIZES" :key="z" type="button" role="menuitemradio" :class="{ on: size === z }" :aria-checked="size === z"
               :aria-label="t(`column.size.${z}` as never)" :title="t(`column.size.${z}` as never)" :data-testid="`size-${z}-${column.id}`"
               @click="ui.setColumnSize(board.roomId, column.id, z); close()"
-            ><span class="wbar" :class="z" aria-hidden="true" /></button>
+            ><i class="rect" :class="z" aria-hidden="true" /></button>
           </span>
         </template>
       </Dropdown>
@@ -153,12 +155,12 @@ const expanded = computed(() => ui.expandedColumns.has(props.column.id))
 @media (prefers-reduced-motion: reduce) { .col.col { transition: none; } }
 
 .col {
-  --note-w: 150px; position: relative; display: flex; flex-direction: column; min-height: 0; height: 100%; flex: 1 1 340px; min-width: min(340px, 86vw); max-width: 520px;
+  --note-w: 150px; position: relative; display: flex; flex-direction: column; min-height: 0; height: 100%; flex: 1 1 340px; min-width: min(340px, 86vw); max-width: none; /* use the whole width: no empty strip at the right of the board (change feedback-wave-7) */
   background: color-mix(in oklab, var(--surface) 88%, transparent); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-1);
   border-top: 3px solid var(--col); transition: border-color .2s, box-shadow .2s, background .2s;
 }
 .col[data-size="narrow"] { flex-basis: 240px; min-width: min(240px, 86vw); max-width: 300px; }
-.col[data-size="wide"] { flex-basis: 560px; min-width: min(560px, 92vw); max-width: 760px; }
+.col[data-size="wide"] { flex: 2 1 560px; min-width: min(560px, 92vw); max-width: none; }
 .col[data-size="full"] { flex: 0 0 100%; min-width: 0; max-width: none; }
 .col[data-size="custom"] { flex: 0 0 var(--w); min-width: min(var(--w), 92vw); max-width: none; }
 /* Drag the right edge to set the width (mouse, touch, keyboard arrows). */
@@ -179,11 +181,5 @@ h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-s
 .grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w), 1fr)); gap: .9rem; align-items: start; }
 .empty { text-align: center; padding: 1.5rem .5rem; font-style: italic; }
 .width-seg { margin: .2rem; }
-.width-seg button { display: grid; place-items: center; padding: 0; min-width: 40px; min-height: 36px; }
-.wbar { display: block; height: 12px; border-radius: 2px; border: 1.5px solid currentColor; }
-.wbar.narrow { width: 8px; }
-.wbar.normal { width: 13px; }
-.wbar.wide { width: 20px; }
-.wbar.full { width: 28px; background: currentColor; }
-.width-seg button.on .wbar { background: currentColor; }
+
 </style>

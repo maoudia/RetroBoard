@@ -99,7 +99,7 @@ async function restoreBoardFile(e: Event) {
 
       <section class="pane">
         <label v-if="advanced && dest !== 'jira'" class="only">
-          <input v-model="actionsOnly" type="checkbox" data-testid="export-actions-only" /> {{ t('exportHub.actionsOnly') }}
+          <CheckPill v-model="actionsOnly" :label="t('exportHub.actionsOnly')" data-testid="export-actions-only" />
         </label>
 
         <div class="acts">

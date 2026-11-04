@@ -31,7 +31,7 @@ function save() {
     <form id="name-form" class="form" @submit.prevent="save">
       <p class="muted">{{ t('name.intro') }}</p>
       <input v-model="name" class="field" :maxlength="LIMITS.displayName" :placeholder="t('name.placeholder')" autocomplete="off" autofocus data-testid="name-input" :aria-label="t('name.label')" />
-      <label class="check"><input v-model="show" type="checkbox" data-testid="name-show" @change="touched = true" /> {{ t('name.show') }}</label>
+      <CheckPill v-model="show" :label="t('name.show')" data-testid="name-show" @change="touched = true" />
     </form>
     <template #footer>
       <button class="btn btn-primary" type="submit" form="name-form" data-testid="name-save">{{ t('name.enter') }} <Icon name="lucide:arrow-right" /></button>
