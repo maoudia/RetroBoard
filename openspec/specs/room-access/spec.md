@@ -71,3 +71,10 @@ A passcode entered or created on a device SHALL be remembered with the local cop
 #### Scenario: Reopen
 - **WHEN** Bob joined with the passcode yesterday and reopens the link on the same browser
 - **THEN** the board opens without the passcode prompt
+
+### Requirement: Shield for encryption state
+The encryption state SHALL be shown as a shield icon, with the explanation available on hover, focus and tap, instead of a long sentence.
+
+#### Scenario: Explanation on demand
+- **WHEN** a user taps the shield
+- **THEN** a short explanation of the protection (or its absence) is shown

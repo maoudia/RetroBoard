@@ -94,3 +94,31 @@ A participant without a name SHALL be invited once per board, by a dismissible f
 #### Scenario: Already has a name
 - **WHEN** a participant has a name, whether or not their notes show it
 - **THEN** the popup is never shown
+
+### Requirement: Erase button styling
+The Erase button of the profile dialog SHALL render completely inside its box, including its focus ring, using the shared button tokens.
+
+#### Scenario: Focus ring not clipped
+- **WHEN** the Erase button receives focus
+- **THEN** its outline is fully visible
+
+### Requirement: Peers shown with their own colour
+Each client SHALL broadcast its profile (name, colour, avatar) when it connects and when it changes, and the participants menu SHALL show each person with that colour and avatar.
+
+#### Scenario: Two people with chosen colours
+- **WHEN** Alice picks a green avatar colour and Bob joins
+- **THEN** Bob's participants menu shows Alice in green, not in a colour derived from her key
+
+### Requirement: Layout per screen class
+The board SHALL remember layout choices per screen class on the device (phone, tablet, desktop, wall) and apply the profile of the current class on every board.
+
+#### Scenario: Laptop and TV
+- **WHEN** Alice widens a column on her laptop and later opens a board on the meeting-room TV in the same browser profile
+- **THEN** the TV keeps its own layout and the laptop finds the wide column again
+
+### Requirement: Reset and copy layouts
+The profile SHALL let the person reset the layout of the current screen class or copy another class's layout to it.
+
+#### Scenario: Reset
+- **WHEN** Alice resets the layout on this screen
+- **THEN** every remembered size for this screen class returns to its default

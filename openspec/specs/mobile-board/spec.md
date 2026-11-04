@@ -18,3 +18,10 @@ On phones the toolbar SHALL show at most five icon actions and a more menu, with
 #### Scenario: Toolbar on a phone
 - **WHEN** Alice opens a board on a 390 px wide phone
 - **THEN** the toolbar holds one row of icons and the more menu lists the other actions
+
+### Requirement: Floor banner never overflows
+The "has the floor" banner SHALL wrap or truncate its content and SHALL NOT cause horizontal overflow at any width from 320 px.
+
+#### Scenario: Long name on a small phone
+- **WHEN** a participant with a long name has the floor on a 320 px screen
+- **THEN** the banner fits the screen and the page does not scroll horizontally

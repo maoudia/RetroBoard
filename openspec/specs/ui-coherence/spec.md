@@ -32,3 +32,10 @@ On screens narrower than 600 px the voting bar SHALL stay on one line and scroll
 #### Scenario: Phone
 - **WHEN** Alice votes on a 360 px wide phone
 - **THEN** the voting bar takes one line and the columns keep their space
+
+### Requirement: One toggle component
+Every on/off setting in the application SHALL use the same toggle component with a label and, where useful, an icon and a description.
+
+#### Scenario: Voting and layout toggles look alike
+- **WHEN** a user compares the secret-vote toggle and a layout toggle
+- **THEN** both use the same switch, size and states
