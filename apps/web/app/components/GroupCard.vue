@@ -127,7 +127,7 @@ onBeforeUnmount(cancelPeek)
 .stack.docked .face { padding-bottom: 2.9rem; min-height: 128px; }
 .abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
 .gvote { margin-left: auto; color: var(--note-ink); }
-.stack { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
+.stack { position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
 .stack:hover { transform: translateY(-3px) scale(1.015); }
 .stack.over { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--r-xs); }
 .layer { position: absolute; inset: 0; border-radius: calc(var(--r-card) / 3 + 2px); box-shadow: var(--shadow-1); }

@@ -2,12 +2,15 @@ import { type BoardResult, type PublishedItem, publishedNotes, UNDO_WINDOW_MS } 
 import { LIMITS } from '@retroboard/domain'
 import { t } from '~/i18n'
 
+/** The publish toast still on screen: a new publication merges into it instead of stacking another one (change stabilise-main). */
+let lastBatch: { toastId: number; items: PublishedItem[]; since: number } | null = null
+
 /** Publishes private drafts to the shared board, with the flight animation. */
 export function usePublish() {
   const board = useBoardStore()
   const drafts = useDraftsStore()
   const flights = useFlights()
-  const { push } = useToasts()
+  const { push, dismiss, toasts } = useToasts()
 
   function publish(ids?: string[]): BoardResult {
     const list = ids ? drafts.drafts.filter((d) => ids.includes(d.id)) : drafts.drafts
@@ -31,7 +34,13 @@ export function usePublish() {
       keepIfRefused(slice)
       items.push(...slice.map((d) => ({ columnId: d.columnId, text: d.text, color: d.color })))
     }
-    push(t('publish.done', { n: items.length }), 'ok', UNDO_WINDOW_MS, { label: t('publish.undo'), testid: 'undo-publish', run: () => undo(items, since) })
+    // Three quick publications make one toast ("3 ideas published") with one Undo that takes all of them back.
+    const prev = lastBatch && toasts.value.some((x) => x.id === lastBatch!.toastId) ? lastBatch : null
+    const all = prev ? [...prev.items, ...items] : items
+    const from = prev ? prev.since : since
+    if (prev) dismiss(prev.toastId)
+    const toastId = push(t('publish.done', { n: all.length }), 'ok', UNDO_WINDOW_MS, { label: t('publish.undo'), testid: 'undo-publish', run: () => undo(all, from) })
+    lastBatch = { toastId, items: all, since: from }
     return { ok: true }
   }
 
