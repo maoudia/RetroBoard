@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.43.0](https://github.com/maoudia/RetroBoard/compare/v1.42.0...v1.43.0) (2026-11-04)
+
+
+### Features
+
+* **agenda:** player-style panel with an outside transport bar and a restart-all button ([74f2187](https://github.com/maoudia/RetroBoard/commit/74f2187d839a7cdf13f53e1ba62e53aa33b975b7))
+* **agenda:** the end of the agenda closes voting; finished state is plain text ([1357aee](https://github.com/maoudia/RetroBoard/commit/1357aee00135ccfe67f39e1d90099f7139f03614))
+* **ui:** presenter space, spotlight and walk-through dock, chat avatar strip, neutral size control, cluster layout ([de5cb2a](https://github.com/maoudia/RetroBoard/commit/de5cb2a548061e8ab17f34d0b4ee92ba14ce855c))
+
 ## [1.42.0](https://github.com/maoudia/RetroBoard/compare/v1.41.0...v1.42.0) (2026-11-04)
 
 
