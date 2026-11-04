@@ -363,7 +363,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <RevealCountdown v-if="board.ready" />
       <BoardFilter v-if="board.ready && ui.filterOpen" />
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
-      <div v-else-if="offline" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
+      <div v-else-if="offline && board.ready" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
       <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
 
       <nav v-if="board.ready && visibleCols.length > 1" class="col-dots" :aria-label="t('board.dots')" data-testid="col-dots">
@@ -375,7 +375,14 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
       <HiddenColumns v-if="board.ready && board.hiddenColumns.length" />
       <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" @retry="enter" />
-      <div v-else-if="!board.ready && !needsPasscode" class="loading" role="status"><Icon name="lucide:loader" class="spin" /> {{ t('board.opening') }}</div>
+      <div v-else-if="!board.ready && !needsPasscode" class="opening" role="status" aria-live="polite" data-testid="board-opening">
+        <div class="opening-cols" aria-hidden="true"><span v-for="n in 3" :key="n" class="sk"><i /><i /><i /></span></div>
+        <div class="opening-card glass">
+          <span class="ring" aria-hidden="true" />
+          <strong>{{ t('board.opening') }}</strong>
+          <small class="muted" :data-testid="offline ? 'offline' : undefined">{{ offline ? t('board.opening.offline') : t('board.opening.hint') }}</small>
+        </div>
+      </div>
 
       <main v-else-if="board.ready" ref="boardEl" class="board" data-testid="board" @touchstart.passive="onSwipeStart" @touchend.passive="onSwipeEnd">
         <template v-for="(c, i) in board.columns" :key="c.id">
@@ -440,8 +447,20 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .offline { position: fixed; z-index: 50; top: 76px; left: 50%; translate: -50% 0; box-shadow: var(--shadow-2); background: var(--surface2); }
 .offline.warn { top: 124px; border: 1px solid var(--warn, var(--danger)); }
-.loading { display: flex; gap: .6rem; align-items: center; justify-content: center; flex: 1; color: var(--muted); font-weight: 600; }
-.spin { animation: spin 1s linear infinite; }
+.opening { position: relative; flex: 1; display: grid; place-items: center; padding: var(--sp-4); overflow: hidden; }
+.opening-cols { position: absolute; inset: var(--sp-4); display: flex; gap: var(--sp-4); opacity: .5; pointer-events: none; }
+.opening-cols .sk { flex: 1; display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.opening-cols .sk:nth-child(n + 2) { display: none; }
+@media (min-width: 720px) { .opening-cols .sk:nth-child(n + 2) { display: flex; } }
+.opening-cols i { display: block; height: 4.5rem; border-radius: var(--r-card); background: var(--surface2); animation: pulse 1.6s ease-in-out infinite; }
+.opening-cols i:nth-child(2) { height: 3.5rem; animation-delay: .2s; }
+.opening-cols i:nth-child(3) { height: 5.5rem; animation-delay: .4s; }
+.opening-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-5) var(--sp-6); max-width: min(22rem, 100%); text-align: center; border-radius: var(--r-card); }
+.opening-card strong { font-size: var(--fs-lg); }
+.opening-card small { font-size: var(--fs-sm); }
+.ring { width: 2.25rem; height: 2.25rem; margin-bottom: var(--sp-2); border-radius: 50%; border: 3px solid var(--surface2); border-top-color: var(--accent, currentColor); animation: spin 1s linear infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .ring, .opening-cols i { animation: none; } }
 @keyframes spin { to { rotate: 360deg; } }
 .invalid { display: grid; gap: .8rem; justify-items: center; text-align: center; margin: auto; padding: 2.5rem; max-width: 420px; }
 .big { font-size: var(--fs-3xl); color: var(--danger); }
