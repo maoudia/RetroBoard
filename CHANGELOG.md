@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.1](https://github.com/maoudia/RetroBoard/compare/v1.45.0...v1.45.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **votes:** clear the floating +1 under reduced motion and repair the nightly e2e specs ([4d42f51](https://github.com/maoudia/RetroBoard/commit/4d42f5100efc103fe484a67f191015e56caf6430))
+
 ## [1.45.0](https://github.com/maoudia/RetroBoard/compare/v1.44.0...v1.45.0) (2026-11-04)
 
 
