@@ -1,7 +1,7 @@
 # boards Specification
 
 ## Purpose
-TBD - created by archiving change feedback-wave-7. Update Purpose after archive.
+Creating boards and reusing them: a board can be cloned (columns, theme and agenda, never any content) and its open actions can be copied into a new empty board.
 
 ## Requirements
 

@@ -1,7 +1,7 @@
 # chat Specification
 
 ## Purpose
-TBD - created by archiving change feedback-wave-7. Update Purpose after archive.
+The live chat drawer: roomy on phones, with the participants strip folded by default and a messaging-style composer.
 
 ## Requirements
 
