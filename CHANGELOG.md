@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.45.0](https://github.com/maoudia/RetroBoard/compare/v1.44.0...v1.45.0) (2026-11-04)
+
+
+### Features
+
+* **board:** rectangular size controls, full-width columns, phone chat, clone board, bulk colour ([32c542b](https://github.com/maoudia/RetroBoard/commit/32c542b453f62f30914b72938ce193a20741dad6))
+* **undo:** redo, toolbar undo/redo buttons and undo of a deleted idea ([6690aa8](https://github.com/maoudia/RetroBoard/commit/6690aa8214948ef773c379b8cb9ccaf70aff9e75))
+
+
+### Bug Fixes
+
+* **types:** make verify green after wave 7 (clone icon type, redo.delete key, chat tokens) ([87a37e2](https://github.com/maoudia/RetroBoard/commit/87a37e282268cb15fed23a94a58350ad7144812d))
+
 ## [1.44.0](https://github.com/maoudia/RetroBoard/compare/v1.43.0...v1.44.0) (2026-11-04)
 
 
