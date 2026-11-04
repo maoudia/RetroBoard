@@ -29,30 +29,22 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   const { push } = useToasts()
   const settings = useSettingsStore()
-  let durable: ReplicaStorePort | null = null
+  let durable: ReplicaStorePort | null
   try { durable = typeof indexedDB === 'undefined' ? null : createIdbReplicaStore(openReplicaDb()) } catch { durable = null }
   let session: ReplicaStorePort | null = null
   try { session = createSessionReplicaStore(sessionStorage) } catch { /* no storage at all: memory only */ }
   // Private modes without IndexedDB keep the board in this tab (sessionStorage): a reload or back and forward reopens it.
   const replica: ReplicaStorePort | null = session ? withSessionFallback(durable, session) : durable
-  // "Until I leave" (retention 0) keeps the copy for the life of the tab only (sessionStorage): a reload, the home
-  // page and back still reopen the board, closing the tab forgets it. Nothing is written to IndexedDB then.
-  // Reads still merge the durable copy, so a board kept before the switch to "until I leave" is not lost.
-  const tabOnly: ReplicaStorePort | null = session && replica ? { ...session, load: (roomId) => replica.load(roomId) } : session
-  const replicaFor = (): ReplicaStorePort | null => (settings.s.retentionDays === 0 ? tabOnly : replica)
+  // The durable copy is always kept (minimum one day): a board must reopen from this browser even when nobody else is online.
+  const replicaFor = (): ReplicaStorePort | null => replica
   // Retention sweep, deferred: the board being opened marks its room as live first, so it is never swept while it opens.
-  // "Until I leave" sweeps every durable copy (left over from a longer retention); the tab copy stays.
-  const sweep = () => {
-    const days = settings.s.retentionDays
-    if (days === 0) void durable?.purge(Number.MAX_SAFE_INTEGER).catch(() => {})
-    else void replica?.purge(Date.now() - days * 86_400_000).catch(() => {})
-  }
+  const sweep = () => { if (settings.s.retentionDays > 0) void replica?.purge(Date.now() - settings.s.retentionDays * 86_400_000).catch(() => {}) }
   let durableVault: PasscodeVault | null
   try { durableVault = typeof indexedDB === 'undefined' || !crypto?.subtle ? null : createIdbVault(openVaultDb()) } catch { durableVault = null }
   let tabVault: PasscodeVault
   try { tabVault = createSessionVault(sessionStorage) } catch { tabVault = { get: async () => null, set: async () => {}, delete: async () => {}, purge: async () => 0 } }
-  const vault = createVault(durableVault, tabVault, () => settings.s.retentionDays === 0)
-  const sweepVault = () => { void vault.purge(settings.s.retentionDays === 0 ? Number.MAX_SAFE_INTEGER : Date.now() - settings.s.retentionDays * 86_400_000) }
+  const vault = createVault(durableVault, tabVault, () => false)
+  const sweepVault = () => { if (settings.s.retentionDays > 0) void vault.purge(Date.now() - settings.s.retentionDays * 86_400_000) }
   setTimeout(() => { sweep(); sweepVault() }, 20_000)
   if (durable) void requestPersistence()
   const ports: Ports = {

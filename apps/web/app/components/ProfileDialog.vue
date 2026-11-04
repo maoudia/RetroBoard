@@ -159,8 +159,8 @@ async function wipe() {
       <div class="line">
         <span><strong>{{ t('profile.retention') }}</strong><small class="muted">{{ t('profile.retention.hint') }}</small></span>
         <span class="pick-seg" role="group" :aria-label="t('profile.retention')">
-          <button v-for="d in ([0, 1, 7, 30] as const)" :key="d" type="button" :class="{ on: settings.s.retentionDays === d }" :aria-pressed="settings.s.retentionDays === d" :data-testid="`retention-${d}`" @click="set({ retentionDays: d })">
-            {{ d === 0 ? t('profile.retention.leave') : t('profile.retention.days', { n: d }) }}
+          <button v-for="d in ([1, 7, 30, -1] as const)" :key="d" type="button" :class="{ on: settings.s.retentionDays === d }" :aria-pressed="settings.s.retentionDays === d" :data-testid="`retention-${d}`" @click="set({ retentionDays: d })">
+            {{ d === -1 ? t('profile.retention.forever') : t('profile.retention.days', { n: d }) }}
           </button>
         </span>
       </div>

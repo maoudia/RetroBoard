@@ -13,4 +13,8 @@ describe('stored settings migration', () => {
     expect(migrate({ uiMode: 'advanced' })).toEqual({ uiMode: 'advanced' })
     expect(migrate({ uiMode: 'expert' })).toEqual({})
   })
+  it('turns the removed "while the tab is open" retention into "for ever", so a board is never lost', () => {
+    expect(migrate({ retentionDays: 0 }).retentionDays).toBe(-1)
+    expect(migrate({ retentionDays: 7 }).retentionDays).toBe(7)
+  })
 })

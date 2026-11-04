@@ -34,7 +34,6 @@ async function restore(e: Event) {
     <h1>{{ t('board.waiting.title') }}</h1>
     <p class="lead">{{ t('board.waiting.lead') }}</p>
     <p class="muted diag" data-testid="waiting-local">{{ board.localCopy === null ? t('board.waiting.local.error') : board.localCopy ? t('board.waiting.local.some', { n: board.localCopy }) : t('board.waiting.local.none') }}</p>
-    <p v-if="useSettingsStore().s.retentionDays === 0" class="muted diag" data-testid="waiting-tab-only">{{ t('board.waiting.local.tabOnly') }}</p>
     <button class="btn" type="button" data-testid="waiting-retry" @click="emit('retry')"><Icon name="lucide:refresh-cw" /> {{ t('board.waiting.retry') }}</button>
     <div class="actions">
       <NuxtLink class="btn" to="/" data-testid="waiting-home"><Icon name="lucide:house" /> {{ t('service.home') }}</NuxtLink>

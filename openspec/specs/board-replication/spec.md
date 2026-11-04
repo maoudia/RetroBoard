@@ -13,7 +13,7 @@ The relay MUST NOT write board events, snapshots or metadata to any persistent s
 - **THEN** nothing about the room remains on the service
 
 ### Requirement: Local encrypted replica
-Each participant's browser SHALL keep an encrypted replica of the boards it joined and SHALL delete it after the retention period chosen in the profile (default 30 days, minimum "when I leave").
+Each participant's browser SHALL keep an encrypted replica of the boards it joined and SHALL delete it after the retention period chosen in the profile (default for ever, minimum 1 day, with a "for ever" choice that is never swept: a board SHALL never be lost because its tab was closed while nobody else is online).
 
 #### Scenario: Retention expires
 - **WHEN** a replica is older than the retention period
