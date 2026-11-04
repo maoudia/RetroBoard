@@ -127,6 +127,8 @@ const PLAN = {
   'toast-notifications-v2': ['P11', 'A', []],
   // Owner feedback 2026-11-03 (ten screenshots): picture fixes ship next, features are spec only.
   'feedback-wave-4': ['P11', 'B', []],
+  'feedback-wave-5': ['P11', 'B', []],
+  'feedback-wave-6': ['P11', 'B', []],
   'user-manual-and-tutorials': ['P12', 'C', []],
   'vote-all-on-one-idea': ['P12', 'B', ['up-down-votes']],
   'board-undo-rewind': ['P12', 'A', []],
@@ -178,7 +180,7 @@ const ROADMAP = {
   'mobile-board-space': 'R1', 'board-layout-v2': 'R2', 'presenter-accordion-motion': 'R2', 'edit-published-notes': 'R1', 'board-chat': 'R3', 'ux-irritants-wave-2': 'R1', 'ux-irritants-wave-3': 'R1',
   'toast-notifications-v2': 'R1',
   // Owner feedback 2026-11-03: picture fixes in the next release, ideas spec only.
-  'feedback-wave-4': 'R1', 'vote-all-on-one-idea': 'R2', 'board-undo-rewind': 'R2', 'export-destinations-v2': 'R3', 'user-drive-storage': 'R3',
+  'feedback-wave-4': 'R1', 'feedback-wave-5': 'R1', 'feedback-wave-6': 'R1', 'vote-all-on-one-idea': 'R2', 'board-undo-rewind': 'R2', 'export-destinations-v2': 'R3', 'user-drive-storage': 'R3',
   'user-manual-and-tutorials': 'R3', 'agent-feedback-and-timeboxed-sessions': 'R4', 'funny-local-companion': 'R4',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
@@ -198,7 +200,7 @@ const PRIORITY = {
   'clusters-v2': 2, 'board-type-migration': 2,
   'column-visibility': 2, 'time-display-options': 2, 'presence-status': 2, 'note-pin': 2, 'button-icons-everywhere': 2, 'toolbar-mobile-scroll': 2, 'agenda-clock-v2': 2,
   'quality-gates-v2': 3, 'automated-semver-release': 3, 'allure-report-aggregation': 3, 'self-rename-event': 1, 'ci-toolchain-speed': 3, 'agentic-delivery-harness': 3, 'edge-security-and-domain': 3, 'accessibility-wcag': 3,
-  'password-by-default': 2, 'ui-coherence-pass': 2, 'mode-parity': 2, 'community-feedback': 2, 'mobile-board-space': 1, 'board-layout-v2': 2, 'presenter-accordion-motion': 2, 'edit-published-notes': 1, 'board-chat': 2, 'ux-irritants-wave-2': 1, 'ux-irritants-wave-3': 1, 'feedback-wave-4': 1,
+  'password-by-default': 2, 'ui-coherence-pass': 2, 'mode-parity': 2, 'community-feedback': 2, 'mobile-board-space': 1, 'board-layout-v2': 2, 'presenter-accordion-motion': 2, 'edit-published-notes': 1, 'board-chat': 2, 'ux-irritants-wave-2': 1, 'ux-irritants-wave-3': 1, 'feedback-wave-4': 1, 'feedback-wave-5': 1, 'feedback-wave-6': 1,
   'toast-notifications-v2': 1, 'device-layout-prefs': 2, 'solo-parity-and-dedup': 2, 'results-insights': 2, 'team-workspaces': 2,
 }
 const priorityOf = (name) => PRIORITY_LEVELS[(PRIORITY[name] ?? 4) - 1][0]

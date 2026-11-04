@@ -39,3 +39,17 @@ Every on/off setting in the application SHALL use the same toggle component with
 #### Scenario: Voting and layout toggles look alike
 - **WHEN** a user compares the secret-vote toggle and a layout toggle
 - **THEN** both use the same switch, size and states
+
+### Requirement: No full-screen hiding for a review aid
+A presenter review aid SHALL NOT dim or hide the content it is about when a non-modal dock can carry it.
+
+#### Scenario: Walk-through
+- **WHEN** the walk-through is running
+- **THEN** the board is not covered by a scrim
+
+### Requirement: Writing-size control look
+The writing-size control SHALL look like the other segmented controls, without stray shadows.
+
+#### Scenario: Selected size
+- **WHEN** a size is selected
+- **THEN** it is shown with the shared selected style

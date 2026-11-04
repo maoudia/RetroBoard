@@ -190,3 +190,10 @@ A published note SHALL NOT show a colour palette on hover; its colour stays in t
 #### Scenario: Hover
 - **WHEN** a pointer rests on a published note
 - **THEN** no colour swatches appear
+
+### Requirement: Keyboard stays open when stacking
+Adding an idea on a phone SHALL keep the keyboard open.
+
+#### Scenario: Stack several ideas
+- **WHEN** a user sends an idea
+- **THEN** the field keeps focus

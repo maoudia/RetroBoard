@@ -34,3 +34,10 @@ The chat SHALL show by default whether the user is connected and focused on the 
 - **THEN** the status line is visible
 - **AND WHEN** she disables the chat status in her preferences
 - **THEN** the status line is no longer shown
+
+### Requirement: Roster for many people
+With more than four people online the chat SHALL fold the roster into an overlapping avatar strip with an overflow count, and one control SHALL open the full roster without horizontal scrolling.
+
+#### Scenario: Eight people
+- **WHEN** eight people are online
+- **THEN** the strip shows seven faces and +1, and the full roster opens on demand

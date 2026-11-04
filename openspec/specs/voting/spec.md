@@ -68,3 +68,10 @@ A board option, off by default and shown in the advanced options, SHALL let a pa
 #### Scenario: Default
 - **WHEN** the option is off
 - **THEN** the existing per-idea cap applies
+
+### Requirement: Ticket vote bar
+The voting menu SHALL show remaining votes as tickets.
+
+#### Scenario: Votes used
+- **WHEN** a user casts a vote
+- **THEN** one ticket changes from filled to outlined

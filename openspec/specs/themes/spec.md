@@ -57,3 +57,10 @@ Every button that shows a text label SHALL show an icon at the left of that labe
 #### Scenario: Guard
 - **WHEN** a labelled button without an icon is added to a component
 - **THEN** the design guard test fails
+
+### Requirement: Theme animation choice at creation
+Theme animation SHALL be on by default and the creation form SHALL offer a toggle to turn it off.
+
+#### Scenario: Turn it off
+- **WHEN** the creator switches the animation off
+- **THEN** the board shows no ambient animation

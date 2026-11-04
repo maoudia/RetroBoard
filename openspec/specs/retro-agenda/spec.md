@@ -111,3 +111,31 @@ The facilitator SHALL be able to go back to the previous phase, which resumes wi
 #### Scenario: Back to writing
 - **WHEN** the facilitator moved to Group by mistake while Write had 3 minutes left
 - **THEN** going back resumes Write with 3 minutes left for everyone
+
+### Requirement: The end of the agenda closes voting
+When the last phase is left or the retro is ended, voting SHALL close and the results SHALL be shown.
+
+#### Scenario: End the retro while voting is open
+- **WHEN** the facilitator ends the agenda
+- **THEN** voting is closed for everyone
+
+### Requirement: Plain end state in the stepper
+The stepper SHALL show "finished" and "not started" as plain text; only a running phase offers the elapsed or left switch.
+
+#### Scenario: Agenda finished
+- **WHEN** the agenda is finished
+- **THEN** the stepper line is not interactive
+
+### Requirement: Player-style agenda panel
+The agenda panel SHALL be driven by an icon-only transport bar placed outside the rings, with play or pause as its leading button, and SHALL offer one button that restarts every chronometer after a second confirming tap.
+
+#### Scenario: Restart everything
+- **WHEN** the facilitator taps restart twice
+- **THEN** the agenda is back on its first phase with no time spent, the board timer is reset and voting is open
+
+### Requirement: Automatic chained agenda
+New boards SHALL start with an automatic agenda: it starts at creation and each phase hands over to the next when its planned time elapses, announcing the change, unless a facilitator extends the phase.
+
+#### Scenario: Phase time elapses
+- **WHEN** the planned time of the running phase is over and it was not extended
+- **THEN** the agenda moves to the next phase and announces it

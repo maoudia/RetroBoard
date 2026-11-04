@@ -14,7 +14,7 @@ adding or re-planning a change; the `Project roadmap` workflow then puts the iss
 
 ## R1 Beta ready (target 2026-11-15)
 
-Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a real team needs first. Order of work: `reliable-board-sync` (last task), `password-by-default`, `ui-coherence-pass`, `mode-parity`, `community-feedback`. Delivered in R1 and waiting for archive: service pages, facilitation defaults, sticky notes v2, board lifecycle, keyboard, phase cues, name nudge, author name, draft-first composer, self rename.
+Recalibrated 2026-11-04 after feedback waves 4 to 6. Remaining order of work: `reliable-board-sync` (last task), `community-feedback`, then `results-insights` and the rest of `board-undo-rewind` (redo, history panel) from R2. Delivered since 2026-11-03: Ctrl+Z undo, boards kept for ever by default (no loss when nobody is connected), player-style agenda, automatic chained agenda, tick-to-group menu. Delivered in R1 and waiting for archive: service pages, facilitation defaults, sticky notes v2, board lifecycle, keyboard, phase cues, name nudge, author name, draft-first composer, self rename.
 
 * `reliable-board-sync` ([proposal](../openspec/changes/reliable-board-sync/proposal.md))
 * `password-by-default` ([proposal](../openspec/changes/archive/2026-11-03-password-by-default/proposal.md))
@@ -22,7 +22,9 @@ Recalibrated 2026-11-02 (owner feedback wave P10): the beta closes on what a rea
 * `mode-parity` ([proposal](../openspec/changes/archive/2026-11-03-mode-parity/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
 * `ux-irritants-wave-3` ([proposal](../openspec/changes/archive/2026-11-03-ux-irritants-wave-3/proposal.md)) - live retro 2026-11-03: calm UI, menus, column turns, global timer cap
-* `feedback-wave-4` ([proposal](../openspec/changes/feedback-wave-4/proposal.md)) - owner feedback 2026-11-03, ten screenshots: chat, dialogs, buttons, hide for now, writing-area sizing, floor banner, voting menu, peer colours, shield. NEXT RELEASE
+* `feedback-wave-4` ([proposal](../openspec/changes/feedback-wave-4/proposal.md)) - owner feedback 2026-11-03, ten screenshots: chat, dialogs, buttons, hide for now, writing-area sizing, floor banner, voting menu, peer colours, shield. Delivered
+* `feedback-wave-5` ([proposal](../openspec/changes/archive/2026-11-04-feedback-wave-5/proposal.md)) - owner feedback 2026-11-04: presentation space, size squares, chat roster, agenda player panel and restart. Delivered
+* `feedback-wave-6` ([proposal](../openspec/changes/archive/2026-11-04-feedback-wave-6/proposal.md)) - owner feedback 2026-11-04: automatic chained agenda, theme animation toggle, direct/relay legend, similarity v2, phone keyboard, ticket vote bar, bulk grouping. Delivered
 * `mobile-board-space` ([proposal](../openspec/changes/archive/2026-11-03-mobile-board-space/proposal.md)) - live retro 2026-11-02: room to work on phones
 * `edit-published-notes` ([proposal](../openspec/changes/archive/2026-11-03-edit-published-notes/proposal.md)) - live retro 2026-11-02
 * `ux-irritants-wave-2` ([proposal](../openspec/changes/archive/2026-11-03-ux-irritants-wave-2/proposal.md)) - live retro 2026-11-02, phone: UX irritants first, before any new feature

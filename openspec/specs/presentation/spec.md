@@ -29,3 +29,17 @@ The presenter SHALL be able to turn on a laser pointer that every participant se
 #### Scenario: Pointing during a discussion
 - **WHEN** Alice presents with her ordinary pointer shared off and turns the laser on, then moves over a note
 - **THEN** Bob sees a laser dot on that note, and it disappears when Alice turns the laser off
+
+### Requirement: Presenter space
+In presenter mode the focused column SHALL use wide notes, and an idea longer than 110 characters SHALL take the whole row and wrap in a readable line length.
+
+#### Scenario: Long idea on a wide screen
+- **WHEN** a long idea is shown in the focused column
+- **THEN** it spans the row instead of a narrow strip
+
+### Requirement: Walk-through keeps the board visible
+The voted-ideas walk-through SHALL NOT dim or hide the board: the idea in turn is ringed in place and shown in a dock, and a control SHALL return to the most voted idea.
+
+#### Scenario: Step through the ranking
+- **WHEN** the presenter starts the walk-through
+- **THEN** the first idea is ringed on the board and the other ideas stay visible
