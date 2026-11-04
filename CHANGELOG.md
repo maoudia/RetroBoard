@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.42.0](https://github.com/maoudia/RetroBoard/compare/v1.41.0...v1.42.0) (2026-11-04)
+
+
+### Features
+
+* **board:** Ctrl+Z undoes my latest group, move, edit or colour change ([1889d1e](https://github.com/maoudia/RetroBoard/commit/1889d1edef850417877363436e0a5ed671f8f17f))
+* **profile:** export and import personal settings as a file ([e77e4ac](https://github.com/maoudia/RetroBoard/commit/e77e4ac5ca1d82a56004f2edded28e36a778d412))
+* **ui:** calm board opening screen with skeleton columns, no wifi-off icon ([76e4f18](https://github.com/maoudia/RetroBoard/commit/76e4f184a8de423767a972e51139796429798ee8))
+* **ui:** feedback wave 4 - chat, peer colours, shield, shared toggle, voting menu, sizing in place ([475e838](https://github.com/maoudia/RetroBoard/commit/475e8382ccb98a8ae37b30918163e1fca1efe136))
+* **ui:** one toggle everywhere, solid floating panels, avatar and presence tests ([51584f5](https://github.com/maoudia/RetroBoard/commit/51584f55558c966eca73ef298f7c5355cc5119f5))
+* **ui:** writing size as three squares, ring around the plain timer ([5bcfc06](https://github.com/maoudia/RetroBoard/commit/5bcfc060ed19da170c126fcccb311ffaca62a40f))
+* **voting:** option to spend all votes on one idea (advanced, off by default) ([e202ffb](https://github.com/maoudia/RetroBoard/commit/e202ffb7d7ad5ee4f1f905e4f1e4a6974dfeccf2))
+
+
+### Bug Fixes
+
+* **sync:** never lose a board when the tab closes; keep boards for ever by default ([fd210fe](https://github.com/maoudia/RetroBoard/commit/fd210fe466fe784f7fc4ab3b13de272d53c024ef))
+* **ui:** compact clock on phones so it no longer covers the board title ([848c020](https://github.com/maoudia/RetroBoard/commit/848c020c0e19a18873ba153af32ff7c2b328e2fe))
+* **ui:** landing header and share actions fit small phones ([c88a41a](https://github.com/maoudia/RetroBoard/commit/c88a41aecd68cd629c7edbe9bd91c9c906c42140))
+* **ui:** one segmented control style and restored settings rows ([fe5533c](https://github.com/maoudia/RetroBoard/commit/fe5533caebced3f8892434b939aa9a060b8c482f))
+
 ## [1.41.0](https://github.com/maoudia/RetroBoard/compare/v1.40.1...v1.41.0) (2026-11-03)
 
 
