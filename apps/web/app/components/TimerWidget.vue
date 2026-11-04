@@ -48,9 +48,13 @@ const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.commands
 <template>
   <div ref="el" class="timer glass float" role="group" :aria-label="t('timer.label')" :class="{ low, running }" :style="{ '--p': ratio }">
     <span class="clock mono" role="timer" data-testid="clock">{{ label }}</span>
-    <button class="mini-btn go" type="button" :aria-label="running ? t('timer.pause') : t('timer.start')" data-testid="timer-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="toggle">
-      <Icon :name="running ? 'lucide:pause' : 'lucide:play'" />
-    </button>
+    <!-- The time left is a ring around the play button, like the agenda clock. -->
+    <span class="dial">
+      <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="trk" cx="22" cy="22" r="19" /><circle class="arc" cx="22" cy="22" r="19" /></svg>
+      <button class="mini-btn go" type="button" :aria-label="running ? t('timer.pause') : t('timer.start')" data-testid="timer-toggle" :disabled="!board.access.canSteer" :title="board.access.canSteer ? undefined : t('roles.askFacilitator')" @click="toggle">
+        <Icon :name="running ? 'lucide:pause' : 'lucide:play'" />
+      </button>
+    </span>
     <Dropdown align="start" width="150px" menu>
       <template #trigger="{ toggle: tg, open }">
         <button class="mini-btn" type="button" :aria-label="t('timer.menu')" :aria-expanded="open" data-testid="timer-menu" :disabled="!board.access.canSteer" @click="tg"><Icon name="lucide:rotate-ccw" /></button>
@@ -60,18 +64,20 @@ const reset = (minutes?: (typeof LIMITS.timerMinutes)[number]) => board.commands
         <button v-for="m in LIMITS.timerMinutes" :key="m" class="dd-item" type="button" role="menuitem" @click="reset(m); close()">{{ t('timer.minutes', { n: m }) }}</button>
       </template>
     </Dropdown>
-    <span class="bar" aria-hidden="true" />
   </div>
 </template>
 
 <style scoped>
-.timer { position: relative; display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .5rem .3rem .9rem; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.timer { position: relative; display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .35rem .2rem .9rem; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
 .clock { font-size: var(--fs-2xl); font-weight: 700; min-width: 3.4ch; text-align: center; letter-spacing: .02em; }
 .go { background: var(--accent); color: var(--accent-ink); width: 34px; height: 34px; border-radius: 50%; }
 .go:hover { background: var(--accent); filter: brightness(1.1); }
 .running .clock { color: var(--accent); }
 .low .clock { color: var(--danger); animation: pulse-ring 1s infinite; border-radius: var(--r-sm); }
-.bar { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--p) * 100%); background: var(--accent); transition: width .25s linear; opacity: .8; }
-.low .bar { background: var(--danger); }
+.dial { position: relative; display: grid; place-items: center; width: 46px; height: 46px; flex: none; }
+.dial svg { position: absolute; inset: 0; width: 100%; height: 100%; rotate: -90deg; fill: none; stroke-width: 3; stroke-linecap: round; }
+.trk { stroke: var(--border); }
+.arc { stroke: var(--accent); stroke-dasharray: calc(var(--p) * 119.38px) 119.38px; transition: stroke-dasharray .25s linear; }
+.low .arc { stroke: var(--danger); }
 .lbl-sm { font-size: var(--fs-xs); font-weight: 700; padding: .2rem .65rem; text-transform: uppercase; letter-spacing: .05em; }
 </style>
