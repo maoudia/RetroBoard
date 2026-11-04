@@ -117,14 +117,19 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 </template>
 
 <style scoped>
-.scrim { position: absolute; inset: 0; z-index: 20; display: grid; align-items: start; padding: .6rem; background: color-mix(in oklab, var(--bg) 62%, transparent); backdrop-filter: blur(2px); border-radius: inherit; animation: fade-in .2s; }
-.panel { position: relative; display: grid; gap: .8rem; padding: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2); max-height: 100%; overflow: auto; }
+.scrim { position: absolute; inset: 0; z-index: 20; display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; padding: .6rem; background: color-mix(in oklab, var(--bg) 62%, transparent); backdrop-filter: blur(2px); border-radius: inherit; animation: fade-in .2s; }
+.panel { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: .8rem; padding: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2); max-height: 100%; min-width: 0; overflow-x: hidden; overflow-y: auto; container-type: inline-size; }
 header { display: flex; align-items: center; gap: .5rem; }
 .gi { color: var(--accent); font-size: var(--fs-xl); flex: none; }
 .gtitle { flex: 1; min-width: 0; padding: .3rem .4rem; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; font-family: var(--f-display); font-size: var(--fs-lg); font-weight: 600; color: var(--text); text-overflow: ellipsis; }
 .gtitle:hover, .gtitle:focus { border-color: var(--border); background: var(--surface2); outline: none; }
-.grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .75rem; }
-footer { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); gap: .6rem; min-width: 0; align-items: start; }
+.grid > :deep(*) { min-width: 0; }
+/* Actions wrap on the panel width, never past it: no sideways scroll to reach them. */
+footer { display: flex; flex-wrap: wrap; gap: .35rem; min-width: 0; }
+footer > :deep(.btn), footer > .merge { flex: 1 1 9rem; min-width: 0; }
+footer :deep(.btn) { white-space: normal; text-align: start; justify-content: flex-start; height: auto; min-height: 32px; }
+.merge[open] { flex-basis: 100%; }
 .sugg { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
 .small { font-size: var(--fs-xs); }
 .merge summary { list-style: none; cursor: pointer; }

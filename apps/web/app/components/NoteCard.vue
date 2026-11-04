@@ -51,7 +51,7 @@ function onDrop() {
 
 <template>
   <article
-    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen, pinned: !!note.pinned }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note"
+    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen, pinned: !!note.pinned }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note" :data-long="note.text.length > 110 ? '' : undefined"
     :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked && !note.frozen"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"

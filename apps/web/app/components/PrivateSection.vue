@@ -128,7 +128,7 @@ function onKey(e: KeyboardEvent) {
       <span class="pick-seg size-seg" role="group" :aria-label="t('private.area')">
         <button v-for="z in WRITE_SIZES" :key="z" type="button" :class="{ on: ui.writeSizeOf(column.id) === z }" :aria-pressed="ui.writeSizeOf(column.id) === z" :aria-label="t(`private.area.${z}` as never)" :title="t(`private.area.${z}` as never)" :data-testid="`area-${z}-${column.id}`" @click="setSize(z)"><i class="sq" :class="z" aria-hidden="true" /></button>
       </span>
-      <button class="mini-btn" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon :name="ui.writeAll ? 'lucide:link' : 'lucide:unlink'" /></button>
+      <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
       <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="layout.setColumnWriteHidden(board.roomId ?? '', column.id, true)"><Icon name="lucide:chevrons-down" /></button>
     </header>
 
@@ -220,13 +220,18 @@ header > .title { margin-inline-end: auto; }
 .composer { position: relative; display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
-.size-seg button { display: grid; place-items: center; padding: 0; min-width: 26px; min-height: 26px; }
-/* Three squares of growing size say small, normal and large without letters. */
-.sq { display: block; border-radius: 2px; background: var(--accent); }
+.size-seg { border-color: transparent; background: var(--surface2); }
+.size-seg button { display: grid; place-items: center; padding: 0; min-width: 26px; min-height: 26px; background: transparent; border-right: 0; color: var(--muted); }
+.size-seg button:hover { color: var(--text); }
+/* Three outlined squares of growing size say small, normal and large; no colour, the chosen one is filled and dark. */
+.sq { display: block; border-radius: 2px; border: 1.5px solid currentColor; background: transparent; }
 .sq.small { width: 7px; height: 7px; }
 .sq.normal { width: 11px; height: 11px; }
 .sq.large { width: 15px; height: 15px; }
-.size-seg button.on .sq { background: var(--accent-ink); }
+.size-seg button.on { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); border-radius: var(--r-pill); }
+.size-seg button.on .sq { background: currentColor; }
+.mini-btn.all { color: var(--muted); }
+.mini-btn.all[aria-pressed='true'] { color: var(--text); background: var(--surface2); }
 .grow-grip { position: absolute; right: 0; bottom: 0; width: 24px; height: 24px; cursor: ns-resize; touch-action: none; display: grid; place-items: center; border-radius: var(--r-pill); }
 .grow-grip::after { content: ''; width: 12px; height: 12px; background: linear-gradient(135deg, transparent 0 45%, color-mix(in oklab, var(--note-ink) 55%, transparent) 45% 55%, transparent 55% 70%, color-mix(in oklab, var(--note-ink) 55%, transparent) 70% 80%, transparent 80%); transition: opacity .15s; opacity: .7; }
 .grow-grip:hover::after, .grow-grip:focus-visible::after, .grow-grip:active::after { opacity: 1; }

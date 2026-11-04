@@ -29,6 +29,11 @@ const stateOf = (p: Peer) => connectionState({ me: p.me, conn: p.conn, direct: b
 const people = computed(() => board.peers.filter((p) => !p.hidden))
 const myState = computed(() => connectionState({ me: true, direct: board.links?.direct ?? [], status: board.status, p2p: board.links?.p2p ?? false }))
 const typing = (p: Peer) => !p.me && live.status(p.conn).status === 'typing'
+const showAll = ref(false)
+/** More than four people: the chips would crowd the drawer, so they fold into a strip. */
+const compact = computed(() => people.value.length > 4)
+/** Typing first, then me, then the others; at most seven faces in the strip. */
+const stripPeople = computed(() => [...people.value].sort((a, b) => Number(typing(b)) - Number(typing(a)) || Number(b.me) - Number(a.me)).slice(0, 7))
 const someoneTyping = computed(() => people.value.filter(typing).map((p) => p.name ?? t('common.anonymous')))
 const peerByName = (name: string | null) => (name ? people.value.find((p) => !p.me && p.name === name) : undefined)
 /** Each author keeps the colour chosen in her profile: mine from settings, others from the presence broadcast. */
@@ -88,14 +93,24 @@ const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
 
       <p v-if="settings.s.chatStatus" class="status muted" role="status" data-testid="chat-status"><ConnDot :state="myState" /> {{ t(`presence.${myState}`) }} - {{ focused ? t('chat.status.focused') : t('chat.status.away') }}</p>
 
-      <ul class="people" :aria-label="t('participants.online')" data-testid="chat-people">
+      <div class="people" :class="{ compact }" :aria-label="t('participants.online')" data-testid="chat-people">
+        <!-- Many people: an overlapping avatar strip (who is typing floats up), one tap opens the full roster. -->
+        <button v-if="compact" class="strip" type="button" :aria-expanded="showAll" :aria-label="t('chat.people.toggle', { n: people.length })" data-testid="chat-people-toggle" @click="showAll = !showAll">
+          <span class="stack2">
+            <i v-for="(p, i) in stripPeople" :key="p.key ?? i" class="av" :class="{ typing: typing(p) }" :style="avatar(p)">{{ initial(p.name) }}<ConnDot class="cd" :state="stateOf(p)" /><span class="sr-only">{{ p.name ?? t('common.anonymous') }}</span></i>
+          </span>
+          <span v-if="people.length > stripPeople.length" class="more mono">+{{ people.length - stripPeople.length }}</span>
+          <Icon :name="showAll ? 'lucide:chevron-up' : 'lucide:chevron-down'" class="chev" />
+        </button>
+        <ul v-if="!compact || showAll" class="roster" data-testid="chat-roster">
         <li v-for="(p, i) in people" :key="p.key ?? i" class="who" :class="{ typing: typing(p) }" :title="p.name ?? t('common.anonymous')">
           <span class="av" :style="avatar(p)">{{ initial(p.name) }}<ConnDot class="cd" :state="stateOf(p)" /></span>
           <span class="nm">{{ p.me ? t('chat.me') : p.name ?? t('common.anonymous') }}</span>
           <Icon v-if="p.role === 'facilitator' && !board.settings?.openFacilitation" name="lucide:crown" class="role" />
           <span v-if="typing(p)" class="dots" aria-hidden="true"><i /><i /><i /></span>
         </li>
-      </ul>
+        </ul>
+      </div>
 
       <div ref="log" class="log" role="log" aria-live="polite" :aria-label="t('chat.log')" data-testid="chat-log">
         <ol class="items">
@@ -145,8 +160,16 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .online { display: inline-flex; align-items: center; gap: .35rem; padding: .15rem .6rem; border-radius: 999px; background: var(--accent-soft); font-size: var(--fs-xs); font-weight: 700; }
 .tools { margin-inline-start: auto; display: inline-flex; gap: 2px; }
 .status { display: flex; align-items: center; gap: .4rem; margin: 0; padding: 0 .75rem .35rem; font-size: var(--fs-xs); }
-.people { display: flex; gap: .4rem; margin: 0; padding: .15rem .75rem .6rem; list-style: none; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); }
-.people::-webkit-scrollbar { display: none; }
+.people { display: grid; gap: .4rem; margin: 0; padding: .15rem .75rem .6rem; border-bottom: 1px solid var(--border); }
+.roster { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; max-height: 7.5rem; overflow-y: auto; }
+.strip { display: inline-flex; align-items: center; gap: .5rem; width: fit-content; max-width: 100%; padding: .15rem .5rem .15rem .25rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: inherit; cursor: pointer; }
+.stack2 { display: inline-flex; }
+.stack2 .av { margin-inline-start: -8px; border: 2px solid var(--surface); transition: transform .2s ease; }
+.stack2 .av:first-child { margin-inline-start: 0; }
+.stack2 .av.typing { transform: translateY(-3px); box-shadow: 0 0 0 2px var(--accent); }
+.more { font-size: var(--fs-sm); font-weight: 700; }
+.chev { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .stack2 .av { transition: none; } }
 .who { display: inline-flex; align-items: center; gap: .4rem; flex: none; padding: .2rem .6rem .2rem .25rem; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); font-size: var(--fs-sm); font-weight: 600; }
 .who.typing { border-color: var(--accent); }
 .nm { max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

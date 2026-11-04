@@ -149,10 +149,19 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 /* Local settings (profile) */
 :root[data-density="compact"] .col { --note-w: 118px; }
 /* Presentation uses the whole screen: wider notes and a text size that grows with it (change toast-notifications-v2). */
-:root[data-presenter] .col { --note-w: clamp(210px, 21vw, 460px); max-width: none; }
+:root[data-presenter] .col { max-width: none; }
 :root[data-presenter] .note { font-size: clamp(1.25rem, .85rem + .9vw, 2.6rem); border: 2px solid color-mix(in oklab, var(--note-ink, currentColor) 45%, transparent); }
 
 :root[data-presenter] .col h2 { font-size: var(--fs-2xl); }
+/* Presenter space (change feedback-wave-5): the focused column gets wide notes, a long idea takes the whole row and wraps
+   in a readable measure instead of a narrow strip; the vote chip stays a small chip whatever the note text size. */
+:root[data-presenter] .col { --note-w: clamp(240px, 24vw, 520px); }
+:root[data-focus] .col[data-focused] .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(16rem, 28vw, 32rem)), 1fr)); }
+:root[data-presenter] .grid > .note[data-long] { grid-column: 1 / -1; max-width: min(100%, 64rem); }
+:root[data-presenter] .note .text { text-wrap: pretty; overflow-wrap: break-word; hyphens: auto; }
+:root[data-presenter] [data-walk] { outline: 4px solid var(--accent); outline-offset: 4px; box-shadow: 0 0 0 10px var(--accent-soft), var(--shadow-2); z-index: 3; transition: box-shadow .3s; }
+:root[data-presenter] .note .vote { min-height: 0; padding: .15em .6em; font-size: clamp(.95rem, .8rem + .35vw, 1.35rem); font-variant-numeric: tabular-nums; border-width: 1.5px; }
+:root[data-presenter] .note .vote.voted { background: color-mix(in oklab, var(--note-ink) 85%, transparent); }
 /* Column focus (presenter-mode-v2): centre zoom shrinks the others around the focused column; accordion folds them. */
 :root[data-focus] .board { padding-bottom: 76px; }
 :root[data-focus="centre"] .board { justify-content: safe center; }

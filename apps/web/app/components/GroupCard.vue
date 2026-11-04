@@ -117,7 +117,7 @@ onBeforeUnmount(cancelPeek)
 .inline.over { border-style: solid; border-color: var(--accent); }
 .ibar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .ihead { display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; text-align: left; }
-.inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w, 150px), 1fr)); gap: .6rem; }
+.inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--note-w, 150px)), 1fr)); gap: .6rem; }
 .abadge { position: absolute; left: .55rem; bottom: .45rem; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: color-mix(in oklab, var(--c, var(--surface)) 85%, transparent); color: var(--note-ink); font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
 .gvote { position: absolute; right: .55rem; bottom: .45rem; color: var(--note-ink); }
 .stack { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; min-height: 112px; color: var(--note-ink); transition: transform .25s var(--ease); min-width: 0; }
