@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.2](https://github.com/maoudia/RetroBoard/compare/v1.45.1...v1.45.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* **landing:** truthful stats, E2E in the hero, full bento, safe footer, favicon and manifest ([6f8539b](https://github.com/maoudia/RetroBoard/commit/6f8539b286aa1ebf71bedadd59577f75c9f4b06b))
+
 ## [1.45.1](https://github.com/maoudia/RetroBoard/compare/v1.45.0...v1.45.1) (2026-11-04)
 
 
