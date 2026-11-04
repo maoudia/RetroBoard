@@ -129,6 +129,7 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('agenda.prev') }),
   v.object({ t: v.literal('agenda.extend'), minutes: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(30)), borrow: v.boolean() }),
   v.object({ t: v.literal('agenda.end') }),
+  v.object({ t: v.literal('agenda.restart') }),
 ])
 export type { Command }
 

@@ -37,6 +37,7 @@ describe('every use case sends the matching protocol command', () => {
     ['nextPhase', (c) => c.nextPhase(), { t: 'agenda.next' }],
     ['extendPhase', (c) => c.extendPhase(3, true), { t: 'agenda.extend', minutes: 3, borrow: true }],
     ['endAgenda', (c) => c.endAgenda(), { t: 'agenda.end' }],
+    ['restartAgenda', (c) => c.restartAgenda(), { t: 'agenda.restart' }],
     ['openVotingNow', (c) => c.openVotingNow(), { t: 'agenda.voteOpen', on: true }],
     ['openVotingNow off', (c) => c.openVotingNow(false), { t: 'agenda.voteOpen', on: false }],
     ['goToClosing', (c) => c.goToClosing(), { t: 'agenda.toClose' }],

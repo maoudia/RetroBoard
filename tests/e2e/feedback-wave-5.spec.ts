@@ -46,3 +46,17 @@ test('with many people the chat folds the roster into an avatar strip', async ({
   await expect(page.getByTestId('chat-roster')).toContainText('Dan')
   for (const g of guests) await g.ctx.close()
 })
+
+test('the player panel: play leads the transport bar and one button restarts every chronometer', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await page.getByTestId('agenda-ring').click()
+  await page.getByTestId('agenda-start').click()
+  await page.getByTestId('agenda-next').click()
+  await expect(page.getByTestId('phase-1')).toHaveAttribute('aria-current', 'step')
+  // First tap arms, second confirms.
+  await page.getByTestId('agenda-restart').click()
+  await expect(page.getByTestId('phase-1')).toHaveAttribute('aria-current', 'step')
+  await page.getByTestId('agenda-restart').click()
+  await expect(page.getByTestId('phase-0')).toHaveAttribute('aria-current', 'step')
+  await page.screenshot({ path: '/tmp/player.png' })
+})

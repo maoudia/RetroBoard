@@ -230,4 +230,18 @@ describe('voting override and go to closing (facilitator-controls-v2)', () => {
     b.run({ t: 'agenda.end' })
     expect(b.state.settings.votingClosed).toBe(true)
   })
+
+  it('restarts every chronometer: first phase, no time spent, voting reopened', () => {
+    const h = harness()
+    h.run({ t: 'agenda.set', phases: [{ kind: 'write', minutes: 2 }, { kind: 'vote', minutes: 1 }] })
+    h.run({ t: 'agenda.start' }); h.tick(MIN); h.run({ t: 'agenda.end' })
+    expect(h.state.settings.votingClosed).toBe(true)
+    h.tick(5 * MIN)
+    h.run({ t: 'agenda.restart' })
+    expect(h.state.agenda!.current).toBe(0)
+    expect(h.state.agenda!.startedAt).toBe(h.now)
+    expect(h.state.agenda!.phases.every((p) => p.actualMs === undefined)).toBe(true)
+    expect(h.state.settings.votingClosed).toBe(false)
+    expect(phaseClock(h.state.agenda!, h.now)).toMatchObject({ elapsedMs: 0, totalElapsedMs: 0 })
+  })
 })

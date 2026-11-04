@@ -144,6 +144,8 @@ export const en: Record<keyof typeof fr, string> = {
   'agenda.start': 'Start',
   'agenda.resume': 'Resume',
   'agenda.pause': 'Pause',
+  'agenda.restart': 'Restart all chronometers',
+  'agenda.restart.confirm': 'Tap again to restart everything',
   'agenda.next': 'Next phase',
   'agenda.end': 'End',
   'agenda.toClose.label': 'Go to closing',

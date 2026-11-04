@@ -142,6 +142,8 @@ export const fr = {
   'agenda.done': 'Fini',
   'agenda.start': 'Démarrer',
   'agenda.resume': 'Reprendre',
+  'agenda.restart': 'Tout redémarrer',
+  'agenda.restart.confirm': 'Touche encore pour tout redémarrer',
   'agenda.pause': 'Pause',
   'agenda.next': 'Étape suivante',
   'agenda.end': 'Terminer',

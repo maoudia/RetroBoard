@@ -152,6 +152,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     previousPhase: () => send({ t: 'agenda.prev' }),
     extendPhase: (minutes: number, borrow: boolean) => send({ t: 'agenda.extend', minutes, borrow }),
     endAgenda: () => send({ t: 'agenda.end' }),
+    restartAgenda: () => send({ t: 'agenda.restart' }),
 
     startTimer: () => send({ t: 'timer.start' }),
     pauseTimer: () => send({ t: 'timer.pause' }),

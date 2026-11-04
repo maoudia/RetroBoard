@@ -13,3 +13,6 @@
 - [x] 3.1 Avatar strip and roster for more than four people; verify e2e
 - [x] 3.2 Neutral writing-size squares and columns icon; verify e2e
 - [x] 3.3 Open cluster layout without sideways scroll; verify e2e
+
+## 4. Player
+- [x] 4.1 Agenda panel as a media player: play/pause outside the rings, icon-only round transport bar, one two-tap button that restarts every chronometer (command agenda.restart); verify unit tests and e2e in agenda.spec.ts and feedback-wave-5.spec.ts

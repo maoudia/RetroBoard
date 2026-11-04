@@ -60,6 +60,15 @@ watch(() => agenda.value.current, () => {
 })
 
 const borrow = ref(true)
+/** Restarting every chronometer loses the time spent: the first tap arms the button, the second one confirms. */
+const restartArmed = ref(false)
+let disarm: ReturnType<typeof setTimeout> | undefined
+function restart() {
+  if (!restartArmed.value) { restartArmed.value = true; clearTimeout(disarm); disarm = setTimeout(() => { restartArmed.value = false }, 3000); return }
+  clearTimeout(disarm); restartArmed.value = false
+  board.commands.restartAgenda()
+}
+onBeforeUnmount(() => clearTimeout(disarm))
 const canSteer = computed(() => board.access.canSteer)
 const started = computed(() => agenda.value.current >= 0 && agenda.value.current < agenda.value.phases.length)
 const playing = computed(() => started.value && !clock.value.paused)
@@ -86,15 +95,10 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
     </template>
 
     <div class="panel" data-testid="agenda-panel">
-      <!-- Player: the rings are the cover, the centre is the play button (facilitators), the chapters are the phases. -->
+      <!-- Player: the rings are the cover, the transport bar below drives the clock, the chapters are the phases. -->
       <div class="deck">
         <div class="cover">
           <ActivityRings :progress="rings" :steps="steps" :size="132" />
-          <button
-            v-if="canSteer && agenda.current < agenda.phases.length" class="play" type="button" :data-testid="playing ? 'agenda-pause' : 'agenda-start'"
-            :aria-label="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')" :title="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')"
-            @click="playing ? board.commands.pauseAgenda() : board.commands.startAgenda()"
-          ><Icon :name="playing ? 'lucide:pause' : 'lucide:play'" /></button>
         </div>
         <div class="legend" aria-hidden="true">
           <span class="lg l1"><i />{{ t('rings.legend.total') }}</span>
@@ -113,12 +117,22 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
       </ol>
       <p v-if="clock.capped" class="note" role="status" data-testid="agenda-capped"><Icon name="lucide:octagon-x" /> {{ t('agenda.capped') }}</p>
       <p v-else-if="clock.overtime && canSteer" class="note" role="status" data-testid="agenda-overtime">{{ t('agenda.overtime') }}</p>
-      <!-- Transport bar: icons only, names for assistive tech. -->
+      <!-- Transport bar, like a media player: icons only, names for assistive tech and tooltips. -->
       <div v-if="canSteer" class="transport" role="group" :aria-label="t('agenda.title')">
+        <button class="tb" type="button" :class="{ armed: restartArmed }" data-testid="agenda-restart" :title="t(restartArmed ? 'agenda.restart.confirm' : 'agenda.restart')" :aria-label="t(restartArmed ? 'agenda.restart.confirm' : 'agenda.restart')" @click="restart"><Icon :name="restartArmed ? 'lucide:check' : 'lucide:rotate-ccw'" /></button>
         <button class="tb" type="button" data-testid="agenda-prev" :disabled="agenda.current <= 0" :title="t('agenda.prev')" @click="board.commands.previousPhase()"><Icon name="lucide:skip-back" /><span class="sr-only">{{ t('agenda.prev') }}</span></button>
+        <button
+          v-if="agenda.current < agenda.phases.length" class="tb play" type="button" :data-testid="playing ? 'agenda-pause' : 'agenda-start'"
+          :aria-label="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')" :title="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')"
+          @click="playing ? board.commands.pauseAgenda() : board.commands.startAgenda()"
+        ><Icon :name="playing ? 'lucide:pause' : 'lucide:play'" /></button>
+        <button class="tb" type="button" data-testid="agenda-next" :disabled="!started" :title="t('agenda.next')" @click="board.commands.nextPhase()"><Icon name="lucide:skip-forward" /><span class="sr-only">{{ t('agenda.next') }}</span></button>
+        <button class="tb stop" type="button" data-testid="agenda-end" :disabled="!started" :title="t('agenda.end')" :aria-label="t('agenda.end')" @click="board.commands.endAgenda()"><Icon name="lucide:square" /></button>
+      </div>
+      <div v-if="canSteer" class="transport minor" role="group" :aria-label="t('agenda.plus', { n: 1 })">
         <button class="tb" type="button" data-testid="agenda-plus1" :disabled="!started" :title="t('agenda.plus', { n: 1 })" @click="board.commands.extendPhase(1, borrow)"><Icon name="lucide:plus" /><span aria-hidden="true">1</span><span class="sr-only">{{ t('agenda.plus', { n: 1 }) }}</span></button>
         <button class="tb" type="button" data-testid="agenda-plus3" :disabled="!started" :title="t('agenda.plus', { n: 3 })" @click="board.commands.extendPhase(3, borrow)"><Icon name="lucide:plus" /><span aria-hidden="true">3</span><span class="sr-only">{{ t('agenda.plus', { n: 3 }) }}</span></button>
-        <button class="tb" type="button" data-testid="agenda-next" :disabled="!started" :title="t('agenda.next')" @click="board.commands.nextPhase()"><Icon name="lucide:skip-forward" /><span class="sr-only">{{ t('agenda.next') }}</span></button>
+        <button class="tb" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : t('agenda.toClose.label')" :aria-label="t('agenda.toClose.label')" @click="ui.open('toClose')"><Icon name="lucide:flag" /></button>
       </div>
       <div class="opts">
         <label class="borrow" :title="t('agenda.borrow')"><Icon name="lucide:arrow-right-left" /><span class="sr-only">{{ t('agenda.borrow') }}</span><input v-if="canSteer" v-model="borrow" type="checkbox" role="switch" class="switch" data-testid="agenda-borrow" /></label>
@@ -126,11 +140,6 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
           <Icon :name="settings.s.ringTime === 'elapsed' ? 'lucide:timer' : 'lucide:hourglass'" /><span class="sr-only">{{ t(`profile.time.${settings.s.ringTime}` as never) }}</span>
         </button>
         <span class="total mono muted" :title="t('agenda.total', { planned: `${minutes(clock.totalPlannedMs)} min`, elapsed: spent(clock.totalElapsedMs) })">{{ spent(clock.totalElapsedMs) }} / {{ minutes(clock.totalPlannedMs) }} min</span>
-      </div>
-      <!-- The two ways out, the same kind of button: skip to the closing phase, or end the retro. -->
-      <div v-if="canSteer" class="exits">
-        <button class="btn btn-sm exit" type="button" data-testid="agenda-to-close" :disabled="!started || closing" :title="closing ? t('agenda.toClose.here') : undefined" @click="ui.open('toClose')"><Icon name="lucide:flag" /> {{ t('agenda.toClose.label') }}</button>
-        <button class="btn btn-sm exit danger" type="button" data-testid="agenda-end" :disabled="!started" @click="board.commands.endAgenda()"><Icon name="lucide:square" /> {{ t('agenda.end') }}</button>
       </div>
     </div>
   </Dropdown>
@@ -166,8 +175,6 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
 .panel { display: grid; gap: .75rem; padding: .35rem; }
 .deck { display: grid; justify-items: center; gap: .5rem; }
 .cover { position: relative; display: grid; place-items: center; }
-.play { position: absolute; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-xl); cursor: pointer; box-shadow: var(--shadow-1); transition: transform .15s var(--ease); }
-.play:hover { transform: scale(1.08); }
 .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem .9rem; font-size: var(--fs-xs); color: var(--muted); }
 .lg { display: inline-flex; align-items: center; gap: .35rem; }
 .lg i { width: 9px; height: 9px; border-radius: 50%; background: var(--ring-1); }
@@ -180,7 +187,15 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
 .phases .pi { color: var(--muted); }
 .phases li.now .pi, .phases li.past .pi { color: var(--accent); }
 /* One family of round icon buttons, like a media player. */
-.transport { display: flex; justify-content: center; gap: .5rem; }
+.transport { display: flex; justify-content: center; align-items: center; gap: .5rem; }
+.transport.minor { gap: .4rem; }
+.transport.minor .tb { height: 36px; min-width: 38px; font-size: var(--fs-sm); }
+/* The play button leads the bar: bigger, filled, a pill of its own. */
+.tb.play { width: 56px; height: 56px; padding: 0; border: 0; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-2xl); box-shadow: var(--shadow-1); transition: transform .15s var(--ease); }
+.tb.play:hover:not(:disabled) { background: var(--accent); color: var(--accent-ink); transform: scale(1.06); filter: brightness(1.08); }
+.tb.stop { color: var(--danger); }
+.tb.stop:hover:not(:disabled) { background: color-mix(in oklab, var(--danger) 14%, transparent); border-color: var(--danger); color: var(--danger); }
+.tb.armed { background: var(--warn, var(--accent)); color: var(--accent-ink); border-color: transparent; }
 .tb { display: inline-flex; align-items: center; justify-content: center; gap: .1rem; min-width: 42px; height: 42px; padding: 0 .6rem; border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
 .tb:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .tb:disabled { opacity: .45; cursor: default; }
@@ -188,10 +203,6 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
 .opts { display: flex; align-items: center; gap: .6rem; }
 .opts .total { margin-inline-start: auto; font-size: var(--fs-sm); }
 .borrow { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); }
-.exits { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.exit { justify-content: center; min-height: 40px; }
-.exit.danger { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 55%, var(--border)); }
-.exit.danger:hover:not(:disabled) { background: color-mix(in oklab, var(--danger) 14%, transparent); }
 .note { margin: 0; padding: .4rem .6rem; border-radius: var(--r-sm); background: color-mix(in oklab, var(--danger) 14%, transparent); color: var(--danger); font-weight: 600; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 </style>

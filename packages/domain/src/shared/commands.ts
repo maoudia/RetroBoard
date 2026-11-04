@@ -81,5 +81,6 @@ export type Command =
   | { t: 'agenda.prev' }
   | { t: 'agenda.extend'; minutes: number; borrow: boolean }
   | { t: 'agenda.end' }
+  | { t: 'agenda.restart' }
 
 export type CommandType = Command['t']

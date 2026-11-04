@@ -230,7 +230,7 @@ test.describe('phase stepper (board-activity-feed)', () => {
   })
 })
 
-test('the timer panel is a player: play in the rings, same-style exit buttons, steps ring, no scrollbar when it fits (change toast-notifications-v2)', async ({ page }) => {
+test('the timer panel is a player: play outside the rings, round transport buttons, steps ring, no scrollbar when it fits (changes toast-notifications-v2, feedback-wave-5)', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await page.getByTestId('agenda-ring').click()
@@ -239,10 +239,13 @@ test('the timer panel is a player: play in the rings, same-style exit buttons, s
   await expect(panel.getByTestId('agenda-start')).toBeVisible()
   await panel.getByTestId('agenda-start').click()
   await expect(panel.getByTestId('agenda-pause')).toBeVisible()
-  const a = (await panel.getByTestId('agenda-to-close').boundingBox())!
-  const b = (await panel.getByTestId('agenda-end').boundingBox())!
-  expect(Math.abs(a.height - b.height)).toBeLessThan(2)
-  expect(Math.abs(a.width - b.width)).toBeLessThan(2)
+  // The play button is not inside the rings and is the biggest button of the bar.
+  const rings = (await panel.locator('.cover').boundingBox())!
+  const play = (await panel.getByTestId('agenda-pause').boundingBox())!
+  const stop = (await panel.getByTestId('agenda-end').boundingBox())!
+  expect(play.y).toBeGreaterThan(rings.y + rings.height)
+  expect(play.height).toBeGreaterThan(stop.height)
+  await expect(panel.getByTestId('agenda-restart')).toBeVisible()
   expect(await page.locator('.dd-panel.tall:popover-open').evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true)
   await expect(page.getByTestId('ring-steps').first()).toBeAttached()
 })
