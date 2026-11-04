@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.44.0](https://github.com/maoudia/RetroBoard/compare/v1.43.0...v1.44.0) (2026-11-04)
+
+
+### Features
+
+* **agenda:** automatic chained agenda, bulk grouping, ticket vote bar and calmer controls ([f51dec9](https://github.com/maoudia/RetroBoard/commit/f51dec936f2bd005e6b5952a851af5a424200d81))
+
 ## [1.43.0](https://github.com/maoudia/RetroBoard/compare/v1.42.0...v1.43.0) (2026-11-04)
 
 
