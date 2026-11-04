@@ -1,10 +1,10 @@
 import type { Command, Snapshot } from '@retroboard/domain'
 
 /** What an undo step is called, for the toast and the tests. */
-export type UndoLabel = 'group' | 'ungroup' | 'move' | 'edit' | 'color'
+export type UndoLabel = 'group' | 'ungroup' | 'move' | 'edit' | 'color' | 'delete'
 
 /** The commands that put the board back as it was before one of my own actions. */
-export interface Inverse { label: UndoLabel; commands: Command[] }
+export interface Inverse { label: UndoLabel; commands: Command[]; /** The action itself, replayed by redo. */ redo?: Command[] }
 
 /**
  * Compensating commands for the reversible actions of the participant (change board-undo-rewind): the log stays
@@ -12,6 +12,12 @@ export interface Inverse { label: UndoLabel; commands: Command[] }
  * reversed exactly (voted, deleted, reset) has no inverse: it is never half undone.
  */
 export function inverseOf(cmd: Command, view: Snapshot | null): Inverse | null {
+  const inv = inverseOfInner(cmd, view)
+  // A deleted idea comes back as a new one (new id), so there is nothing to replay for a redo.
+  return inv ? (cmd.t === 'note.delete' ? inv : { ...inv, redo: [cmd] }) : null
+}
+
+function inverseOfInner(cmd: Command, view: Snapshot | null): Inverse | null {
   if (!view) return null
   const note = (id: string) => view.notes.find((n) => n.id === id)
   const othersIn = (groupId: string, except: string) => view.notes.filter((n) => n.groupId === groupId && n.id !== except)
@@ -40,6 +46,11 @@ export function inverseOf(cmd: Command, view: Snapshot | null): Inverse | null {
     case 'note.edit': {
       const n = note(cmd.id)
       return n && n.text !== cmd.text ? { label: 'edit', commands: [{ t: 'note.edit', id: n.id, text: n.text }] } : null
+    }
+    case 'note.delete': {
+      // Only an idea nobody else touched: no cluster, no vote (hidden counts cannot be checked). It comes back as a new idea.
+      const n = note(cmd.id)
+      return n && n.mine && n.groupId === null && n.votes === 0 && !n.voted ? { label: 'delete', commands: [{ t: 'note.add', columnId: n.columnId, text: n.text, color: n.color }] } : null
     }
     case 'note.color': {
       const n = note(cmd.id)

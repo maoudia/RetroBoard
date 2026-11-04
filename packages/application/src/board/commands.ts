@@ -13,7 +13,7 @@ export interface BoardCommandDeps {
   /** Latest snapshot seen by this participant, null before the first one. */
   view(): Snapshot | null
   /** Called with the number of actions that can be undone, after each change of the history. */
-  onHistory?(size: number): void
+  onHistory?(size: number, redoSize: number): void
 }
 
 export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
@@ -30,12 +30,13 @@ export function createBoardCommands(deps: BoardCommandDeps) {
   const whenOpen = (cmd: Command): BoardResult => (locked() ? err('locked') : send(cmd))
   // Reversible actions of this participant, undone with compensating commands (change board-undo-rewind).
   const history = createUndoStack()
-  const changed = () => deps.onHistory?.(history.size)
+  const redoStack = createUndoStack()
+  const changed = () => deps.onHistory?.(history.size, redoStack.size)
   /** Sends a reversible command and remembers how to take it back; the inverse is computed from the state before it. */
   const tracked = (cmd: Command, guarded: boolean): BoardResult => {
     const inverse = inverseOf(cmd, deps.view())
     const r = guarded ? whenOpen(cmd) : send(cmd)
-    if (r.ok && inverse) { history.push(inverse); changed() }
+    if (r.ok && inverse) { history.push(inverse); redoStack.clear(); changed() }
     return r
   }
 
@@ -50,7 +51,7 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       return ok()
     },
     editNote: (id: string, text: string) => tracked({ t: 'note.edit', id, text }, true),
-    deleteNote: (id: string) => whenOpen({ t: 'note.delete', id }),
+    deleteNote: (id: string) => tracked({ t: 'note.delete', id }, true),
     moveNote: (id: string, columnId: string) => tracked({ t: 'note.move', id, columnId }, true),
     recolorNote: (id: string, color: number) => tracked({ t: 'note.color', id, color }, false),
     recolorGroup: (id: string, color: number) => send({ t: 'group.recolor', id, color }),
@@ -69,14 +70,29 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     undo(): { result: BoardResult; label: UndoLabel } | null {
       const step = history.pop()
       if (!step) return null
-      changed()
       for (const c of step.commands) {
         const r = locked() ? err('locked') : send(c)
-        if (!r.ok) return { result: r, label: step.label }
+        if (!r.ok) { changed(); return { result: r, label: step.label } }
       }
+      if (step.redo) redoStack.push({ label: step.label, commands: step.redo })
+      changed()
+      return { result: ok(), label: step.label }
+    },
+    /** Puts back what I just undid (Ctrl+Shift+Z). The action can be undone again. */
+    redo(): { result: BoardResult; label: UndoLabel } | null {
+      const step = redoStack.pop()
+      if (!step) return null
+      for (const c of step.commands) {
+        const inverse = inverseOf(c, deps.view())
+        const r = locked() ? err('locked') : send(c)
+        if (!r.ok) { changed(); return { result: r, label: step.label } }
+        if (inverse) history.push(inverse)
+      }
+      changed()
       return { result: ok(), label: step.label }
     },
     canUndo: () => history.size > 0,
+    canRedo: () => redoStack.size > 0,
     /** Adds one vote, checking locally what the participant can already know (budget, cap, phase). */
     addVote(kind: VotableKind, id: string): BoardResult {
       const view = deps.view()

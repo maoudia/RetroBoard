@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useT()
+const runUndo = useUndo()
 const board = useBoardStore()
 const ui = useUiStore()
 const chat = useChatStore()
@@ -61,6 +62,11 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
       <!-- Order by importance (docs/design-system.md, menus): invite, people, actions, find, present, export, activity, settings. -->
       <button class="icon-btn" type="button" data-testid="btn-share" @click="ui.open('share')"><Icon name="lucide:share-2" class="ico" /><span>{{ t('toolbar.share') }}</span><KeyCap k="S" /></button>
       <ParticipantsMenu />
+      <!-- Undo and redo of my own latest actions: they appear once there is something to take back (change board-undo-rewind). -->
+      <span v-if="board.undoDepth || board.redoDepth" class="undo-pair" role="group" :aria-label="t('undo.title')">
+        <button class="icon-btn" type="button" :disabled="!board.undoDepth" :aria-label="t('undo.title')" :title="t('undo.title')" data-testid="btn-undo" @click="runUndo(false)"><Icon name="lucide:undo-2" class="ico" /></button>
+        <button class="icon-btn" type="button" :disabled="!board.redoDepth" :aria-label="t('redo.title')" :title="t('redo.title')" data-testid="btn-redo" @click="runUndo(true)"><Icon name="lucide:redo-2" class="ico" /></button>
+      </span>
       <button class="icon-btn" type="button" data-testid="btn-actions" @click="ui.open('actions')">
         <Icon name="lucide:list-checks" class="ico" /><span>{{ t('toolbar.actions') }}</span>
         <span v-if="board.openActions" class="badge" data-testid="actions-count">{{ board.openActions }}</span>
@@ -99,6 +105,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 </template>
 
 <style scoped>
+.undo-pair { display: inline-flex; gap: 2px; }
 .toolbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 1rem; min-height: var(--toolbar-h); padding: .35rem 1rem; border-bottom: 1px solid var(--border); }
 .brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }

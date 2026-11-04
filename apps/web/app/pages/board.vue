@@ -280,14 +280,15 @@ const phaseEnd = usePhaseEnd()
 useBoardAnnouncements()
 useShortcuts()
 /** Ctrl/Cmd+Z takes back my latest group, move, edit or colour change (change board-undo-rewind); fields keep their own undo. */
+const runUndo = useUndo()
 function onUndoKey(e: KeyboardEvent) {
-  if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z') return
+  const key = e.key.toLowerCase()
+  const redo = (key === 'z' && e.shiftKey) || key === 'y'
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || (key !== 'z' && key !== 'y') || (e.shiftKey && key !== 'z')) return
   const owner = keyboardOwner(e.target)
   if (owner.typing) return
   e.preventDefault()
-  const done = board.commands.undo()
-  if (!done) { push(t('undo.nothing'), 'info'); return }
-  push(t(done.result.ok ? `undo.${done.label}` : 'undo.failed'), done.result.ok ? 'ok' : 'warn')
+  runUndo(redo)
 }
 onMounted(() => { document.addEventListener('keydown', onUndoKey); document.addEventListener('keydown', onPresenterKey); window.addEventListener('beforeunload', onBeforeUnload) })
 onBeforeUnmount(() => { if (ui.presenter && board.ready) board.commands.setPresenting(false); document.removeEventListener('keydown', onUndoKey); document.removeEventListener('keydown', onPresenterKey); window.removeEventListener('beforeunload', onBeforeUnload); ui.presenter = false })
