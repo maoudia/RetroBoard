@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.4](https://github.com/maoudia/RetroBoard/compare/v1.45.3...v1.45.4) (2026-11-05)
+
+
+### Bug Fixes
+
+* **board:** hotfix wave 8, own name, stack preview, card overflow, stepper row, size picker, movable chat ([292e6c9](https://github.com/maoudia/RetroBoard/commit/292e6c9920c95c9a9fd81dfd875531a3adb30a57))
+
 ## [1.45.3](https://github.com/maoudia/RetroBoard/compare/v1.45.2...v1.45.3) (2026-11-04)
 
 
