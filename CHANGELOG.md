@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.0](https://github.com/maoudia/RetroBoard/compare/v1.46.0...v1.47.0) (2026-11-05)
+
+
+### Features
+
+* **quality:** Lighthouse budgets and theme contrast report ([84daec7](https://github.com/maoudia/RetroBoard/commit/84daec791ee74a6e142d78348d0db49f404a6034))
+
 ## [1.46.0](https://github.com/maoudia/RetroBoard/compare/v1.45.4...v1.46.0) (2026-11-05)
 
 
