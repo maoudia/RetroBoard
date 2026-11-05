@@ -7,4 +7,4 @@
 
 ## 2. Repository
 
-- [ ] 2.1 Issue forms (bug, feature) and Discussions categories; owner enables Discussions; verify the forms render on GitHub
+- [x] 2.1 Issue forms (bug, feature) and Discussions categories; owner enables Discussions; verify the forms render on GitHub

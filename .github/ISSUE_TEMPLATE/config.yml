@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Discuss with the community
+    url: https://github.com/maoudia/RetroBoard/discussions
+    about: Questions, formats you use, ideas that are not ready for an issue. The owner enables Discussions in the repository settings (categories - Q&A, Ideas, Show and tell).
