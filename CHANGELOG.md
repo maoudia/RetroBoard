@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.0](https://github.com/maoudia/RetroBoard/compare/v1.45.4...v1.46.0) (2026-11-05)
+
+
+### Features
+
+* **quality:** local gate pnpm prepush and sync-issues closes finished task groups and epics ([60a3239](https://github.com/maoudia/RetroBoard/commit/60a32391ec6e70893b4ad13819c87897f5922173))
+
 ## [1.45.4](https://github.com/maoudia/RetroBoard/compare/v1.45.3...v1.45.4) (2026-11-05)
 
 
