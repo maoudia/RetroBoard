@@ -24,7 +24,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['apps/relay/src/**', 'packages/*/src/**'],
       reporter: ['text-summary', 'json-summary', 'html'],
-      // Ratchets: never lower them. Targets (docs/PLAN.md 10.1): domain 95, application 90, others 80.
+      // Ratchets: never lower them. Targets (docs/architecture.md 10.1): domain 95, application 90, others 80.
       thresholds: {
         'packages/domain/src/**': { lines: 95 },
         'packages/application/src/**': { lines: 90 },

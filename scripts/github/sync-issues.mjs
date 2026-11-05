@@ -13,7 +13,7 @@ const REPO = args.includes('--repo') ? args[args.indexOf('--repo') + 1] : 'maoud
 const ROOT = new URL('../../', import.meta.url).pathname
 const CHANGES = join(ROOT, 'openspec/changes')
 
-// Phase, lane and dependencies mirror docs/PLAN.md section 12.
+// Phase, lane and dependencies mirror docs/architecture.md section 12.
 const PLAN = {
   'restructure-ddd-monorepo': ['P0', 'A', []],
   'agentic-delivery-harness': ['P0', 'B', ['restructure-ddd-monorepo']],

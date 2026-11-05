@@ -4,7 +4,7 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 
 ## Read first
 
-1. `docs/PLAN.md` - vision, decisions (ADR log), target architecture, roadmap.
+1. `docs/PLAN.md` - vision, non-negotiables and the map of where everything lives (ADRs, specs, `docs/roadmap.md`, the GitHub board). Design notes: `docs/architecture.md`.
 2. `openspec/config.yaml` - hard constraints that apply to every change.
 3. The OpenSpec change you are implementing: `openspec/changes/<name>/` (proposal, specs, design, tasks).
 4. Skill `retroboard-stack` (`.claude/skills/retroboard-stack/SKILL.md`, same file under `.opencode/skills/`) for where code goes and how to verify it.
@@ -49,8 +49,8 @@ pnpm install
 pnpm verify        # lint + typecheck + arch + duplication (jscpd) + knip + adr + wip ceiling + unit + openspec validate --all --strict
 pnpm generate      # static site + CSP hashes
 pnpm dev:worker    # http://localhost:8787 (site + relay)
-pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), about 7 minutes
-pnpm e2e           # the full suite, about 18 minutes (nightly on every browser)
+pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), 84 tests, about 11 minutes
+pnpm e2e           # the full suite, about 18 minutes locally (Chromium); nightly on every browser. Run `pnpm generate` first and again after each source change
 pnpm commits:check # Conventional Commits of the unpushed commits
 npx openspec list     # in-flight changes
 npx openspec show <change>

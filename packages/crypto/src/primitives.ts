@@ -1,5 +1,5 @@
 /**
- * WebCrypto primitives (docs/PLAN.md 5.1, change e2e-encrypted-rooms).
+ * WebCrypto primitives (docs/architecture.md 5.1, change e2e-encrypted-rooms).
  * Every key crossing this boundary is raw bytes, so callers never hold CryptoKey handles
  * and the formats stay portable across browsers and the Worker.
  */

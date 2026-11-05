@@ -19,7 +19,7 @@ Feature freeze until main is green. Gate: 7 green nightly runs in a row, at most
 * `reliable-board-sync` ([proposal](../openspec/changes/reliable-board-sync/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
 * `quality-gates-v2` ([proposal](../openspec/changes/quality-gates-v2/proposal.md))
-* `stabilise-main` (change to open: `/opsx:propose`)
+* Epic #443 `stabilise-main`: roadmap source of truth, WIP limit, landing truth and favicon, phone UX and docs truth pass are delivered; the trademark check is the owner's task. Hotfix waves are archived as soon as they are merged (last: `2026-11-05-hotfix-ux-wave8`).
 
 ## R2 Public launch (target 2026-12-13)
 

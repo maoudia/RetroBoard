@@ -1,5 +1,5 @@
 /**
- * Replicated board fold with capabilities (docs/PLAN.md 5.1, 5.2).
+ * Replicated board fold with capabilities (docs/architecture.md 5.1, 5.2).
  *
  * Every peer folds the same verified events in the same order and must reach the same
  * state, so every decision here is deterministic and depends only on the events:
