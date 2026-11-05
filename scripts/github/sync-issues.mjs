@@ -6,6 +6,7 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { finishedTitles } from './finished.mjs'
 
 const args = process.argv.slice(2)
 const APPLY = args.includes('--apply')
@@ -361,7 +362,13 @@ for (const name of ordered) {
 }
 
 console.log(`${APPLY ? 'Applying' : 'Dry run'} on ${REPO}: ${Object.keys(RELEASES).length} release milestones, ${LABELS.length} labels, ${plan.filter((p) => p.kind === 'epic').length} epics, ${plan.filter((p) => p.kind === 'group').length} task-group issues`)
-if (!APPLY) { for (const p of plan) console.log(`${p.kind === 'epic' ? '' : '   '}${p.title}  [${p.labels.join(', ')}]`); process.exit(0) }
+const finished = finishedTitles(CHANGES)
+if (!APPLY) {
+  for (const p of plan) console.log(`${p.kind === 'epic' ? '' : '   '}${p.title}  [${p.labels.join(', ')}]`)
+  console.log(`\nFinished, closed by --apply (${finished.length}):`)
+  for (const t of finished) console.log(`   ${t}`)
+  process.exit(0)
+}
 
 const existingLabels = new Set(ghAll(`repos/${REPO}/labels?per_page=100`).map((l) => l.name))
 for (const [name, color, description] of LABELS) if (!existingLabels.has(name)) gh('POST', `repos/${REPO}/labels`, { name, color, description })
@@ -381,4 +388,15 @@ for (const p of plan.filter((x) => x.kind === 'group')) {
   const parent = issues[p.parent]
   try { gh('POST', `repos/${REPO}/issues/${parent.number}/sub_issues`, { sub_issue_id: issues[p.title].id }) } catch { /* already linked */ }
 }
+// Finished task groups and epics close themselves, with a note saying why.
+let closed = 0
+for (const title of finished) {
+  const open = issues[title]
+  if (!open || open.state === 'closed') continue
+  gh('POST', `repos/${REPO}/issues/${open.number}/comments`, { body: 'Closed by sync-issues: every task of this item is ticked in openspec (or its change is archived).' })
+  gh('PATCH', `repos/${REPO}/issues/${open.number}`, { state: 'closed', state_reason: 'completed' })
+  closed++
+  console.log(`closed #${open.number} ${title}`)
+}
+console.log(`${closed} finished issue(s) closed.`)
 console.log('Done. Create the project board in the GitHub UI and enable its "Auto-add to project" workflow for this repository.')

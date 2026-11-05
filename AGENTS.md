@@ -52,6 +52,7 @@ pnpm dev:worker    # http://localhost:8787 (site + relay)
 pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), 84 tests, about 11 minutes
 pnpm e2e           # the full suite, about 18 minutes locally (Chromium); nightly on every browser. Run `pnpm generate` first and again after each source change
 pnpm commits:check # Conventional Commits of the unpushed commits
+pnpm prepush       # the local gate before any push: verify, generate, bundle budget, commits, e2e:core (about 15 minutes); `--fast` skips the e2e
 npx openspec list     # in-flight changes
 npx openspec show <change>
 ```
@@ -63,7 +64,7 @@ The repository is a pnpm workspace (apps/*, packages/*); `pnpm arch` checks the 
 - Tests for the work in the same group (unit for domain/application, e2e for user flows).
 - i18n keys in fr and en; pseudo-locale overflow check passes once it exists.
 - No CSP violation, no console error (`tests/e2e` has a guard test).
-- `pnpm verify` green; e2e green for touched flows.
+- `pnpm verify` green; e2e green for touched flows; `pnpm prepush` green before the push.
 - Docs updated when behaviour or commands change.
 - Commit messages pass `pnpm commits:check`. Release only through the automatic workflow, which waits for a green main.
 
