@@ -7,5 +7,5 @@
 
 ## 2. Lighthouse and contrast
 
-- [ ] 2.1 Lighthouse through Playwright on 4 pages in light and dark with budgets; verify a budget failure on a fixture
-- [ ] 2.2 Contrast run on every theme and variant with a report; verify it catches a seeded low-contrast token
+- [x] 2.1 Lighthouse through Playwright on 4 pages in light and dark with budgets; verify a budget failure on a fixture
+- [x] 2.2 Contrast run on every theme and variant with a report; verify it catches a seeded low-contrast token
