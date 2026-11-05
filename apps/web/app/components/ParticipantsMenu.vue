@@ -5,7 +5,10 @@ const { t } = useT()
 const board = useBoardStore()
 const live = useLiveStore()
 const { push } = useToasts()
-const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
+const identity = useIdentityStore()
+/** My own row shows my name even when I chose to stay anonymous for the others (change hotfix-ux-wave8). */
+const shown = (p: Peer) => p.name ?? (p.me && identity.name.trim() ? identity.name.trim() : null)
+const initial = (p: Peer) => (shown(p)?.[0] ?? '?').toUpperCase()
 
 /** Dot of each participant: direct link, through the relay, or reconnecting (change presence-status). */
 const stateOf = (p: Peer) => connectionState({ me: p.me, conn: p.conn, direct: board.links?.direct ?? [], status: board.status, p2p: board.links?.p2p ?? false })
@@ -68,8 +71,8 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     <p v-if="board.roomCode" class="code muted" :title="t('share.roomCode.hint')" data-testid="peers-room-code">{{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <ul class="list" data-testid="peers">
       <li v-for="(p, i) in board.peers" :key="p.key ?? i" :data-role="p.role" :data-testid="`peer-${i}`">
-        <span class="av" :style="hueBg(peerHue(p))" :data-hue="peerHue(p)">{{ initial(p.name) }}<ConnDot class="cd" :state="stateOf(p)" /></span>
-        <span class="nm">{{ p.name ?? t('common.anonymous') }}<small v-if="sameName[i]" class="st muted" :data-testid="`peer-rank-${i}`">#{{ sameName[i] }}</small><small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small><small v-if="!p.me && stateOf(p) !== 'direct'" class="st muted" :data-testid="`peer-conn-${i}`">{{ t(`presence.${stateOf(p)}`) }}</small></span>
+        <span class="av" :style="hueBg(peerHue(p))" :data-hue="peerHue(p)">{{ initial(p) }}<ConnDot class="cd" :state="stateOf(p)" /></span>
+        <span class="nm">{{ shown(p) ?? t('common.anonymous') }}<small v-if="p.me && !p.name && shown(p)" class="st muted" data-testid="peer-hidden-self">{{ t('participants.hiddenToOthers') }}</small><small v-if="sameName[i]" class="st muted" :data-testid="`peer-rank-${i}`">#{{ sameName[i] }}</small><small v-if="p.renamed" class="st muted" :data-testid="`peer-renamed-${i}`">{{ t('roles.renamed') }}</small><small v-if="statusLabel(p)" class="st muted" :data-testid="`peer-status-${i}`">{{ statusLabel(p) }}</small><small v-if="!p.me && stateOf(p) !== 'direct'" class="st muted" :data-testid="`peer-conn-${i}`">{{ t(`presence.${stateOf(p)}`) }}</small></span>
         <span v-if="p.role === 'facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-facilitator"><Icon name="lucide:crown" /> {{ t('roles.facilitator') }}</span>
         <span v-else-if="p.role === 'co-facilitator' && !board.settings?.openFacilitation" class="pill role" data-testid="badge-co"><Icon name="lucide:shield" /> {{ t('roles.co') }}</span>
         <span v-if="p.hidden" class="pill muted" data-testid="badge-hidden">{{ t('roles.hidden') }}</span>
@@ -92,7 +95,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     </ul>
     <p v-if="myState !== 'direct'" class="note muted" role="status" data-testid="my-conn">{{ t(myState === 'relay' ? 'presence.mine.relay' : 'presence.mine.reconnecting') }}</p>
     <div v-if="board.links" class="modes" :data-p2p="board.links.p2p" data-testid="links-state">
-      <p class="mode" :class="{ on: board.links.p2p }" data-mode="direct"><Icon name="lucide:zap" /><span>{{ board.links.p2p ? t('links.p2p', { n: board.links.peers }) : t('links.p2p.idle') }}</span></p>
+      <p class="mode" :class="{ on: board.links.p2p && board.links.peers > 0 }" data-mode="direct"><Icon name="lucide:zap" /><span>{{ board.links.p2p && board.links.peers > 0 ? t('links.p2p', { n: board.links.peers }) : t('links.p2p.idle') }}</span></p>
       <p class="mode" :class="{ on: !board.links.p2p }" data-mode="relay"><Icon name="lucide:radio-tower" /><span>{{ board.links.p2p ? t('links.relay.idle') : t('links.relay') }}</span></p>
     </div>
   </Dropdown>

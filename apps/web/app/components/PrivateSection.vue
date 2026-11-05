@@ -153,9 +153,7 @@ function onKey(e: KeyboardEvent) {
         <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
       <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
-      <span class="pick-seg seg-rects" role="group" :aria-label="t('private.area')">
-        <button v-for="z in WRITE_SIZES" :key="z" type="button" :class="{ on: ui.writeSizeOf(column.id) === z }" :aria-pressed="ui.writeSizeOf(column.id) === z" :aria-label="t(`private.area.${z}` as never)" :title="t(`private.area.${z}` as never)" :data-testid="`area-${z}-${column.id}`" @click="setSize(z)"><i class="rect" :class="z" aria-hidden="true" /></button>
-      </span>
+      <SizePicker :model-value="ui.writeSizeOf(column.id)" :options="WRITE_SIZES" :label="t('private.area')" :option-label="(z) => t(`private.area.${z}` as never)" :testid="(z) => `area-${z}-${column.id}`" @update:model-value="setSize" />
       <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
       <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-down" /></button>
     </header>

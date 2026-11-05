@@ -233,7 +233,7 @@ main:focus { outline: none; }
 .pick-seg button.on { background: var(--accent); color: var(--accent-ink); }
 /* Icon-only size controls (change feedback-wave-7): outlined rectangles, the selected one is filled with the accent on a tinted button.
    Same look for the writing size and the column width, readable in every theme (no ink-on-accent mix, no shadow). */
-.seg-rects button { display: grid; place-items: center; padding: 0; min-width: 36px; min-height: 30px; background: var(--surface); color: var(--muted); }
+.seg-rects button { display: grid; place-items: center; padding: 0; width: 38px; min-height: 32px; background: var(--surface); color: var(--muted); }
 .seg-rects button:hover:not(.on) { color: var(--text); background: var(--surface2); }
 .seg-rects button.on { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); }
 .rect { display: block; width: var(--rw, 14px); height: var(--rh, 10px); border: 1.75px solid currentColor; border-radius: 3px; box-sizing: border-box; }

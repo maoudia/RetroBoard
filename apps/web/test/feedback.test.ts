@@ -19,5 +19,12 @@ describe('feedback links', () => {
   it('lists the owner profiles over https', () => {
     expect(FOLLOW_LINKS.map((l) => l.id)).toEqual(['github', 'linkedin', 'x', 'devto'])
     expect(FOLLOW_LINKS.every((l) => l.href.startsWith('https://'))).toBe(true)
+    // Same profiles as the "Find me on" list of https://www.maoudia.com/ (change hotfix-ux-wave8).
+    expect(Object.fromEntries(FOLLOW_LINKS.map((l) => [l.id, l.href]))).toEqual({
+      github: 'https://github.com/aoudiamoncef',
+      linkedin: 'https://www.linkedin.com/in/moncef-aoudia-7723b311b',
+      x: 'https://twitter.com/aoudiamoncef',
+      devto: 'https://dev.to/aoudiamoncef',
+    })
   })
 })

@@ -30,6 +30,9 @@ const open = () => { cancelPeek(); ui.openGroupId = props.item.group.id }
 // Peek (change cluster-reveal-motion): resting a mouse or pen on the stack for 300 ms lists its notes.
 // Touch never peeks (a tap opens the cluster); keyboard users open it with Enter.
 const PEEK_DELAY_MS = 300
+/** Eight lines fit the spread; a longer cluster ends with "+N more" (it used to clip after five, change hotfix-ux-wave8). */
+const PEEK_MAX = 8
+const PEEK_ROW = 34
 const peekAt = ref<{ left: number; top: number; width: number } | null>(null)
 const stackEl = ref<HTMLElement | null>(null)
 let peekTimer: ReturnType<typeof setTimeout> | undefined
@@ -47,13 +50,13 @@ function schedulePeek(e: PointerEvent) {
     if (!r || ui.dragNoteId || ui.dragGroupId) return
     const width = Math.min(Math.max(r.width, 240), window.innerWidth - 16)
     const left = Math.min(Math.max(8, r.left), window.innerWidth - width - 8)
+    const height = (Math.min(props.item.notes.length, PEEK_MAX) + (props.item.notes.length > PEEK_MAX ? 1 : 0)) * PEEK_ROW + 16
     const below = r.bottom + 6
-    const top = below + 180 > window.innerHeight ? Math.max(8, r.top - 6 - 180) : below
+    const top = below + height > window.innerHeight ? Math.max(8, r.top - 6 - height) : below
     peekAt.value = { left, top, width }
     document.addEventListener('keydown', onPeekKey)
   }, PEEK_DELAY_MS)
 }
-const PEEK_MAX = 6
 onBeforeUnmount(cancelPeek)
 </script>
 
@@ -121,7 +124,8 @@ onBeforeUnmount(cancelPeek)
 .inline.over { border-style: solid; border-color: var(--accent); }
 .ibar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .ihead { display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; text-align: left; }
-.inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--note-w, 150px)), 1fr)); gap: .6rem; }
+.inotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--note-w, 150px)), 1fr)); grid-auto-rows: min-content; align-items: start; gap: .6rem; min-width: 0; }
+.inotes > :deep(.note) { height: auto; overflow: visible; }
 .dock { position: absolute; left: .55rem; right: .55rem; bottom: .45rem; z-index: 2; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .3rem; min-width: 0; pointer-events: none; }
 .dock > * { pointer-events: auto; max-width: 100%; min-width: 0; }
 .stack.docked .face { padding-bottom: 2.9rem; min-height: 128px; }
@@ -139,13 +143,13 @@ onBeforeUnmount(cancelPeek)
 }
 .fold { position: absolute; top: 0; right: 0; width: 26px; height: 26px; border-top-right-radius: calc(var(--r-card) / 3 + 2px); background: linear-gradient(225deg, var(--bg) 0 50%, color-mix(in oklab, var(--c) 70%, #000) 50%); }
 .text { overflow-wrap: anywhere; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; padding-right: 14px; }
-.meta { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 800; }
+.meta { display: flex; flex-wrap: wrap; gap: .25rem; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 800; }
 .count, .votes { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 999px; background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
 .pin { background: var(--accent); color: var(--accent-ink); }
 </style>
 
 <style>
-.peek { position: fixed; z-index: 60; display: grid; gap: .3rem; margin: 0; padding: .5rem; list-style: none; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / .25)); pointer-events: none; max-height: 180px; overflow: hidden; animation: peek-in .15s ease-out; }
+.peek { position: fixed; z-index: 60; display: grid; gap: .3rem; margin: 0; padding: .5rem; list-style: none; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / .25)); pointer-events: none; max-height: 80vh; overflow: hidden; animation: peek-in .15s ease-out; }
 .peek li { padding: .3rem .5rem; border-radius: var(--r-xs); background: var(--c, var(--surface2)); color: var(--note-ink); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .peek li.more { background: none; color: var(--muted); }
 @keyframes peek-in { from { opacity: 0; transform: translateY(-4px); } }

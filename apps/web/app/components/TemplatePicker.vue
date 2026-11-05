@@ -71,7 +71,10 @@ const reasonText = (list: Reason[]) => list.map((x) => reasonLabel(x))
 .tabs button { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .9rem; border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-weight: 600; color: var(--muted); }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
 .wizard { display: grid; gap: 1rem; }
-fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: .5rem; min-width: 0; }
+/* align-content start: a short fieldset next to a taller one must not stretch its buttons (change hotfix-ux-wave8). */
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: .5rem; min-width: 0; align-content: start; }
+fieldset .pick-seg { align-self: start; justify-self: start; }
+.row { align-items: flex-start; }
 legend { font-weight: 700; font-size: var(--fs-sm); color: var(--muted); padding: 0; margin-bottom: .4rem; }
 .goals { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: .5rem; }
 .opt { display: flex; gap: .6rem; align-items: center; padding: .6rem .75rem; text-align: left; cursor: pointer; border: 1.5px solid var(--border); border-radius: var(--r-control); background: var(--surface2); }

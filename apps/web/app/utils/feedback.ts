@@ -1,11 +1,12 @@
 /** Feedback links. Pure: nothing here reads the board, so no room id, key, passcode or content can leak into a URL. */
 const REPO = 'https://github.com/maoudia/retroboard'
 
+/** Same profiles as the "Find me on" list of https://www.maoudia.com/ (checked 2026-11-05). */
 export const FOLLOW_LINKS = [
-  { id: 'github', label: 'GitHub', href: 'https://github.com/maoudia' },
-  { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/maoudia' },
-  { id: 'x', label: 'X', href: 'https://x.com/maoudia' },
-  { id: 'devto', label: 'DEV.to', href: 'https://dev.to/maoudia' },
+  { id: 'github', label: 'GitHub', href: 'https://github.com/aoudiamoncef' },
+  { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/moncef-aoudia-7723b311b' },
+  { id: 'x', label: 'X', href: 'https://twitter.com/aoudiamoncef' },
+  { id: 'devto', label: 'DEV.to', href: 'https://dev.to/aoudiamoncef' },
 ] as const
 
 export const HOME_URL = 'https://maoudia.com'

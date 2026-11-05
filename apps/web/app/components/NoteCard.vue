@@ -101,11 +101,13 @@ function onDrop() {
 .note.over { outline-color: var(--accent); transform: scale(1.04); }
 .note::after { content: ''; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: .0; }
 .text { min-width: 0; max-width: 100%; word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; font-weight: 500; line-height: 1.3; }
-footer { display: flex; align-items: center; gap: .15rem; margin-inline: -.2rem; }
-.grow { flex: 1; }
+/* The footer wraps: author, badges, vote and menu never leave the card, a long list goes to a second line (change hotfix-ux-wave8). */
+footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .2rem .15rem; margin-inline: -.2rem; min-width: 0; }
+footer > * { min-width: 0; }
+.grow { flex: 1 1 0; }
 .abadge { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .5rem; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
 .abadge:hover { background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
-.by { font-size: var(--fs-xs); font-style: italic; opacity: .78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+.by { font-size: var(--fs-xs); font-style: italic; opacity: .78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; flex: 0 1 auto; }
 .vote {
   position: relative; display: inline-flex; align-items: center; gap: .3rem; padding: .22rem .55rem; border-radius: 999px; cursor: pointer;
   border: 1.5px solid color-mix(in oklab, var(--note-ink) 35%, transparent); background: transparent; color: inherit; font-weight: 700; font-size: var(--fs-sm);

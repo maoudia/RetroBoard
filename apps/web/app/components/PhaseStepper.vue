@@ -33,7 +33,15 @@ const toggleMode = () => settings.patch({ stepperTime: settings.s.stepperTime ==
 </script>
 
 <template>
-  <nav v-if="s && agenda" class="stepper" :aria-label="t('stepper.label')" data-testid="stepper">
+  <nav v-if="s && agenda" class="stepper" :class="{ ended: s.ended }" :aria-label="t('stepper.label')" data-testid="stepper">
+    <p class="line" data-testid="stepper-line" :data-mode="settings.s.stepperTime">
+      <!-- Only a running phase has a figure to switch; "finished" and "not started" are plain text. -->
+      <span v-if="s.ended" class="now done" :title="line" data-testid="stepper-mode"><Icon name="lucide:circle-check" aria-hidden="true" /><span class="visually-hidden">{{ line }}</span></span>
+      <span v-else-if="!label" class="now" data-testid="stepper-mode">{{ line }}</span>
+      <button v-else class="now modebtn" :class="{ over: overtime }" type="button" :title="t('stepper.mode')" :aria-label="`${line} - ${t('stepper.mode')}`" data-testid="stepper-mode" @click="toggleMode">{{ line }}</button>
+      <strong v-if="overText" class="overtxt" role="status" data-testid="stepper-over">{{ overText }}</strong>
+      <span v-if="s.next && !s.ended" class="next muted" data-testid="stepper-next">{{ t('stepper.next', { phase: name(s.next) }) }}</span>
+    </p>
     <ol class="segs">
       <li
         v-for="(p, i) in s.steps" :key="p.id" class="seg" :class="[p.state, { over: p.state === 'current' && overtime }]" :style="{ flexGrow: p.plannedMs }"
@@ -55,31 +63,50 @@ const toggleMode = () => settings.patch({ stepperTime: settings.s.stepperTime ==
         </Dropdown>
       </li>
     </ol>
-    <p class="line" data-testid="stepper-line" :data-mode="settings.s.stepperTime">
-      <!-- Only a running phase has a figure to switch; "finished" and "not started" are plain text. -->
-      <span v-if="!label" class="now" data-testid="stepper-mode">{{ line }}</span>
-      <button v-else class="now modebtn" :class="{ over: overtime }" type="button" :title="t('stepper.mode')" :aria-label="`${line} - ${t('stepper.mode')}`" data-testid="stepper-mode" @click="toggleMode">{{ line }}</button>
-      <strong v-if="overText" class="overtxt" role="status" data-testid="stepper-over">{{ overText }}</strong>
-      <span v-if="s.next && !s.ended" class="next muted" data-testid="stepper-next">{{ t('stepper.next', { phase: name(s.next) }) }}</span>
-    </p>
+    <!-- Call to action (change hotfix-ux-wave8): the bar is a control, this button says so and lists every step, also on a phone where there is no hover. -->
+    <Dropdown class="info-dd" align="end" width="230px">
+      <template #trigger="{ toggle, open }">
+        <button class="info" type="button" :aria-expanded="open" :aria-label="t('stepper.info')" :title="t('stepper.info')" data-testid="stepper-info" @click="toggle"><Icon :name="s.ended ? 'lucide:circle-check' : 'lucide:list-ordered'" /></button>
+      </template>
+      <ul class="all" data-testid="stepper-all">
+        <li v-for="p in s.steps" :key="p.id" :data-state="p.state" :class="{ cur: p.state === 'current' }">
+          <span class="dot" aria-hidden="true" />
+          <span class="nm">{{ name(p.kind) }}</span>
+          <span class="muted small mono">{{ p.skipped ? t('stepper.skipped') : p.spentMs === null ? t('stepper.planned', { n: Math.round(p.plannedMs / 60_000) }) : timeLabel(p.plannedMs, p.spentMs, 'elapsed').text }}</span>
+        </li>
+      </ul>
+    </Dropdown>
   </nav>
 </template>
 
 <style scoped>
-nav.stepper.stepper { display: grid; gap: .25rem; padding: 0 1rem .25rem; border-bottom: 1px solid var(--border); background: var(--surface); }
-.segs { display: flex; gap: 3px; margin: 0; padding: 9px 0; list-style: none; }
-.seg { position: relative; flex-basis: 0; min-width: 6px; height: 6px; }
+/* One row (change hotfix-ux-wave8): the phase and its time sit in front of the bar, the step list behind it; no second line. */
+nav.stepper.stepper { display: flex; align-items: center; gap: .6rem; padding: 0 1rem; border-bottom: 1px solid var(--border); background: var(--surface); }
+.segs { display: flex; flex: 1 1 0; min-width: 0; gap: 3px; margin: 0; padding: 12px 0; list-style: none; }
+.seg { position: relative; flex-basis: 0; min-width: 24px; height: 8px; } /* 24 px: a touch target (WCAG 2.5.8) */
+.seg:hover .bar, .seg:focus-within .bar { transform: scaleY(1.7); }
+.bar { transition: transform .15s; }
+.info { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; }
+.info:hover, .info[aria-expanded='true'] { background: var(--accent-soft); color: var(--accent); }
+.info:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.all { list-style: none; margin: 0; padding: .2rem; display: grid; gap: 2px; font-size: var(--fs-sm); }
+.all li { display: grid; grid-template-columns: auto 1fr auto; gap: .5rem; align-items: center; padding: .3rem .4rem; border-radius: var(--r-sm); }
+.all li.cur { background: var(--accent-soft); font-weight: 700; }
+.all .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.all li[data-state='done'] .dot, .all li.cur .dot { background: var(--accent); }
+.now.done { display: inline-flex; color: var(--accent); font-size: var(--fs-lg); }
 .bar { position: absolute; inset: 0; border-radius: 999px; background: var(--border); overflow: hidden; }
 .seg.current .bar { background: color-mix(in oklab, var(--accent) 25%, var(--border)); }
 /* The hit area is 24px tall (WCAG 2.5.8) around a 6px bar. */
-.seg :deep(.dd) { position: absolute; inset: -9px 0; display: block; }
+.seg :deep(.dd) { position: absolute; inset: -12px -1px; display: block; }
 .hit { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: var(--r-xs); }
 .pop { display: grid; gap: .2rem; padding: .35rem .5rem; font-size: var(--fs-sm); }
 .small { font-size: var(--fs-xs); }
 .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width .5s linear; }
 .seg.done .fill { background: color-mix(in oklab, var(--accent) 70%, var(--border)); }
-.line { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; margin: 0; font-size: var(--fs-xs); }
+.line { display: flex; flex: 0 1 auto; min-width: 0; max-width: 55%; gap: .25rem .75rem; align-items: baseline; margin: 0; font-size: var(--fs-xs); white-space: nowrap; }
+.line .now { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .now { font-weight: 700; }
 .modebtn { display: inline-flex; align-items: center; min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .modebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-xs); }
@@ -89,5 +116,13 @@ nav.stepper.stepper { display: grid; gap: .25rem; padding: 0 1rem .25rem; border
 .seg.over .bar { background: color-mix(in oklab, var(--ring-over) 25%, var(--border)); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 720px) { .next { display: none; } }
+/* Phones: the bar keeps the whole width (its steps are touch targets), the phase line goes under it, and a finished agenda has no line at all. */
+@media (max-width: 600px) {
+  nav.stepper.stepper { flex-wrap: wrap; row-gap: 0; }
+  .segs { order: 1; }
+  .info-dd { order: 2; }
+  .line { order: 3; flex: 1 1 100%; max-width: none; padding-bottom: .3rem; }
+  .ended .line { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+}
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 </style>

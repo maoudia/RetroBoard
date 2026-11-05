@@ -205,6 +205,7 @@ export const fr = {
   'presenter.focus.all': 'Toutes les colonnes',
   'presenter.laser': 'Pointeur laser (visible par tous)',
   'stepper.label': 'Étapes de la rétro',
+  'stepper.info': 'Voir toutes les étapes',
   'stepper.left': '{time} restantes',
   'stepper.over': '{time} de dépassement',
   'stepper.elapsed': '{time} écoulées',
@@ -434,6 +435,7 @@ export const fr = {
   'mode.hint': 'Simple : l\'essentiel, avec les meilleurs réglages par défaut. Avancé : toutes les options.',
   'mode.moreOptions': 'Plus d\'options en mode avancé.',
   'new.simple.note': 'Réglages recommandés : agenda d\'une heure, tout le monde peut animer, thème du moment, notifications d\'arrivée. Passe en avancé pour tout personnaliser.',
+  'new.advanced.note': 'Tous les réglages sont affichés.',
   'setup.step1': 'Choisis une ambiance',
   'setup.step2': 'Choisis un format',
 
@@ -492,6 +494,7 @@ export const fr = {
   "options.scale.large": "Grand",
   'chat.title': 'Chat',
   'chat.close': 'Fermer le chat',
+  'chat.bubble.drag': 'Glisse pour déplacer la bulle',
   'chat.log': 'Messages du chat',
   'chat.empty': 'Aucun message pour le moment.',
   'chat.placeholder': 'Écrire un message',
@@ -515,6 +518,7 @@ export const fr = {
   'toolbar.export': 'Export',
 
   'participants.online': 'Connectés maintenant',
+  'participants.hiddenToOthers': 'Les autres voient "Anonyme"',
 
   'timer.label': 'Minuteur partagé',
   'timer.pause': 'Pause',

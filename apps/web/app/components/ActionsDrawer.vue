@@ -173,6 +173,9 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
 
 <style scoped>
 .add { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: .5rem; }
+/* Owner and date share one height and never grow past their cell (a date field has its own intrinsic width on phones, change hotfix-ux-wave8). */
+.add :deep(input.field) { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; height: 2.75rem; }
+.add input[type="date"].field { appearance: none; -webkit-appearance: none; display: block; text-align: left; }
 .ideas-h { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .sortl { display: inline-flex; align-items: center; gap: .4rem; }
 .sortl .field { padding: .25rem .4rem; font-size: var(--fs-sm); }
@@ -196,5 +199,5 @@ li.hl { background: var(--accent-soft); border-radius: var(--r-sm); }
 .done .txt { text-decoration: line-through; color: var(--muted); }
 .s-blocked .status { border-color: var(--danger); }
 .empty { text-align: center; padding: 1rem; }
-@media (max-width: 640px) { .add { grid-template-columns: 1fr 1fr; } .add .field:first-child, .add .btn { grid-column: 1 / -1; } li { grid-template-columns: auto 1fr auto; } .meta { grid-column: 2 / -1; justify-content: flex-start; } }
+@media (max-width: 640px) { .add { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .add .field:first-child, .add .btn { grid-column: 1 / -1; } li { grid-template-columns: auto 1fr auto; } .meta { grid-column: 2 / -1; justify-content: flex-start; } }
 </style>

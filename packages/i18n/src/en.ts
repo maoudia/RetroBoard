@@ -206,6 +206,7 @@ export const en: Record<keyof typeof fr, string> = {
   'presenter.focus.all': 'All columns',
   'presenter.laser': 'Laser pointer (everybody sees it)',
   'stepper.label': 'Retro steps',
+  'stepper.info': 'See all steps',
   'stepper.left': '{time} left',
   'stepper.over': '{time} over',
   'stepper.elapsed': '{time} elapsed',
@@ -435,6 +436,7 @@ export const en: Record<keyof typeof fr, string> = {
   'mode.hint': 'Simple: the essentials with the best defaults. Advanced: every option.',
   'mode.moreOptions': 'More options in advanced mode.',
   'new.simple.note': 'Recommended settings: one-hour agenda, everyone can facilitate, theme of the moment, arrival notifications. Switch to advanced to customise everything.',
+  'new.advanced.note': 'Every setting is shown.',
   'setup.step1': 'Pick a mood',
   'setup.step2': 'Pick a format',
 
@@ -493,6 +495,7 @@ export const en: Record<keyof typeof fr, string> = {
   "options.scale.large": "Large",
   'chat.title': 'Chat',
   'chat.close': 'Close the chat',
+  'chat.bubble.drag': 'Drag to move the bubble',
   'chat.log': 'Chat messages',
   'chat.empty': 'No messages yet.',
   'chat.placeholder': 'Write a message',
@@ -516,6 +519,7 @@ export const en: Record<keyof typeof fr, string> = {
   'toolbar.export': 'Export',
 
   'participants.online': 'Online now',
+  'participants.hiddenToOthers': 'Others see "Anonymous"',
 
   'timer.label': 'Shared timer',
   'timer.pause': 'Pause',

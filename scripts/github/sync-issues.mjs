@@ -139,6 +139,7 @@ const PLAN = {
   'funny-local-companion': ['P12', 'C', ['local-ai-companion']],
   // Roadmap review 2026-11-04 (docs: diagnosis, vision, roadmap, business plan).
   'stabilise-main': ['P13', 'A', []],
+  'hotfix-ux-wave8': ['P13', 'A', []],
   'brand-identity': ['P13', 'B', []],
   'code-health-for-agents': ['P13', 'C', []],
   'public-launch': ['P13', 'B', ['brand-identity']],
@@ -205,6 +206,7 @@ const ROADMAP = {
   'agent-feedback-and-timeboxed-sessions': 'R5',
   'agents-first-class': 'R5',
   'stabilise-main': 'R1',
+  'hotfix-ux-wave8': 'R1',
   'brand-identity': 'R2',
   'code-health-for-agents': 'R2',
   'public-launch': 'R2',
@@ -261,6 +263,7 @@ const PRIORITY = {
   'agent-feedback-and-timeboxed-sessions': 4,
   'agents-first-class': 4,
   'stabilise-main': 1,
+  'hotfix-ux-wave8': 1,
   'brand-identity': 2,
   'code-health-for-agents': 3,
   'public-launch': 2,

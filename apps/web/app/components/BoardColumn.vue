@@ -104,21 +104,18 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
       >
         <Icon :name="expanded ? 'lucide:fold-vertical' : 'lucide:unfold-vertical'" />
       </button>
-      <Dropdown menu>
+      <Dropdown menu width="0px">
         <template #trigger="{ toggle, open }">
           <button class="mini-btn" :class="{ on: size !== 'normal' || !!customW }" type="button" aria-haspopup="menu" :aria-expanded="open" :aria-label="t('column.size')" :title="t('column.size')" :data-testid="`col-size-${column.id}`" @click="toggle">
             <Icon name="lucide:move-horizontal" />
           </button>
         </template>
         <template #default="{ close }">
-          <!-- No words: four outlined bars of growing width, same look as the writing-size control (change feedback-wave-6). -->
-          <span class="pick-seg seg-rects width-seg" role="group" :aria-label="t('column.size')">
-            <button
-              v-for="z in COLUMN_SIZES" :key="z" type="button" role="menuitemradio" :class="{ on: size === z }" :aria-checked="size === z"
-              :aria-label="t(`column.size.${z}` as never)" :title="t(`column.size.${z}` as never)" :data-testid="`size-${z}-${column.id}`"
-              @click="ui.setColumnSize(board.roomId, column.id, z); close()"
-            ><i class="rect" :class="z" aria-hidden="true" /></button>
-          </span>
+          <!-- One shared size control with the writing area (change hotfix-ux-wave8). No words: four outlined bars of growing width, same look as the writing-size control (change feedback-wave-6). -->
+          <SizePicker
+            class="width-seg" menu :model-value="size" :options="COLUMN_SIZES" :label="t('column.size')" :option-label="(z) => t(`column.size.${z}` as never)"
+            :testid="(z) => `size-${z}-${column.id}`" @update:model-value="(z) => { ui.setColumnSize(board.roomId, column.id, z); close() }"
+          />
         </template>
       </Dropdown>
       <ColumnMenu :column="column" :index="index" :count="total" :note-count="noteCount" />

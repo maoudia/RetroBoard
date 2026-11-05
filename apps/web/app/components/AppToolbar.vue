@@ -122,8 +122,12 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 .logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
 .logo:hover { transform: rotate(-8deg) scale(1.08); }
 .boards-head { display: block; padding: .3rem .5rem; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-.boards-new { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; padding: .5rem .6rem; border-top: 1px solid var(--border); color: var(--accent); font-weight: 600; text-decoration: none; }
-.boards-new:hover { background: var(--accent-soft); }
+/* Links and buttons of the menu look the same: the button reset was missing (change hotfix-ux-wave8). */
+.boards-new { display: flex; align-items: center; gap: .4rem; width: 100%; margin: 0; padding: .5rem .6rem; border: 0; border-radius: var(--r-sm); background: none; color: var(--accent); font: inherit; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; }
+.boards-none + .boards-new, :deep(.recent) + .boards-new, .boards-new:first-of-type { margin-top: .3rem; border-top-left-radius: 0; border-top-right-radius: 0; border-top: 1px solid var(--border); }
+.boards-new:hover:not(:disabled) { background: var(--accent-soft); }
+.boards-new:disabled { color: var(--muted); cursor: not-allowed; }
+.boards-new:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .boards-none { margin: 0; padding: .3rem .5rem .5rem; font-size: var(--fs-sm); }
 .title { display: grid; min-width: 0; padding: .15rem .5rem; text-align: left; border: 0; border-radius: var(--r-pill); background: transparent; cursor: pointer; }
 .title:hover { background: var(--accent-soft); }
