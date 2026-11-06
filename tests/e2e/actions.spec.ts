@@ -4,7 +4,8 @@ import { closeShare, createBoard, join } from './helpers'
 const openActions = (page: Page) => page.getByTestId('btn-actions').click()
 async function addAction(page: Page, text: string, owner?: string, due?: string) {
   await page.getByTestId('action-text').fill(text)
-  if (owner !== undefined) await page.getByTestId('owner-input').fill(owner)
+  // Tab closes the suggestion list first: a click on Add while it is open can be swallowed.
+  if (owner !== undefined) { await page.getByTestId('owner-input').fill(owner); await page.getByTestId('owner-input').press('Tab') }
   if (due) await page.getByTestId('action-due').fill(due)
   await page.getByTestId('action-add').click()
 }
@@ -127,7 +128,6 @@ test.describe('actions v2', () => {
     await page.getByTestId('actions').locator('li', { hasText: 'Fix deployment' }).getByTestId('action-status').selectOption('blocked')
     await page.keyboard.press('Escape')
     const boardLink = await shareLink(page)
-    await closeShare(page)
 
     // Create second board and import from the first board's link
     await page.goto('/new')
@@ -152,8 +152,7 @@ test.describe('actions v2', () => {
     // Complete the board creation
     await page.getByTestId('setup-title').fill('Sprint 43')
     await page.getByTestId('setup-submit').click()
-    await page.getByTestId('name-input').fill('Alice')
-    await page.getByTestId('name-save').click()
+    // Same browser: the name is remembered, no prompt this time.
 
     // Verify the actions are in the review panel
     await expect(page.getByTestId('review-list')).toContainText('Refactor auth')
