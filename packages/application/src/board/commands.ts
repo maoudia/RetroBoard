@@ -2,6 +2,7 @@ import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
 import { createUndoStack, inverseOf, type UndoLabel } from './history'
+import type { HistoryEntry } from './history-log'
 
 /** Errors a board use case can return before or instead of reaching the room. */
 export type BoardError = ErrorCode | 'offline'
@@ -93,6 +94,31 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     },
     canUndo: () => history.size > 0,
     canRedo: () => redoStack.size > 0,
+    /** The last reversible actions of everyone, newest last (the history panel). */
+    history: (): HistoryEntry[] => deps.channel()?.history?.() ?? [],
+    /**
+     * Facilitator: puts the board structure back as it was before a history entry, as ordinary commands (the log stays
+     * append-only). Nothing is sent when the plan is too long for the fold rate limit; `skipped` counts what stays as it is.
+     */
+    rewind(entryId: string): { result: BoardResult; sent: number; skipped: number } {
+      const channel = deps.channel()
+      const plan = channel?.rewindPlan?.(entryId)
+      if (!channel || plan === undefined) return { result: err('offline'), sent: 0, skipped: 0 }
+      if (!plan) return { result: err('not-found'), sent: 0, skipped: 0 }
+      if (plan.tooMany) return { result: err('limit-reached'), sent: 0, skipped: plan.skipped }
+      if (locked()) return { result: err('locked'), sent: 0, skipped: plan.skipped }
+      // My own undo steps were computed from states that no longer hold.
+      history.clear()
+      redoStack.clear()
+      changed()
+      let sent = 0
+      for (const c of plan.commands) {
+        const r = send(c)
+        if (!r.ok) return { result: r, sent, skipped: plan.skipped }
+        sent++
+      }
+      return { result: ok(), sent, skipped: plan.skipped }
+    },
     /** Adds one vote, checking locally what the participant can already know (budget, cap, phase). */
     addVote(kind: VotableKind, id: string): BoardResult {
       const view = deps.view()

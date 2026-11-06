@@ -1,4 +1,5 @@
 import type { Command, CursorFrame, ErrorCode, FocusFrame, Snapshot } from '@retroboard/domain'
+import type { HistoryEntry, RewindPlan } from '../board/history-log'
 
 /**
  * `waiting`: connected, but nobody holds this board yet. Nothing is created in its place.
@@ -70,6 +71,10 @@ export interface BoardChannel {
   startBoard?(): void
   /** Encrypted boards: writes the pending local copy now (the page is going away). */
   flush?(): Promise<void>
+  /** Encrypted boards: the last reversible actions read from the signed log, newest last (change board-undo-rewind). */
+  history?(): HistoryEntry[]
+  /** Encrypted boards: the commands that restore the board as it was before a history entry, or null for an unknown entry. */
+  rewindPlan?(entryId: string): RewindPlan | null
   /** Live presence, best effort: dropped when offline. */
   sendCursor?(cursor: OwnCursor): void
   sendFocus?(focus: OwnFocus): void

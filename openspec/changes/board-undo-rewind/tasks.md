@@ -8,7 +8,7 @@
 ## 2. Application and read model
 - [x] 2.1 Bounded undo stack (30) and `undo()` in the board commands; verify unit tests
 - [x] 2.2a Redo stack (undo again after redo); verify unit tests
-- [ ] 2.2b Rewind and a history read model (last 50); verify unit tests with testkit
+- [x] 2.2b Rewind and a history read model (last 50); verify unit tests with testkit
 
 ## 3. UI
 - [x] 3.1 Ctrl+Z with a toast (fr and en); verify e2e (wrong grouping undone, tests/e2e/undo.spec.ts)

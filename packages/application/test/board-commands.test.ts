@@ -100,3 +100,51 @@ describe('vote use cases check what the participant can know', () => {
     expect(sent).toEqual([{ t: 'vote.remove', kind: 'note', id: 'n1' }])
   })
 })
+
+describe('rewind', () => {
+  const plan = (commands: Command[], extra: Partial<{ skipped: number; tooMany: boolean }> = {}) => ({ commands, skipped: 0, tooMany: false, ...extra })
+  function withPlan(p: ReturnType<typeof plan> | null | undefined) {
+    const sent: Command[] = []
+    const channel: BoardChannel = {
+      connect() {}, updateIdentity() {}, close() {},
+      send(cmd) { sent.push(cmd); return true },
+      history: () => [{ id: 'e1', at: 1, key: 'k', by: null, kind: 'move', text: 'idea', columnId: 'c' }],
+      ...(p === undefined ? {} : { rewindPlan: () => p }),
+    }
+    const state = { locked: false }
+    const commands = createBoardCommands({ channel: () => channel, view: () => ({ settings: state } as unknown as Snapshot) })
+    return { sent, commands, state }
+  }
+
+  it('lists the history of the channel, empty when it has none', () => {
+    expect(withPlan(plan([])).commands.history()).toHaveLength(1)
+    expect(createBoardCommands({ channel: () => null, view: () => null }).history()).toEqual([])
+  })
+
+  it('sends the plan as ordinary commands and reports what it left alone', () => {
+    const { commands, sent } = withPlan(plan([{ t: 'note.ungroup', id: 'a' }, { t: 'note.move', id: 'a', columnId: 'c1' }], { skipped: 2 }))
+    expect(commands.rewind('e1')).toEqual({ result: { ok: true }, sent: 2, skipped: 2 })
+    expect(sent.map((c) => c.t)).toEqual(['note.ungroup', 'note.move'])
+  })
+
+  it('sends nothing for an unknown entry, a plan that is too long, a locked board or a channel without history', () => {
+    expect(withPlan(null).commands.rewind('x')).toMatchObject({ result: { ok: false, error: 'not-found' }, sent: 0 })
+    const long = withPlan(plan([{ t: 'note.ungroup', id: 'a' }], { tooMany: true }))
+    expect(long.commands.rewind('e1')).toMatchObject({ result: { ok: false, error: 'limit-reached' }, sent: 0 })
+    const locked = withPlan(plan([{ t: 'note.ungroup', id: 'a' }]))
+    locked.state.locked = true
+    expect(locked.commands.rewind('e1')).toMatchObject({ result: { ok: false, error: 'locked' }, sent: 0 })
+    expect(withPlan(undefined).commands.rewind('e1')).toMatchObject({ result: { ok: false, error: 'offline' } })
+    expect([...long.sent, ...locked.sent]).toEqual([])
+  })
+
+  it('forgets my own undo steps, which no longer match the board', () => {
+    const { h, commands, col, view } = setup()
+    commands.publish([{ columnId: col, text: 'a' }])
+    commands.recolorNote(view().notes[0]!.id, 3)
+    expect(commands.canUndo()).toBe(true)
+    const channel = { connect() {}, updateIdentity() {}, close() {}, send: () => true, rewindPlan: () => plan([]) } as BoardChannel
+    expect(createBoardCommands({ channel: () => channel, view }).rewind('e1').result.ok).toBe(true)
+    expect(h.state).toBeDefined()
+  })
+})

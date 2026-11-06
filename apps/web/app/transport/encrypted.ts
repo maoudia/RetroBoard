@@ -12,7 +12,7 @@
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
  * Every peer runs the same fold, so all replicas converge without a server reducer.
  */
-import { EventLog, type OwnCursor, type OwnFocus, type ReplicaStorePort, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
+import { EventLog, type HistoryEntry, historyOf, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
 import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
@@ -147,6 +147,14 @@ export class EncryptedRelayTransport implements BoardTransport {
     if (this.closed || !this.known) return false
     this.enqueue(() => this.publishLocal({ t: change, key }))
     return true
+  }
+
+  history(): HistoryEntry[] {
+    return historyOf(this.ring.roomId, this.log.all())
+  }
+
+  rewindPlan(entryId: string): RewindPlan | null {
+    return rewindPlan(this.ring.roomId, this.log.all(), entryId)
   }
 
   sendRename(key: string, name: string): boolean {
