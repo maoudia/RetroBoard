@@ -63,7 +63,7 @@ Browser (Nuxt SPA, generated)                 Cloudflare
 
 ## Quick start
 
-Requirements: Node 22+ (CI and Cloudflare builds use 24).
+Requirements: Node 22+ (CI and Cloudflare builds use 24). Recommended: [mise](https://mise.jdx.dev) (`mise install`) to get the exact pinned Node and pnpm versions on any platform, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ```bash
 pnpm install
