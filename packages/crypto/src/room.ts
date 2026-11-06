@@ -11,6 +11,12 @@ export async function deriveContentKey(roomKey: Uint8Array, roomId: string, pass
   return hkdf(roomKey, utf8(roomId), concat(utf8('rb/content/v1'), stretch))
 }
 
+/**
+ * Ed25519 seed of a 128-bit facilitator secret (ADR-0029). A 256-bit secret from an older board is the seed itself and
+ * never goes through here.
+ */
+export const deriveFacilitatorSeed = (secret: Uint8Array): Promise<Bytes> => hkdf(secret, new Uint8Array(), utf8('rb/facilitator/v1'))
+
 /** Board file key: bound to the content key (so to the passcode too) and to the room. */
 export const deriveFileKey = (contentKey: Uint8Array, roomId: string): Promise<Bytes> =>
   hkdf(contentKey, utf8(roomId), utf8('rb/file/v1'))

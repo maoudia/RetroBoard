@@ -33,3 +33,5 @@ Chosen option: "End-to-end encryption (AES-GCM 256, key in the URL fragment), op
 ## More Information
 
 The original decision also added Turnstile at board creation; ADR-0019 removed it.
+
+* New boards use 128-bit secrets in a compact link, see ADR-0029; the cipher is still AES-GCM 256.

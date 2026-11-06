@@ -3,7 +3,7 @@
  * kept in sessionStorage so a reload keeps authorship of your notes, gone when the tab closes.
  */
 import type { SignerPort, VerifierPort } from '@retroboard/application'
-import { fromBase64Url, sign, signingKeyPair, toBase64Url, utf8, verify } from '@retroboard/crypto'
+import { deriveFacilitatorSeed, fromBase64Url, sign, signingKeyPair, toBase64Url, utf8, verify } from '@retroboard/crypto'
 
 const SESSION_KEY = 'retroboard:session-signing-key'
 
@@ -22,10 +22,11 @@ export async function createSessionSigner(store: SeedStore = sessionSeedStore): 
   return signerFromSeed(pair.privateKey, toBase64Url(pair.publicKey))
 }
 
-/** Signer for a known seed (the facilitator secret from the link). */
-export async function signerFor(seedB64: string): Promise<SignerPort | null> {
-  const seed = fromBase64Url(seedB64)
-  if (seed?.length !== 32) return null
+/** Signer for the facilitator secret from the link: a 32-byte seed (older boards) or a 16-byte secret expanded to one. */
+export async function signerFor(secretB64: string): Promise<SignerPort | null> {
+  const secret = fromBase64Url(secretB64)
+  if (secret?.length !== 32 && secret?.length !== 16) return null
+  const seed = secret.length === 16 ? await deriveFacilitatorSeed(secret) : secret
   const pair = await signingKeyPair(seed)
   return signerFromSeed(pair.privateKey, toBase64Url(pair.publicKey))
 }

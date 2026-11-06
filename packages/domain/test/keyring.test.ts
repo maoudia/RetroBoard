@@ -55,3 +55,47 @@ describe('invite links', () => {
     expect(() => formatInvite({ roomId, roomKey, facilitatorSecret: 'x' }, 'facilitator')).toThrow()
   })
 })
+
+describe('compact links (ADR-0029)', () => {
+  const key128 = 'k'.repeat(21) + 'A'
+  const secret128 = 'f'.repeat(21) + 'Q'
+  const compact: KeyRing = { roomId, roomKey: key128, facilitatorSecret: secret128 }
+
+  it('is shorter than the long form, positional, and never carries the facilitator secret for a participant', () => {
+    const link = formatInvite(compact)
+    expect(link).toBe(`c=${roomId}${key128}`)
+    expect(link.length).toBe(46)
+    expect(link).not.toContain(secret128)
+    expect(formatInvite(compact, 'facilitator')).toBe(`c=${roomId}${key128}${secret128}`)
+    expect(formatInvite(compact, 'facilitator').length).toBe(68)
+  })
+
+  it('round-trips for both roles and with a passcode flag', () => {
+    expect(parseInvite(`#${formatInvite(compact)}`)).toEqual({ kind: 'encrypted', ring: { roomId, roomKey: key128 } })
+    expect(parseInvite(formatInvite(compact, 'facilitator'))).toEqual({ kind: 'encrypted', ring: compact })
+    const withCode: KeyRing = { ...compact, passcode: true }
+    expect(formatInvite(withCode)).toBe(`c=${roomId}${key128}&p=1`)
+    expect(parseInvite(formatInvite(withCode, 'facilitator'))).toEqual({ kind: 'encrypted', ring: withCode })
+  })
+
+  it('keeps the long form when a part has another size, and reads both forms of the same ring', () => {
+    const long: KeyRing = { roomId: 'x'.repeat(30), roomKey: key128 }
+    expect(formatInvite(long)).toBe(`r=${'x'.repeat(30)}&k=${key128}`)
+    expect(parseInvite(formatInvite(long))).toEqual({ kind: 'encrypted', ring: long })
+    expect(formatInvite({ roomId, roomKey: key128, facilitatorSecret: roomKey }, 'facilitator')).toBe(`r=${roomId}&k=${key128}&f=${roomKey}`)
+    expect(parseInvite(`r=${roomId}&k=${key128}&f=${secret128}`)).toEqual({ kind: 'encrypted', ring: compact })
+  })
+
+  it('does not take a compact link for a legacy bare room id', () => {
+    expect(parseInvite(`#${roomId}${key128}`)).toMatchObject({ kind: 'legacy' })
+    expect(parseInvite(`#c=${roomId}${key128}`)).toMatchObject({ kind: 'encrypted' })
+  })
+
+  it.each([
+    'c=', `c=${roomId}`, `c=${roomId}${key128}x`, `c=${roomId}${key128}${secret128}x`, `c=${roomId}${key128}${secret128}${secret128}`,
+    `c=${roomId}${key128.slice(1)}+`, `c=${roomId}${key128}&k=${key128}`, `c=${roomId}${key128}&r=${roomId}`, `c=${roomId}${key128}&x=1`,
+    `c=${roomId}${key128}&c=${roomId}${key128}`, `c=${roomId}${key128}&p=0`, `c=${roomId}/${key128.slice(1)}`,
+  ])('rejects malformed compact fragment %j', (fragment) => {
+    expect(parseInvite(fragment)).toBeNull()
+  })
+})

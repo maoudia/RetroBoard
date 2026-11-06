@@ -8,17 +8,26 @@
  *   facilitator: #r=<roomId>&k=<roomKey>&f=<facilitatorSecret>
  *   passcode:    &p=1 is appended when the board needs a passcode (the passcode itself never
  *                travels in a link; it is shared through another channel).
+ * Compact form (ADR-0029), for boards whose secrets are 128 bits (22 characters):
+ *   participant: #c=<roomId 22><roomKey 22>
+ *   facilitator: #c=<roomId 22><roomKey 22><facilitatorSecret 22>
+ * Boards made before it keep their 256-bit keys and their long links.
  * A bare #<roomId> is a legacy (protocol v1, unencrypted) link.
  */
 
 export const ROOM_ID_RE = /^[A-Za-z0-9_-]{22,64}$/
 /** 32 bytes in base64url without padding. */
 export const KEY_RE = /^[A-Za-z0-9_-]{43}$/
+/** 16 bytes in base64url without padding: the room key and facilitator secret of boards made since ADR-0029. */
+export const SECRET128_RE = /^[A-Za-z0-9_-]{22}$/
+const isSecret = (s: string): boolean => KEY_RE.test(s) || SECRET128_RE.test(s)
+const COMPACT_RE = /^[A-Za-z0-9_-]+$/
 
 export interface KeyRing {
   readonly roomId: string
+  /** 256 bits (43 characters, boards made before ADR-0029) or 128 bits (22 characters). */
   readonly roomKey: string
-  /** Present only for the facilitator (and delegated co-facilitators). */
+  /** Present only for the facilitator (and delegated co-facilitators). Same size as the room key. */
   readonly facilitatorSecret?: string
   /** True when the content key also depends on a passcode. */
   readonly passcode?: boolean
@@ -34,12 +43,14 @@ export const isFacilitatorRing = (ring: KeyRing): boolean => ring.facilitatorSec
 export const participantRing = ({ roomId, roomKey, passcode }: KeyRing): KeyRing => (passcode ? { roomId, roomKey, passcode } : { roomId, roomKey })
 
 export function formatInvite(ring: KeyRing, role: 'participant' | 'facilitator' = 'participant'): string {
-  if (!ROOM_ID_RE.test(ring.roomId) || !KEY_RE.test(ring.roomKey)) throw new Error('invalid key ring')
-  const base = `r=${ring.roomId}&k=${ring.roomKey}`
+  if (!ROOM_ID_RE.test(ring.roomId) || !isSecret(ring.roomKey)) throw new Error('invalid key ring')
+  const withSecret = role === 'facilitator'
+  if (withSecret && (!ring.facilitatorSecret || !isSecret(ring.facilitatorSecret))) throw new Error('missing facilitator secret')
   const tail = ring.passcode ? '&p=1' : ''
-  if (role === 'participant') return base + tail
-  if (!ring.facilitatorSecret || !KEY_RE.test(ring.facilitatorSecret)) throw new Error('missing facilitator secret')
-  return `${base}&f=${ring.facilitatorSecret}${tail}`
+  const secret = withSecret ? ring.facilitatorSecret! : ''
+  // Compact when every part has its fixed size; anything else keeps the long, labelled form.
+  if (ring.roomId.length === 22 && SECRET128_RE.test(ring.roomKey) && (!withSecret || SECRET128_RE.test(secret))) return `c=${ring.roomId}${ring.roomKey}${secret}${tail}`
+  return `r=${ring.roomId}&k=${ring.roomKey}${withSecret ? `&f=${secret}` : ''}${tail}`
 }
 
 /**
@@ -59,13 +70,21 @@ export function parseInvite(fragment: string, isLegacyRoom: (id: string) => bool
     if (fields.has(name)) return null
     fields.set(name, part.slice(eq + 1))
   }
-  const roomId = fields.get('r'); const roomKey = fields.get('k'); const secret = fields.get('f'); const p = fields.get('p')
-  if (!roomId || !ROOM_ID_RE.test(roomId) || !roomKey || !KEY_RE.test(roomKey)) return null
-  if (secret !== undefined && !KEY_RE.test(secret)) return null
+  const p = fields.get('p')
   if (p !== undefined && p !== '1') return null
-  for (const name of fields.keys()) if (!['r', 'k', 'f', 'p'].includes(name)) return null
-  return {
-    kind: 'encrypted',
-    ring: { roomId, roomKey, ...(secret === undefined ? {} : { facilitatorSecret: secret }), ...(p ? { passcode: true } : {}) },
+  const passcode = p ? { passcode: true } : {}
+
+  const compact = fields.get('c')
+  if (compact !== undefined) {
+    for (const name of fields.keys()) if (name !== 'c' && name !== 'p') return null
+    if (!COMPACT_RE.test(compact) || (compact.length !== 44 && compact.length !== 66)) return null
+    const facilitatorSecret = compact.slice(44)
+    return { kind: 'encrypted', ring: { roomId: compact.slice(0, 22), roomKey: compact.slice(22, 44), ...(facilitatorSecret ? { facilitatorSecret } : {}), ...passcode } }
   }
+
+  const roomId = fields.get('r'); const roomKey = fields.get('k'); const secret = fields.get('f')
+  if (!roomId || !ROOM_ID_RE.test(roomId) || !roomKey || !isSecret(roomKey)) return null
+  if (secret !== undefined && !isSecret(secret)) return null
+  for (const name of fields.keys()) if (!['r', 'k', 'f', 'p'].includes(name)) return null
+  return { kind: 'encrypted', ring: { roomId, roomKey, ...(secret === undefined ? {} : { facilitatorSecret: secret }), ...passcode } }
 }

@@ -20,8 +20,10 @@ test('the relay only sees ciphertext; the key never leaves the fragment', async 
 
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const hash = new URL(page.url()).hash
-  const key = /[#&]k=([A-Za-z0-9_-]{43})/.exec(hash)?.[1]
-  const secret = /[#&]f=([A-Za-z0-9_-]{43})/.exec(hash)?.[1]
+  // New boards use the compact link (ADR-0029): room id, room key and facilitator secret, 22 characters each.
+  const compact = /^#c=([A-Za-z0-9_-]{22})([A-Za-z0-9_-]{22})([A-Za-z0-9_-]{22})$/.exec(hash)
+  const key = compact?.[2]
+  const secret = compact?.[3]
   expect(key && secret).toBeTruthy()
 
   await publishNote(page, 0, TEXT)
@@ -29,11 +31,11 @@ test('the relay only sees ciphertext; the key never leaves the fragment', async 
   await page.getByTestId('btn-share').click()
   const shared = await page.getByTestId('share-url').inputValue()
   expect(shared).not.toContain(secret!)
-  expect(shared).toContain(`k=${key}`)
+  expect(shared).toContain(`${compact![1]}${key}`)
   await expect(page.getByTestId('share-warn')).toBeVisible()
   await expect(page.getByTestId('share-facilitator-url')).toHaveCount(0)
   await page.getByTestId('share-facilitator-toggle').click()
-  await expect(page.getByTestId('share-facilitator-url')).toHaveValue(new RegExp(`&f=${secret}`))
+  await expect(page.getByTestId('share-facilitator-url')).toHaveValue(new RegExp(`${key}${secret}$`))
   const bob = await join(browser, shared, 'Bob')
   await expect(noteByText(bob.page, TEXT)).toBeVisible()
 

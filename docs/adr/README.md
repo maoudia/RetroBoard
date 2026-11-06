@@ -39,3 +39,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0026](0026-one-engine-for-solo-and-shared-boards.md) | One engine for solo and shared boards | accepted | 2026-11-02 |
 | [0027](0027-local-team-workspaces-without-server-storage.md) | Local team workspaces without server storage | accepted | 2026-11-02 |
 | [0028](0028-join-a-board-with-a-short-code.md) | Join a board with a short code | accepted | 2026-11-02 |
+| [0029](0029-compact-board-links-with-128-bit-board-keys.md) | Compact board links with 128-bit board keys | accepted | 2026-11-06 |

@@ -32,4 +32,15 @@ describe('session signer', () => {
     expect(await ed25519Verifier.verify('bad', 'bad', 'x')).toBe(false)
     expect(await signerFor('short')).toBeNull()
   })
+
+  it('a 128-bit facilitator secret expands to a stable key that differs from using it as a seed', async () => {
+    const secret = toBase64Url(randomKey().slice(0, 16))
+    const a = (await signerFor(secret))!
+    expect((await signerFor(secret))!.publicKey).toBe(a.publicKey)
+    expect(a.publicKey).toHaveLength(43)
+    expect((await signerFor(toBase64Url(randomKey().slice(0, 16))))!.publicKey).not.toBe(a.publicKey)
+    const sig = await a.sign('hello')
+    expect(await ed25519Verifier.verify(a.publicKey, sig, 'hello')).toBe(true)
+    expect(await signerFor(toBase64Url(randomKey().slice(0, 24)))).toBeNull()
+  })
 })

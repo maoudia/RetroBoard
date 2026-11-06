@@ -289,9 +289,10 @@ test('no CSP violation or console error across the main flows', async ({ page })
 test('share links use /boards and a link in the previous /board format still opens the board (change short-links-and-join)', async ({ page, browser }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
   const url = await page.getByTestId('share-url').inputValue()
-  expect(url).toMatch(/\/boards#/)
+  expect(url).toMatch(/\/boards#c=[A-Za-z0-9_-]{44}$/)
   await page.keyboard.press('Escape')
 
+  // Boards made before the compact form keep their long link: a 256-bit link in the previous syntax still opens (simple-advanced-mode.spec).
   const old = url.replace('/boards#', '/board#')
   const ctx = await browser.newContext()
   const bob = await ctx.newPage()

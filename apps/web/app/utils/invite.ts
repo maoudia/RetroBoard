@@ -10,8 +10,8 @@ export const isRetiredLink = (hash: string): boolean => {
   return /^[A-Za-z0-9_-]{22,64}$/.test(raw)
 }
 
-/** A new encrypted room: 128-bit id, 256-bit room key, 256-bit facilitator seed. */
-export const newKeyRing = (): KeyRing => ({ roomId: randomId(16), roomKey: randomId(32), facilitatorSecret: randomId(32) })
+/** A new encrypted room: 128-bit id, 128-bit room key and facilitator secret, so the link stays short (ADR-0029). */
+export const newKeyRing = (): KeyRing => ({ roomId: randomId(16), roomKey: randomId(16), facilitatorSecret: randomId(16) })
 
 export const boardHash = (invite: Invite, role: 'participant' | 'facilitator' = 'participant'): string =>
   `#${invite.kind === 'legacy' ? invite.roomId : formatInvite(invite.ring, role === 'facilitator' && invite.ring.facilitatorSecret ? 'facilitator' : 'participant')}`
