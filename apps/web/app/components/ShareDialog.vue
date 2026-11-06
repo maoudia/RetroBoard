@@ -78,6 +78,7 @@ onBeforeUnmount(() => host.stop())
     </ol>
     <ModeSwitch />
     <p v-if="board.roomCode" class="code-words" data-testid="share-room-code"><Icon name="lucide:badge-check" /> {{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
+    <p v-if="board.roomCode" class="muted code-hint" data-testid="share-room-code-hint">{{ t('share.roomCode.hint') }}</p>
     <div class="row">
       <input class="field mono" :value="url" readonly :aria-label="t('share.link')" data-testid="share-url" @focus="($event.target as HTMLInputElement).select()" />
       <button class="btn btn-primary" type="button" data-testid="copy-link" @click="copy"><Icon name="lucide:copy" /> {{ t('share.copy') }}</button>
@@ -154,6 +155,7 @@ onBeforeUnmount(() => host.stop())
 .row { display: flex; gap: .5rem; }
 .row .btn { flex: none; white-space: nowrap; }
 .row .field { min-width: 0; flex: 1; }
+.code-hint { margin: 0; font-size: var(--fs-sm); }
 .code-words { margin: 0; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
 .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
 .acts .btn { flex: 1 1 auto; justify-content: center; min-width: 0; white-space: nowrap; }

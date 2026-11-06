@@ -101,6 +101,7 @@ test('everyone on a board sees the same three words, in the board language', asy
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
   const words = (await page.getByTestId('share-room-code').locator('strong').textContent())!
   expect(words).toMatch(/^[a-z]+ · [a-z]+ · [a-z]+$/)
+  await expect(page.getByTestId('share-room-code-hint')).toContainText(/three|trois/)
   const link = await page.getByTestId('share-url').inputValue()
   await page.keyboard.press('Escape')
   const bob = await join(browser, link, 'Bob')
