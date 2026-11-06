@@ -36,6 +36,9 @@ async function join() {
   void router.push({ path: '/boards', hash })
 }
 
+/** A QR code read by the camera: same path as a pasted link. */
+function openScanned(hash: string) { joinError.value = false; void router.push({ path: '/boards', hash }) }
+
 // "Try solo" opens the regular creation flow with solo preselected (change solo-parity-and-dedup).
 function solo() {
   void router.push({ path: '/new', query: { solo: '1' } })
@@ -95,6 +98,7 @@ onMounted(() => {
           <label class="sr" for="join-input">{{ t('landing.join.label') }}</label>
           <input id="join-input" v-model="joinText" type="text" inputmode="url" autocomplete="off" spellcheck="false" :placeholder="t('landing.join.placeholder')" :aria-invalid="joinError" :aria-describedby="joinError ? 'join-error' : undefined" data-testid="join-input" @input="joinError = false" />
           <button type="submit" class="ghost" data-testid="join-go"><Icon name="lucide:log-in" /> {{ t('landing.join.go') }}</button>
+          <JoinScanner @found="openScanned" />
           <p v-if="byCode.state.value !== 'idle'" class="join-code-state" role="status" data-testid="join-code-state" :data-state="byCode.state.value">
             <template v-if="byCode.state.value === 'connecting' || byCode.state.value === 'waiting'">{{ t('landing.join.waiting') }} <strong class="mono" data-testid="join-number">{{ byCode.number.value }}</strong> <button type="button" class="link" data-testid="join-cancel" @click="byCode.cancel()">{{ t('landing.join.cancel') }}</button></template>
             <template v-else>{{ t(`landing.join.${byCode.state.value}` as never) }}</template>

@@ -51,6 +51,9 @@ describe('security headers', () => {
       expect(r.headers.get('Referrer-Policy')).toBe('no-referrer')
       expect(r.headers.get('X-Frame-Options')).toBe('DENY')
       expect(r.headers.get('Strict-Transport-Security')).toBe(HSTS)
+      // The camera is for scanning a board QR code on this site only; nothing else is open to the page or to frames.
+      expect(r.headers.get('Permissions-Policy')).toMatch(/(^|, )camera=\(self\)(,|$)/)
+      expect(r.headers.get('Permissions-Policy')).toMatch(/microphone=\(\)/)
     }
     expect(Number(HSTS.match(/max-age=(\d+)/)?.[1])).toBeGreaterThanOrEqual(15552000)
   })

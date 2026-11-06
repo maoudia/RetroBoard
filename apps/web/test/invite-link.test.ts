@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { boardHash, inviteFromHash, newKeyRing, participantLink } from '../app/utils/invite'
+import { boardHash, hashFromScan, inviteFromHash, newKeyRing, participantLink } from '../app/utils/invite'
 
 describe('board links', () => {
   const invite = { kind: 'encrypted' as const, ring: newKeyRing() }
@@ -20,5 +20,13 @@ describe('board links', () => {
   it('reads the board from the hash alone, so the path of an older link does not matter', () => {
     const hash = boardHash(invite, 'participant')
     expect(inviteFromHash(hash)).toMatchObject({ kind: 'encrypted', ring: { roomId: invite.ring.roomId, roomKey: invite.ring.roomKey } })
+  })
+
+  it('takes the board hash out of a scanned QR code, and nothing else', () => {
+    const link = participantLink(invite, 'https://retroboard.maoudia.com')
+    expect(hashFromScan(link)).toBe(boardHash(invite, 'participant'))
+    expect(hashFromScan(`  ${link}  `)).toBe(boardHash(invite, 'participant'))
+    expect(hashFromScan(boardHash(invite, 'participant'))).toBe(boardHash(invite, 'participant'))
+    for (const text of ['', 'https://example.com', 'https://example.com/#hello', 'RB-7KQ2M9', 'WIFI:T:WPA;S:x;P:y;;', `${link}&x=1`]) expect(hashFromScan(text)).toBeNull()
   })
 })

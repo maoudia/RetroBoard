@@ -19,4 +19,11 @@ export const boardHash = (invite: Invite, role: 'participant' | 'facilitator' = 
 /** The link participants open: never the facilitator secret, whoever builds it. */
 export const participantLink = (invite: Invite, origin: string): string => `${origin}/boards${boardHash(invite, 'participant')}`
 
+/** The board hash inside what a QR code held (a full link, or the hash itself), or null when it is not a RetroBoard invite. */
+export function hashFromScan(text: string): string | null {
+  const at = text.indexOf('#')
+  const hash = at >= 0 ? text.slice(at).trim() : ''
+  return hash && inviteFromHash(hash) ? hash : null
+}
+
 export const inviteRoomId = (invite: Invite): string => (invite.kind === 'legacy' ? invite.roomId : invite.ring.roomId)

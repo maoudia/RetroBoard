@@ -69,7 +69,7 @@ export function withSecurityHeaders(res: Response, csp: string, originTrial: str
   out.headers.set('X-Content-Type-Options', 'nosniff')
   out.headers.set('Referrer-Policy', 'no-referrer')
   out.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
-  out.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()')
+  out.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=(), interest-cohort=()')
   out.headers.set('X-Robots-Tag', 'noindex, nofollow')
   return out
 }
