@@ -138,13 +138,30 @@ describe('rewind', () => {
     expect([...long.sent, ...locked.sent]).toEqual([])
   })
 
-  it('forgets my own undo steps, which no longer match the board', () => {
+  it('forgets my own undo and redo steps, which no longer match the board, and says so', () => {
     const { h, commands, col, view } = setup()
-    commands.publish([{ columnId: col, text: 'a' }])
-    commands.recolorNote(view().notes[0]!.id, 3)
-    expect(commands.canUndo()).toBe(true)
-    const channel = { connect() {}, updateIdentity() {}, close() {}, send: () => true, rewindPlan: () => plan([]) } as BoardChannel
-    expect(createBoardCommands({ channel: () => channel, view }).rewind('e1').result.ok).toBe(true)
-    expect(h.state).toBeDefined()
+    const depth: Array<[number, number]> = []
+    const channel = { connect() {}, updateIdentity() {}, close() {}, send: (cmd: Command) => { h.run(cmd); return true }, rewindPlan: () => plan([]) } as BoardChannel
+    const tracking = createBoardCommands({ channel: () => channel, view, onHistory: (n, r) => depth.push([n, r]) })
+    tracking.publish([{ columnId: col, text: 'a' }])
+    tracking.recolorNote(view().notes[0]!.id, 3)
+    tracking.recolorNote(view().notes[0]!.id, 4)
+    expect(tracking.undo()).not.toBeNull()
+    expect(tracking.canUndo()).toBe(true)
+    expect(tracking.canRedo()).toBe(true)
+    depth.length = 0
+    expect(tracking.rewind('e1')).toEqual({ result: { ok: true }, sent: 0, skipped: 0 })
+    expect(tracking.canUndo()).toBe(false)
+    expect(tracking.canRedo()).toBe(false)
+    expect(depth).toEqual([[0, 0]])
+    expect(commands.canUndo()).toBe(false)
+  })
+
+  it('stops at the first command the channel refuses and reports how far it got', () => {
+    const sentCmds: Command[] = []
+    const channel = { connect() {}, updateIdentity() {}, close() {}, send: (cmd: Command) => { sentCmds.push(cmd); return sentCmds.length < 2 }, rewindPlan: () => plan([{ t: 'note.ungroup', id: 'a' }, { t: 'note.ungroup', id: 'b' }, { t: 'note.ungroup', id: 'c' }], { skipped: 4 }) } as BoardChannel
+    const commands = createBoardCommands({ channel: () => channel, view: () => ({ settings: { locked: false } } as unknown as Snapshot) })
+    expect(commands.rewind('e1')).toEqual({ result: { ok: false, error: 'offline' }, sent: 1, skipped: 4 })
+    expect(sentCmds).toHaveLength(2)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type BoardState, type Command, emptyLedger, foldAll, reduce, type VerifiedEvent } from '@retroboard/domain'
+import { type BoardState, type Command, emptyLedger, foldAll, type NoteRecord, reduce, type VerifiedEvent } from '@retroboard/domain'
 import { alice, bob, harness } from '@retroboard/testkit'
 import { historyOf, REWIND_MAX_COMMANDS, restoreCommands, rewindPlan } from '../src'
 
@@ -232,5 +232,130 @@ describe('restoreCommands', () => {
     const plan = restoreCommands(before, h.state)
     expect(plan.commands.length).toBeGreaterThan(REWIND_MAX_COMMANDS)
     expect(plan.tooMany).toBe(true)
+  })
+})
+
+describe('rewind plans are exact', () => {
+  const base = () => harness().state
+  const col = (s: BoardState, i: number) => s.columns[i]!.id
+  const idea = (s: BoardState, id: string, over: Partial<NoteRecord> = {}): NoteRecord => ({ id, columnId: col(s, 0), text: id, color: 0, author: null, ownerCid: 'o', groupId: null, voters: [], createdAt: 1, ...over })
+  const put = (s: BoardState, notes: NoteRecord[], groups: BoardState['groups'] = {}): BoardState => ({ ...s, notes: Object.fromEntries(notes.map((n) => [n.id, n])), groups })
+  const group = (s: BoardState, id: string, over: Partial<BoardState['groups'][string]> = {}) => ({ id, columnId: col(s, 0), title: null, voters: [], ...over })
+
+  it('restores ideas in the order they were written, and by id when written together', () => {
+    const s = base()
+    const target = put(s, [idea(s, 'c', { createdAt: 3, text: 'old' }), idea(s, 'a', { createdAt: 1, text: 'old' }), idea(s, 'b', { createdAt: 2, text: 'old' })])
+    const now = put(s, Object.values(target.notes).map((n) => ({ ...n, text: 'new' })))
+    expect(restoreCommands(target, now).commands.map((c) => (c as { id: string }).id)).toEqual(['a', 'b', 'c'])
+    const tied = put(s, [idea(s, 'z', { text: 'old' }), idea(s, 'm', { text: 'old' })])
+    const tiedNow = put(s, Object.values(tied.notes).map((n) => ({ ...n, text: 'new' })))
+    expect(restoreCommands(tied, tiedNow).commands.map((c) => (c as { id: string }).id)).toEqual(['m', 'z'])
+  })
+
+  it('brings deleted ideas back oldest first, with their text, colour and column', () => {
+    const s = base()
+    const target = put(s, [idea(s, 'y', { createdAt: 5, columnId: col(s, 1), color: 2, text: 'Y' }), idea(s, 'x', { createdAt: 4, text: 'X', color: 1 })])
+    expect(restoreCommands(target, put(s, []))).toEqual({
+      commands: [{ t: 'note.add', columnId: col(s, 0), text: 'X', color: 1 }, { t: 'note.add', columnId: col(s, 1), text: 'Y', color: 2 }],
+      skipped: 0,
+      tooMany: false,
+    })
+  })
+
+  it('does not take an idea written since for the twin of a deleted one unless text and colour both match', () => {
+    const s = base()
+    const gone = idea(s, 'gone', { text: 'dup', color: 1 })
+    const add = [{ t: 'note.add', columnId: col(s, 0), text: 'dup', color: 1 }]
+    expect(restoreCommands(put(s, [gone]), put(s, [idea(s, 'late', { text: 'dup', color: 3 })])).commands).toEqual(add)
+    expect(restoreCommands(put(s, [gone]), put(s, [idea(s, 'late', { text: 'other', color: 1 })])).commands).toEqual(add)
+    expect(restoreCommands(put(s, [gone]), put(s, [idea(s, 'late', { text: 'dup', color: 1 })])).commands).toEqual([])
+  })
+
+  it('counts an idea that is still there as no twin, and uses up a twin once', () => {
+    const s = base()
+    const keep = idea(s, 'keep', { text: 'dup', color: 2 })
+    const gone = idea(s, 'gone', { text: 'dup', color: 2, createdAt: 2 })
+    expect(restoreCommands(put(s, [keep, gone]), put(s, [keep])).commands).toEqual([{ t: 'note.add', columnId: col(s, 0), text: 'dup', color: 2 }])
+    const g1 = idea(s, 'g1', { text: 'dup' })
+    const g2 = idea(s, 'g2', { text: 'dup', createdAt: 2 })
+    expect(restoreCommands(put(s, [g1, g2]), put(s, [idea(s, 'late', { text: 'dup' })])).commands).toEqual([{ t: 'note.add', columnId: col(s, 0), text: 'dup', color: 0 }])
+  })
+
+  it('skips what points at a column that no longer exists, and moves what points at one that does', () => {
+    const s = base()
+    expect(restoreCommands(put(s, [idea(s, 'g', { columnId: 'gone-col' })]), put(s, []))).toEqual({ commands: [], skipped: 1, tooMany: false })
+    expect(restoreCommands(put(s, [idea(s, 'm', { columnId: 'gone-col' })]), put(s, [idea(s, 'm')]))).toEqual({ commands: [], skipped: 1, tooMany: false })
+    expect(restoreCommands(put(s, [idea(s, 'm', { columnId: col(s, 1) })]), put(s, [idea(s, 'm')]))).toEqual({ commands: [{ t: 'note.move', id: 'm', columnId: col(s, 1) }], skipped: 0, tooMany: false })
+  })
+
+  it('counts a command the board refuses instead of sending it', () => {
+    const s = base()
+    const now = { ...put(s, [idea(s, 'a', { text: 'ok' })]), settings: { ...s.settings, noteMaxLength: 3 } }
+    expect(restoreCommands(put(s, [idea(s, 'a', { text: 'too long' })]), now)).toEqual({ commands: [], skipped: 1, tooMany: false })
+  })
+
+  it('changes nothing for clusters that are the same, and puts a cluster back in its column whole', () => {
+    const s = base()
+    const grouped = (columnId: string) => put(s, [idea(s, 'a', { groupId: 'g1', columnId }), idea(s, 'b', { groupId: 'g1', columnId })], { g1: group(s, 'g1', { columnId }) })
+    expect(restoreCommands(grouped(col(s, 0)), grouped(col(s, 0)))).toEqual({ commands: [], skipped: 0, tooMany: false })
+    expect(restoreCommands(grouped(col(s, 0)), grouped(col(s, 1)))).toEqual({ commands: [{ t: 'group.move', id: 'g1', columnId: col(s, 0) }], skipped: 0, tooMany: false })
+    const target = put(s, [idea(s, 'a', { groupId: 'g1', columnId: 'gone-col' }), idea(s, 'b', { groupId: 'g1', columnId: 'gone-col' })], { g1: group(s, 'g1', { columnId: 'gone-col' }) })
+    expect(restoreCommands(target, grouped(col(s, 1)))).toEqual({ commands: [], skipped: 2, tooMany: false })
+  })
+
+  it('takes apart a cluster that was not there, and rebuilds one that was dissolved, one command per idea', () => {
+    const s = base()
+    const pair = put(s, [idea(s, 'a', { groupId: 'g1' }), idea(s, 'b', { groupId: 'g1' })], { g1: group(s, 'g1') })
+    const apart = put(s, [idea(s, 'a'), idea(s, 'b')])
+    expect(restoreCommands(apart, pair)).toEqual({ commands: [{ t: 'note.ungroup', id: 'a' }], skipped: 0, tooMany: false })
+    const trio = put(s, [idea(s, 'a', { groupId: 'g1' }), idea(s, 'b', { groupId: 'g1' }), idea(s, 'c', { groupId: 'g1' })], { g1: group(s, 'g1') })
+    expect(restoreCommands(trio, put(s, [idea(s, 'a'), idea(s, 'b'), idea(s, 'c')]))).toEqual({
+      commands: [{ t: 'note.group', id: 'b', ontoId: 'a' }, { t: 'note.group', id: 'c', ontoId: 'a' }],
+      skipped: 0,
+      tooMany: false,
+    })
+  })
+
+  it('counts every idea of a voted cluster it leaves alone', () => {
+    const s = base()
+    const voted = put(s, [idea(s, 'a', { groupId: 'g1' }), idea(s, 'b', { groupId: 'g1' })], { g1: group(s, 'g1', { voters: ['v'] }) })
+    expect(restoreCommands(put(s, [idea(s, 'a'), idea(s, 'b')]), voted)).toEqual({ commands: [], skipped: 2, tooMany: false })
+    const target = put(s, [idea(s, 'a', { groupId: 'g1' }), idea(s, 'b', { groupId: 'g1' }), idea(s, 'c', { groupId: 'g1' })], { g1: group(s, 'g1') })
+    const now = put(s, [idea(s, 'a', { groupId: 'g2' }), idea(s, 'b', { groupId: 'g2' }), idea(s, 'c')], { g2: group(s, 'g2', { voters: ['v'] }) })
+    expect(restoreCommands(target, now).skipped).toBeGreaterThan(0)
+  })
+
+  it('puts a cluster title back only when it differs, and an empty title back as empty', () => {
+    const s = base()
+    const titled = (title: string | null) => put(s, [idea(s, 'a', { groupId: 'g1' }), idea(s, 'b', { groupId: 'g1' })], { g1: group(s, 'g1', { title }) })
+    expect(restoreCommands(titled('CI'), titled('Pipe')).commands).toEqual([{ t: 'group.rename', id: 'g1', title: 'CI' }])
+    expect(restoreCommands(titled(null), titled('X')).commands).toEqual([{ t: 'group.rename', id: 'g1', title: '' }])
+    expect(restoreCommands(titled('CI'), titled(null)).commands).toEqual([{ t: 'group.rename', id: 'g1', title: 'CI' }])
+    expect(restoreCommands(titled('CI'), titled('CI')).commands).toEqual([])
+    expect(restoreCommands(titled(null), titled(null)).commands).toEqual([])
+  })
+
+  it('allows exactly the number of commands the fold rate limit allows', () => {
+    const s = base()
+    const many = (n: number) => Array.from({ length: n }, (_, i) => idea(s, `n${String(i).padStart(3, '0')}`, { createdAt: i, text: 'old' }))
+    const edited = (n: number) => put(s, many(n).map((x) => ({ ...x, text: 'new' })))
+    expect(restoreCommands(put(s, many(REWIND_MAX_COMMANDS)), edited(REWIND_MAX_COMMANDS))).toMatchObject({ tooMany: false })
+    expect(restoreCommands(put(s, many(REWIND_MAX_COMMANDS)), edited(REWIND_MAX_COMMANDS)).commands).toHaveLength(REWIND_MAX_COMMANDS)
+    expect(restoreCommands(put(s, many(REWIND_MAX_COMMANDS + 1)), edited(REWIND_MAX_COMMANDS + 1)).tooMany).toBe(true)
+  })
+})
+
+describe('history of the log is exact', () => {
+  it('plans the rewind of the chosen entry, not of the first one', () => {
+    const l = started()
+    l.add({ t: 'note.move', id: l.ids.one, columnId: l.col[1]! })
+    const second = l.add({ t: 'note.edit', id: l.ids.two, text: 'zz' })
+    expect(rewindPlan(roomId, l.events, second)).toEqual({ commands: [{ t: 'note.edit', id: l.ids.two, text: 'two' }], skipped: 0, tooMany: false })
+  })
+
+  it('cuts a long idea text for the panel', () => {
+    const l = started()
+    l.add({ t: 'note.edit', id: l.ids.one, text: 'x'.repeat(150) })
+    expect(historyOf(roomId, l.events).at(-1)!.text).toHaveLength(140)
   })
 })
