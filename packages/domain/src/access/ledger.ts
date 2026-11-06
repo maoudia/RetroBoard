@@ -90,8 +90,11 @@ export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType
 /** Genesis and role changes are always privileged; commands depend on their type. */
 export const isPrivileged = (body: EventBody): boolean => (body.t === 'cmd' ? PRIVILEGED_COMMANDS.has(body.cmd.t) : body.t !== 'participant.self')
 
+/** Whether a command sets the "Everyone facilitates" switch (the commands that carry `openFacilitation`). */
+const setsOpenFacilitation = (cmd: Command): boolean => (cmd as { openFacilitation?: boolean }).openFacilitation !== undefined
+
 /** Role changes: only the current facilitator or the genesis key, never a co-facilitator. */
-const isRoleChange = (body: EventBody): body is RoleBody | RenameBody => body.t !== 'cmd' && body.t !== 'genesis' && body.t !== 'participant.self'
+const isRoleChange = (body: Exclude<EventBody, { t: 'genesis' }>): body is RoleBody | RenameBody => body.t !== 'cmd' && body.t !== 'participant.self'
 
 export type Role = 'facilitator' | 'co-facilitator' | 'participant'
 
@@ -123,8 +126,11 @@ const ignore = (ledger: Ledger, reason: IgnoreReason): FoldResult => ({ ok: fals
 const applied = (ledger: Ledger, patch: Partial<Ledger>): FoldResult => ({ ok: true, ledger: { ...ledger, ...patch, applied: ledger.applied + 1 } })
 
 /** The author's accepted clocks still inside the window ending at `at`. */
-const windowOf = (ledger: Ledger, author: string, at: number): readonly number[] =>
-  (ledger.recent[author] ?? []).filter((t) => t > at - LIMITS.foldRateWindowMs)
+const windowOf = (ledger: Ledger, author: string, at: number): readonly number[] => {
+  // Stryker disable next-line ArrayDeclaration: a non-numeric entry never passes the numeric comparison, so the fallback is empty either way
+  const recent = ledger.recent[author] ?? []
+  return recent.filter((t) => t > at - LIMITS.foldRateWindowMs)
+}
 
 export function foldEvent(ledger: Ledger, event: VerifiedEvent): FoldResult {
   const out = foldUnlimited(ledger, event)
@@ -156,8 +162,9 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     return ignore(ledger, 'not-facilitator')
   } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
     return ignore(ledger, 'not-facilitator')
-  } else if (body.t === 'cmd' && body.cmd.t === 'settings.update' && body.cmd.openFacilitation !== undefined && !ledger.facilitators.includes(author)) {
-    // Switching between "Everyone facilitates" and "One facilitator" needs the facilitator capability, even on an open board.
+  } else if (body.t === 'cmd' && setsOpenFacilitation(body.cmd) && !ledger.facilitators.includes(author)) {
+    // Switching between "Everyone facilitates" and "One facilitator" needs the facilitator capability, even on an open board,
+    // whichever command carries the switch (settings.update, board.init).
     return ignore(ledger, 'not-facilitator')
   } else if (body.t === 'cmd' && !bypassesPhaseRules(ledger, author) && !(isPrivileged(body) && canSteer(ledger, author)) && !allowedInPhase(ledger.board.agenda, body.cmd.t)) {
     // Phase rules: participants only do what the current phase is about. Steering commands

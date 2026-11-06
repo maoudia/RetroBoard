@@ -39,7 +39,8 @@ describe('Stryker disables', () => {
     expect(checkDisables('f.ts', '// Stryker is a mutation tester\nconst disable = 1\n')).toEqual([])
   })
 
-  it('hold for every source file of the packages', () => {
+  // Inside Stryker's sandbox the sources are its re-printed copies: only the real ones are checked.
+  it.skipIf(import.meta.dirname.includes('.stryker-tmp'))('hold for every source file of the packages', () => {
     const root = join(import.meta.dirname, '../../..')
     const problems: string[] = []
     for (const pkg of ['domain', 'application', 'protocol', 'crypto', 'exporters', 'sync']) {
