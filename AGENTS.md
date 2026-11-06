@@ -49,10 +49,10 @@ pnpm install
 pnpm verify        # lint + typecheck + arch + duplication (jscpd) + knip + adr + wip ceiling + unit + openspec validate --all --strict
 pnpm generate      # static site + CSP hashes
 pnpm dev:worker    # http://localhost:8787 (site + relay)
-pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), 84 tests, about 11 minutes
-pnpm e2e           # the full suite, about 18 minutes locally (Chromium); nightly on every browser. Run `pnpm generate` first and again after each source change
+pnpm e2e:core      # the push gate: core specs (tests/e2e/core.json), 84 tests, about 2 minutes with the parallel workers of a developer machine (about 11 on one worker, as in CI)
+pnpm e2e           # the full suite, about 6 minutes locally (Chromium, 4 workers; `E2E_WORKERS` overrides); nightly on every browser. Run `pnpm generate` first and again after each source change
 pnpm commits:check # Conventional Commits of the unpushed commits
-pnpm prepush       # the local gate before any push: verify, generate, bundle budget, commits, e2e:core (about 15 minutes); `--fast` skips the e2e
+pnpm prepush       # the local gate before any push: verify, generate, bundle budget, commits, e2e:core (about 6 minutes); `--fast` skips the e2e
 pnpm lighthouse    # Lighthouse budgets (quality/lighthouse-budgets.json) on 4 pages, light and dark; needs `pnpm dev:worker` running
 npx openspec list     # in-flight changes
 npx openspec show <change>

@@ -1,16 +1,20 @@
+import { availableParallelism } from 'node:os'
 import { defineConfig, devices } from '@playwright/test'
 
 const port = Number(process.env.E2E_PORT ?? 8787)
+// CI runners have 2 cores: Chromium is CPU bound there, a second worker gained 12% and made tests flaky, so CI keeps one.
+// Every test uses its own room, so a developer machine runs a third of its cores (at most 4): the core gate takes a
+// couple of minutes, not a quarter of an hour. E2E_WORKERS overrides both.
+const workers = Number(process.env.E2E_WORKERS ?? (process.env.CI ? 1 : Math.min(4, Math.max(1, Math.floor(availableParallelism() / 3)))))
 
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 45_000,
   expect: { timeout: 8_000 },
-  // One worker: on 2 cores Chromium is CPU bound, a second worker gained 12% and made tests flaky.
-  // Every test uses its own room, so E2E_WORKERS=4 is safe on a bigger machine.
   fullyParallel: false,
-  workers: Number(process.env.E2E_WORKERS ?? 1),
-  retries: process.env.CI ? 1 : 0,
+  workers,
+  // Parallel workers load the machine and the dev server: a test that fails once and passes again is reported as flaky.
+  retries: process.env.CI || workers > 1 ? 1 : 0,
   // CI keeps everything for the quality site (GitHub Pages) and the run artifacts.
   reporter: process.env.CI
     ? [
