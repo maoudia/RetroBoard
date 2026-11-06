@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatInvite, isFacilitatorRing, type KeyRing, parseInvite, participantRing } from '../src'
+import { formatInvite, isFacilitatorRing, KEY_RE, type KeyRing, parseInvite, participantRing } from '../src'
 
 const roomId = 'Ab3dEfGhIjKlMnOpQrStUv'
 const roomKey = 'k'.repeat(42) + 'A'
@@ -99,3 +99,28 @@ describe('compact links (ADR-0029)', () => {
     expect(parseInvite(fragment)).toBeNull()
   })
 })
+
+describe('keys and links, exactly', () => {
+  it('a 256-bit key is exactly 43 base64url characters', () => {
+    const k = 'k'.repeat(43)
+    expect(KEY_RE.test(k)).toBe(true)
+    for (const bad of [`!${k}`, `${k}!`, k.slice(1), `${k}k`, `${k.slice(1)}+`]) expect(KEY_RE.test(bad), bad).toBe(false)
+  })
+
+  it('names the problem when a ring cannot be turned into a link', () => {
+    expect(() => formatInvite({ roomId: 'x', roomKey })).toThrow('invalid key ring')
+    expect(() => formatInvite({ roomId, roomKey }, 'facilitator')).toThrow('missing facilitator secret')
+  })
+
+  it('reads a participant link into a ring that has no facilitator secret at all, not even an empty one', () => {
+    const ring = (parseInvite(formatInvite(full)) as { ring: KeyRing }).ring
+    expect(Object.keys(ring).sort()).toEqual(['roomId', 'roomKey'])
+    const compact = (parseInvite(`c=${roomId}${'k'.repeat(21)}A`) as { ring: KeyRing }).ring
+    expect(Object.keys(compact).sort()).toEqual(['roomId', 'roomKey'])
+  })
+
+  it('refuses a part with no name or no equals sign', () => {
+    for (const bad of [`=${roomKey}`, `r=${roomId}&${roomKey}`, `r=${roomId}&k=${roomKey}&f`, `${roomId}&k=${roomKey}`]) expect(parseInvite(bad), bad).toBeNull()
+  })
+})
+

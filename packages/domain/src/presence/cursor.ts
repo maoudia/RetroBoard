@@ -53,7 +53,9 @@ export const dequantise = (value: number): number => clamp01(value / CURSOR_SCAL
 /** Position of a point inside a box as wire fractions (the sender side). */
 export function anchorPoint(box: { left: number; top: number; width: number; height: number }, px: number, py: number): { x: number; y: number } {
   return {
+    // Stryker disable next-line EqualityOperator: a zero width divides to a non-finite value that clamp01 turns into 0, as this guard does
     x: quantise(box.width > 0 ? (px - box.left) / box.width : 0),
+    // Stryker disable next-line EqualityOperator: a zero height divides to a non-finite value that clamp01 turns into 0, as this guard does
     y: quantise(box.height > 0 ? (py - box.top) / box.height : 0),
   }
 }

@@ -31,10 +31,13 @@ export function suggestTemplates(a: SuggestAnswers, limit = 3): Suggestion[] {
       score += 2
       reasons.push('mood')
     }
-    if (a.minutes >= template.minutes[0] && a.minutes <= template.minutes[1]) {
+    const inTime = a.minutes >= template.minutes[0] && a.minutes <= template.minutes[1]
+    // Stryker disable next-line EqualityOperator: when minutes equals the minimum, inTime has already taken it
+    const tooShort = a.minutes < template.minutes[0]
+    if (inTime) {
       score += 2
       reasons.push('time')
-    } else if (a.minutes < template.minutes[0]) {
+    } else if (tooShort) {
       score -= 2
     }
     if (a.minutes <= 20 && template.columns.length <= 3) {

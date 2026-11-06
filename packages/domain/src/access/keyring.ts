@@ -42,6 +42,7 @@ export const isFacilitatorRing = (ring: KeyRing): boolean => ring.facilitatorSec
 /** The ring a participant receives: same room and key, never the facilitator secret. */
 export const participantRing = ({ roomId, roomKey, passcode }: KeyRing): KeyRing => (passcode ? { roomId, roomKey, passcode } : { roomId, roomKey })
 
+// Stryker disable next-line StringLiteral: any role other than 'facilitator' means participant, so the default's text never matters
 export function formatInvite(ring: KeyRing, role: 'participant' | 'facilitator' = 'participant'): string {
   if (!ROOM_ID_RE.test(ring.roomId) || !isSecret(ring.roomKey)) throw new Error('invalid key ring')
   const withSecret = role === 'facilitator'
@@ -65,6 +66,7 @@ export function parseInvite(fragment: string, isLegacyRoom: (id: string) => bool
   const fields = new Map<string, string>()
   for (const part of raw.split('&')) {
     const eq = part.indexOf('=')
+    // Stryker disable next-line ConditionalExpression,EqualityOperator: a part with no usable name is refused below anyway, no field has that name or such a value
     if (eq <= 0) return null
     const name = part.slice(0, eq)
     if (fields.has(name)) return null

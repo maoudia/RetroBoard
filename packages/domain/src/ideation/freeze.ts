@@ -31,15 +31,14 @@ const isFrozen = (s: BoardState, id: string): boolean => isFrozenNote(s, id) || 
  */
 export function touchesFrozen(s: BoardState, cmd: Command): boolean {
   switch (cmd.t) {
-    case 'note.edit': case 'note.delete': case 'note.move': case 'note.color': case 'note.ungroup':
-    case 'group.rename': case 'group.recolor': case 'group.dissolve': case 'group.move': case 'vote.toggle':
-      return isFrozen(s, cmd.id)
     case 'note.group': case 'group.merge':
       return isFrozen(s, cmd.id) || isFrozen(s, cmd.ontoId)
-    case 'vote.add': case 'vote.remove':
-      return isFrozen(s, cmd.id)
     case 'column.delete':
       return Object.values(s.notes).some((n) => n.columnId === cmd.id && isFrozenNote(s, n.id))
+    case 'note.edit': case 'note.delete': case 'note.move': case 'note.color': case 'note.ungroup':
+    case 'group.rename': case 'group.recolor': case 'group.dissolve': case 'group.move':
+    case 'vote.toggle': case 'vote.add': case 'vote.remove':
+      return isFrozen(s, cmd.id)
     default:
       return false
   }
