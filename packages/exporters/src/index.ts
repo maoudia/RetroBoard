@@ -72,4 +72,5 @@ export function toActionsCsv(s: Pick<Snapshot, 'actions' | 'settings'>): string 
   return rows.map((r) => r.map(csvCell).join(',')).join('\n') + '\n'
 }
 export * from './report-html'
+export * from './report-encrypted'
 export * from './destinations'

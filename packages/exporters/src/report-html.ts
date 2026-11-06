@@ -17,7 +17,7 @@ export function escapeHtml(s: string): string {
 const minutes = (ms: number) => `${Math.round(ms / 60_000)} min`
 
 /** Styles of the standalone file: readable on screen, clean when printed to PDF. */
-const CSS = `
+export const REPORT_CSS = `
 :root{color-scheme:light;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d1d1f;line-height:1.5}
 body{max-width:52rem;margin:0 auto;padding:2rem 1.25rem}
 h1{margin:0 0 .2rem}h2{margin:2rem 0 .6rem;font-size:1.2rem;border-bottom:1px solid #d2d2d7;padding-bottom:.3rem}
@@ -34,7 +34,7 @@ export function toReportHtml(r: Report, t: ReportLabels): string {
   const votes = (n: number) => (r.votesHidden ? '' : ` <span class="v">${e(t('report.votesN', { n }))}</span>`)
   const out: string[] = []
   out.push(`<!doctype html><html lang="${e(t('report.lang'))}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">`)
-  out.push(`<title>${e(r.title)} - ${e(t('report.title'))}</title><style>${CSS}</style></head><body>`)
+  out.push(`<title>${e(r.title)} - ${e(t('report.title'))}</title><style>${REPORT_CSS}</style></head><body>`)
   out.push(`<h1>${e(r.title)}</h1><p class="muted">${e(t('report.title'))} - ${e(r.date)}</p>`)
 
   const m = r.metrics

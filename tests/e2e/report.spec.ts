@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { createBoard, join, publishNote } from './helpers'
 
@@ -56,4 +57,33 @@ test('ROTI: two participants rate the retro, the report shows the distribution w
   expect(html).toContain('<li>5 / 5: 1</li>')
   expect(html).not.toContain('Bob')
   await bob.ctx.close()
+})
+
+test('a passphrase encrypts the downloaded report, which unlocks offline from the file alone', async ({ page, context }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Sprint 44' })
+  await publishNote(page, 0, 'Private idea')
+  await page.getByTestId('btn-export').click()
+  await page.getByTestId('export-report').click()
+  await page.getByTestId('report-passphrase').fill('correct horse')
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('report-download').click()])
+  expect(download.suggestedFilename()).toBe('sprint-44-report-encrypted.html')
+  const file = test.info().outputPath('report-encrypted.html')
+  await download.saveAs(file)
+  const html = readFileSync(file, 'utf8')
+  expect(html).not.toContain('Private idea')
+
+  const viewer = await context.newPage()
+  const problems: string[] = []
+  viewer.on('console', (m) => { if (m.type() === 'error') problems.push(m.text()) })
+  await context.setOffline(true)
+  await viewer.goto(`file://${file}`)
+  await viewer.locator('#w').fill('wrong')
+  await viewer.getByRole('button').click()
+  await expect(viewer.locator('#e')).toBeVisible()
+  await viewer.locator('#w').fill('correct horse')
+  await viewer.getByRole('button').click()
+  await expect(viewer.locator('#o')).toContainText('Private idea')
+  await expect(viewer.locator('#o h1')).toHaveText('Sprint 44')
+  expect(problems.filter((p) => /Content Security Policy/i.test(p))).toEqual([])
+  await context.setOffline(false)
 })
