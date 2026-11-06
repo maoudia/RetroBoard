@@ -157,6 +157,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
   'group.rename': (s, c) => {
     const g = s.groups[c.id]
     if (!g) return fail('not-found')
+    if (g.title === (c.title || null)) return done(s, { groups: [] })
     return done({ ...s, groups: { ...s.groups, [g.id]: { ...g, title: c.title || null } } }, { groups: [g.id] })
   },
 

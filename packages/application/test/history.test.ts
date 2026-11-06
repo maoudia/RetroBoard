@@ -32,6 +32,13 @@ describe('inverse of reversible actions', () => {
     expect(inverseOf({ t: 'note.edit', id: 'a', text: 'after' }, v)?.commands).toEqual([{ t: 'note.edit', id: 'a', text: 'before' }])
     expect(inverseOf({ t: 'note.color', id: 'a', color: 5 }, v)?.commands).toEqual([{ t: 'note.color', id: 'a', color: 3 }])
   })
+  it('puts a cluster title back, also when it had none', () => {
+    const v = { ...view([]), groups: [{ id: 'g1', title: 'CI' }, { id: 'g2', title: null }] } as unknown as Snapshot
+    expect(inverseOf({ t: 'group.rename', id: 'g1', title: 'Build' }, v)).toMatchObject({ label: 'rename', commands: [{ t: 'group.rename', id: 'g1', title: 'CI' }] })
+    expect(inverseOf({ t: 'group.rename', id: 'g2', title: 'Build' }, v)?.commands).toEqual([{ t: 'group.rename', id: 'g2', title: '' }])
+    expect(inverseOf({ t: 'group.rename', id: 'g1', title: 'CI' }, v)).toBeNull()
+    expect(inverseOf({ t: 'group.rename', id: 'nope', title: 'x' }, v)).toBeNull()
+  })
   it('has no inverse for what cannot be undone exactly, nor without a view', () => {
     expect(inverseOf({ t: 'note.delete', id: 'a' }, view([note('a', 'c1')]))).toBeNull()
     expect(inverseOf({ t: 'note.move', id: 'a', columnId: 'c2' }, null)).toBeNull()

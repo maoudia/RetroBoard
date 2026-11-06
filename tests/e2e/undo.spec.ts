@@ -69,6 +69,20 @@ test('Ctrl+Z brings back an idea I just deleted', async ({ page }) => {
   await expect(noteByText(page, 'Gone soon')).toBeVisible()
 })
 
+test('Ctrl+Z puts a cluster title back', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue' })
+  await publishNote(page, 0, 'Tests lents en CI')
+  await publishNote(page, 0, 'Les tests sont trop lents')
+  await noteByText(page, 'Les tests sont trop lents').dragTo(noteByText(page, 'Tests lents en CI'))
+  await page.locator('.cluster').first().locator('.stack').click()
+  await page.getByTestId('group-title').fill('Pipeline')
+  await page.getByTestId('group-title').press('Enter')
+  await page.keyboard.press('Escape')
+  await page.locator('body').click({ position: { x: 5, y: 300 } })
+  await page.keyboard.press('Control+z')
+  await expect(page.getByText('Titre du groupe rétabli')).toBeVisible()
+})
+
 test.describe('history panel (facilitator)', () => {
   test.skip(({ isMobile }) => isMobile, 'facilitator menus are covered on desktop')
 

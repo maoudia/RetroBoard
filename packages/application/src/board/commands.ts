@@ -62,12 +62,12 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     pin: (id: string) => send({ t: 'note.pin', id }),
     unpin: (id: string) => send({ t: 'note.unpin', id }),
     unfreeze: (id: string) => send({ t: 'note.unfreeze', id }),
-    renameGroup: (id: string, title: string) => send({ t: 'group.rename', id, title }),
+    renameGroup: (id: string, title: string) => tracked({ t: 'group.rename', id, title }, false),
     dissolveGroup: (id: string) => whenOpen({ t: 'group.dissolve', id }),
     moveGroup: (id: string, columnId: string) => whenOpen({ t: 'group.move', id, columnId }),
     mergeGroups: (id: string, ontoId: string) => (id === ontoId ? ok() : whenOpen({ t: 'group.merge', id, ontoId })),
 
-    /** Takes back my latest reversible action (group, ungroup, move, edit, colour). Returns what was undone, or null when nothing can be. */
+    /** Takes back my latest reversible action (group, ungroup, move, edit, colour, cluster title). Returns what was undone, or null when nothing can be. */
     undo(): { result: BoardResult; label: UndoLabel } | null {
       const step = history.pop()
       if (!step) return null

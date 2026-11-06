@@ -19,7 +19,7 @@ export interface HistoryEntry {
   /** Display name when the author chose to show it, else null (anonymous). */
   by: string | null
   kind: UndoLabel
-  /** The idea concerned, so the panel can show what changed. */
+  /** The idea (or cluster title) concerned, so the panel can show what changed. */
   text: string
   /** Column of the idea, so the panel hides what a hidden column hides. */
   columnId: string
@@ -35,9 +35,19 @@ export interface RewindPlan {
 
 interface Record extends HistoryEntry { before: BoardState }
 
-const KIND = { 'note.move': 'move', 'note.group': 'group', 'note.ungroup': 'ungroup', 'note.edit': 'edit', 'note.delete': 'delete', 'note.color': 'color' } as const satisfies Partial<globalThis.Record<Command['t'], UndoLabel>>
+const KIND = { 'note.move': 'move', 'note.group': 'group', 'note.ungroup': 'ungroup', 'note.edit': 'edit', 'note.delete': 'delete', 'note.color': 'color', 'group.rename': 'rename' } as const satisfies Partial<globalThis.Record<Command['t'], UndoLabel>>
 type ReversibleCommand = Extract<Command, { t: keyof typeof KIND }>
 const isReversible = (cmd: Command): cmd is ReversibleCommand => cmd.t in KIND
+
+/** What an action was about: a cluster rename shows the cluster title, anything else the idea (a deleted one as it was). */
+function subjectOf(cmd: ReversibleCommand, before: BoardState, after: BoardState): { text: string; columnId: string } {
+  if (cmd.t === 'group.rename') {
+    const g = after.groups[cmd.id] ?? before.groups[cmd.id]
+    return { text: g?.title ?? before.groups[cmd.id]?.title ?? '', columnId: g?.columnId ?? '' }
+  }
+  const n = (cmd.t === 'note.delete' ? before : after).notes[cmd.id]
+  return { text: n?.text ?? '', columnId: n?.columnId ?? '' }
+}
 
 function scan(roomId: string, events: readonly VerifiedEvent[], max: number): { records: Record[]; board: BoardState } {
   let ledger = emptyLedger(roomId)
@@ -46,8 +56,8 @@ function scan(roomId: string, events: readonly VerifiedEvent[], max: number): { 
     const next = foldEvent(ledger, e)
     if (next.ok && e.body.t === 'cmd' && isReversible(e.body.cmd) && next.ledger.board !== ledger.board) {
       const cmd = e.body.cmd
-      const note = (cmd.t === 'note.delete' ? ledger.board : next.ledger.board).notes[cmd.id]
-      records.push({ id: e.id, at: e.at, key: e.author, by: e.body.showName && e.body.name ? e.body.name : null, kind: KIND[cmd.t], text: (note?.text ?? '').slice(0, TEXT_MAX), columnId: note?.columnId ?? '', before: ledger.board })
+      const { text, columnId } = subjectOf(cmd, ledger.board, next.ledger.board)
+      records.push({ id: e.id, at: e.at, key: e.author, by: e.body.showName && e.body.name ? e.body.name : null, kind: KIND[cmd.t], text: text.slice(0, TEXT_MAX), columnId, before: ledger.board })
       if (records.length > max) records.shift()
     }
     ledger = next.ledger
@@ -70,7 +80,7 @@ export function rewindPlan(roomId: string, events: readonly VerifiedEvent[], ent
 const RESTORER: Actor = { cid: 'rewind', name: null, showName: false, moderator: true }
 
 /**
- * Commands that bring `now` back to the text, colour, column and cluster membership of `target`, for the
+ * Commands that bring `now` back to the text, colour, column, cluster membership and cluster title of `target`, for the
  * ideas that exist in both. Votes and chat are never rewound, ideas written since are left alone, a deleted
  * idea does not come back (it would lose its author and votes), and a voted cluster is never taken apart.
  * Each command is checked against a simulated board, so the plan only holds what the board will accept.
@@ -135,6 +145,13 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
       if (voted(group)) skipped++
       else apply({ t: 'note.group', id, ontoId: anchor })
     }
+  }
+  // Titles come back for clusters that kept their id and their ideas (a rebuilt cluster has a new id the plan cannot know).
+  for (const gid of Object.keys(target.groups)) {
+    const kept = work.groups[gid]
+    if (!kept || (kept.title ?? '') === (target.groups[gid]!.title ?? '')) continue
+    const ids = members(target, gid)
+    if (ids.length >= 2 && key(ids) === key(members(work, gid))) apply({ t: 'group.rename', id: gid, title: target.groups[gid]!.title ?? '' })
   }
   return { commands, skipped, tooMany: commands.length > REWIND_MAX_COMMANDS }
 }

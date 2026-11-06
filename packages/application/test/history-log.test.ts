@@ -56,6 +56,17 @@ describe('historyOf', () => {
     expect(historyOf(roomId, l.events)).toEqual([])
   })
 
+  it('shows the cluster title for a rename, and nothing for the same title again', () => {
+    const l = started()
+    l.add({ t: 'note.group', id: l.ids.two, ontoId: l.ids.one })
+    const gid = l.board().notes[l.ids.one]!.groupId!
+    const rename = l.add({ t: 'group.rename', id: gid, title: 'Theme' })
+    l.add({ t: 'group.rename', id: gid, title: 'Theme' })
+    const last = historyOf(roomId, l.events).at(-1)!
+    expect(last).toMatchObject({ id: rename, kind: 'rename', text: 'Theme', columnId: l.col[0] })
+    expect(historyOf(roomId, l.events).filter((e) => e.kind === 'rename')).toHaveLength(1)
+  })
+
   it('shows what a deleted idea said, and only the newest actions when capped', () => {
     const l = started()
     for (let i = 0; i < 5; i++) l.add({ t: 'note.color', id: l.ids.one, color: i + 1 })
@@ -154,6 +165,21 @@ describe('restoreCommands', () => {
     expect(partition(restored)).toEqual(partition(before))
     expect(shape(restored)).toEqual(shape(before))
     expect(restored.groups[kept]).toBeDefined()
+  })
+
+  it('puts a cluster title back when the cluster kept its ideas, and leaves a rebuilt cluster untitled', () => {
+    const { h, ids } = board()
+    h.run({ t: 'note.group', id: ids.two, ontoId: ids.one })
+    const g = h.state.notes[ids.one]!.groupId!
+    h.run({ t: 'group.rename', id: g, title: 'CI' })
+    const before = h.state
+    h.run({ t: 'group.rename', id: g, title: 'Pipeline' })
+    const restored = apply(h.state, restoreCommands(before, h.state).commands)
+    expect(restored.groups[g]!.title).toBe('CI')
+    h.run({ t: 'note.ungroup', id: ids.two })
+    const rebuilt = apply(h.state, restoreCommands(before, h.state).commands)
+    expect(partition(rebuilt)).toEqual(partition(before))
+    expect(Object.values(rebuilt.groups).every((x) => x.title === null)).toBe(true)
   })
 
   it('leaves ideas written since alone and counts deleted ones as not restored', () => {

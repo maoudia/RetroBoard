@@ -1,7 +1,7 @@
 import type { Command, Snapshot } from '@retroboard/domain'
 
 /** What an undo step is called, for the toast and the tests. */
-export type UndoLabel = 'group' | 'ungroup' | 'move' | 'edit' | 'color' | 'delete'
+export type UndoLabel = 'group' | 'ungroup' | 'move' | 'edit' | 'color' | 'delete' | 'rename'
 
 /** The commands that put the board back as it was before one of my own actions. */
 export interface Inverse { label: UndoLabel; commands: Command[]; /** The action itself, replayed by redo. */ redo?: Command[] }
@@ -51,6 +51,10 @@ function inverseOfInner(cmd: Command, view: Snapshot | null): Inverse | null {
       // Only an idea nobody else touched: no cluster, no vote (hidden counts cannot be checked). It comes back as a new idea.
       const n = note(cmd.id)
       return n && n.mine && n.groupId === null && n.votes === 0 && !n.voted ? { label: 'delete', commands: [{ t: 'note.add', columnId: n.columnId, text: n.text, color: n.color }] } : null
+    }
+    case 'group.rename': {
+      const g = view.groups.find((x) => x.id === cmd.id)
+      return g && (g.title ?? '') !== cmd.title ? { label: 'rename', commands: [{ t: 'group.rename', id: g.id, title: g.title ?? '' }] } : null
     }
     case 'note.color': {
       const n = note(cmd.id)
