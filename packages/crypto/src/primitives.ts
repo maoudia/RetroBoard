@@ -5,12 +5,7 @@
  */
 import { type Bytes, concat } from './bytes'
 import { curves } from './curves'
-
-const subtle = (): SubtleCrypto => {
-  const s = globalThis.crypto?.subtle
-  if (!s) throw new Error('WebCrypto is not available (secure context required)')
-  return s
-}
+import { subtle } from './webcrypto'
 
 export const KEY_BYTES = 32
 export const NONCE_BYTES = 12
@@ -51,6 +46,7 @@ export async function seal(key: Uint8Array, plaintext: Uint8Array, aad: Uint8Arr
 
 /** Returns null when the ciphertext, the key or the AAD does not match (tampering or wrong key). */
 export async function open(key: Uint8Array, sealed: Uint8Array, aad: Uint8Array): Promise<Bytes | null> {
+  // Stryker disable next-line ConditionalExpression,ArithmeticOperator: an early exit only, decrypting a shorter input fails and returns null the same way
   if (sealed.length < NONCE_BYTES + 16) return null
   try {
     const pt = await subtle().decrypt(
@@ -119,6 +115,7 @@ export async function sealTo(recipientPublicKey: Uint8Array, plaintext: Uint8Arr
 }
 
 export async function openFrom(recipient: KeyPair, sealed: Uint8Array, aad: Uint8Array): Promise<Bytes | null> {
+  // Stryker disable next-line ConditionalExpression,EqualityOperator: an early exit only, a shorter or equal input fails later and returns null the same way
   if (sealed.length < KEY_BYTES) return null
   const ephPub = sealed.slice(0, KEY_BYTES)
   try {

@@ -18,16 +18,14 @@ export function concat(...parts: Uint8Array[]): Bytes {
 export function toBase64Url(bytes: Uint8Array): string {
   let bin = ''
   for (const b of bytes) bin += String.fromCharCode(b)
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replaceAll('=', '')
 }
 
 /** Returns null on malformed input instead of throwing: links come from untrusted URLs. */
 export function fromBase64Url(text: string): Bytes | null {
   if (!/^[A-Za-z0-9_-]*$/.test(text) || text.length % 4 === 1) return null
-  const bin = atob(text.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (text.length % 4)) % 4))
-  const out = new Uint8Array(bin.length)
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i)
-  return out
+  // atob accepts input without its padding (forgiving-base64, WHATWG), so none is added back.
+  return Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))
 }
 
 export const toHex = (bytes: Uint8Array): string => [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('')
@@ -40,7 +38,5 @@ export function fromHex(hex: string): Bytes {
 /** Constant-time comparison for equal-length secrets. */
 export function equalBytes(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false
-  let diff = 0
-  for (let i = 0; i < a.length; i++) diff |= a[i]! ^ b[i]!
-  return diff === 0
+  return a.reduce((diff, x, i) => diff | (x ^ b[i]!), 0) === 0
 }

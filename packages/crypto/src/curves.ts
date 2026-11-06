@@ -3,6 +3,7 @@
  * older engines lazy-load @noble/curves (audited, MIT), so the fallback costs nothing when unused.
  */
 import { type Bytes, concat, fromHex } from './bytes'
+import { subtle } from './webcrypto'
 
 export interface CurveBackend {
   readonly name: 'webcrypto' | 'noble'
@@ -17,11 +18,6 @@ export interface CurveBackend {
 const PKCS8_PREFIX = { Ed25519: fromHex('302e020100300506032b657004220420'), X25519: fromHex('302e020100300506032b656e04220420') }
 type Curve = keyof typeof PKCS8_PREFIX
 
-const subtle = (): SubtleCrypto => {
-  const s = globalThis.crypto?.subtle
-  if (!s) throw new Error('WebCrypto is not available (secure context required)')
-  return s
-}
 const importPrivate = (curve: Curve, seed: Bytes, usages: KeyUsage[]) =>
   subtle().importKey('pkcs8', concat(PKCS8_PREFIX[curve], seed), { name: curve }, true, usages)
 
