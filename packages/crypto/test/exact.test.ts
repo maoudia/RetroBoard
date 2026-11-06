@@ -165,8 +165,8 @@ describe('curve backends, as specified', () => {
     const noble = await nobleCurves()
     expect(await selfTest(noble)).toBe(true)
     expect(await selfTest({ ...noble, edVerify: async () => false })).toBe(false)
-    expect(await selfTest({ ...noble, edSign: async (seed, msg) => { const s = await noble.edSign(seed, msg); s[0] ^= 1; return s }, edVerify: async () => true })).toBe(false)
-    expect(await selfTest({ ...noble, xShared: async (a, b) => { const s = await noble.xShared(a, b); s[0] ^= 1; return s } })).toBe(false)
+    expect(await selfTest({ ...noble, edSign: async (seed, msg) => { const s = await noble.edSign(seed, msg); s[0] = s[0]! ^ 1; return s }, edVerify: async () => true })).toBe(false)
+    expect(await selfTest({ ...noble, xShared: async (a, b) => { const s = await noble.xShared(a, b); s[0] = s[0]! ^ 1; return s } })).toBe(false)
     expect(await selfTest({ ...noble, edSign: async () => { throw new Error('boom') } })).toBe(false)
   })
 
