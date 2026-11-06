@@ -9,7 +9,7 @@ export interface Viewer {
 }
 
 /** Hidden columns come back when the agenda reaches the closing phase (or has ended). */
-const closing = (a: AgendaState | null): boolean => !!a && a.current >= 0 && (a.current >= a.phases.length || a.phases[a.current]?.kind === 'close')
+const closing = (a: AgendaState | null): boolean => !!a && (a.current >= a.phases.length || a.phases[a.current]?.kind === 'close')
 
 /** The only place where server state is turned into what a client may see. */
 export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], now: number, names: Readonly<Record<string, string>> = {}): Snapshot {
@@ -29,6 +29,7 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       votes: secret ? null : n.voters.length,
       voted: n.voters.includes(viewer.cid),
       myVotes: countOf(n.voters, viewer.cid),
+      // Stryker disable next-line StringLiteral: votability only tests for 'cluster', so any other kind reads as a note
       votable: votability(state, 'note', n.id) === null,
       mine: n.ownerCid === viewer.cid,
       createdAt: n.createdAt,

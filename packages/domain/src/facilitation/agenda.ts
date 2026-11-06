@@ -130,9 +130,8 @@ export function extendPhase(a: AgendaState, deltaMs: number, borrow: boolean): A
     if (take > 0) {
       const shares = room.map((r) => Math.floor((take * r) / available / 1000) * 1000)
       let rest = take - shares.reduce((n, s) => n + s, 0)
-      // Rounding leftovers go to the phases with the most room, in order.
-      for (const i of room.map((r, i) => [r, i] as const).sort((x, y) => y[0] - x[0] || x[1] - y[1]).map(([, i]) => i)) {
-        if (rest <= 0) break
+      // Rounding leftovers go to the phases with the most room; the sort is stable, so a tie keeps the phase order.
+      for (const i of room.map((r, i) => [r, i] as const).sort((x, y) => y[0] - x[0]).map(([, i]) => i)) {
         const extra = Math.min(rest, room[i]! - shares[i]!)
         shares[i]! += extra
         rest -= extra
@@ -145,6 +144,7 @@ export function extendPhase(a: AgendaState, deltaMs: number, borrow: boolean): A
 
 /** What each phase is about: participants may do these, facilitators may do anything. */
 const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
+  // Stryker disable next-line ArrayDeclaration: an array holding something that is no command allows nothing, like the empty one
   checkin: [],
   review: ['action.status', 'action.update', 'action.toggle'],
   write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
