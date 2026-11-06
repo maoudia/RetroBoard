@@ -13,6 +13,7 @@ const ActionText = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMI
 const ActionOwner = v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.actionOwner))
 const ActionStatus = v.picklist(['todo', 'doing', 'done', 'blocked', 'dropped'])
 /** Calendar date, YYYY-MM-DD, and a real one (no 2026-02-31). */
+// Stryker disable next-line Regex: the calendar check on this line already refuses every string the anchors would (it parses and round-trips the date)
 const DueDate = v.pipe(v.string(), v.regex(/^\d{4}-\d{2}-\d{2}$/), v.check((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) && new Date(`${d}T00:00:00Z`).toISOString().startsWith(d)))
 
 const NewNote = v.object({ columnId: Id, text: Text, color: v.optional(Color) })
@@ -138,7 +139,9 @@ export type { Command }
 
 // Compile-time guard: the wire schema and the domain command type must describe the same shapes.
 type Parsed = v.InferOutput<typeof CommandSchema>
+// Stryker disable next-line ArrowFunction: a compile-time check, the function is never called
 const _schemaMatchesDomain: (p: Parsed) => Command = (p) => p
+// Stryker disable next-line ArrowFunction: a compile-time check, the function is never called
 const _domainMatchesSchema: (c: Command) => Parsed = (c) => c
 void _schemaMatchesDomain
 void _domainMatchesSchema
