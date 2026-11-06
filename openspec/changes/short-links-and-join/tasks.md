@@ -3,7 +3,7 @@
 ## 1. Links
 
 - [x] 1.1 ADR on the link format and the knock join (threat model: the relay sees the code and room id, never the key; brute-force limits); verify `pnpm adr:check`
-- [ ] 1.2 `/boards/` path with redirects from `/board/`; verify e2e that an old link opens the board
+- [x] 1.2 `/boards` path with a client-side redirect from `/board` that keeps the hash; verify e2e that an old link opens the board
 - [ ] 1.3 Compact link encoding with backward compatibility; verify unit tests and e2e
 
 ## 2. Join

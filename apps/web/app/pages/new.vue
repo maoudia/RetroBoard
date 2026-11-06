@@ -71,7 +71,7 @@ function create({ passcode, ...form }: SetupResult) {
     // Hand-off to the board page of this tab only; read once and removed there.
     if (passcode && !soloMode.value) { sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode); void $ports.vault.set(ring.roomId, passcode) }
   } catch { /* the board page will ask for the passcode */ }
-  void router.push({ path: '/board', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
+  void router.push({ path: '/boards', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
 }
 </script>
 

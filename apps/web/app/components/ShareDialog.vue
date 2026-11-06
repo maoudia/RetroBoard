@@ -22,7 +22,7 @@ const url = computed(() => {
 /** Only the facilitator holds it: shown on demand, to keep or to hand to a co-facilitator. */
 const facilitatorUrl = computed(() => {
   const inv = invite.value
-  return inv?.kind === 'encrypted' && inv.ring.facilitatorSecret ? `${window.location.origin}/board${boardHash(inv, 'facilitator')}` : null
+  return inv?.kind === 'encrypted' && inv.ring.facilitatorSecret ? `${window.location.origin}/boards${boardHash(inv, 'facilitator')}` : null
 })
 const showFacilitator = ref(false)
 /** One facilitator: the link has its own card, and the lead can hand over to someone connected. */

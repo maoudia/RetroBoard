@@ -18,7 +18,7 @@ test('joining with a short code: knock, safety number, let in (change short-link
   // Alice sees the same number and lets Bob in.
   await expect(page.getByTestId('knock-number')).toHaveText(mine)
   await page.getByTestId('knock-admit').click()
-  await bob.waitForURL(/\/board#/)
+  await bob.waitForURL(/\/boards#/)
   await expect(bob.getByTestId('name-input').or(bob.getByTestId('board'))).toBeVisible()
   await ctx.close()
 })

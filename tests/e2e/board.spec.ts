@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { collectProblems, column, createBoard, join, noteByText, publishNote, settle, voteMenu } from './helpers'
+import { collectProblems, column, createBoard, enterName, join, noteByText, publishNote, settle, voteMenu } from './helpers'
 
 test.describe('board lifecycle', () => {
   test('creates a themed board from a template', async ({ page }) => {
@@ -284,4 +284,21 @@ test('no CSP violation or console error across the main flows', async ({ page })
   await page.keyboard.press('Escape')
   await page.getByTestId('btn-actions').click()
   expect(problems).toEqual([])
+})
+
+test('share links use /boards and a link in the previous /board format still opens the board (change short-links-and-join)', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
+  const url = await page.getByTestId('share-url').inputValue()
+  expect(url).toMatch(/\/boards#/)
+  await page.keyboard.press('Escape')
+
+  const old = url.replace('/boards#', '/board#')
+  const ctx = await browser.newContext()
+  const bob = await ctx.newPage()
+  await bob.goto(old)
+  await bob.waitForURL(/\/boards\/?#/)
+  await enterName(bob, 'Bob')
+  await expect(bob.getByTestId('board')).toBeVisible()
+  expect(bob.url().split('#')[1]).toBe(url.split('#')[1])
+  await ctx.close()
 })

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 import { createBoard, noteByText, publishNote } from './helpers'
 
-/** The static host may add a trailing slash to /board: the fragment is what identifies the board. */
-const sameBoard = (url: string) => new RegExp(`/board/?#${url.split('#')[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
+/** The static host may add a trailing slash to /boards: the fragment is what identifies the board. */
+const sameBoard = (url: string) => new RegExp(`/boards/?#${url.split('#')[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
 
 const alive = async (page: import('@playwright/test').Page, text: string) => {
   await expect(page.getByTestId('board-waiting')).toHaveCount(0)

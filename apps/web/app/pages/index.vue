@@ -26,14 +26,14 @@ async function join() {
     joinError.value = false
     identity.load()
     const link = await byCode.join(raw, identity.name)
-    if (link) { const at = link.indexOf('#'); void router.push({ path: '/board', hash: link.slice(at) }) }
+    if (link) { const at = link.indexOf('#'); void router.push({ path: '/boards', hash: link.slice(at) }) }
     return
   }
   const at = raw.indexOf('#')
   const hash = at >= 0 ? raw.slice(at) : ''
   if (!hash || !inviteFromHash(hash)) { joinError.value = true; return }
   joinError.value = false
-  void router.push({ path: '/board', hash })
+  void router.push({ path: '/boards', hash })
 }
 
 // "Try solo" opens the regular creation flow with solo preselected (change solo-parity-and-dedup).

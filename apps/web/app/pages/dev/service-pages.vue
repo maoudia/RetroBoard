@@ -5,7 +5,7 @@ const entries = [
   { path: '/nope-nope', label: '404' },
   { path: '/offline', label: 'offline' },
   { path: '/unsupported', label: 'unsupported browser' },
-  { path: '/board#x', label: 'invalid board link' },
+  { path: '/boards#x', label: 'invalid board link' },
   { path: '/check', label: 'browser check' },
 ]
 </script>

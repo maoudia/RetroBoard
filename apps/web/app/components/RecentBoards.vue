@@ -28,7 +28,7 @@ const lanes = computed(() => {
     <template v-for="lane in lanes" :key="lane.id">
     <li v-if="lane.label" class="lane" :data-testid="`lane-${lane.id}`">{{ lane.label }}</li>
     <li v-for="r in lane.items" :key="r.id">
-      <NuxtLink :to="{ path: '/board', hash: r.hash }" :data-testid="`recent-${r.id}`" @click="emit('open')">
+      <NuxtLink :to="{ path: '/boards', hash: r.hash }" :data-testid="`recent-${r.id}`" @click="emit('open')">
         <span class="dot" :style="{ background: getTheme(r.themeId).tokens.accent }" aria-hidden="true" />
         <strong>{{ r.title }}</strong>
         <small class="muted">{{ lastOpenedLabel(r.at, now, locale) }}</small>

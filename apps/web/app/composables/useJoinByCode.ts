@@ -5,7 +5,7 @@ import { normalizeJoinCode, safetyNumber } from '~/utils/join-code'
 export type JoinState = 'idle' | 'connecting' | 'waiting' | 'denied' | 'timeout' | 'failed'
 const WAIT_MS = 90_000
 
-/** Joiner side of the join code (change short-links-and-join). Resolves to the board link (`/board#...`) or null. */
+/** Joiner side of the join code (change short-links-and-join). Resolves to the board link (`/boards#...`, or `/board#...` from a holder on an older version) or null. */
 export function useJoinByCode() {
   const config = useRuntimeConfig()
   const state = ref<JoinState>('idle')
@@ -39,7 +39,8 @@ export function useJoinByCode() {
           void (ct ? openFrom(me, ct, utf8(n)) : Promise.resolve(null)).then((pt) => {
             const link = pt ? fromUtf8(pt) : ''
             // Only a link to this site's board page is followed.
-            if (link.startsWith('/board#') || link.startsWith(`${window.location.origin}/board#`)) finish(link.slice(link.indexOf('/board#')), 'idle')
+            const own = link.startsWith(window.location.origin) ? link.slice(window.location.origin.length) : link
+            if (/^\/boards?#/.test(own)) finish(own, 'idle')
             else finish(null, 'failed')
           })
         },

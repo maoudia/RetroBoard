@@ -13,7 +13,7 @@ onBeforeUnmount(() => { window.removeEventListener('online', sync); window.remov
     <section v-if="recents.items.length" class="local" :aria-label="t('service.offline.local')">
       <h2>{{ t('service.offline.local') }}</h2>
       <ul data-testid="service-offline-boards">
-        <li v-for="r in recents.items" :key="r.id"><NuxtLink :to="{ path: '/board', hash: r.hash }"><Icon name="lucide:rotate-ccw" /> {{ r.title }}</NuxtLink></li>
+        <li v-for="r in recents.items" :key="r.id"><NuxtLink :to="{ path: '/boards', hash: r.hash }"><Icon name="lucide:rotate-ccw" /> {{ r.title }}</NuxtLink></li>
       </ul>
     </section>
     <p v-else class="none" data-testid="service-offline-none">{{ t('service.offline.none') }}</p>

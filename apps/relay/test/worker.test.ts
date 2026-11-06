@@ -101,6 +101,8 @@ describe('error responses', () => {
   const nav = (accept: string, extra: Record<string, string> = {}) => new Request('https://x.test/nope', { headers: { Accept: accept, ...extra } })
   it('knows the app routes and flags only html answers for unknown ones', () => {
     expect(isUnknownAppPath('/new/', html)).toBe(false)
+    expect(isUnknownAppPath('/boards', html)).toBe(false)
+    expect(isUnknownAppPath('/board', html)).toBe(false)
     expect(isUnknownAppPath('/nwe', html)).toBe(true)
     expect(isUnknownAppPath('/robots.txt', new Response('x', { headers: { 'content-type': 'text/plain' } }))).toBe(false)
   })

@@ -22,8 +22,8 @@ if (base.startsWith('https://') && !/localhost|127\.0\.0\.1/.test(base)) {
 }
 check((await home.text()).includes('<div id="__nuxt"'), 'Nuxt app shell served')
 
-const board = await fetch(`${base}/board`)
-check(board.ok, 'SPA fallback serves /board')
+const board = await fetch(`${base}/boards`)
+check(board.ok, 'SPA fallback serves /boards')
 
 // Node's WebSocket (undici) accepts headers, so we can present a foreign Origin.
 const wsUrl = `${base.replace(/^http/, 'ws')}/ws?room=${'x'.repeat(22)}`

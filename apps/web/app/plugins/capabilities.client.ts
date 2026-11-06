@@ -3,5 +3,5 @@ export default defineNuxtPlugin(() => {
   const router = useRouter()
   const supported = window.isSecureContext && !!globalThis.crypto?.subtle && typeof WebSocket === 'function'
   if (supported) return
-  router.beforeEach((to) => (['/new', '/board'].includes(to.path) ? '/unsupported' : true))
+  router.beforeEach((to) => (['/new', '/boards'].includes(to.path) ? '/unsupported' : true))
 })

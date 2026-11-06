@@ -77,7 +77,7 @@ async function fromLiveBoard() {
       <div class="live-board">
         <label class="live-url">
           <span>{{ t('carry.liveBoard') }}</span>
-          <input v-model="liveUrl" type="url" placeholder="https://retroboard.maoudia.com/board#..." class="field" data-testid="carry-live-url" />
+          <input v-model="liveUrl" type="url" placeholder="https://retroboard.maoudia.com/boards#..." class="field" data-testid="carry-live-url" />
         </label>
         <button class="btn btn-sm" :disabled="!liveUrl.trim() || loadingLive" data-testid="carry-live-fetch" @click="fromLiveBoard">
           <Icon :name="loadingLive ? 'lucide:loader-2' : 'lucide:link'" /> {{ t('carry.fetch') }}
