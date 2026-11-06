@@ -8,7 +8,7 @@
 
 ## 2. Kill the survivors, one package at a time (undetected on 2026-11-06)
 
-- [ ] 2.1 `sync` (17)
+- [x] 2.1 `sync` (17): 100%
 - [ ] 2.2 `protocol` (39)
 - [ ] 2.3 `crypto` (54)
 - [ ] 2.4 `exporters` (93)

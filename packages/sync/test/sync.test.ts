@@ -70,3 +70,48 @@ describe('version vectors', () => {
     expect(observe(observe({}, 'a', 5), 'a', 3)).toEqual({ a: 5 })
   })
 })
+
+describe('order of events, exactly', () => {
+  it('sorts by clock first, by id only on a tie, and calls the same event equal', () => {
+    expect(compareEvents({ at: 1, id: 'z' }, { at: 4, id: 'a' })).toBe(-3)
+    expect(compareEvents({ at: 4, id: 'a' }, { at: 1, id: 'z' })).toBe(3)
+    expect(compareEvents({ at: 2, id: 'a' }, { at: 2, id: 'b' })).toBe(-1)
+    expect(compareEvents({ at: 2, id: 'b' }, { at: 2, id: 'a' })).toBe(1)
+    expect(compareEvents({ at: 2, id: 'a' }, { at: 2, id: 'a' })).toBe(0)
+  })
+})
+
+describe('version vectors, exactly', () => {
+  it('keeps the very same vector when the author is already at that clock or beyond', () => {
+    const vv = { a: 5 }
+    expect(observe(vv, 'a', 5)).toBe(vv)
+    expect(observe(vv, 'a', 3)).toBe(vv)
+    expect(observe(vv, 'a', 6)).toEqual({ a: 6 })
+    expect(observe(vv, 'b', 0)).toEqual({ a: 5, b: 0 })
+  })
+
+  it('merges to the highest clock per author and never invents an author the other side has not seen', () => {
+    expect(merge({ a: 1, b: 9 }, { a: 4, c: 2 })).toEqual({ a: 4, b: 9, c: 2 })
+    expect(merge({ a: 5 }, { a: 5 })).toEqual({ a: 5 })
+    expect(merge({}, { a: -1 })).toEqual({})
+  })
+
+  it('says a vector dominates another only when it has seen every author up to its clock', () => {
+    expect(dominates({ a: 2, b: 1 }, { a: 2 })).toBe(true)
+    expect(dominates({ a: 2 }, { a: 2, b: 0 })).toBe(false)
+    expect(dominates({ a: 1 }, { a: 2 })).toBe(false)
+    expect(dominates({}, { x: 0 })).toBe(false)
+    expect(dominates({}, { x: 1 })).toBe(false)
+    expect(dominates({}, {})).toBe(true)
+    expect(dominates({ a: 0 }, {})).toBe(true)
+  })
+
+  it('lists the authors I am ahead on, with the clock to send from (exclusive; -1 for an author they have not seen)', () => {
+    expect(ahead({ a: 5, b: 2 }, { a: 3, b: 2 })).toEqual({ a: 3 })
+    expect(ahead({ a: 5 }, {})).toEqual({ a: -1 })
+    expect(ahead({ a: 0 }, {})).toEqual({ a: -1 })
+    expect(ahead({ a: 0 }, { a: 0 })).toEqual({})
+    expect(ahead({}, { a: 9 })).toEqual({})
+  })
+})
+

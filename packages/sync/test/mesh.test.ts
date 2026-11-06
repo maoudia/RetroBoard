@@ -74,4 +74,35 @@ describe('helpers', () => {
     expect(s.add('a')).toBe(true)
     expect(s.add('c')).toBe(false)
   })
+
+  it('remembers nothing when it has no room', () => {
+    const s = new SeenSet(0)
+    expect([s.add('a'), s.add('a'), s.add('b')]).toEqual([true, true, true])
+  })
+})
+
+describe('partial mesh, exactly', () => {
+  const ring = ids(14)
+
+  it('links a peer to its three neighbours on each side, wrapping around the ring, and to the peer opposite', () => {
+    expect(meshLinks('c000', ring)).toEqual(['c001', 'c002', 'c003', 'c007', 'c011', 'c012', 'c013'])
+    expect(meshLinks('c013', ring)).toEqual(['c000', 'c001', 'c002', 'c006', 'c010', 'c011', 'c012'])
+    expect(meshLinks('c005', ring)).toEqual(['c002', 'c003', 'c004', 'c006', 'c007', 'c008', 'c012'])
+  })
+
+  it('does not link beyond the reach, except to the opposite peer', () => {
+    const links = meshLinks('c000', ring)
+    for (const far of ['c004', 'c005', 'c006', 'c008', 'c009', 'c010']) expect(links).not.toContain(far)
+  })
+
+  it('has one opposite peer for an even ring and two close to it for an odd one', () => {
+    expect(meshLinks('c000', ids(15))).toEqual(['c001', 'c002', 'c003', 'c007', 'c008', 'c012', 'c013', 'c014'])
+    expect(meshLinks('c001', ids(15))).toEqual(['c000', 'c002', 'c003', 'c004', 'c008', 'c009', 'c013', 'c014'])
+  })
+
+  it('lets only the lower connection id send the offer, and nobody to oneself', () => {
+    expect(isInitiator('a', 'b')).toBe(true)
+    expect(isInitiator('b', 'a')).toBe(false)
+    expect(isInitiator('a', 'a')).toBe(false)
+  })
 })
