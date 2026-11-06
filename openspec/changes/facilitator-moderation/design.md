@@ -9,3 +9,11 @@
 Where things live: role events in `packages/domain/access`, room migration in `apps/web` transport with sealing in `packages/crypto`, reveal in application + web.
 
 Security and privacy note: the relay sees a burst of envelopes during a move (same size as the board) and one `room.moved` frame per remaining participant; it never sees keys.
+
+## Open questions
+
+- **Blocks 2.1 (found 2026-11-06).** Event signatures are bound to the room id (`signedMessage(roomId, ...)` in `packages/application/src/events/signed.ts`, domain separation). The decision above ("re-signs nothing, re-seals the envelopes under the new room") therefore does not hold: a copied event fails verification in the new room. The genesis also carries the old room id, and carried events sort before any new genesis. Options, to settle in an ADR before any code:
+  1. Carry events with their original signatures and verify them against the `movedFrom` room id announced by the new genesis (keeps authors and votes; changes the verification rule and the genesis shape, so it touches the replicated fold).
+  2. The facilitator re-signs a snapshot as fresh commands in the new room (no change to verification; authors, votes and "only the author edits" are lost for carried content).
+  Keeping the same facilitator seed in the new ring is enough for removal (a removed participant never held it), which also avoids re-keying the facilitator.
+- The sealing primitive already exists (`sealTo` / `openFrom` in `packages/crypto/src/primitives.ts`); what is missing is an X25519 key in presence (it only carries the Ed25519 session key).
