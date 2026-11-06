@@ -12,16 +12,17 @@ async function fakeCamera(page: Page, payload: string | string[], camera: 'ok' |
       async detect() { return [{ rawValue: (window as unknown as { __release?: boolean }).__release && later.length ? later[0]! : first! }] }
     }
     Object.assign(window, { BarcodeDetector: FakeDetector })
-    ;(window as unknown as { __stopped: number }).__stopped = 0
-    navigator.mediaDevices.getUserMedia = async () => {
+    ;(window as unknown as { __tracks: MediaStreamTrack[] }).__tracks = []
+    // On the prototype: WebKit hands out a fresh MediaDevices object, so a patch on the instance can be lost.
+    Object.defineProperty(MediaDevices.prototype, 'getUserMedia', { configurable: true, value: async () => {
       if (camera !== 'ok') throw new DOMException('no', camera === 'denied' ? 'NotAllowedError' : 'NotFoundError')
       const canvas = document.createElement('canvas')
       canvas.width = 64; canvas.height = 48
       canvas.getContext('2d')!.fillRect(0, 0, 64, 48)
       const stream = canvas.captureStream(5)
-      for (const track of stream.getTracks()) { const stop = track.stop.bind(track); track.stop = () => { (window as unknown as { __stopped: number }).__stopped++; stop() } }
+      ;(window as unknown as { __tracks: MediaStreamTrack[] }).__tracks.push(...stream.getTracks())
       return stream
-    }
+    } })
   }, { payload, camera })
 }
 
@@ -47,7 +48,8 @@ test.describe('scan a QR code to join (change short-links-and-join)', () => {
     await bob.waitForURL(/\/boards\/?#c=/)
     await enterName(bob, 'Bob')
     await expect(bob.getByTestId('board')).toBeVisible()
-    expect(await bob.evaluate(() => (window as unknown as { __stopped: number }).__stopped)).toBeGreaterThan(0)
+    // The camera is released once the board opens: every track of the preview has ended.
+    expect(await bob.evaluate(() => (window as unknown as { __tracks: MediaStreamTrack[] }).__tracks.map((t) => t.readyState))).toEqual(['ended'])
     await ctx.close()
   })
 

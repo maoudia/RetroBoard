@@ -22,6 +22,21 @@ pnpm install
 
 `mise install` is reproducible: running it again reports "all tools are installed" and changes nothing. `mise.lock` pins the checksum of each tool for every platform (macOS, Linux glibc and musl, Windows), so a fresh install always resolves the same bits mise resolved when the lockfile was generated.
 
+### Use the pinned Node
+
+`mise doctor` warns when another Node comes first in `PATH` (for example Volta's). The commands then run on that Node, not on the pinned 24, and `node -v` shows it. Put `eval "$(mise activate zsh)"` (or your shell) after the other PATH changes in your shell profile, or prefix a command with `mise exec --` (`mise exec -- pnpm verify`).
+
+### Other browsers for the e2e suite
+
+Locally only Chromium is installed. mise does not manage Playwright browsers, so install the CI ones with Playwright itself, then turn the extra projects on with `CI=1`:
+
+```bash
+mise exec -- pnpm exec playwright install firefox webkit
+CI=1 mise exec -- pnpm exec playwright test tests/e2e/<spec> --project=firefox --project=webkit --project=phone
+```
+
+Run `pnpm generate` first and again after each source change.
+
 ## Option B: manual (no mise)
 
 mise is optional. Without it, install the two tools directly:
