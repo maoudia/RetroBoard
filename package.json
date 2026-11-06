@@ -30,6 +30,7 @@
     "size": "node scripts/check-bundle-size.mjs",
     "licenses:check": "node scripts/check-licenses.mjs",
     "mutation": "stryker run",
+    "mutation:changed": "node scripts/quality/mutation-changed.mjs",
     "load:relay": "node scripts/load/relay-load.mjs",
     "adr:new": "node scripts/adr/new.mjs",
     "adr:index": "node scripts/adr/index.mjs",

@@ -11,6 +11,7 @@ export const STEPS = [
   { name: 'generate', cmd: ['pnpm', 'generate'] },
   { name: 'size', cmd: ['pnpm', 'size'] },
   { name: 'commits', cmd: ['pnpm', 'commits:check'] },
+  { name: 'mutation', cmd: ['pnpm', 'mutation:changed'] },
   { name: 'e2e:core', cmd: ['pnpm', 'e2e:core'], e2e: true },
 ]
 

@@ -1,16 +1,12 @@
 import { parseRelayFrame } from '@retroboard/protocol'
 import { buildWs2Url } from '~/transport/encrypted'
 import { joinRoomId, type JoinMsg, openJoinMsg, sealJoinMsg } from '~/utils/join-code'
+import type { JoinChannel } from '~/utils/join-flow'
 
 /**
  * The side room of a join code on the relay (change short-links-and-join): sealed messages in both directions.
  * Used by the person holding the board and by the joiner. Nothing here touches board data.
  */
-export interface JoinChannel {
-  send(msg: JoinMsg): void
-  close(): void
-}
-
 export async function openJoinChannel(
   code: string, wsUrl: string, handlers: { onMessage: (m: JoinMsg) => void, onOpen?: () => void, onClose?: () => void, WS?: typeof WebSocket },
 ): Promise<JoinChannel> {
