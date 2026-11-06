@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.48.0](https://github.com/maoudia/RetroBoard/compare/v1.47.0...v1.48.0) (2026-11-06)
+
+
+### Features
+
+* **actions:** live previous board carry-over source (read-only join, then leave) ([0cba087](https://github.com/maoudia/RetroBoard/commit/0cba0877e40f32498826137165a0874facdcfd1e))
+* **application:** rewind plan and history read model from the signed log ([d04f3bf](https://github.com/maoudia/RetroBoard/commit/d04f3bf5b1d9e320ddf2e9f6c5c6d59da3295367))
+* **application:** undo and rewind bring a deleted idea back as a new one ([8533bab](https://github.com/maoudia/RetroBoard/commit/8533babe7b2a3aa64783d0239eb5dc4ed32a4219))
+* **application:** undo and rewind of a cluster title ([83447ca](https://github.com/maoudia/RetroBoard/commit/83447ca02e86a91897e152625614e4a581ad0268))
+* **dev:** add mise for multiplatform tool version pinning ([664f444](https://github.com/maoudia/RetroBoard/commit/664f4446ebaa1f5f1b3f23cb0b99af7189db6985))
+* **report:** passphrase-encrypted self-contained HTML report ([70fb1ba](https://github.com/maoudia/RetroBoard/commit/70fb1ba88c1ea926cb6e94861bbb6aa1912be84a))
+* **share:** explain the board words in the share panel ([f9fd5d1](https://github.com/maoudia/RetroBoard/commit/f9fd5d14167151f59963ba7ce9b9051b352e4339))
+* **web:** board links use the /boards path, old /board links keep working ([cc1297d](https://github.com/maoudia/RetroBoard/commit/cc1297d20e4aa9f04c44dc990a235e92ca2e12fd))
+* **web:** compact board links with 128-bit secrets for new boards ([11e8722](https://github.com/maoudia/RetroBoard/commit/11e8722f72be6fbf3418c511d3637c210deef88b))
+* **web:** history panel with restore for facilitators ([52a60a6](https://github.com/maoudia/RetroBoard/commit/52a60a6f082f3429828ae6c800a62c7a3433b707))
+* **web:** scan a QR code from the landing page to join a board ([b24bea5](https://github.com/maoudia/RetroBoard/commit/b24bea58d6ca941a8a0a0a8df566a627f8c06437))
+
+
+### Bug Fixes
+
+* **deps:** restore the pnpm overrides in the lockfile so the frozen install works ([9bb13a0](https://github.com/maoudia/RetroBoard/commit/9bb13a0201fa36a0630c4d3a9dbc830a150b7ce5))
+* **web:** the options dialog no longer overflows on a phone, the normal size has its icon ([c11600b](https://github.com/maoudia/RetroBoard/commit/c11600be51fb90f5a1b4230d0fbf877b37f82705))
+
 ## [1.47.0](https://github.com/maoudia/RetroBoard/compare/v1.46.0...v1.47.0) (2026-11-05)
 
 
