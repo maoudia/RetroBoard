@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "e2e:core": "node scripts/e2e-core.mjs",
+    "e2e:rest": "node scripts/e2e-rest.mjs",
     "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm dup && pnpm knip && pnpm adr:check && pnpm wip && pnpm test && openspec validate --all --strict",
     "spec": "openspec",
     "postinstall": "pnpm --filter @retroboard/web prepare && node scripts/commits/install-hooks.mjs",

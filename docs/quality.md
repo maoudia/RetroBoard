@@ -5,7 +5,8 @@ Every commit on `main` runs `.github/workflows/quality.yml`:
 | Job | What | Kept as |
 |---|---|---|
 | Unit tests and coverage | Vitest with v8 coverage and the coverage ratchets | Pages `coverage/`, `unit/results.json`; artifact `quality-unit` |
-| Playwright (chromium, firefox, phone, tv; webkit nightly) | Full e2e suite per project against `wrangler dev` | The Allure report; artifact `playwright-<project>` (HTML report, JSON, JUnit, traces, screenshots, videos of failures) |
+| Playwright core (chromium, 2 shards) | The push gate: the specs of `tests/e2e/core.json` against `wrangler dev` | The Allure report; artifact `playwright-<project>-<n>` (HTML report, JSON, traces) |
+| Playwright rest of the suite (chromium, 5 shards) | Every spec outside the gate (`pnpm e2e:rest`), so Allure holds the whole suite once. Does not gate the run (`continue-on-error`); the nightly run repeats it on every browser | The Allure report; artifact `playwright-rest-<n>` |
 | Mutation testing | Stryker on the pure packages (domain, application, protocol, crypto, exporters), incremental | Pages `mutation/`; artifact `quality-mutation` |
 | Allure report (unit + every e2e shard) | `allure-vitest` and `allure-playwright` write raw results when `ALLURE_RESULTS_DIR` is set; `allure generate` aggregates them with a history file kept on Pages | Pages `allure/` (report and `history.jsonl`); artifacts `allure-results-*` |
 | Publish | Deploys the Allure report as the GitHub Pages front page, with `coverage/` and `mutation/` beside it, even when a test job failed | https://maoudia.github.io/RetroBoard/ |

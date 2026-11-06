@@ -7,6 +7,10 @@ The system SHALL publish, for every commit on main, one Allure report that aggre
 - **WHEN** the Quality workflow completes on main
 - **THEN** the report is the front page of the quality site with every unit and end-to-end test of the commit, and `/allure/` leads to it
 
+#### Scenario: Whole suite
+- **WHEN** the Quality workflow completes on main
+- **THEN** the report lists the core e2e specs and every other e2e spec once, the second group not gating the run
+
 #### Scenario: Failing tests stay visible
 - **WHEN** a test fails in a shard
 - **THEN** the report lists the failure with its trace and screenshot attachments and the workflow still publishes it
