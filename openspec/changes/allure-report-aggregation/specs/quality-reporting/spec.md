@@ -1,18 +1,25 @@
 ## ADDED Requirements
 
 ### Requirement: One aggregated test report per main commit
-The system SHALL publish, for every commit on main, one Allure report that aggregates the results of the unit tests and of every end-to-end shard, on GitHub Pages and linked from the quality index. The report MUST be published even when a test job failed.
+The system SHALL publish, for every commit on main, one Allure report that aggregates the results of the unit tests and of every end-to-end shard, as the front page of the GitHub Pages site. The report MUST be published even when a test job failed.
 
 #### Scenario: Report published
 - **WHEN** the Quality workflow completes on main
-- **THEN** the report is available at the `/allure/` path of the quality site with every unit and end-to-end test of the commit
+- **THEN** the report is the front page of the quality site with every unit and end-to-end test of the commit, and `/allure/` leads to it
 
 #### Scenario: Failing tests stay visible
 - **WHEN** a test fails in a shard
 - **THEN** the report lists the failure with its trace and screenshot attachments and the workflow still publishes it
 
+### Requirement: Coverage and mutation reports stay reachable
+The site SHALL keep the coverage report under `/coverage/` and the mutation report, with the `summary.json` the mutation ratchet reads, under `/mutation/`.
+
+#### Scenario: Ratchet reads the previous run
+- **WHEN** the mutation job compares a run with the previous one
+- **THEN** it reads `/mutation/summary.json` from the published site
+
 ### Requirement: Run history is kept
-The report SHALL keep the history of previous main runs (trends, retries, flaky detection) using a history file stored on GitHub Pages, never in server-side storage.
+The report SHALL keep the history of previous main runs (trends, retries, flaky detection) using a history file stored on GitHub Pages (at most 20 runs), never in server-side storage.
 
 #### Scenario: Second run
 - **WHEN** a second commit is published

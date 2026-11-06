@@ -1,8 +1,8 @@
 name: Quality
 
 # Every commit on main: unit tests with coverage, the full e2e matrix and mutation testing with a
-# regression ratchet. All reports are published on GitHub Pages (index, history, per-tool reports)
-# and kept as run artifacts (traces, screenshots, videos, raw JSON).
+# regression ratchet. The Allure report (unit and e2e, with history) is the GitHub Pages front page, coverage and
+# mutation sit beside it; traces, screenshots, videos and raw JSON stay as run artifacts.
 on:
   push:
     branches: [main]
@@ -170,7 +170,10 @@ jobs:
         run: |
           mkdir -p allure-results reports
           for d in artifacts/allure-results-*; do [ -d "$d" ] && cp -r "$d" "allure-results/$(basename "$d")"; done
-          curl -fsSL "$PAGES_URL/allure/history.jsonl" -o reports/allure-history.jsonl || rm -f reports/allure-history.jsonl
+          # The history sits at the site root; the first run after the move reads it from the old /allure/ path.
+          curl -fsSL "$PAGES_URL/history.jsonl" -o reports/allure-history.jsonl \
+            || curl -fsSL "$PAGES_URL/allure/history.jsonl" -o reports/allure-history.jsonl \
+            || rm -f reports/allure-history.jsonl
           if ls allure-results/*/*-result.json >/dev/null 2>&1; then
             pnpm exec allure generate allure-results/* --clean
             mkdir -p artifacts/allure
@@ -181,11 +184,10 @@ jobs:
           fi
       - name: Normalise artifact layout
         run: |
-          mkdir -p artifacts/coverage artifacts/unit artifacts/mutation
+          mkdir -p artifacts/coverage artifacts/mutation
           if [ -d artifacts/quality-unit/coverage ]; then cp -r artifacts/quality-unit/coverage/. artifacts/coverage/; fi
-          if [ -d artifacts/quality-unit/reports/unit ]; then cp -r artifacts/quality-unit/reports/unit/. artifacts/unit/; fi
           if [ -d artifacts/quality-mutation ]; then cp -r artifacts/quality-mutation/. artifacts/mutation/; fi
-      - name: Build the quality site
+      - name: Build the site (Allure front page, coverage, mutation)
         run: node scripts/quality/build-site.mjs artifacts site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

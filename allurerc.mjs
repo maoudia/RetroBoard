@@ -7,7 +7,7 @@ export default defineConfig({
   output: './reports/allure',
   historyPath: './reports/allure-history.jsonl',
   appendHistory: true,
-  historyLimit: 50,
+  historyLimit: 20,
   plugins: {
     awesome: {
       options: {
