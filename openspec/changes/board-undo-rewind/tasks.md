@@ -13,4 +13,4 @@
 ## 3. UI
 - [x] 3.1 Ctrl+Z with a toast (fr and en); verify e2e (wrong grouping undone, tests/e2e/undo.spec.ts)
 - [x] 3.2a Ctrl+Shift+Z / Ctrl+Y and toolbar undo/redo buttons for phones; verify e2e
-- [ ] 3.2b History panel with restore, two-peer e2e and axe
+- [x] 3.2b History panel with restore, two-peer e2e and axe

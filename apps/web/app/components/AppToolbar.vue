@@ -78,6 +78,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
         <button class="icon-btn" type="button" :disabled="!board.undoDepth" :aria-label="t('undo.title')" :title="t('undo.title')" data-testid="btn-undo" @click="runUndo(false)"><Icon name="lucide:undo-2" class="ico" /></button>
         <button class="icon-btn" type="button" :disabled="!board.redoDepth" :aria-label="t('redo.title')" :title="t('redo.title')" data-testid="btn-redo" @click="runUndo(true)"><Icon name="lucide:redo-2" class="ico" /></button>
       </span>
+      <HistoryPanel v-if="board.access.canSteer" />
       <button class="icon-btn" type="button" data-testid="btn-actions" @click="ui.open('actions')">
         <Icon name="lucide:list-checks" class="ico" /><span>{{ t('toolbar.actions') }}</span>
         <span v-if="board.openActions" class="badge" data-testid="actions-count">{{ board.openActions }}</span>
