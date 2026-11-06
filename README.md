@@ -1,10 +1,39 @@
 # RetroBoard
 
-[![CI](https://github.com/maoudia/retroboard/actions/workflows/ci.yml/badge.svg)](https://github.com/maoudia/retroboard/actions/workflows/ci.yml)
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![Nuxt 4](https://img.shields.io/badge/Nuxt-4-00DC82?logo=nuxt&logoColor=white)](https://nuxt.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers%20%2B%20Durable%20Objects-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/durable-objects/)
+<p align="center">
+  <b>Pipelines</b><br>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/checks.yml"><img alt="Checks" src="https://github.com/maoudia/RetroBoard/actions/workflows/checks.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/quality.yml"><img alt="Quality" src="https://github.com/maoudia/RetroBoard/actions/workflows/quality.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/security.yml"><img alt="Security" src="https://github.com/maoudia/RetroBoard/actions/workflows/security.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/adr.yml"><img alt="ADR" src="https://github.com/maoudia/RetroBoard/actions/workflows/adr.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/smoke.yml"><img alt="Smoke" src="https://github.com/maoudia/RetroBoard/actions/workflows/smoke.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/e2e.yml"><img alt="E2E" src="https://github.com/maoudia/RetroBoard/actions/workflows/e2e.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/nightly.yml"><img alt="Nightly" src="https://github.com/maoudia/RetroBoard/actions/workflows/nightly.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/release.yml"><img alt="Release" src="https://github.com/maoudia/RetroBoard/actions/workflows/release.yml/badge.svg?branch=main"></a>
+</p>
+
+<p align="center">
+  <b>Quality of the last green commit on main</b><br>
+  <a href="https://maoudia.github.io/RetroBoard/"><img alt="tests" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmaoudia.github.io%2FRetroBoard%2Fsummary.json&query=%24.stats.passed&suffix=%20passed&label=tests&color=2ea44f&labelColor=1d1d1f&logo=vitest&logoColor=white&style=flat-square"></a>
+  <a href="https://maoudia.github.io/RetroBoard/coverage/"><img alt="line coverage" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmaoudia.github.io%2FRetroBoard%2Fcoverage%2Fcoverage-summary.json&query=%24.total.lines.pct&suffix=%25&label=line%20coverage&color=2ea44f&labelColor=1d1d1f&logo=vitest&logoColor=white&style=flat-square"></a>
+  <a href="https://maoudia.github.io/RetroBoard/mutation/"><img alt="mutation score" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmaoudia.github.io%2FRetroBoard%2Fmutation%2Fsummary.json&query=%24.score&suffix=%25&label=mutation%20score&color=2ea44f&labelColor=1d1d1f&logo=stryker&logoColor=white&style=flat-square"></a>
+  <a href="https://maoudia.github.io/RetroBoard/"><img alt="Allure report" src="https://img.shields.io/badge/Allure-test%20report-8A4FFF?labelColor=1d1d1f&style=flat-square&logo=qameta&logoColor=white"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/accessibility.md"><img alt="Accessibility" src="https://img.shields.io/badge/accessibility-WCAG%202.2%20AA%20(axe)-0a7a3d?labelColor=1d1d1f&style=flat-square"></a>
+  <a href="https://github.com/maoudia/RetroBoard/security"><img alt="CodeQL and OSV" src="https://img.shields.io/badge/security-CodeQL%20%2B%20OSV%20%2B%20zizmor-0a7a3d?labelColor=1d1d1f&style=flat-square&logo=github"></a>
+</p>
+
+<p align="center">
+  <b>Project</b><br>
+  <a href="https://github.com/maoudia/RetroBoard/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/maoudia/RetroBoard?display_name=tag&labelColor=1d1d1f&style=flat-square&logo=github"></a>
+  <a href="https://github.com/maoudia/RetroBoard/pkgs/container/retroboard"><img alt="Container image" src="https://img.shields.io/badge/ghcr.io-maoudia%2Fretroboard-2496ED?labelColor=1d1d1f&style=flat-square&logo=docker&logoColor=white"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue?labelColor=1d1d1f&style=flat-square"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/DEVELOPMENT.md"><img alt="Node 26 LTS" src="https://img.shields.io/badge/node-26%20LTS-5FA04E?labelColor=1d1d1f&style=flat-square&logo=nodedotjs&logoColor=white"></a>
+  <a href="https://nuxt.com"><img alt="Nuxt 4" src="https://img.shields.io/badge/Nuxt-4-00DC82?labelColor=1d1d1f&style=flat-square&logo=nuxt&logoColor=white"></a>
+  <a href="https://www.typescriptlang.org"><img alt="TypeScript strict" src="https://img.shields.io/badge/TypeScript-strict-3178C6?labelColor=1d1d1f&style=flat-square&logo=typescript&logoColor=white"></a>
+  <a href="https://developers.cloudflare.com/durable-objects/"><img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers%20%2B%20Durable%20Objects-F38020?labelColor=1d1d1f&style=flat-square&logo=cloudflare&logoColor=white"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/adr/0004-end-to-end-encryption-with-keys-in-the-link.md"><img alt="End-to-end encrypted" src="https://img.shields.io/badge/boards-end--to--end%20encrypted-0a7a3d?labelColor=1d1d1f&style=flat-square&logo=letsencrypt&logoColor=white"></a>
+  <a href="https://www.conventionalcommits.org"><img alt="Conventional Commits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?labelColor=1d1d1f&style=flat-square&logo=conventionalcommits&logoColor=white"></a>
+</p>
 
 Real-time, account-free retrospective boards. One link, and the team is in.
 Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 themes (professional and seasonal), English and French.

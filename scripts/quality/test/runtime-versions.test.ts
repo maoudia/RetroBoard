@@ -39,6 +39,10 @@ describe('one Node version everywhere', () => {
     expect(new Set(from)).toEqual(new Set([major]))
   })
 
+  it('is the Node version the README badge shows', () => {
+    expect(read('README.md')).toContain(`badge/node-${major}%20LTS-`)
+  })
+
   it('is the engine floor and the version of the Node typings', () => {
     const pkg = JSON.parse(read('package.json')) as { engines: { node: string }; devDependencies: Record<string, string> }
     expect(pkg.engines.node).toBe(`>=${major}`)
