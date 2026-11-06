@@ -204,7 +204,8 @@ export function toRagMarkdown(s: Snapshot, date: Date): string {
   const sections: string[] = []
   const front = (kind: string, title: string) => ['---', `format: ${RAG_FORMAT}`, `retro: ${q(retro.title)}`, `date: ${retro.date}`, `section: ${q(kind)}`, `title: ${q(title)}`, 'untrusted: true', '---'].join('\n')
   for (const c of s.columns) {
-    const items = chunks.filter((x) => x.kind !== 'action' && x.column === oneLine(c.title))
+    // Actions have no column, so a column's chunks are exactly the ones in it.
+    const items = chunks.filter((x) => x.column === oneLine(c.title))
     const lines = items.map((x) => `- [${x.id}]${x.votes === null ? '' : ` (${x.votes})`} ${x.text}`)
     sections.push([front('column', oneLine(c.title)), '', `# ${oneLine(c.title)}`, '', ...(lines.length ? lines : ['-']), ''].join('\n'))
   }

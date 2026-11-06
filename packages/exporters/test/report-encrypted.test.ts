@@ -61,12 +61,24 @@ describe('encrypted report', () => {
     expect(clear).not.toMatch(/<body|<\/body|<head|<!doctype/i)
   })
 
-  it('says so when the browser has no WebCrypto', async () => {
-    vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto), subtle: undefined })
+  it('says so when the browser has no WebCrypto, with or without a crypto object at all', async () => {
     try {
+      vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto), subtle: undefined })
+      await expect(toEncryptedReportHtml(report(), t, 'pw')).rejects.toThrow('WebCrypto is not available (secure context required)')
+      vi.stubGlobal('crypto', undefined)
       await expect(toEncryptedReportHtml(report(), t, 'pw')).rejects.toThrow('WebCrypto is not available (secure context required)')
     } finally {
       vi.unstubAllGlobals()
+    }
+  })
+
+  it('derives a key that cannot be taken out of the browser', async () => {
+    const derive = vi.spyOn(crypto.subtle, 'deriveKey')
+    try {
+      await toEncryptedReportHtml(report(), t, 'pw', 1000)
+      expect(derive.mock.calls.map((c) => c[3])).toEqual([false])
+    } finally {
+      derive.mockRestore()
     }
   })
 

@@ -41,13 +41,14 @@ const sha256 = async (s: string) => `sha256-${b64(new Uint8Array(await subtle().
  */
 export async function toEncryptedReportHtml(r: Report, t: ReportLabels, passphrase: string, iterations = ITERATIONS): Promise<string> {
   if (!passphrase) throw new Error('A passphrase is required')
+  const webcrypto = subtle()
   const html = toReportHtml(r, t)
   const body = html.slice(html.indexOf('<body>') + 6, html.lastIndexOf('</body>'))
   const salt = globalThis.crypto.getRandomValues(new Uint8Array(16))
   const iv = globalThis.crypto.getRandomValues(new Uint8Array(12))
-  const base = await subtle().importKey('raw', enc(passphrase), 'PBKDF2', false, ['deriveKey'])
-  const key = await subtle().deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt'])
-  const ct = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv }, key, enc(body)))
+  const base = await webcrypto.importKey('raw', enc(passphrase), 'PBKDF2', false, ['deriveKey'])
+  const key = await webcrypto.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt'])
+  const ct = new Uint8Array(await webcrypto.encrypt({ name: 'AES-GCM', iv }, key, enc(body)))
   const payload = JSON.stringify({ s: b64(salt), v: b64(iv), c: b64(ct), i: iterations })
   const csp = `default-src 'none'; script-src '${await sha256(DECRYPT_SCRIPT)}'; style-src '${await sha256(STYLE)}'`
   const e = escapeHtml

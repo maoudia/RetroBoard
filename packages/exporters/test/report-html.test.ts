@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildReport } from '@retroboard/application'
 import { buildSnapshot, MIN } from '@retroboard/domain'
 import { alice, bob, harness } from '@retroboard/testkit'
+import type { Report } from '@retroboard/application'
 import { escapeHtml, toReportHtml } from '../src'
 
 const t = (key: string, params?: Record<string, string | number>) => (params ? `${key}(${Object.values(params).join(',')})` : key)
@@ -59,3 +60,27 @@ describe('report as a standalone HTML file', () => {
     expect(html).toContain('<li>4 / 5: 2</li>')
   })
 })
+
+describe('report sections, exactly', () => {
+  const html = (over: Partial<Report>) => toReportHtml({ ...board(), ...over }, t)
+
+  it('marks a hidden column, and only that one', () => {
+    const base = board()
+    const withHidden = html({ columns: base.columns.map((c, i) => ({ ...c, hidden: i === 1 })) })
+    expect(withHidden).toContain(`<span class="v">[report.hiddenColumn]</span></h3>`)
+    expect(withHidden.match(/\[report\.hiddenColumn\]/g)).toHaveLength(1)
+    expect(html({ columns: base.columns.map((c) => ({ ...c, hidden: false })) })).not.toContain('report.hiddenColumn')
+  })
+
+  it('says how many actions were carried over and what became of them', () => {
+    expect(html({ carried: { total: 3, byStatus: { todo: 2, done: 1 } } })).toContain('<p class="muted">report.carried(3) actions.status.todo: 2, actions.status.done: 1</p>')
+    expect(html({ carried: { total: 0, byStatus: {} } })).not.toContain('report.carried')
+  })
+
+  it('shows the roti: its average, and one line per mark', () => {
+    const out = html({ roti: { average: 3.25, total: 4, counts: [0, 1, 1, 1, 1] } })
+    expect(out).toContain('<h2>report.roti</h2><p>report.roti.average(3.3,4)</p><ul>\n<li>1 / 5: 0</li>\n<li>2 / 5: 1</li>\n<li>3 / 5: 1</li>\n<li>4 / 5: 1</li>\n<li>5 / 5: 1</li>\n</ul>\n<p class="muted">report.footer</p>')
+    expect(html({ roti: null })).not.toContain('report.roti')
+  })
+})
+

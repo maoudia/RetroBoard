@@ -18,8 +18,16 @@ function fakeRelay() {
   return { sent, state, openChannel }
 }
 
-/** WebCrypto answers on real macrotasks, so let a few of them pass; only setTimeout is faked. */
-const flush = async () => { for (let i = 0; i < 40; i++) await new Promise<void>((resolve) => { setImmediate(resolve) }) }
+/** The real setTimeout, taken before the fake one is installed: WebCrypto answers on real threads, so these waits are real time. */
+const realSetTimeout = globalThis.setTimeout
+const sleep = (ms: number) => new Promise<void>((resolve) => { realSetTimeout(resolve, ms) })
+/** Lets pending WebCrypto work finish, for tests that assert something did NOT happen. */
+const flush = () => sleep(25)
+/** Waits (up to 3 s) for something to happen. */
+async function until(condition: () => boolean) {
+  for (let i = 0; i < 600 && !condition(); i++) await sleep(5)
+  expect(condition()).toBe(true)
+}
 const newHostState = (): HostState => ({ code: null, expiresAt: 0, knocks: [], connected: false })
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }) })
@@ -53,8 +61,7 @@ describe('join code, holder side', () => {
     const { relay, state } = await started({ ttlMs: 600_000 })
     const { msg } = await knockMsg('n1')
     relay.state.handlers!.onMessage(msg)
-    await flush()
-    expect(state.knocks).toHaveLength(1)
+    await until(() => state.knocks.length === 1)
     await vi.advanceTimersByTimeAsync(599_999)
     expect(state.code).toBe('RB-AAAAAA')
     await vi.advanceTimersByTimeAsync(1)
@@ -66,19 +73,21 @@ describe('join code, holder side', () => {
     const { relay, state } = await started()
     const { msg, keys } = await knockMsg('n1', 'Bob')
     relay.state.handlers!.onMessage(msg)
-    await flush()
+    await until(() => state.knocks.length === 1)
     expect(state.knocks).toEqual([{ n: 'n1', name: 'Bob', pub: (msg as { pub: string }).pub, number: await safetyNumber(keys.publicKey) }])
   })
 
   it('keeps at most five knocks, one per attempt, and only from a key of the right size', async () => {
     const { relay, state } = await started()
     for (let i = 0; i < MAX_KNOCKS + 3; i++) relay.state.handlers!.onMessage((await knockMsg(`n${i}`)).msg)
+    await until(() => state.knocks.length === MAX_KNOCKS)
     await flush()
-    expect(state.knocks.map((k) => k.n)).toEqual(['n0', 'n1', 'n2', 'n3', 'n4'])
+    expect(state.knocks.map((k) => k.n).sort()).toEqual(['n0', 'n1', 'n2', 'n3', 'n4'])
     const fresh = await started()
     const one = await knockMsg('same')
     fresh.relay.state.handlers!.onMessage(one.msg)
     fresh.relay.state.handlers!.onMessage(one.msg)
+    await until(() => fresh.state.knocks.length === 1)
     await flush()
     expect(fresh.state.knocks).toHaveLength(1)
     fresh.relay.state.handlers!.onMessage({ t: 'knock', n: 'short', pub: toBase64Url(new Uint8Array(31)), name: 'x' })
@@ -109,7 +118,7 @@ describe('join code, holder side', () => {
     const { relay, state, host } = await started({ link: () => link })
     const bob = await knockMsg('n1')
     relay.state.handlers!.onMessage(bob.msg)
-    await flush()
+    await until(() => state.knocks.length === 1)
     link = 'https://x.test/boards#c=new'
     await host.admit(state.knocks[0]!)
     expect(state.knocks).toEqual([])
@@ -127,8 +136,8 @@ describe('join code, holder side', () => {
     const b = await knockMsg('b')
     relay.state.handlers!.onMessage(a.msg)
     relay.state.handlers!.onMessage(b.msg)
-    await flush()
-    await host.admit(state.knocks[1]!)
+    await until(() => state.knocks.length === 2)
+    await host.admit(state.knocks.find((k) => k.n === 'b')!)
     expect(state.knocks.map((k) => k.n)).toEqual(['a'])
     const left = state.knocks[0]!
     host.stop()
@@ -143,8 +152,8 @@ describe('join code, holder side', () => {
     const { relay, state, host } = await started()
     relay.state.handlers!.onMessage((await knockMsg('a')).msg)
     relay.state.handlers!.onMessage((await knockMsg('b')).msg)
-    await flush()
-    host.refuse(state.knocks[0]!)
+    await until(() => state.knocks.length === 2)
+    host.refuse(state.knocks.find((k) => k.n === 'a')!)
     expect(relay.sent).toEqual([{ t: 'deny', n: 'a' }])
     expect(state.knocks.map((k) => k.n)).toEqual(['b'])
   })
@@ -195,7 +204,7 @@ describe('join code, joiner side', () => {
   /** Starts a join, plays the relay opening, and returns the knock the joiner sent with his key. */
   async function knocking(s: ReturnType<typeof setup>, text = 'rb-7kq2m9', name = 'Bob') {
     const result = s.joiner.join(text, name)
-    await flush()
+    await until(() => !!s.relay.state.handlers)
     s.relay.state.handlers!.onOpen!()
     const knock = s.relay.sent[0] as Extract<JoinMsg, { t: 'knock' }>
     return { result, knock }
@@ -328,23 +337,24 @@ describe('join code, joiner side', () => {
     const ui: JoinerState = { state: 'idle', number: '' }
     const channel = { send: vi.fn(), close: vi.fn() }
     let release: () => void = () => {}
-    const joiner = createJoiner({ openChannel: () => new Promise((resolve) => { release = () => resolve(channel) }), origin }, ui)
+    let asked = false
+    const joiner = createJoiner({ openChannel: () => new Promise((resolve) => { asked = true; release = () => resolve(channel) }), origin }, ui)
     const result = joiner.join('RB-7KQ2M9', 'Bob')
-    await flush()
+    await until(() => asked)
     joiner.cancel()
     release()
     expect(await result).toBeNull()
-    await flush()
+    await until(() => channel.close.mock.calls.length === 1)
     expect(channel.close).toHaveBeenCalledTimes(1)
   })
 
   it('starts again cleanly: a second join cancels the first', async () => {
     const s = setup()
     const first = s.joiner.join('RB-7KQ2M9', 'Bob')
-    await flush()
+    await until(() => s.relay.state.opened === 1)
     const second = s.joiner.join('RB-AAAAAA', 'Bob')
     expect(await first).toBeNull()
-    await flush()
+    await until(() => s.relay.state.code === 'RB-AAAAAA')
     expect(s.relay.state.code).toBe('RB-AAAAAA')
     s.joiner.cancel()
     expect(await second).toBeNull()
