@@ -8,7 +8,7 @@
 ## 2. Carry-over
 
 - [x] 2.1 `ActionSourcePort` adapters (team source moved to `team-workspaces`, 2026-11-02): board file, JSON, CSV (Jira columns); verify unit tests with fixtures
-- [ ] 2.2 Live previous board source (read-only join, then leave); verify e2e with two boards
+- [x] 2.2 Live previous board source (read-only join, then leave); verify e2e with two boards
 - [x] 2.3 Import step in board creation with preview and selection; verify e2e
 
 ## 3. UI

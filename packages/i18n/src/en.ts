@@ -137,6 +137,8 @@ export const en: Record<keyof typeof fr, string> = {
   'carry.file': 'From a JSON or CSV file',
   'carry.fileHint': 'A RetroBoard JSON export, an actions CSV, or a Jira CSV export.',
   'carry.invalid': 'This file has no actions we can read.',
+  'carry.liveBoard': 'From a previous board link',
+  'carry.fetch': 'Fetch actions',
   'carry.selected': '{n} selected',
   'export.actionsCsv': 'Actions only (CSV, Jira)',
   'agenda.phase.checkin': 'Check-in',

@@ -136,6 +136,8 @@ export const fr = {
   'carry.file': 'Depuis un fichier JSON ou CSV',
   'carry.fileHint': 'Un export JSON RetroBoard, un CSV d\'actions ou un export CSV Jira.',
   'carry.invalid': 'Ce fichier ne contient pas d\'actions lisibles.',
+  'carry.liveBoard': 'Depuis un lien vers un board précédent',
+  'carry.fetch': 'Récupérer les actions',
   'carry.selected': '{n} sélectionnée(s)',
   'export.actionsCsv': 'Actions seules (CSV, Jira)',
   'agenda.phase.checkin': 'Inclusion',

@@ -114,4 +114,52 @@ test.describe('actions v2', () => {
     expect(csv.split('\n')[0]).toBe('"Summary","Assignee","Status","Due Date","Description","Labels"')
     expect(csv).toContain('"Pin versions","Ana","To Do","2026-12-01"')
   })
+
+  test('carry over from a live previous board link', async ({ page }) => {
+    // Create first board with actions
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Sprint 42' })
+    await page.getByTestId('btn-options').click()
+    await page.getByTestId('opt-action-workflow').click()
+    await page.keyboard.press('Escape')
+    await openActions(page)
+    await addAction(page, 'Refactor auth', 'Bob')
+    await addAction(page, 'Fix deployment', 'Carol')
+    await page.getByTestId('actions').locator('li', { hasText: 'Fix deployment' }).getByTestId('action-status').selectOption('blocked')
+    await page.keyboard.press('Escape')
+    const boardLink = await shareLink(page)
+    await closeShare(page)
+
+    // Create second board and import from the first board's link
+    await page.goto('/new')
+    // The live board source input should be visible in advanced mode
+    await page.getByTestId('mode-advanced').click()
+    await expect(page.getByTestId('carry-live-url')).toBeVisible()
+
+    // Enter the first board's link
+    await page.getByTestId('carry-live-url').fill(boardLink)
+
+    // Fetch actions from the live board
+    await page.getByTestId('carry-live-fetch').click()
+
+    // Wait for actions to be fetched and appear in the carry-over list
+    await expect(page.getByTestId('carry-list')).toContainText('Refactor auth', { timeout: 10000 })
+    await expect(page.getByTestId('carry-list')).toContainText('Fix deployment')
+
+    // Verify the actions are selected by default
+    await expect(page.getByTestId('carry-item-0')).toBeChecked()
+    await expect(page.getByTestId('carry-item-1')).toBeChecked()
+
+    // Complete the board creation
+    await page.getByTestId('setup-title').fill('Sprint 43')
+    await page.getByTestId('setup-submit').click()
+    await page.getByTestId('name-input').fill('Alice')
+    await page.getByTestId('name-save').click()
+
+    // Verify the actions are in the review panel
+    await expect(page.getByTestId('review-list')).toContainText('Refactor auth')
+    await expect(page.getByTestId('review-list')).toContainText('Fix deployment')
+
+    // Verify the status is preserved (blocked)
+    await expect(page.getByTestId('review-list').locator('li').nth(1)).toHaveAttribute('data-status', 'blocked')
+  })
 })
