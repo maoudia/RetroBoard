@@ -57,13 +57,14 @@ describe('undo stack', () => {
 })
 
 describe('undo of a delete', () => {
-  it('re-adds an idea nobody voted on or grouped, and refuses the others', () => {
+  it('re-adds my idea as a new one, even when it had votes or a cluster, and refuses the ideas of others', () => {
     const mine = note('a', 'c1', null, { mine: true, votes: 0, voted: false })
     expect(inverseOf({ t: 'note.delete', id: 'a' }, view([mine]))).toMatchObject({ label: 'delete', commands: [{ t: 'note.add', columnId: 'c1', text: 't-a', color: 0 }] })
     expect(inverseOf({ t: 'note.delete', id: 'a' }, view([mine]))?.redo).toBeUndefined()
-    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([{ ...mine, votes: 2 } as never]))).toBeNull()
-    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([{ ...mine, groupId: 'g' }]))).toBeNull()
-    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([{ ...mine, votes: null } as never]))).toBeNull()
+    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([{ ...mine, votes: 2 } as never]))?.commands).toHaveLength(1)
+    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([{ ...mine, groupId: 'g' }]))?.commands).toHaveLength(1)
+    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([{ ...mine, votes: null } as never]))?.commands).toHaveLength(1)
+    expect(inverseOf({ t: 'note.delete', id: 'a' }, view([note('a', 'c1', null, { mine: false })]))).toBeNull()
   })
 })
 

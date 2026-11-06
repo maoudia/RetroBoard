@@ -9,7 +9,7 @@ export interface Inverse { label: UndoLabel; commands: Command[]; /** The action
 /**
  * Compensating commands for the reversible actions of the participant (change board-undo-rewind): the log stays
  * append-only, an undo is a new command computed from the state seen just before the action. Anything that cannot be
- * reversed exactly (voted, deleted, reset) has no inverse: it is never half undone.
+ * reversed exactly (reset, an idea written by someone else) has no inverse: it is never half undone.
  */
 export function inverseOf(cmd: Command, view: Snapshot | null): Inverse | null {
   const inv = inverseOfInner(cmd, view)
@@ -48,9 +48,9 @@ function inverseOfInner(cmd: Command, view: Snapshot | null): Inverse | null {
       return n && n.text !== cmd.text ? { label: 'edit', commands: [{ t: 'note.edit', id: n.id, text: n.text }] } : null
     }
     case 'note.delete': {
-      // Only an idea nobody else touched: no cluster, no vote (hidden counts cannot be checked). It comes back as a new idea.
+      // My idea comes back as a new idea with its text, colour and column. Its votes and its cluster are gone for good, as a delete means.
       const n = note(cmd.id)
-      return n && n.mine && n.groupId === null && n.votes === 0 && !n.voted ? { label: 'delete', commands: [{ t: 'note.add', columnId: n.columnId, text: n.text, color: n.color }] } : null
+      return n && n.mine ? { label: 'delete', commands: [{ t: 'note.add', columnId: n.columnId, text: n.text, color: n.color }] } : null
     }
     case 'group.rename': {
       const g = view.groups.find((x) => x.id === cmd.id)

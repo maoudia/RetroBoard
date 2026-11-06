@@ -54,7 +54,7 @@ export const fr = {
   'history.restore': 'Revenir avant',
   'history.restore.label': 'Revenir avant : {action}',
   'history.restore.title': 'Revenir à cet état ?',
-  'history.restore.message': 'Le tableau retrouve la place, le texte, la couleur et les groupes des idées d avant cette action. Les votes, le chat et les idées écrites depuis ne changent pas.',
+  'history.restore.message': 'Le tableau retrouve la place, le texte, la couleur et les groupes des idées d avant cette action. Une idée supprimée revient sans ses votes. Les votes, le chat et les idées écrites depuis ne changent pas.',
   'history.restored': 'Tableau restauré : {n} changements',
   'history.restored.partial': 'Tableau restauré : {n} changements, {skipped} éléments laissés tels quels',
   'history.restored.none': 'Rien à restaurer : le tableau est déjà dans cet état',

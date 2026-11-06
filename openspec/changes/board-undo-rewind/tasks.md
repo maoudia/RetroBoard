@@ -4,7 +4,7 @@
 - [x] 1.1 Inverse of group, ungroup, move, edit and colour as compensating commands computed from the state before the action (application layer, no new event type); verify unit tests in packages/application/test/history.test.ts
 - [x] 1.2a Delete inverse for an idea without votes or cluster (re-added as a new idea, no domain change); verify unit tests
 - [x] 1.2b Rename inverse of a cluster title (undo, history entry, restored by a rewind when the cluster kept its ideas); verify unit tests
-- [ ] 1.2c Restore of deleted and voted ideas (needs a restore event in the domain)
+- [x] 1.2c Undo and rewind bring a deleted idea back as a new one (text, colour, column), without its votes or cluster: a delete removes the vote state for good, so no domain event is needed; verify unit tests
 
 ## 2. Application and read model
 - [x] 2.1 Bounded undo stack (30) and `undo()` in the board commands; verify unit tests

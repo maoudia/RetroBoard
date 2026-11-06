@@ -182,15 +182,32 @@ describe('restoreCommands', () => {
     expect(Object.values(rebuilt.groups).every((x) => x.title === null)).toBe(true)
   })
 
-  it('leaves ideas written since alone and counts deleted ones as not restored', () => {
+  it('leaves ideas written since alone and brings a deleted idea back as a new one, without its votes', () => {
     const { h, ids } = board()
+    h.run({ t: 'vote.add', kind: 'note', id: ids.four })
     const before = h.state
     h.run({ t: 'note.add', columnId: h.col(0), text: 'late' })
     expect(h.run({ t: 'note.delete', id: ids.four }, bob).ok).toBe(true)
     const plan = restoreCommands(before, h.state)
+    expect(plan.commands).toEqual([{ t: 'note.add', columnId: h.col(0), text: 'four', color: before.notes[ids.four]!.color }])
+    expect(plan.skipped).toBe(0)
+    const notes = Object.values(apply(h.state, plan.commands).notes)
+    expect(notes.some((n) => n.text === 'late')).toBe(true)
+    const back = notes.find((n) => n.text === 'four')!
+    expect(back.id).not.toBe(ids.four)
+    expect(back.voters).toEqual([])
+  })
+
+  it('does not bring a deleted idea back twice, and skips one whose column is gone', () => {
+    const { h, ids } = board()
+    const before = h.state
+    h.run({ t: 'note.delete', id: ids.four }, bob)
+    const once = apply(h.state, restoreCommands(before, h.state).commands)
+    expect(restoreCommands(before, once).commands).toEqual([])
+    const gone = { ...once, columns: once.columns.filter((c) => c.id !== h.col(0)) }
+    const plan = restoreCommands({ ...before, columns: gone.columns }, { ...gone, notes: {} })
     expect(plan.commands).toEqual([])
-    expect(plan.skipped).toBe(1)
-    expect(Object.values(apply(h.state, plan.commands).notes).some((n) => n.text === 'late')).toBe(true)
+    expect(plan.skipped).toBe(Object.keys(before.notes).length)
   })
 
   it('never takes apart a cluster that carries votes', () => {

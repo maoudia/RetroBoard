@@ -55,7 +55,7 @@ export const en: Record<keyof typeof fr, string> = {
   'history.restore': 'Restore before',
   'history.restore.label': 'Restore before: {action}',
   'history.restore.title': 'Restore this state?',
-  'history.restore.message': 'The board gets back the place, text, colour and clusters of the ideas as they were before this action. Votes, chat and ideas written since stay as they are.',
+  'history.restore.message': 'The board gets back the place, text, colour and clusters of the ideas as they were before this action. A deleted idea comes back without its votes. Votes, chat and ideas written since stay as they are.',
   'history.restored': 'Board restored: {n} changes',
   'history.restored.partial': 'Board restored: {n} changes, {skipped} items left as they are',
   'history.restored.none': 'Nothing to restore: the board is already in that state',

@@ -27,7 +27,7 @@ export interface HistoryEntry {
 
 export interface RewindPlan {
   commands: Command[]
-  /** Things the rewind leaves as they are: deleted ideas, voted clusters, columns that no longer exist. */
+  /** Things the rewind leaves as they are: voted clusters, ideas whose column is gone, what the board refuses. */
   skipped: number
   /** Too many commands to send at once (the fold rate limit). Nothing should be sent. */
   tooMany: boolean
@@ -82,7 +82,8 @@ const RESTORER: Actor = { cid: 'rewind', name: null, showName: false, moderator:
 /**
  * Commands that bring `now` back to the text, colour, column, cluster membership and cluster title of `target`, for the
  * ideas that exist in both. Votes and chat are never rewound, ideas written since are left alone, a deleted
- * idea does not come back (it would lose its author and votes), and a voted cluster is never taken apart.
+ * idea comes back as a new one (text, colour, column; its votes, cluster and author are gone with the delete), and a voted
+ * cluster is never taken apart.
  * Each command is checked against a simulated board, so the plan only holds what the board will accept.
  */
 export function restoreCommands(target: BoardState, now: BoardState): RewindPlan {
@@ -98,7 +99,6 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
     return true
   }
   const common = Object.values(target.notes).filter((n) => now.notes[n.id]).sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))
-  skipped += Object.keys(target.notes).length - common.length
   const columnExists = (id: string) => work.columns.some((c) => c.id === id)
 
   for (const t of common) {
@@ -145,6 +145,15 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
       if (voted(group)) skipped++
       else apply({ t: 'note.group', id, ontoId: anchor })
     }
+  }
+  // A deleted idea comes back as a new one, unless an idea written since already says the same (a second rewind).
+  const since = Object.values(work.notes).filter((n) => !target.notes[n.id])
+  const deleted = Object.values(target.notes).filter((n) => !now.notes[n.id]).sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))
+  for (const t of deleted) {
+    const twin = since.findIndex((n) => n.text === t.text && n.color === t.color)
+    if (twin >= 0) { since.splice(twin, 1); continue }
+    if (!columnExists(t.columnId)) { skipped++; continue }
+    apply({ t: 'note.add', columnId: t.columnId, text: t.text, color: t.color })
   }
   // Titles come back for clusters that kept their id and their ideas (a rebuilt cluster has a new id the plan cannot know).
   for (const gid of Object.keys(target.groups)) {
