@@ -78,3 +78,10 @@ The encryption state SHALL be shown as a shield icon, with the explanation avail
 #### Scenario: Explanation on demand
 - **WHEN** a user taps the shield
 - **THEN** a short explanation of the protection (or its absence) is shown
+
+### Requirement: Join by code
+A participant SHALL be able to join a live board from the landing page with a short code approved by a facilitator, without the relay ever receiving the board key.
+
+#### Scenario: Knock
+- **WHEN** Bob enters the code shown on the shared screen and Alice approves
+- **THEN** Bob opens the board and the relay only saw the code, the room id and ciphertext
