@@ -14,7 +14,7 @@ updates:
       # vue-tsc cannot run on TypeScript 7 yet (checked 2026-10-24); revisit when vue-tsc supports it.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
-      # Types follow the Node runtime used in CI and Cloudflare builds (24), not the newest Node.
+      # Types follow the Node LTS in .node-version (development, CI, Cloudflare builds and the image), not the newest Node.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions

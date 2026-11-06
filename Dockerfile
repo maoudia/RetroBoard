@@ -3,7 +3,7 @@
 # Self-hosting notes: docs/self-hosting.md. Built and published for each release (.github/workflows/release.yml).
 
 # Build stage: install, generate the static site, bundle the Worker.
-FROM node:24-slim AS build
+FROM node:26-slim AS build
 ENV CI=1
 WORKDIR /src
 RUN corepack enable
@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile \
  && node -e "console.log(require('./package.json').devDependencies.wrangler.replace(/^[^0-9]*/, ''))" > /out/wrangler.version
 
 # Runtime stage: only Wrangler (which ships workerd) and the built files.
-FROM node:24-slim
+FROM node:26-slim
 ARG VERSION=dev
 ARG REVISION=unknown
 LABEL org.opencontainers.image.title="RetroBoard" \

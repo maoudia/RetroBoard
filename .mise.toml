@@ -1,6 +1,13 @@
 [settings]
 lockfile = true
+# Node comes from .node-version, the one file mise, GitHub Actions (node-version-file) and Cloudflare builds all read.
+idiomatic_version_file_enable_tools = ["node"]
 
 [tools]
-node = "24"
 pnpm = "10.28.0"
+# What CI runs (workflow lint, vulnerability scan) and what guards commits and the image, pinned like the runtime.
+actionlint = "1.7.12"
+zizmor = "1.32.0"
+osv-scanner = "2.7.0"
+gitleaks = "8.30.1"
+hadolint = "2.14.0"

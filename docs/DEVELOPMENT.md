@@ -16,7 +16,7 @@ curl https://mise.run | sh
 
 Then, from the repository root:
 ```bash
-mise install    # installs node 24 and pnpm 10.28.0, pinned in .mise.toml and verified against mise.lock
+mise install    # installs Node (from .node-version), pnpm 10.28.0 and the CI tools (actionlint, zizmor, osv-scanner, gitleaks, hadolint), pinned in .mise.toml and verified against mise.lock
 pnpm install
 ```
 
@@ -41,18 +41,22 @@ Run `pnpm generate` first and again after each source change.
 
 mise is optional. Without it, install the two tools directly:
 
-1. Install Node 24 (nodejs.org, or a version manager like nvm/Volta: `nvm install 24` / `volta install node@24`).
+1. Install the Node version in `.node-version` (the current LTS; nodejs.org, or a version manager that reads that file: `nvm install`, `fnm use`, `volta pin`).
 2. Install pnpm via Corepack (bundled with Node): `corepack enable`. Corepack reads `package.json#packageManager` (`pnpm@10.28.0`) and activates that exact version the first time you run `pnpm`, so it stays in sync with option A without needing mise.
 3. `pnpm install`
 
 ## Keeping the pins in sync
 
-Three files currently repeat the Node/pnpm versions and must be updated together when either changes:
+One Node version runs in development, CI and production, and `.node-version` is its only source. It is the current LTS (an even major); move it when the next LTS starts.
 
-| File | What it pins |
+| File | Follows `.node-version` by |
 |---|---|
-| `.mise.toml` | `node`, `pnpm` (for `mise install`) |
-| `package.json` | `packageManager` (pnpm, read by Corepack and pnpm itself) and `engines.node` (minimum, not exact) |
-| `.github/workflows/*.yml` | `node-version` in `actions/setup-node`, and the `pnpm/action-setup` pin, repeated per workflow |
+| `.mise.toml` | reading it (`idiomatic_version_file_enable_tools`), with no second `node` pin; it also pins pnpm and the CI tools |
+| `.github/workflows/*.yml` | `node-version-file: .node-version` in every `actions/setup-node` |
+| `Dockerfile` | `FROM node:<major>-slim` in both stages (the production image) |
+| `package.json` | `engines.node` (`>=<major>`) and the major of `@types/node` |
+| Cloudflare builds | read `.node-version` from the repository root |
 
-There is no automated check that these agree (see `openspec/changes/add-mise-for-multiplatform-development/proposal.md` for the deferred follow-up); update all three by hand when bumping a version.
+`scripts/quality/test/runtime-versions.test.ts` (part of `pnpm test`) fails when any of these drifts. To move to a new LTS: edit `.node-version`, run `mise install`, set the Dockerfile base images, `engines.node` and `@types/node` to the new major, then `pnpm verify`.
+
+`pnpm` is pinned in `.mise.toml` and in `package.json#packageManager` (read by Corepack); keep those two equal when bumping it.
