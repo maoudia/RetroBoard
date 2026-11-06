@@ -53,6 +53,6 @@ function onBackdrop(e: MouseEvent) {
 <style scoped>
 .dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem .6rem; }
 .dlg-head h2 { font-size: var(--fs-2xl); }
-.dlg-body { padding: .5rem 1.25rem 1.1rem; overflow: auto; display: grid; gap: 1rem; }
+.dlg-body { padding: .5rem 1.25rem 1.1rem; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .dlg-foot { display: flex; justify-content: flex-end; gap: .6rem; padding: .9rem 1.25rem; border-top: 1px solid var(--border); background: color-mix(in oklab, var(--bg) 40%, var(--surface)); }
 </style>

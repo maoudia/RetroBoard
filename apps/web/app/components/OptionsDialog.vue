@@ -193,6 +193,8 @@ h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; le
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
 /* Narrow screens: a row with a wide control (language, light or dark) puts the control under its label instead of squeezing the text (change ux-irritants-wave-3). */
 @media (max-width: 600px) { .line:has(> .seg, > .pick-seg) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
+/* A segmented control wider than the dialog (three long labels) wraps its labels instead of widening the whole column. */
+@media (max-width: 600px) { .pick-seg { max-width: 100%; } .pick-seg button { min-width: 0; white-space: normal; } }
 .line small { font-size: var(--fs-sm); }
 .stepper { display: inline-flex; align-items: center; gap: .3rem; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 800; }
