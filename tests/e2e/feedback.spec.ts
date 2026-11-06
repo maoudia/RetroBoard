@@ -21,7 +21,8 @@ test('the bug link from a board carries the environment and no board data', asyn
   const decoded = decodeURIComponent(href.replace(/\+/g, ' '))
   expect(decoded).toMatch(/RetroBoard \d+\.\d+\.\d+, \w+ \d+, (phone|tablet|desktop|tv), (fr|en)/)
   const hash = new URL(page.url()).hash
-  expect(hash).toContain('r=')
-  expect(href).not.toContain(hash.slice(3, 20))
-  expect(href).not.toContain('#r=')
+  // The compact link (ADR-0029): room id, room key and facilitator secret, none of which may reach the report.
+  expect(hash).toMatch(/^#c=[A-Za-z0-9_-]{66}$/)
+  for (const part of [hash.slice(3, 25), hash.slice(25, 47), hash.slice(47)]) expect(href).not.toContain(part)
+  expect(href).not.toContain('#c=')
 })

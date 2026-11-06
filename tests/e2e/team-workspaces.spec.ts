@@ -8,7 +8,9 @@ test('carry-over lists the open actions of the chosen team and project only', as
   await page.keyboard.press('Escape')
   await page.getByTestId('btn-actions').click()
   await page.getByTestId('action-text').fill('Fix Alpha build')
+  // Tab closes the suggestion list first: a click on Add while it is open can be swallowed.
   await page.getByTestId('owner-input').fill('Ana')
+  await page.getByTestId('owner-input').press('Tab')
   await page.getByTestId('action-add').click()
   await page.getByTestId('actions-save-team').click()
   await page.keyboard.press('Escape')

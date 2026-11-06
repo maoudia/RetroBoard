@@ -27,7 +27,7 @@ test('options dialog on a phone: destroy keeps its text in the box, scales are o
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
   await page.getByTestId('btn-options').click()
   const dialog = page.getByRole('dialog')
-  const scale = dialog.locator('.scale').first()
+  const scale = dialog.locator('.pick-seg').first()
   await expect(scale.locator('svg')).toHaveCount(3)
   const destroy = dialog.getByTestId('opt-destroy')
   await destroy.scrollIntoViewIfNeeded()

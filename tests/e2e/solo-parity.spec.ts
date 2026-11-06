@@ -7,6 +7,10 @@ const FEATURES = ['btn-actions', 'btn-export', 'btn-filter', 'btn-presenter', 'b
 async function startSolo(page: Page) {
   await page.goto('/')
   await page.getByTestId('solo').click()
+  // Boards start with a running agenda that gates voting: this spec wants a free board, like createBoard.
+  const auto = page.getByTestId('agenda-autostart')
+  await auto.waitFor({ timeout: 5000 }).catch(() => {})
+  if ((await auto.count()) && (await auto.isChecked())) await auto.uncheck()
   await page.getByTestId('setup-submit').click()
   await page.getByTestId('name-input').fill('Solo')
   await page.getByTestId('name-save').click()
