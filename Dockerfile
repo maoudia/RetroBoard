@@ -6,7 +6,8 @@
 FROM node:26-slim AS build
 ENV CI=1
 WORKDIR /src
-RUN corepack enable
+# Node 25 and later no longer ship corepack: install it, it then fetches the pnpm of package.json.
+RUN npm install --global --no-audit --no-fund corepack@latest && corepack enable
 COPY . .
 RUN pnpm install --frozen-lockfile \
  && pnpm generate \
