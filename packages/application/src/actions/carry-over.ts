@@ -31,8 +31,8 @@ export function suggestOwners(query: string, present: readonly string[], history
   return list
 }
 
-const STATUS_WORDS: Record<ActionStatusName, string[]> = {
-  todo: ['todo', 'to do', 'open', 'backlog', 'a faire', 'ouvert', 'new'],
+/** The words of every status but To do, which is what anything unknown means (open, backlog, new, a faire...). */
+const STATUS_WORDS: Record<Exclude<ActionStatusName, 'todo'>, string[]> = {
   doing: ['doing', 'in progress', 'en cours', 'started', 'in review'],
   done: ['done', 'closed', 'resolved', 'termine', 'fait', 'complete', 'completed'],
   blocked: ['blocked', 'bloque', 'on hold', 'waiting'],
@@ -41,7 +41,8 @@ const STATUS_WORDS: Record<ActionStatusName, string[]> = {
 
 /** Maps a status written by a person or another tool to ours; unknown means To do. */
 export function mapStatus(raw: string | undefined | null): ActionStatusName {
-  const v = fold(raw ?? '')
+  if (!raw) return 'todo'
+  const v = fold(raw)
   for (const [status, words] of Object.entries(STATUS_WORDS)) if (words.includes(v)) return status as ActionStatusName
   return 'todo'
 }
@@ -61,18 +62,19 @@ export function parseCsv(text: string): string[][] {
       else field += c
     } else if (c === '"') quoted = true
     else if (c === ',' || c === ';') { row.push(field); field = '' }
-    else if (c === '\n' || c === '\r') {
-      if (c === '\r' && src[i + 1] === '\n') i++
+    else if (c === '\n' || c === '\r') { // CRLF makes one blank row, dropped below
       row.push(field); rows.push(row); row = []; field = ''
     } else field += c
   }
-  if (field || row.length) { row.push(field); rows.push(row) }
+  row.push(field)
+  rows.push(row)
   return rows.filter((r) => r.some((f) => f.trim()))
 }
 
 /** Our CSV export protects formulas with a leading apostrophe: remove it on the way back. */
 const unprotect = (v: string) => (/^'[=+\-@]/.test(v) ? v.slice(1) : v)
-const DATE = /^\d{4}-\d{2}-\d{2}$/
+// The text is cut to 10 characters first, so a match is the whole text.
+const DATE = /\d{4}-\d{2}-\d{2}/
 const clean = (text: string, owner: string, status: ActionStatusName, due: string | undefined, from?: string): ImportedAction | null => {
   const t = unprotect(text).trim().slice(0, LIMITS.actionText)
   if (!t) return null
@@ -103,11 +105,11 @@ export function actionsFromCsv(text: string, o: CarryOverOptions = {}): Imported
 
 /** Actions from our JSON export (or a bare array of actions). Null when the shape is not recognised. */
 export function actionsFromJson(text: string, o: CarryOverOptions = {}): ImportedAction[] | null {
-  let raw: unknown
-  try { raw = JSON.parse(text) } catch { return null }
-  const list = Array.isArray(raw) ? raw : (raw as { actions?: unknown })?.actions
+  let raw: unknown = null
+  try { raw = JSON.parse(text) } catch { /* not JSON: raw stays null and nothing is recognised */ }
+  const list = Array.isArray(raw) ? raw : (raw as { actions?: unknown } | null)?.actions
   if (!Array.isArray(list)) return null
-  const from = o.from ?? (typeof (raw as { settings?: { title?: unknown } })?.settings?.title === 'string' ? (raw as { settings: { title: string } }).settings.title : undefined)
+  const from = o.from ?? (typeof (raw as { settings?: { title?: unknown } }).settings?.title === 'string' ? (raw as { settings: { title: string } }).settings.title : undefined)
   return finish(list.map((a: Record<string, unknown>) => {
     if (!a || typeof a.text !== 'string') return null
     const status = typeof a.status === 'string' ? mapStatus(a.status) : a.done === true ? 'done' : 'todo'

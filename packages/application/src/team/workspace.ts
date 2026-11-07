@@ -72,6 +72,7 @@ export function carryOver(ws: Workspace, teamId: string, project?: string | null
   const out: CarryCandidate[] = []
   for (const r of ws.retros.filter((x) => x.teamId === teamId && (!project || x.project === project)).sort((a, b) => b.at - a.at)) {
     for (const a of r.actions) {
+      // Stryker disable next-line MethodExpression: upper- and lower-casing both fold the same texts together
       const key = `${a.text.trim().toLowerCase()}|${a.owner.trim().toLowerCase()}`
       if (seen.has(key)) continue
       seen.add(key)
@@ -85,6 +86,6 @@ export function carryOver(ws: Workspace, teamId: string, project?: string | null
 export function nextTitle(ws: Workspace, teamId: string): string | null {
   const last = ws.retros.filter((r) => r.teamId === teamId).sort((a, b) => b.at - a.at)[0]
   if (!last) return null
-  const m = /^(.*?)(\d+)(\D*)$/.exec(last.title.trim())
+  const m = /(.*?)(\d+)(\D*)$/.exec(last.title.trim())
   return m ? `${m[1]}${Number(m[2]) + 1}${m[3]}` : null
 }
