@@ -145,11 +145,15 @@ jobs:
             test-results
           retention-days: 14
 
+  # One full Stryker pass per package, in parallel: the whole run did not fit in 45 minutes on one runner.
   mutation:
-    name: Mutation testing and regression ratchet
+    name: Mutation testing (${{ matrix.pkg }})
     runs-on: ubuntu-latest
-    # A full pass takes about 10 to 25 minutes.
-    timeout-minutes: 45
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [domain, application, protocol, crypto, exporters, sync]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -161,9 +165,42 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Always a full pass (--force): a restored incremental cache kept survivors that new tests already kill, and the floors are 100.
-      - run: pnpm mutation --force
+      # The exclusions repeat the "mutate" list of stryker.config.json, which --mutate replaces.
+      - run: >-
+          pnpm mutation --force
+          --mutate "packages/${{ matrix.pkg }}/src/**/*.ts,!packages/*/src/**/*.d.ts,!packages/domain/src/catalogue/templates.ts,!packages/domain/src/catalogue/templates.en.ts,!packages/application/src/ports/**"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: mutation-shard-${{ matrix.pkg }}
+          path: |
+            reports/mutation/mutation.json
+            reports/mutation/index.html
+          retention-days: 30
+
+  mutation-ratchet:
+    name: Mutation regression ratchet
+    needs: [mutation]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: mutation-shard-*
+          path: shards
+      - name: Merge the shards
+        run: node scripts/quality/mutation-merge.mjs shards reports/mutation
       - name: Compare with the floor and the previous main run
         run: node scripts/quality/mutation-score.mjs
+        env:
+          PAGES_URL: https://maoudia.github.io/RetroBoard
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -173,7 +210,7 @@ jobs:
 
   pages:
     name: Publish reports to GitHub Pages
-    needs: [unit, e2e, e2e-rest, mutation]
+    needs: [unit, e2e, e2e-rest, mutation-ratchet]
     # Publish even when a test job failed: the reports are how humans see why.
     if: always()
     runs-on: ubuntu-latest
