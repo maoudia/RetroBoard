@@ -45,6 +45,7 @@ export const DEFAULT_PASSPHRASE: PassphraseOptions = { words: 4, separator: '-',
 
 const pick = (set: string, rnd: RandomInt) => set[rnd(set.length)]!
 const shuffle = <T>(a: T[], rnd: RandomInt): T[] => {
+  // Stryker disable next-line EqualityOperator: swapping the first element with itself changes nothing
   for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j]!, a[i]!] }
   return a
 }
@@ -62,7 +63,7 @@ export function randomPasscode(rnd: RandomInt, options: Partial<RandomOptions> =
   if (sets.length === 0) return ''
   const all = sets.join('')
   const out: string[] = []
-  if (o.everyClass) for (const s of sets.slice(0, length)) out.push(pick(s, rnd))
+  if (o.everyClass) for (const s of sets) out.push(pick(s, rnd))
   while (out.length < length) out.push(pick(all, rnd))
   return shuffle(out, rnd).join('')
 }
@@ -98,7 +99,7 @@ export function readablePasscode(rnd: RandomInt): string {
 export const randomBits = (o: Partial<RandomOptions> = {}): number => {
   const opts = { ...DEFAULT_RANDOM, ...o }
   const size = classes(opts).join('').length
-  return size < 2 ? 0 : Math.round(Math.min(MAX_LENGTH, Math.max(MIN_LENGTH, opts.length)) * Math.log2(size))
+  return size === 0 ? 0 : Math.round(Math.min(MAX_LENGTH, Math.max(MIN_LENGTH, opts.length)) * Math.log2(size))
 }
 export const passphraseBits = (o: Partial<PassphraseOptions> = {}): number => Math.round((o.words ?? DEFAULT_PASSPHRASE.words) * 3 * Math.log2(CONSONANTS.length * VOWELS.length))
 /** Readable style: 18 letters from the pair alphabet minus the replaced ones (conservative figure). */
@@ -106,7 +107,6 @@ export const READABLE_BITS = 64
 
 /** Entropy of any typed string (character pool estimate), used for the strength meter of own passcodes. */
 export function estimateBits(value: string): number {
-  if (!value) return 0
   let pool = 0
   if (/[a-z]/.test(value)) pool += 26
   if (/[A-Z]/.test(value)) pool += 26
