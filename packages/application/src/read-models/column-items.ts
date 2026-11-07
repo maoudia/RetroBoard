@@ -44,20 +44,23 @@ export function buildColumnItems(s: Pick<Snapshot, 'notes' | 'groups'>, columnId
   }
   const pos = (i: ColumnItem) => order.get(i.kind === 'note' ? i.note.id : i.notes[0]!.id) ?? 0
   const first = (i: ColumnItem) => (i.kind === 'note' ? i.note : i.notes[0]!)
-  const text = (i: ColumnItem) => (i.kind === 'note' ? i.note.text : i.title).trim().toLowerCase()
+  const text = (i: ColumnItem) => (i.kind === 'note' ? i.note.text : i.title).trim()
+  // Stryker disable next-line MethodExpression: upper- and lower-casing fold the same names together
   const author = (i: ColumnItem) => first(i).author?.trim().toLowerCase() ?? ''
+  const size = (i: ColumnItem) => (i.kind === 'group' ? i.notes.length : 1)
   const by: Record<SortMode, (a: ColumnItem, b: ColumnItem) => number> = {
+    // Stryker disable next-line ArrowFunction: an undefined result is falsy like 0, so the creation order decides
     time: () => 0,
     newest: (a, b) => pos(b) - pos(a),
     votes: (a, b) => b.votes - a.votes,
     // Anonymous notes go last.
-    author: (a, b) => (author(a) === author(b) ? 0 : !author(a) ? 1 : !author(b) ? -1 : author(a).localeCompare(author(b))),
+    author: (a, b) => (!author(a) === !author(b) ? author(a).localeCompare(author(b)) : author(a) ? -1 : 1),
     color: (a, b) => first(a).color - first(b).color,
-    size: (a, b) => (b.kind === 'group' ? b.notes.length : 1) - (a.kind === 'group' ? a.notes.length : 1),
+    size: (a, b) => size(b) - size(a),
     alpha: (a, b) => text(a).localeCompare(text(b)),
   }
   // Pinned items come first whatever the sort, in pin order; the personal sort applies below them (change note-pin).
   const pin = (i: ColumnItem) => (i.kind === 'note' ? i.note.pinned : i.group.pinned) ?? 0
-  items.sort((a, b) => (pin(a) && pin(b) ? pin(a) - pin(b) : pin(b) - pin(a) ? (pin(a) ? -1 : 1) : 0) || by[sort](a, b) || pos(a) - pos(b))
+  items.sort((a, b) => (pin(a) && pin(b) ? pin(a) - pin(b) : pin(a) ? -1 : pin(b) ? 1 : 0) || by[sort](a, b) || pos(a) - pos(b))
   return items
 }

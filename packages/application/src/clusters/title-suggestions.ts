@@ -40,19 +40,18 @@ export function cutOnWord(text: string, max: number): string {
 
 export function suggestClusterTitles(texts: readonly string[], max = 3): string[] {
   const docs = texts.map(tokens)
-  const words = new Map<string, { n: number; count: number; form: string; pos: number }>()
-  const pairs = new Map<string, { n: number; adjacent: number; label: string; pos: number }>()
-  let pos = 0
-  let pairPos = 0
+  const words = new Map<string, { n: number; count: number; form: string }>()
+  const pairs = new Map<string, { n: number; adjacent: number; label: string }>()
   for (const toks of docs) {
     const seen = new Set<string>()
     for (const t of toks) {
-      const e = words.get(t.key) ?? { n: 0, count: 0, form: t.form, pos: pos++ }
+      const e = words.get(t.key) ?? { n: 0, count: 0, form: t.form }
       e.count++
       if (!seen.has(t.key)) { e.n++; seen.add(t.key) }
       words.set(t.key, e)
     }
     const seenPairs = new Set<string>()
+    // Stryker disable next-line EqualityOperator: one step past the last word has no partner, the inner loop does not run
     for (let i = 0; i < toks.length; i++) {
       for (let j = i + 1; j < toks.length; j++) {
         const a = toks[i]!
@@ -61,7 +60,7 @@ export function suggestClusterTitles(texts: readonly string[], max = 3): string[
         const k = [a.key, b.key].sort().join('|')
         if (seenPairs.has(k)) continue
         seenPairs.add(k)
-        const e = pairs.get(k) ?? { n: 0, adjacent: 0, label: cap(`${a.form} ${b.form}`), pos: pairPos++ }
+        const e = pairs.get(k) ?? { n: 0, adjacent: 0, label: cap(`${a.form} ${b.form}`) }
         e.n++
         if (b.index === a.index + 1) { if (!e.adjacent) e.label = cap(`${a.form} ${b.form}`); e.adjacent++ }
         pairs.set(k, e)
@@ -71,10 +70,10 @@ export function suggestClusterTitles(texts: readonly string[], max = 3): string[
   const out: string[] = []
   const add = (s: string) => { const v = s.slice(0, 60); if (v && !out.some((o) => fold(o) === fold(v))) out.push(v) }
   // Two words that go together in at least two ideas (phrases first); never two unrelated words.
-  const pair = [...pairs.values()].filter((p) => p.n >= 2).sort((a, b) => b.adjacent - a.adjacent || b.n - a.n || a.pos - b.pos)[0]
+  const pair = [...pairs.values()].filter((p) => p.n >= 2).sort((a, b) => b.adjacent - a.adjacent || b.n - a.n)[0]
   if (pair) add(pair.label)
-  // Ties keep the order in which words first appear (reads naturally: "Tests lents", not "Lents tests").
-  const ranked = [...words.values()].sort((a, b) => b.n - a.n || b.count - a.count || a.pos - b.pos)
+  // Maps iterate in insertion order and sort is stable: ties keep the order in which words first appear (reads naturally: "Tests lents", not "Lents tests").
+  const ranked = [...words.values()].sort((a, b) => b.n - a.n || b.count - a.count)
   for (const e of ranked) { if (out.length >= max - 1) break; add(cap(e.form)) }
   const shortest = [...texts].map((t) => t.trim()).filter(Boolean).sort((a, b) => a.length - b.length)[0]
   if (shortest) add(cutOnWord(shortest, 40))

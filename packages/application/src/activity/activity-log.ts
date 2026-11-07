@@ -26,7 +26,7 @@ export function activityBetween(prev: Snapshot | null, next: Snapshot, at: numbe
   const b = next.agenda
   if (b && a && b.current !== a.current) {
     if (b.current >= b.phases.length) out.push({ kind: 'agenda.ended', at })
-    else if (b.current >= 0 && agendaRunning(b)) out.push({ kind: 'phase.started', at, phase: b.phases[b.current]!.kind })
+    else if (agendaRunning(b)) out.push({ kind: 'phase.started', at, phase: b.phases[b.current]!.kind })
   } else if (a && b) {
     if (a.pausedAt === null && b.pausedAt !== null) out.push({ kind: 'agenda.paused', at })
     if (a.pausedAt !== null && b.pausedAt === null) out.push({ kind: 'agenda.resumed', at })

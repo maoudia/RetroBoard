@@ -60,9 +60,8 @@ function inverseOfInner(cmd: Command, view: Snapshot | null): Inverse | null {
       const n = note(cmd.id)
       return n && n.color !== cmd.color ? { label: 'color', commands: [{ t: 'note.color', id: n.id, color: n.color }] } : null
     }
-    default:
-      return null
   }
+  return null
 }
 
 /** Bounded stack of inverses, most recent last. */
