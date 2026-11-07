@@ -5,7 +5,7 @@
 //   pnpm mutation:changed --base <ref>    another base
 //   pnpm mutation:changed <file>...       exactly these files
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync } from 'node:fs'
 
 /** What stryker.config.json mutates, as a predicate: package sources, minus declarations, templates and ports. */
 export function isMutated(path) {
@@ -42,8 +42,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const files = (named.length ? named : changedFiles(base)).filter(isMutated).filter((f) => existsSync(f))
   if (!files.length) { console.log('mutation:changed: no mutated source file changed'); process.exit(0) }
   console.log(`mutation:changed: ${files.length} file(s)\n  ${files.join('\n  ')}`)
-  const run = spawnSync('pnpm', ['exec', 'stryker', 'run', '--mutate', files.join(','), '--reporters', 'json', '--incremental', 'false', '--concurrency', '4'], { stdio: 'inherit' })
-  if (!existsSync('reports/mutation/mutation.json')) { console.error('Stryker did not write a report'); process.exit(run.status || 1) }
+  // A report left by an earlier run must never be mistaken for this one.
+  rmSync('reports/mutation/mutation.json', { force: true })
+  const run = spawnSync('pnpm', ['exec', 'stryker', 'run', '--mutate', files.join(','), '--reporters', 'json', '--force', '--concurrency', '4'], { stdio: 'inherit' })
+  if (run.status !== 0 || !existsSync('reports/mutation/mutation.json')) { console.error('Stryker failed or did not write a report'); process.exit(run.status || 1) }
   const left = undetected(JSON.parse(readFileSync('reports/mutation/mutation.json', 'utf8')))
   if (left.length) { console.error(`\n${left.length} mutant(s) survived. Kill each with a test, or waive an equivalent one with "// Stryker disable next-line <Mutator>: <reason>":\n  ${left.join('\n  ')}`); process.exit(1) }
   console.log('mutation:changed: every mutant of the changed files is detected')
