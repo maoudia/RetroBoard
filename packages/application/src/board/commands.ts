@@ -124,11 +124,13 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       const view = deps.view()
       if (locked()) return err('locked')
       if (view?.settings.votingClosed) return err('voting-closed')
-      const item = kind === 'note' ? view?.notes.find((n) => n.id === id) : view?.groups.find((g) => g.id === id)
-      if (view && !item) return err('not-found')
-      if (item && !item.votable) return err('not-votable')
-      if (view && view.votesLeft <= 0) return err('vote-limit')
-      if (view && item && item.myVotes >= view.settings.maxVotesPerItem) return err('item-limit')
+      if (view) {
+        const item = kind === 'note' ? view.notes.find((n) => n.id === id) : view.groups.find((g) => g.id === id)
+        if (!item) return err('not-found')
+        if (!item.votable) return err('not-votable')
+        if (view.votesLeft <= 0) return err('vote-limit')
+        if (item.myVotes >= view.settings.maxVotesPerItem) return err('item-limit')
+      }
       return send({ t: 'vote.add', kind, id })
     },
     /** Takes back one of my votes (undo) while voting is open. */
