@@ -1,7 +1,6 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { createBoard, publishNote, settle } from './helpers'
+import { axe, createBoard, publishNote, settle } from './helpers'
 const THEMES = [{ id: 'studio' }, { id: 'corporate' }, { id: 'slate' }, { id: 'paper' }, { id: 'minimal' }, { id: 'halloween' }, { id: 'noel' }, { id: 'cyber' }, { id: 'sakura' }]
 
 // Change quality-gates-v2: every theme in light and dark is checked for text contrast (WCAG 2.2 AA) on the board.
@@ -9,7 +8,7 @@ const THEMES = [{ id: 'studio' }, { id: 'corporate' }, { id: 'slate' }, { id: 'p
 
 async function contrast(page: Page) {
   await settle(page)
-  const result = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze()
+  const result = await axe(page).withRules(['color-contrast']).analyze()
   return result.violations.flatMap((v) => v.nodes.map((n) => ({ id: v.id, target: n.target.join(' ') })))
 }
 

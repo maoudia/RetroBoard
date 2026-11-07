@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote } from './helpers'
 
 test.skip(({ isMobile }) => isMobile, 'facilitator menus are covered on desktop')
 
@@ -24,8 +23,8 @@ test('a pinned note comes first for everyone under any sort, stays editable and 
   await expect(first(bob.page)).toContainText('Release is late')
   await expect(noteByText(bob.page, 'Release is late').getByTestId(`pinned-${id}`)).toBeVisible()
 
-  const axe = await new AxeBuilder({ page }).include(`[data-testid="note-${id}"]`).analyze()
-  expect(axe.violations).toEqual([])
+  const scan = await axe(page).include(`[data-testid="note-${id}"]`).analyze()
+  expect(scan.violations).toEqual([])
 
   // A personal sort applies below the pinned item.
   const colId = (await bob.page.locator('section[data-testid^="column-"]').first().getAttribute('data-testid'))!.replace('column-', '')

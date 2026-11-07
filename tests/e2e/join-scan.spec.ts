@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, enterName, settle } from './helpers'
+import { axe, createBoard, enterName, settle } from './helpers'
 
 /** A page with a camera that shows a flat picture and a QR reader that "sees" `payload` (the real ones need hardware). */
 async function fakeCamera(page: Page, payload: string | string[], camera: 'ok' | 'denied' | 'none' = 'ok') {
@@ -42,7 +41,7 @@ test.describe('scan a QR code to join (change short-links-and-join)', () => {
     await expect(bob.getByTestId('scan-state')).toHaveAttribute('data-state', 'scanning')
     await expect(bob.getByTestId('scan-state')).toContainText('pas un lien RetroBoard')
     await settle(bob)
-    const results = await new AxeBuilder({ page: bob }).include('dialog[open]').analyze()
+    const results = await axe(bob).include('dialog[open]').analyze()
     expect(results.violations).toEqual([])
     await bob.evaluate(() => { (window as unknown as { __release: boolean }).__release = true })
     await bob.waitForURL(/\/boards\/?#c=/)

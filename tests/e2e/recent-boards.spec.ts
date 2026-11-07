@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeShare, createBoard, noteByText, publishNote } from './helpers'
+import { axe, closeShare, createBoard, noteByText, publishNote } from './helpers'
 
 for (const scheme of ['light', 'dark'] as const) {
   test(`the home page puts the recent boards up front and reopens one (${scheme})`, async ({ page }) => {
@@ -12,8 +11,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await expect(card).toBeVisible()
     await expect(card).toContainText('Sprint 42')
     await expect(card).toContainText(/à l'instant|il y a/)
-    const axe = await new AxeBuilder({ page }).include('[data-testid="landing-recents"]').analyze()
-    expect(axe.violations).toEqual([])
+    const scan = await axe(page).include('[data-testid="landing-recents"]').analyze()
+    expect(scan.violations).toEqual([])
     await card.getByRole('link', { name: /Sprint 42/ }).click()
     await expect(noteByText(page, 'Still here')).toBeVisible({ timeout: 15_000 })
   })

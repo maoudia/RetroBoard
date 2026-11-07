@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { axe, createBoard } from './helpers'
 
 async function start(page: Page) {
   await page.evaluate(() => {
@@ -42,8 +41,8 @@ test.describe('agenda clock v2', () => {
     await page.keyboard.press('Escape')
     await page.getByTestId('step-btn-2').click()
     await expect(page.getByTestId('step-pop-2')).toContainText('Pas encore commencée')
-    const axe = await new AxeBuilder({ page }).include('[data-testid="stepper"]').analyze()
-    expect(axe.violations).toEqual([])
+    const scan = await axe(page).include('[data-testid="stepper"]').analyze()
+    expect(scan.violations).toEqual([])
     await page.keyboard.press('Escape')
 
     // Left at once, the next phase is flagged as skipped.

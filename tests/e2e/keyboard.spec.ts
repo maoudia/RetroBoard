@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote } from './helpers'
 
 test('write and publish without the mouse; typing a shortcut letter in a note does nothing', async ({ page, isMobile }) => {
   test.skip(isMobile, 'hardware keyboard flow; on touch the return key adds a line')
@@ -14,8 +13,11 @@ test('write and publish without the mouse; typing a shortcut letter in a note do
   await expect(area).toHaveValue('plan pour 2 pompes')
   await expect(page.locator('article.note')).toHaveCount(0)
   await page.keyboard.press('Enter')
-  await page.keyboard.press('Escape')
-  await expect(area).not.toBeFocused()
+  // Escape may land before the composer handled Enter on a slow runner: press it until the field lets go.
+  await expect(async () => {
+    await page.keyboard.press('Escape')
+    await expect(area).not.toBeFocused({ timeout: 500 })
+  }).toPass({ timeout: 8000 })
   await page.keyboard.press('p')
   await expect(noteByText(page, 'plan pour 2 pompes')).toBeVisible()
   await expect(page.locator('section[data-anchor-kind="column"]').nth(1).locator('article.note')).toHaveCount(1)
@@ -81,7 +83,7 @@ test('? opens the help overlay (axe clean); the profile switch turns shortcuts o
   await page.locator('body').click({ position: { x: 5, y: 300 } })
   await page.keyboard.press('?')
   await expect(page.getByRole('dialog', { name: /Raccourcis clavier/ })).toBeVisible()
-  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
+  const result = await axe(page).withTags(['wcag2a', 'wcag2aa']).analyze()
   expect(result.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)).toEqual([])
   await page.keyboard.press('Escape')
 

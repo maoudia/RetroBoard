@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, type Page, test } from '@playwright/test'
-import { createBoard, enterName, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, enterName, join, noteByText, publishNote } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -107,7 +106,7 @@ test.describe('create an action from a note', () => {
     const badgeBob = noteByText(bob.page, 'Fix the build').locator('[data-testid^="action-badge-"]')
     await expect(badgeBob).toHaveText(/1 action/)
     await expect(noteByText(bob.page, 'Unrelated').locator('[data-testid^="action-badge-"]')).toHaveCount(0)
-    expect((await new AxeBuilder({ page: bob.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([])
+    expect((await axe(bob.page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([])
 
     await badgeBob.click()
     await expect(bob.page.getByTestId('action-text')).toBeVisible()

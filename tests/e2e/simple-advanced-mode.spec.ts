@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
-import AxeBuilder from '@axe-core/playwright'
-import { createBoard, enterName, settle } from './helpers'
+import { axe, createBoard, enterName, settle } from './helpers'
 
 // Change simple-advanced-mode: the product starts simple, the whole suite otherwise runs advanced.
 test.use({ storageState: { cookies: [], origins: [] } })
@@ -16,7 +15,7 @@ test('creation: simple shows title and format only, advanced shows every option,
   await expect(page.getByTestId('setup-passcode')).toBeVisible()
   await expect(page.getByTestId('passcode-generator')).toHaveCount(0)
   await settle(page)
-  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+  expect((await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
 
   await page.getByTestId('mode-advanced').click()
   await expect(page.getByTestId('theme-studio')).toBeVisible()

@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeShare, column, createBoard, enterName, join, noteByText, publishNote } from './helpers'
+import { axe, closeShare, column, createBoard, enterName, join, noteByText, publishNote } from './helpers'
 
 test.skip(({ isMobile }) => isMobile, 'column settings are covered on desktop')
 
@@ -21,8 +20,8 @@ test('Start and Stop take votes, Continue does not; the facilitator can switch a
   await column(page, 2).locator('[data-testid^="col-menu-"]').click()
   await page.getByTestId('col-rename').click()
   await expect(page.getByTestId('col-votable')).not.toBeChecked()
-  const axe = await new AxeBuilder({ page }).include('[data-testid="col-votable"]').analyze()
-  expect(axe.violations).toEqual([])
+  const scan = await axe(page).include('[data-testid="col-votable"]').analyze()
+  expect(scan.violations).toEqual([])
   await page.getByTestId('col-votable').check()
   await page.getByTestId('col-save').click()
   await expect(noteByText(page, 'Keep the demo').locator('[data-testid^="vote-"]').first()).toBeVisible()

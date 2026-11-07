@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join } from './helpers'
+import { axe, createBoard, join } from './helpers'
 
 test('a facilitator hides a column for everyone and shows it again', async ({ page, browser, isMobile }) => {
   test.skip(isMobile, 'two-context flow, covered on desktop')
@@ -26,8 +25,8 @@ test('a facilitator hides a column for everyone and shows it again', async ({ pa
   await expect(cols(bob.page)).toHaveCount(2)
   await expect(bob.page.getByTestId('hidden-columns-chip')).toBeVisible()
   await expect(page.getByTestId('hidden-columns-chip')).toContainText('1')
-  const axe = await new AxeBuilder({ page: bob.page }).include('[data-testid="hidden-columns"]').analyze()
-  expect(axe.violations).toEqual([])
+  const scan = await axe(bob.page).include('[data-testid="hidden-columns"]').analyze()
+  expect(scan.violations).toEqual([])
 
   // Bob can only read the list; Alice brings the column back.
   await bob.page.getByTestId('hidden-columns-chip').click()

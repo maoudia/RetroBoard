@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText } from './helpers'
+import { axe, createBoard, join, noteByText } from './helpers'
 
 test.describe('phone', () => {
   test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true })
@@ -118,7 +117,7 @@ test('a new board takes notes of 160 characters; the composer has swatches, a sh
   await expect(noteByText(page, 'Vert')).toBeVisible()
   await expect(noteByText(bob, 'Vert')).toBeVisible()
   expect(await noteByText(bob, 'Vert').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(paper)
-  const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
-  expect(axe.violations.map((v) => v.id)).toEqual([])
+  const scan = await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
+  expect(scan.violations.map((v) => v.id)).toEqual([])
   await bobSide.ctx.close()
 })

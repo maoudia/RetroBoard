@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote } from './helpers'
 
 test.skip(({ isMobile }) => isMobile, 'facilitator menus are covered on desktop')
 
@@ -25,7 +24,7 @@ test('a frozen note keeps its text and votes, shows a badge to everyone, and tha
   await expect(bob.page.getByTestId(`delete-${id}`)).toHaveCount(0)
   await bob.page.keyboard.press('Escape')
 
-  const results = await new AxeBuilder({ page }).include(`[data-testid="note-${id}"]`).analyze()
+  const results = await axe(page).include(`[data-testid="note-${id}"]`).analyze()
   expect(results.violations).toEqual([])
 
   await note.getByTestId(`note-menu-${id}`).click()

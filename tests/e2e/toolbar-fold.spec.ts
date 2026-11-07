@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { axe, createBoard } from './helpers'
 
 test('the chevron slides the menus away and back on any screen, and stays in place (change ux-irritants-wave-2)', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
@@ -15,7 +14,7 @@ test('the chevron slides the menus away and back on any screen, and stays in pla
   const shown = page.getByTestId('chrome-show')
   await expect(shown).toHaveAttribute('aria-expanded', 'false')
   expect(Math.abs((await shown.boundingBox())!.x - x)).toBeLessThan(2)
-  const found = (await new AxeBuilder({ page }).include('header.toolbar').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => `${v.id}: ${v.nodes[0]?.target}`)
+  const found = (await axe(page).include('header.toolbar').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => `${v.id}: ${v.nodes[0]?.target}`)
   expect(found).toEqual([])
   await shown.click()
   await expect(tools).toBeVisible()

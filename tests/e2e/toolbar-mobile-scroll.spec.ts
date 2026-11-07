@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { axe, createBoard } from './helpers'
 
 test('on a phone the toolbar tools slide sideways on one row and leave the columns their space', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 640 })
@@ -27,6 +26,6 @@ test('on a phone the toolbar tools slide sideways on one row and leave the colum
   await expect(page.getByTestId('actions-drawer').or(page.getByRole('dialog')).first()).toBeVisible()
   await page.keyboard.press('Escape')
 
-  const axe = await new AxeBuilder({ page }).include('header.toolbar').analyze()
-  expect(axe.violations).toEqual([])
+  const scan = await axe(page).include('header.toolbar').analyze()
+  expect(scan.violations).toEqual([])
 })

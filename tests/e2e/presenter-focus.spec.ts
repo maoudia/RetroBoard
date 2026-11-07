@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote, settle } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote, settle } from './helpers'
 
 test.describe('presenter column focus (presenter-mode-v2)', () => {
   test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
@@ -32,7 +31,7 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
       expect(folded!.width).toBeLessThan(120)
       expect(open!.width).toBeGreaterThan(folded!.width * 3)
     }).toPass()
-    const found = (await new AxeBuilder({ page }).include('[data-testid="presenter-focus"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).include('[data-testid="presenter-focus"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
 
     await page.keyboard.press('Escape')
@@ -65,7 +64,8 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
     expect(new Set(widths.map((w) => Math.round(w))).size).toBeGreaterThan(1)
   })
 
-  test('a sideways swipe moves the focus from column to column (change presenter-accordion-motion)', async ({ page }) => {
+  test('a sideways swipe moves the focus from column to column (change presenter-accordion-motion)', async ({ page, browserName }) => {
+    test.skip(browserName === 'firefox', 'Firefox desktop has no TouchEvent to dispatch')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await page.getByTestId('btn-presenter').click()
     await page.keyboard.press('ArrowRight')
@@ -135,7 +135,7 @@ test.describe('voted ideas walk-through (presenter-mode-v2)', () => {
     await expect(page.getByTestId('walk-next')).toBeDisabled()
     await page.getByTestId('walk-top').click()
     await expect(page.getByTestId('walk-text')).toHaveText('Pairing')
-    const found = (await new AxeBuilder({ page }).include('[data-testid="walk"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).include('[data-testid="walk"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('walk')).toHaveCount(0)
@@ -154,14 +154,14 @@ test.describe('note spotlight (presenter-mode-v2)', () => {
     await publishNote(page, 0, 'Code review')
     await expect(page.locator('[data-testid^="note-spotlight-"]')).toHaveCount(0)
     await page.getByTestId('btn-presenter').click()
-    await page.locator('article.note', { hasText: 'Pairing' }).locator('[data-testid^="note-spotlight-"]').click({ force: true })
+    await page.locator('article.note', { hasText: 'Pairing' }).locator('[data-testid^="note-spotlight-"]').dispatchEvent('click')
     await expect(page.getByTestId('spotlight')).toBeVisible()
     const first = await page.getByTestId('spotlight-text').innerText()
     await expect(page.getByTestId('spotlight-prev')).toBeDisabled()
     await page.keyboard.press('ArrowRight')
     await expect(page.getByTestId('spotlight-text')).not.toHaveText(first)
     await expect(page.getByTestId('spotlight-next')).toBeDisabled()
-    const found = (await new AxeBuilder({ page }).include('[data-testid="spotlight"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).include('[data-testid="spotlight"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('spotlight')).toHaveCount(0)

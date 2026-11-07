@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, settle } from './helpers'
+import { axe, createBoard, join, settle } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -36,7 +35,7 @@ test('participants chat on the board; the unread badge, the clear button and the
 
   // Accessibility of the open panel (once its entrance animation is over: axe reads half-faded colours otherwise).
   await settle(page)
-  const found = (await new AxeBuilder({ page }).include('[data-testid="chat-panel"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => `${v.id}: ${v.nodes[0]?.target}: ${v.nodes[0]?.failureSummary}`)
+  const found = (await axe(page).include('[data-testid="chat-panel"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => `${v.id}: ${v.nodes[0]?.target}: ${v.nodes[0]?.failureSummary}`)
   expect(found).toEqual([])
 
   // Only the facilitator clears, and everyone sees it empty.

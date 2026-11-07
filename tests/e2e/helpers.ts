@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, type Page } from '@playwright/test'
 
 export async function enterName(page: Page, name: string, show = true) {
@@ -131,4 +132,12 @@ export async function collectProblems(page: Page): Promise<string[]> {
 export async function voteMenu(page: Page, testid: 'secret-toggle' | 'reveal-all') {
   await page.getByTestId('votebar-more').click()
   await page.getByTestId(testid).click()
+}
+
+/** An axe analysis on settled frames: contrast measured while a transition is in flight blends colours and reports ghosts. */
+export function axe(page: Page): AxeBuilder {
+  const builder = new AxeBuilder({ page })
+  const analyze = builder.analyze.bind(builder)
+  builder.analyze = async () => { await settle(page); return analyze() }
+  return builder
 }

@@ -1,5 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { axe } from './helpers'
 
 /** Change password-by-default: a readable passcode is the default, opting out is an informed choice. */
 test.describe('passcode by default', () => {
@@ -18,7 +18,7 @@ test.describe('passcode by default', () => {
     await page.getByTestId('passcode-regen').click()
     expect(await field.inputValue()).not.toBe(first)
     await expect(page.getByTestId('passcode-generator')).toHaveCount(0)
-    const found = (await new AxeBuilder({ page }).include('[data-testid="passcode-block"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).include('[data-testid="passcode-block"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
   })
 
@@ -82,7 +82,7 @@ test.describe('passcode by default', () => {
     await expect(page.getByTestId('passcode-strength')).toContainText(/Fort|Strong/)
     await page.getByTestId('passcode-reveal').click()
     await expect(field).toHaveAttribute('type', 'password')
-    const found = (await new AxeBuilder({ page }).include('[data-testid="passcode-block"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html.slice(0, 120)).join(' | ')}`)
+    const found = (await axe(page).include('[data-testid="passcode-block"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html.slice(0, 120)).join(' | ')}`)
     expect(found).toEqual([])
   })
 

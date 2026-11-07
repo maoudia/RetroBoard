@@ -1,11 +1,10 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, publishNote, settle, voteMenu } from './helpers'
+import { axe, createBoard, join, publishNote, settle, voteMenu } from './helpers'
 
 /** Target: WCAG 2.2 AA (ADR-0022). Every impact fails the build, not only serious and critical. */
 async function audit(page: Page) {
   await settle(page) // contrast on settled frames: a transition in flight blends colours
-  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
+  const result = await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
   return result.violations
     .map((v) => `${v.id} (${v.impact}): ${v.nodes.length} node(s) - ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`)
 }

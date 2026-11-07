@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { axe, createBoard } from './helpers'
 
 async function startAgenda(page: Page) {
   await page.evaluate(() => {
@@ -41,7 +40,7 @@ test.describe('time display options', () => {
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('agenda-time')).toHaveText(/^1:\d\d$/)
 
-    const axe = await new AxeBuilder({ page }).include('[data-testid="stepper"]').analyze()
-    expect(axe.violations).toEqual([])
+    const scan = await axe(page).include('[data-testid="stepper"]').analyze()
+    expect(scan.violations).toEqual([])
   })
 })

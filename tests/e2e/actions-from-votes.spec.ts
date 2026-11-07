@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote, settle, voteMenu } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote, settle, voteMenu } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -10,7 +9,7 @@ const shareLink = async (page: Page) => {
 }
 const serious = async (page: Page) => {
   await settle(page) // contrast on settled frames: a transition in flight blends colours
-  const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
+  const { violations } = await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
   return violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)
 }
 

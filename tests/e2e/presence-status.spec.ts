@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, test } from '@playwright/test'
-import { closeShare, createBoard, enterName } from './helpers'
+import { axe, closeShare, createBoard, enterName } from './helpers'
 
 async function shareUrl(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -40,8 +39,8 @@ test('connection dots: direct for a linked participant, relay for a relay-only o
   await expect(carol.page.getByTestId('my-conn')).toContainText('relais')
   await expect(carol.page.locator('[data-testid="peers"] li', { hasText: 'Carol' }).getByTestId('conn-dot')).toHaveAttribute('data-state', 'relay')
 
-  const axe = await new AxeBuilder({ page }).include('[data-testid="peers"]').analyze()
-  expect(axe.violations).toEqual([])
+  const scan = await axe(page).include('[data-testid="peers"]').analyze()
+  expect(scan.violations).toEqual([])
   await bob.ctx.close()
   await carol.ctx.close()
 })

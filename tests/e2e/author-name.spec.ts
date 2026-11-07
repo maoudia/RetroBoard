@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote } from './helpers'
 
 async function link(page: import('@playwright/test').Page) {
   if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
@@ -53,7 +52,7 @@ test('the composer shows the signature and one click switches to anonymous for t
   await expect(noteByText(bob.page, 'After')).toBeVisible()
   await expect(noteByText(bob.page, 'After')).not.toContainText('Alice')
   // axe on the composer with the chip.
-  const found = (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+  const found = (await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
   expect(found).toEqual([])
   await bob.ctx.close()
 })
@@ -97,7 +96,7 @@ test('the latest joiner with an already used name is asked to pick another; the 
   const bob = await join(browser, await link(page), 'alex')
   await expect(bob.page.getByTestId('name-conflict')).toBeVisible()
   await expect(page.getByTestId('name-conflict')).toHaveCount(0)
-  const found = (await new AxeBuilder({ page: bob.page }).include('[data-testid="name-conflict"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+  const found = (await axe(bob.page).include('[data-testid="name-conflict"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
   expect(found).toEqual([])
   await bob.page.getByTestId('conflict-choose').click()
   await expect(bob.page.getByTestId('name-input')).toBeVisible()

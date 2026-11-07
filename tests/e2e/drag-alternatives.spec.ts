@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { column, createBoard, noteByText, publishNote } from './helpers'
+import { axe, column, createBoard, noteByText, publishNote, settle } from './helpers'
 
 test.describe('operable without dragging (WCAG 2.5.7)', () => {
   test('group two notes with the keyboard only', async ({ page }) => {
@@ -39,7 +38,7 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
       await page.locator('[data-testid^="group-with-"]').click({ timeout: 2000 })
     }).toPass({ timeout: 10_000 })
     await expect(page.locator('[data-testid^="group-onto-"]').first()).toBeVisible()
-    const found = (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
     await page.locator('[data-testid^="group-onto-"]').filter({ hasText: 'Two' }).click()
     await page.getByTestId('group-bulk-go').click()
@@ -89,8 +88,9 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
     await column(page, 0).locator('.cluster .stack').click()
     await expect(page.getByTestId('group-panel')).toBeVisible()
     await page.getByTestId('cluster-move').click()
-    const axe = await new AxeBuilder({ page }).include('[data-testid="group-panel"]').analyze()
-    expect(axe.violations).toEqual([])
+    await settle(page) // contrast on settled frames: a transition in flight blends colours
+    const scan = await axe(page).include('[data-testid="group-panel"]').analyze()
+    expect(scan.violations).toEqual([])
     await page.locator('[data-testid^="move-group-to-"]').first().click()
     await expect(page.getByTestId('group-panel')).toHaveCount(0)
     await expect(column(page, 0).locator('.cluster')).toHaveCount(0)

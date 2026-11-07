@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -119,7 +118,7 @@ test.describe('time-boxed agenda', () => {
     await page.getByTestId('voting-open').click()
     await expect(page.getByTestId('voting-state-text')).toHaveText('Ouvert par l\'animateur jusqu\'au prochain changement de phase')
     await expect(noteByText(bob.page, 'Votable idea').locator('[data-testid^="vote-"]')).toHaveCount(1)
-    const found = (await new AxeBuilder({ page }).include('[data-testid="votebar"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).include('[data-testid="votebar"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
     // Changing phase drops the override.
     await next(page)
@@ -226,7 +225,7 @@ test.describe('phase stepper (board-activity-feed)', () => {
     await page.getByTestId('agenda-next').click()
     await page.keyboard.press('Escape')
     await expect(page.locator('li[data-testid^="step-"][data-state="done"]')).toHaveCount(1)
-    const found = (await new AxeBuilder({ page }).include('[data-testid="stepper"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
+    const found = (await axe(page).include('[data-testid="stepper"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map((v) => v.id)
     expect(found).toEqual([])
   })
 })

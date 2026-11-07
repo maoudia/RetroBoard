@@ -1,6 +1,5 @@
-import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, publishNote } from './helpers'
 
 test('Ctrl+Z takes back a wrong grouping', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue' })
@@ -110,7 +109,7 @@ test.describe('history panel (facilitator)', () => {
     const entry = page.getByTestId('history-entry').first()
     await expect(entry).toContainText('Alice')
     await expect(entry).toContainText('Alpha')
-    const results = await new AxeBuilder({ page }).include('[data-testid="history-panel"]').analyze()
+    const results = await axe(page).include('[data-testid="history-panel"]').analyze()
     expect(results.violations).toEqual([])
 
     await entry.getByTestId('history-restore').click()
