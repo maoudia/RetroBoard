@@ -1,0 +1,59 @@
+name: Preview
+
+# A preview version of the Worker for each pull request of this repository (not forks: they get no secrets), with its
+# own URL, commented on the pull request. Dormant until CLOUDFLARE_DEPLOY is "true" and the Cloudflare secrets exist.
+# It uploads a version without deploying it: production does not change.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    name: Preview version
+    if: vars.CLOUDFLARE_DEPLOY == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - name: Upload a preview version
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          pnpm exec wrangler versions upload --preview-alias "pr-$PR" --message "PR $PR $SHA" | tee upload.log
+          url=$(grep -oE 'https://[^ ]+workers\.dev[^ ]*' upload.log | head -1 || true)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Comment the preview URL
+        if: steps.upload.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          URL: ${{ steps.upload.outputs.url }}
+        run: |
+          body="Preview of this pull request: $URL (a version of the Worker, not deployed to production)."
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --jq '[.[] | select(.body | startswith("Preview of this pull request"))][0].id // empty')
+          if [ -n "$existing" ]; then gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" -f body="$body" >/dev/null
+          else gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$body"; fi

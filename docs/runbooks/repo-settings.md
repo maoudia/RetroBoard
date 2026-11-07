@@ -2,14 +2,16 @@
 
 Settings that cannot live in files. Apply once, then keep this list in sync.
 
-## Branch protection on `main` (or a ruleset)
+## Branch protection on `main` (ruleset "main")
 
-- Require a pull request before merging, 1 approval, dismiss stale approvals. The maintainer may
-  bypass for direct pushes while the project is in solo mode.
-- Required status checks: `Specs, lint, types, architecture, unit`, `Static build, bundle budget,
-  Worker dry run`, `Workflow lint (actionlint, zizmor)`, `Playwright (chromium)`, `CodeQL`.
-- Require branches to be up to date; enable the merge queue when more than one agent works at once.
-- Block force pushes and deletions.
+Applied by the maintainer tooling (`gh api repos/maoudia/RetroBoard/rulesets`); keep this list in sync with it.
+
+- Pull request required, no required approval while the project has one maintainer (add 1 approval with a second one).
+  Squash merge only, linear history, branches deleted after merge, auto-merge allowed.
+- Required status checks: `Specs, lint, types, architecture, unit`, `Static build, bundle budget, Worker dry run`,
+  `Workflow lint (actionlint, zizmor)`, `Conventional Commits`, `Playwright (chromium 1/2)`, `Playwright (chromium 2/2)`,
+  `CodeQL`, `Mutants of the changed files`.
+- Block force pushes and deletions. The repository admin can bypass in an emergency (pull requests only otherwise).
 
 ## Actions
 
@@ -23,8 +25,9 @@ Settings that cannot live in files. Apply once, then keep this list in sync.
 
 ## Security
 
-- Settings > Code security: enable secret scanning and push protection (free for public
-  repositories), Dependabot alerts and security updates, private vulnerability reporting.
+- Enabled: secret scanning, push protection, Dependabot alerts and security updates, private vulnerability
+  reporting (Settings > Code security). Dependabot patch and minor updates merge by themselves when green
+  (`.github/workflows/dependabot-automerge.yml`).
 
 ## Project board
 

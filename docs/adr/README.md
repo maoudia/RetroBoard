@@ -40,3 +40,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0027](0027-local-team-workspaces-without-server-storage.md) | Local team workspaces without server storage | accepted | 2026-11-02 |
 | [0028](0028-join-a-board-with-a-short-code.md) | Join a board with a short code | accepted | 2026-11-02 |
 | [0029](0029-compact-board-links-with-128-bit-board-keys.md) | Compact board links with 128-bit board keys | accepted | 2026-11-06 |
+| [0030](0030-ci-cd-protected-main-gated-deploy-signed-and-attested-artifa.md) | CI/CD: protected main, gated deploy, signed and attested artifacts | accepted | 2026-11-07 |

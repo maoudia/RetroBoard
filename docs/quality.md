@@ -9,6 +9,9 @@ Every commit on `main` runs `.github/workflows/quality.yml`:
 | Playwright rest of the suite (chromium, 5 shards) | Every spec outside the gate (`pnpm e2e:rest`), so Allure holds the whole suite once. Does not gate the run (`continue-on-error`); the nightly run repeats it on every browser | The Allure report; artifact `playwright-rest-<n>` |
 | Mutation testing | Stryker on the pure packages, one full pass per package in parallel (6 shards), merged and compared with the floors by the ratchet job | Pages `mutation/` (one report per package); artifacts `mutation-shard-<package>`, `quality-mutation` |
 | Allure report (unit + every e2e shard) | `allure-vitest` and `allure-playwright` write raw results when `ALLURE_RESULTS_DIR` is set; `allure generate` aggregates them with a history file kept on Pages | Pages `allure/` (report and `history.jsonl`); artifacts `allure-results-*` |
+| Image scan, signature, SBOM | On release: Trivy scan before the push, cosign signature, build provenance attestation, SBOM on the GitHub Release (`release.yml`) | Code scanning; release assets |
+| Scorecard | OpenSSF Scorecard on main and weekly (`scorecard.yml`) | Code scanning; the OpenSSF API |
+| Deploy | Gated production deploy with smoke test and automatic rollback, PR previews (`deploy.yml`, `preview.yml`, dormant until configured, `docs/runbooks/deploy.md`) | GitHub deployments |
 | Publish | Deploys the Allure report as the GitHub Pages front page, with `coverage/` and `mutation/` beside it, even when a test job failed | https://maoudia.github.io/RetroBoard/ |
 
 Artifacts are kept 30 days. The site keeps the last report only; the trends come from the Allure history file
