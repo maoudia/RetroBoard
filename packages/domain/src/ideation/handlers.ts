@@ -15,22 +15,24 @@ const validColor = (n: number) => Number.isInteger(n) && n >= 0 && n < NOTE_COLO
 export const ideationHandlers: HandlerMap<IdeationCommand> = {
   'note.add': (s, c, a, ctx) => {
     if (s.settings.locked) return fail('locked')
-    if (!s.columns.some((x) => x.id === c.columnId)) return fail('not-found')
+    const column = s.columns.find((x) => x.id === c.columnId)
+    if (!column) return fail('not-found')
     if (tooLong(s, c.text)) return fail('invalid')
     if (noteCount(s) >= LIMITS.maxNotes) return fail('limit-reached')
-    const n = makeNote(a, ctx, c.columnId, c.text, c.color ?? s.columns.find((x) => x.id === c.columnId)?.color)
+    const n = makeNote(a, ctx, c.columnId, c.text, c.color ?? column.color)
     return done({ ...s, notes: { ...s.notes, [n.id]: n } }, { notes: [n.id] })
   },
 
   'note.addMany': (s, c, a, ctx) => {
     if (s.settings.locked) return fail('locked')
     if (noteCount(s) + c.items.length > LIMITS.maxNotes) return fail('limit-reached')
-    if (c.items.some((i) => !s.columns.some((x) => x.id === i.columnId))) return fail('not-found')
+    const columns = c.items.map((i) => s.columns.find((x) => x.id === i.columnId))
+    if (columns.some((x) => !x)) return fail('not-found')
     if (c.items.some((i) => tooLong(s, i.text))) return fail('invalid')
     const notes = { ...s.notes }
     const ids: string[] = []
     for (const [index, i] of c.items.entries()) {
-      const n = makeNote(a, ctx, i.columnId, i.text, i.color ?? s.columns.find((x) => x.id === i.columnId)?.color, index)
+      const n = makeNote(a, ctx, i.columnId, i.text, i.color ?? columns[index]!.color, index)
       notes[n.id] = n
       ids.push(n.id)
     }
@@ -44,7 +46,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     if (n.ownerCid !== a.cid && !a.moderator) return fail('forbidden')
     if (s.settings.locked && !a.moderator) return fail('locked')
     if (tooLong(s, c.text)) return fail('invalid')
-    if (n.text === c.text) return done(s, { notes: [] })
+    if (n.text === c.text) return done(s, {})
     return done({ ...s, notes: { ...s.notes, [n.id]: { ...n, text: c.text, edited: true } } }, { notes: [n.id] })
   },
 
@@ -59,6 +61,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     Reflect.deleteProperty(notes, n.id)
     const dirty = clean()
     dirty.notes.push(n.id)
+    // Stryker disable next-line ConditionalExpression: normalizing a note's missing group does nothing, so the guard only spares the call
     if (n.groupId) normalizeGroups([n.groupId], notes, groups, dirty)
     return done({ ...s, notes, groups }, dirty)
   },
@@ -72,6 +75,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     const groups = { ...s.groups }
     const dirty = clean()
     dirty.notes.push(n.id)
+    // Stryker disable next-line ConditionalExpression: normalizing a note's missing group does nothing, so the guard only spares the call
     if (n.groupId) normalizeGroups([n.groupId], notes, groups, dirty)
     return done({ ...s, notes, groups }, dirty)
   },
@@ -101,6 +105,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     const previous = a.groupId
     notes[a.id] = { ...a, columnId: b.columnId, groupId: gid }
     dirty.notes.push(a.id)
+    // Stryker disable next-line ConditionalExpression,LogicalOperator: normalizing a missing group, or one the note is still in with a neighbour, does nothing
     if (previous && previous !== gid) normalizeGroups([previous], notes, groups, dirty)
     return done({ ...s, notes, groups }, dirty)
   },
@@ -157,7 +162,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
   'group.rename': (s, c) => {
     const g = s.groups[c.id]
     if (!g) return fail('not-found')
-    if (g.title === (c.title || null)) return done(s, { groups: [] })
+    if (g.title === (c.title || null)) return done(s, {})
     return done({ ...s, groups: { ...s.groups, [g.id]: { ...g, title: c.title || null } } }, { groups: [g.id] })
   },
 
