@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, type Page, test } from '@playwright/test'
-import { createBoard, enterName, setOneFacilitator } from './helpers'
+import { createBoard, enterName, settle, setOneFacilitator } from './helpers'
 
 /** One-minute phases (the protocol minimum); the tests move the page clock instead of waiting. */
 async function startShortAgenda(page: Page, firstMinutes = 1) {
@@ -53,6 +53,7 @@ test.describe('phase end popup', () => {
     await expect(bob.page.getByTestId('phase-end-ok')).toBeVisible()
 
     await expect(page.getByTestId('phase-end')).toBeVisible()
+    await settle(page) // contrast on settled frames: a transition in flight blends colours
     expect((await new AxeBuilder({ page }).analyze()).violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([])
 
     await page.getByTestId('phase-end-next').click()

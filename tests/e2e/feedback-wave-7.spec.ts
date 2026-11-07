@@ -45,7 +45,8 @@ test('a facilitator colours a whole column and removes a single idea after a con
   await expect(noteByText(page, 'Alpha idea')).toBeVisible()
 })
 
-test('a board can be cloned empty and its actions cloned alone', async ({ page }) => {
+test('a board can be cloned empty and its actions cloned alone', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the boards menu is hidden on phones')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Sprint 7' })
   await publishNote(page, 0, 'Secret idea')
   await page.getByTestId('btn-boards').click()

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote, voteMenu } from './helpers'
+import { createBoard, join, noteByText, publishNote, settle, voteMenu } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -8,8 +8,11 @@ const shareLink = async (page: Page) => {
   await page.keyboard.press('Escape')
   return link
 }
-const serious = async (page: Page) => (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze())
-  .violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)
+const serious = async (page: Page) => {
+  await settle(page) // contrast on settled frames: a transition in flight blends colours
+  const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
+  return violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)
+}
 
 test.describe('voted ideas in the actions panel', () => {
   test('listed once voting is closed, most voted first, with sorts and one click to an action', async ({ page, browser }) => {

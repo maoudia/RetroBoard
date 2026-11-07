@@ -114,7 +114,8 @@ test('the Simple / Advanced switch keeps its place when the mode changes', async
   expect(Math.abs(a.y - b.y)).toBeLessThan(1)
 })
 
-test('the clone entries of the board menu look like menu items', async ({ page }) => {
+test('the clone entries of the board menu look like menu items', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the boards menu is hidden on phones')
   await createBoard(page, { template: 'start-stop-continue' })
   await page.getByTestId('btn-boards').click()
   const clone = page.getByTestId('boards-clone')

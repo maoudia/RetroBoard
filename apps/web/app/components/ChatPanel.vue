@@ -139,11 +139,12 @@ const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
 
       <div class="people" :class="{ compact }" :aria-label="t('participants.online')" data-testid="chat-people">
         <!-- Many people: an overlapping avatar strip (who is typing floats up), one tap opens the full roster. -->
-        <button v-if="compact" class="strip" type="button" :aria-expanded="showAll" :aria-label="t('chat.people.toggle', { n: people.length })" data-testid="chat-people-toggle" @click="showAll = !showAll">
-          <span class="stack2">
+        <button v-if="compact" class="strip" type="button" :aria-expanded="showAll" data-testid="chat-people-toggle" @click="showAll = !showAll">
+          <span class="sr-only">{{ t('chat.people.toggle', { n: people.length }) }}</span>
+          <span class="stack2" aria-hidden="true">
             <i v-for="(p, i) in stripPeople" :key="p.key ?? i" class="av" :class="{ typing: typing(p) }" :style="avatar(p)">{{ initial(p.name) }}<ConnDot class="cd" :state="stateOf(p)" /><span class="sr-only">{{ p.name ?? t('common.anonymous') }}</span></i>
           </span>
-          <span v-if="people.length > stripPeople.length" class="more mono">+{{ people.length - stripPeople.length }}</span>
+          <span v-if="people.length > stripPeople.length" class="more mono" aria-hidden="true">+{{ people.length - stripPeople.length }}</span>
           <Icon :name="showAll ? 'lucide:chevron-up' : 'lucide:chevron-down'" class="chev" />
         </button>
         <ul v-if="!compact || showAll" class="roster" data-testid="chat-roster">

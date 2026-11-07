@@ -207,7 +207,8 @@ test('accordion on a phone keeps the focused column fully visible going forward 
   }
 })
 
-test('in presentation a long word never leaves its note, and notes grow with the screen (change toast-notifications-v2)', async ({ page }) => {
+test('in presentation a long word never leaves its note, and notes grow with the screen (change toast-notifications-v2)', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'presenter mode is for large screens: a phone is too narrow for notes to grow')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await publishNote(page, 0, 'Supercalifragilisticexpialidocious-and-a-very-long-unbroken-token-that-must-wrap')
   await page.getByTestId('btn-presenter').click()

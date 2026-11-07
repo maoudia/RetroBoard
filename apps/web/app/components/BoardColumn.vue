@@ -144,7 +144,7 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
 
 <style scoped>
 /* Column turns (change ux-irritants-wave-3): the open column zooms and glows, the others get a light hatch mask and a dead writing area. */
-.col.col[data-turn="on"] { flex: 1.5 1 470px; min-width: min(470px, 92vw); max-width: 700px; outline: 2px solid var(--accent); outline-offset: -2px; box-shadow: var(--shadow-2); z-index: 2; }
+.col.col[data-turn="on"] { flex: 1.5 1 470px; min-width: min(470px, 92vw); outline: 2px solid var(--accent); outline-offset: -2px; box-shadow: var(--shadow-2); z-index: 2; }
 .col.col[data-turn="off"] { flex: 1 1 270px; min-width: min(270px, 86vw); opacity: .82; }
 .col.col[data-turn="off"] :deep(.priv-wrap) { position: relative; pointer-events: none; filter: saturate(.35); opacity: .6; }
 .col.col[data-turn="off"] :deep(.priv-wrap)::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in oklab, var(--text) 7%, transparent) 8px 16px); }
