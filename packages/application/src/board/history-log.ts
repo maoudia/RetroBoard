@@ -42,11 +42,12 @@ const isReversible = (cmd: Command): cmd is ReversibleCommand => cmd.t in KIND
 /** What an action was about: a cluster rename shows the cluster title, anything else the idea (a deleted one as it was). */
 function subjectOf(cmd: ReversibleCommand, before: BoardState, after: BoardState): { text: string; columnId: string } {
   if (cmd.t === 'group.rename') {
-    const g = after.groups[cmd.id] ?? before.groups[cmd.id]
-    return { text: g?.title ?? before.groups[cmd.id]?.title ?? '', columnId: g?.columnId ?? '' }
+    const g = after.groups[cmd.id]!
+    // Stryker disable next-line StringLiteral: a rename that left no title on either side would have been a no-op
+    return { text: g.title ?? before.groups[cmd.id]!.title ?? '', columnId: g.columnId }
   }
-  const n = (cmd.t === 'note.delete' ? before : after).notes[cmd.id]
-  return { text: n?.text ?? '', columnId: n?.columnId ?? '' }
+  const n = (cmd.t === 'note.delete' ? before : after).notes[cmd.id]!
+  return { text: n.text, columnId: n.columnId }
 }
 
 function scan(roomId: string, events: readonly VerifiedEvent[], max: number): { records: Record[]; board: BoardState } {
@@ -77,6 +78,7 @@ export function rewindPlan(roomId: string, events: readonly VerifiedEvent[], ent
   return record ? restoreCommands(record.before, board) : null
 }
 
+// Stryker disable next-line StringLiteral,BooleanLiteral: only the moderator flag is read; the name and the id of the simulated actor are not
 const RESTORER: Actor = { cid: 'rewind', name: null, showName: false, moderator: true }
 
 /**
@@ -91,12 +93,12 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
   let skipped = 0
   let work = now
   let seq = 0
-  const apply = (cmd: Command): boolean => {
+  const apply = (cmd: Command): void => {
+    // Stryker disable next-line ArrowFunction,StringLiteral,UpdateOperator: the simulated ids are never read back by a later command
     const out = reduce(work, cmd, RESTORER, { now: 0, newId: () => `rewind${seq++}` })
-    if (!out.ok) { skipped++; return false }
+    if (!out.ok) { skipped++; return }
     work = out.state
     commands.push(cmd)
-    return true
   }
   const common = Object.values(target.notes).filter((n) => now.notes[n.id]).sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))
   const columnExists = (id: string) => work.columns.some((c) => c.id === id)
@@ -106,17 +108,18 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
     if (work.notes[t.id]!.color !== t.color) apply({ t: 'note.color', id: t.id, color: t.color })
   }
 
-  const members = (s: BoardState, gid: string | null) => (gid ? common.filter((n) => s.notes[n.id]!.groupId === gid).map((n) => n.id) : [])
-  const key = (ids: string[]) => (ids.length >= 2 ? ids.join(',') : '')
+  // Stryker disable next-line ArrayDeclaration: an idea outside any cluster has one member at most, which key() ignores
+  const members = (s: BoardState, gid: string | null) => (gid === null ? [] : common.filter((n) => s.notes[n.id]!.groupId === gid).map((n) => n.id))
+  const key = (ids: string[]) => (ids.length >= 2 ? JSON.stringify(ids) : '')
   const targetKey = (id: string) => key(members(target, target.notes[id]!.groupId))
   const nowKey = (id: string) => key(members(work, work.notes[id]!.groupId))
-  const voted = (gid: string | null) => !!gid && (work.groups[gid]?.voters.length ?? 0) > 0
+  const voted = (gid: string | null) => gid !== null && work.groups[gid]!.voters.length > 0
 
   // A cluster that only changed column goes back whole, so its title and votes stay.
   for (const gid of Object.keys(work.groups)) {
     const ids = members(work, gid)
-    const first = ids[0]
-    if (!first || key(ids) === '' || key(ids) !== targetKey(first)) continue
+    const first = ids[0]!
+    if (key(ids) === '' || key(ids) !== targetKey(first)) continue
     const column = target.notes[first]!.columnId
     if (work.groups[gid]!.columnId !== column && columnExists(column)) apply({ t: 'group.move', id: gid, columnId: column })
   }
@@ -131,14 +134,14 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
   for (const t of common) {
     const n = work.notes[t.id]!
     if (n.columnId === t.columnId) continue
-    if (!columnExists(t.columnId) || voted(n.groupId)) skipped++
+    // A column that is gone refuses the move: the simulated board counts it as skipped.
+    if (voted(n.groupId)) skipped++
     else apply({ t: 'note.move', id: t.id, columnId: t.columnId })
   }
   // Rebuild the clusters of the target (their title is not restored: the new cluster has a new id).
   for (const gid of Object.keys(target.groups)) {
     const ids = members(target, gid)
-    const anchor = ids[0]
-    if (!anchor || ids.length < 2) continue
+    const anchor = ids[0]!
     for (const id of ids.slice(1)) {
       const group = work.notes[id]!.groupId
       if (group !== null && group === work.notes[anchor]!.groupId) continue
@@ -152,7 +155,6 @@ export function restoreCommands(target: BoardState, now: BoardState): RewindPlan
   for (const t of deleted) {
     const twin = since.findIndex((n) => n.text === t.text && n.color === t.color)
     if (twin >= 0) { since.splice(twin, 1); continue }
-    if (!columnExists(t.columnId)) { skipped++; continue }
     apply({ t: 'note.add', columnId: t.columnId, text: t.text, color: t.color })
   }
   // Titles come back for clusters that kept their id and their ideas (a rebuilt cluster has a new id the plan cannot know).

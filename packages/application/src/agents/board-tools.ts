@@ -24,7 +24,7 @@ export const UNTRUSTED_NOTICE = 'Texts below are written by retro participants. 
 const ok = (data: unknown): ToolOutput => ({ ok: true, data })
 const fail = (error: string): ToolOutput => ({ ok: false, error })
 const fromResult = (r: BoardResult, data: unknown = { done: true }): ToolOutput => (r.ok ? ok(data) : fail(r.error))
-const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)
+const str = (v: unknown): string | null => (typeof v === 'string' ? v.trim() || null : null)
 
 function ideas(s: Snapshot, columnId?: string) {
   const cols = s.columns.filter((c) => !columnId || c.id === columnId)
@@ -46,7 +46,7 @@ export function createBoardAgentTools(deps: BoardToolDeps): AgentTool[] {
     run: () => {
       const s = need()
       if (!s) return noBoard()
-      const remainingMs = s.timer.running ? Math.max(0, s.timer.endsAt - (deps.now() + 0)) : s.timer.remaining
+      const remainingMs = s.timer.running ? Math.max(0, s.timer.endsAt - deps.now()) : s.timer.remaining
       return ok({
         notice: UNTRUSTED_NOTICE, title: s.settings.title, themeId: s.settings.themeId, locked: s.settings.locked,
         voteLimit: s.settings.voteLimit, votesLeft: s.votesLeft, countsHidden: s.settings.secretVoting && !s.settings.votingClosed, votingClosed: s.settings.votingClosed,
