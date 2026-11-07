@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.49.1](https://github.com/maoudia/RetroBoard/compare/v1.49.0...v1.49.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **build:** install corepack in the image, Node 26 no longer ships it ([74a3e90](https://github.com/maoudia/RetroBoard/commit/74a3e90f28685f523951ee173748f1e3770a575e))
+* **quality:** mutation:changed no longer trusts a stale report, and runs Stryker with a flag it understands ([f4a1432](https://github.com/maoudia/RetroBoard/commit/f4a14324a36336aceacf9b6e9b06e915587f3ea2))
+
 ## [1.49.0](https://github.com/maoudia/RetroBoard/compare/v1.48.0...v1.49.0) (2026-11-07)
 
 
