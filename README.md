@@ -10,6 +10,8 @@
   <a href="https://github.com/maoudia/RetroBoard/actions/workflows/e2e.yml"><img alt="E2E" src="https://github.com/maoudia/RetroBoard/actions/workflows/e2e.yml/badge.svg?branch=main"></a>
   <a href="https://github.com/maoudia/RetroBoard/actions/workflows/nightly.yml"><img alt="Nightly" src="https://github.com/maoudia/RetroBoard/actions/workflows/nightly.yml/badge.svg?branch=main"></a>
   <a href="https://github.com/maoudia/RetroBoard/actions/workflows/release.yml"><img alt="Release" src="https://github.com/maoudia/RetroBoard/actions/workflows/release.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/maoudia/RetroBoard/actions/workflows/scorecard.yml"><img alt="Scorecard workflow" src="https://github.com/maoudia/RetroBoard/actions/workflows/scorecard.yml/badge.svg?branch=main"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/maoudia/RetroBoard"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/maoudia/RetroBoard/badge"></a>
 </p>
 
 <p align="center">
