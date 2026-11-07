@@ -30,12 +30,12 @@ jobs:
   release:
     name: Version, changelog and GitHub Release
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 60
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       pull-requests: write
-      actions: read
+      actions: write
     outputs:
       created: ${{ steps.publish.outputs.release_created || steps.prepare.outputs.release_created }}
       tag: ${{ steps.publish.outputs.tag_name || steps.prepare.outputs.tag_name }}
@@ -75,14 +75,34 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      - name: Merge the release PR
+      # main requires its checks on every pull request. The release PR is opened with the Actions token, which starts no
+      # workflow: dispatch the required ones on its branch (their jobs report on the PR head commit), then let the
+      # pull request merge itself once they pass.
+      - name: Run the required checks on the release branch
+        if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ fromJSON(steps.prepare.outputs.pr || '{}').headBranchName }}
+        run: |
+          for wf in checks.yml e2e.yml security.yml adr.yml; do
+            gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          done
+
+      - name: Merge the release PR when its checks pass
         if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ fromJSON(steps.prepare.outputs.pr || '{}').number }}
         run: |
-          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
-          sleep 5
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --auto
+          for _ in $(seq 1 100); do
+            state=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json state --jq .state)
+            [ "$state" = MERGED ] && exit 0
+            [ "$state" = CLOSED ] && { echo "::error::The release PR was closed"; exit 1; }
+            sleep 30
+          done
+          echo "::error::The release PR did not merge within 50 minutes: a required check failed or is still running"
+          exit 1
 
       - name: Tag and publish the GitHub Release
         id: publish

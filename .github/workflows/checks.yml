@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # By hand, and by release.yml on the release branch: the pull request of the release is opened with the Actions token,
+  # which starts no workflow, so the release run dispatches the required checks itself.
+  workflow_dispatch:
 
 concurrency:
   group: checks-${{ github.ref }}
