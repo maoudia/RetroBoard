@@ -16,18 +16,29 @@ Artifacts are kept 30 days. The site keeps the last report only; the trends come
 
 ## Mutation ratchet
 
-`scripts/quality/mutation-score.mjs` reads `reports/mutation/mutation.json` and fails the job when:
+The floors in `quality/mutation-baseline.json` are 100 for every package (change `mutation-score-100`): a mutant that
+no test notices fails the build. `scripts/quality/mutation-score.mjs` reads `reports/mutation/mutation.json` and fails
+the job when a score is below its floor or lower than the previous main run (read from the published
+`mutation/summary.json`). There is no tolerance. Never lower a floor to make a build pass.
 
-- the overall score or a package score drops more than 0.5 point below the previous main run
-  (read from the published `mutation/summary.json`), or
-- a score is below its floor in `quality/mutation-baseline.json`.
+### A mutant survived
 
-Raise the floor when the job prints the "well above the floor" notice. Never lower it to make a
-build pass: kill the surviving mutants instead (the HTML report lists them).
+Run `pnpm mutation:changed` (also part of `pnpm prepush`): it mutation-tests the files you changed and lists the
+survivors with the line and the replacement. Then, in this order:
 
-The incremental cache (`reports/stryker-incremental.json`) is restored from the previous run, so a
-commit only re-tests the mutants its changes touch. The nightly workflow runs a full pass with
-`--force` to catch anything the cache could hide.
+1. **Kill it.** Add a test that fails with the mutation: assert the exact value, the boundary (`>=` against `>`), the
+   order of a sort in any input order, the exact object a command sends.
+2. **Simplify the code** when the mutant shows a guard or a default nothing needs (a branch the next line already
+   covers, a fallback that cannot be reached). Dead code is the most common cause of a survivor.
+3. **Waive it** only when the mutant is equivalent (it cannot change any behaviour): put
+   `// Stryker disable next-line <Mutator>: <reason>` above the line, with the named mutator (never `all`) and a
+   reason of a few words that says why no test can tell the difference. Blocks need a matching
+   `// Stryker restore <Mutator>`. `scripts/quality/stryker-disables.mjs` (unit tested, run by `pnpm verify`)
+   refuses a waiver without a mutator or a reason.
+
+The incremental cache (`reports/stryker-incremental.json`) is restored from the previous run, so a commit only
+re-tests the mutants its changes touch. The nightly workflow runs a full pass with `--force` to catch anything the
+cache could hide. Locally, delete the cache file when a result looks stale after you changed a test.
 
 ## Run locally
 
@@ -35,6 +46,7 @@ commit only re-tests the mutants its changes touch. The nightly workflow runs a 
 pnpm test:coverage                 # coverage/index.html
 pnpm generate && pnpm e2e          # playwright-report/ (CI=1 adds JSON, JUnit, videos)
 pnpm mutation                      # reports/mutation/index.html
+pnpm mutation:changed              # only the files you changed; fails on a survivor
 node scripts/quality/mutation-score.mjs
 ```
 

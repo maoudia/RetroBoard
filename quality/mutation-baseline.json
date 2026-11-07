@@ -1,12 +1,12 @@
 {
-  "comment": "Mutation score floors (percent), set from CI measurements (the reference, not local runs). Raise them as scores improve; never lower them to pass a build.",
-  "score": 77,
+  "comment": "Mutation score floors (percent): 100 everywhere. A surviving mutant fails the build; kill it, or waive it with a named reason (docs/quality.md). Never lower these to pass a build.",
+  "score": 100,
   "packages": {
-    "application": 77.5,
-    "crypto": 78.5,
-    "domain": 73.5,
-    "exporters": 84.5,
-    "protocol": 84.5,
-    "sync": 85.5
+    "application": 100,
+    "crypto": 100,
+    "domain": 100,
+    "exporters": 100,
+    "protocol": 100,
+    "sync": 100
   }
 }

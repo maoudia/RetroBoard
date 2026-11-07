@@ -2,13 +2,13 @@
 // Mutation ratchet. Reads Stryker's JSON report (mutation-testing-report-schema), computes the
 // score per package and overall, compares with the floor in quality/mutation-baseline.json and
 // with the previous main run published on GitHub Pages, then writes reports/mutation/summary.json.
-// Fails (exit 1) when the overall score or a package score drops beyond the tolerance.
+// Fails (exit 1) when a score is below its floor or below the previous main run. The floors are 100: a surviving
+// mutant fails the build (change mutation-score-100); kill it, or waive it with a named reason (docs/quality.md).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 
 const REPORT = process.argv[2] ?? 'reports/mutation/mutation.json'
 const OUT = 'reports/mutation/summary.json'
 const BASELINE = 'quality/mutation-baseline.json'
-const TOLERANCE = 0.5 // percentage points: absorbs timeout noise, catches real regressions
 const gh = !!process.env.GITHUB_ACTIONS
 const note = (level, msg) => console.log(gh ? `::${level}::${msg}` : `${level}: ${msg}`)
 
@@ -37,6 +37,24 @@ export function score(files) {
   }
 }
 
+/** What is wrong with a score: below its floor, or lower than the previous main run. No tolerance: a floor of 100 means no survivor. */
+export function failuresOf(current, floor, prev) {
+  const failures = []
+  if (current.score < floor.score) failures.push(`overall ${current.score}% is below the floor ${floor.score}% (${BASELINE})`)
+  for (const [pkg, f] of Object.entries(floor.packages ?? {})) {
+    const s = current.packages[pkg]?.score
+    if (s !== undefined && s < f) failures.push(`${pkg} ${s}% is below its floor ${f}%`)
+  }
+  if (prev?.score !== undefined && current.score < prev.score) {
+    failures.push(`overall ${current.score}% regressed from ${prev.score}% on the previous main run (${prev.commit?.slice(0, 7) ?? '?'})`)
+  }
+  for (const [pkg, p] of Object.entries(prev?.packages ?? {})) {
+    const s = current.packages[pkg]?.score
+    if (s !== undefined && s < p.score) failures.push(`${pkg} ${s}% regressed from ${p.score}%`)
+  }
+  return failures
+}
+
 async function previous() {
   const base = process.env.PAGES_URL
   if (!base) return null
@@ -51,20 +69,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const current = score(JSON.parse(readFileSync(REPORT, 'utf8')).files)
   const floor = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, 'utf8')) : { score: 0, packages: {} }
   const prev = await previous()
-  const failures = []
-
-  if (current.score < floor.score) failures.push(`overall ${current.score}% is below the floor ${floor.score}% (${BASELINE})`)
-  for (const [pkg, f] of Object.entries(floor.packages ?? {})) {
-    const s = current.packages[pkg]?.score
-    if (s !== undefined && s < f) failures.push(`${pkg} ${s}% is below its floor ${f}%`)
-  }
-  if (prev?.score !== undefined && current.score < prev.score - TOLERANCE) {
-    failures.push(`overall ${current.score}% regressed from ${prev.score}% on the previous main run (${prev.commit?.slice(0, 7) ?? '?'})`)
-  }
-  for (const [pkg, p] of Object.entries(prev?.packages ?? {})) {
-    const s = current.packages[pkg]?.score
-    if (s !== undefined && s < p.score - TOLERANCE) failures.push(`${pkg} ${s}% regressed from ${p.score}%`)
-  }
+  const failures = failuresOf(current, floor, prev)
 
   const summary = { ...current, commit: process.env.GITHUB_SHA ?? null, at: new Date().toISOString(), previous: prev ? { score: prev.score, commit: prev.commit } : null, floor: floor.score }
   writeFileSync(OUT, JSON.stringify(summary, null, 2))
@@ -75,7 +80,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(lines.join('\n'))
   if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n', { flag: 'a' })
   note('notice', `Mutation ${current.score}%: ${Object.entries(current.packages).map(([k, v]) => `${k} ${v.score}%`).join(', ')}`)
-  if (current.score > floor.score + 2) note('notice', `Mutation score ${current.score}% is well above the floor ${floor.score}%: raise ${BASELINE}.`)
   for (const f of failures) note('error', `Mutation regression: ${f}`)
   process.exit(failures.length ? 1 : 0)
 }
