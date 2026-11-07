@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.49.0](https://github.com/maoudia/RetroBoard/compare/v1.48.0...v1.49.0) (2026-11-07)
+
+
+### Features
+
+* **web:** the join code flows are unit tested, and a knock burst no longer gets past the limit ([06e36ac](https://github.com/maoudia/RetroBoard/commit/06e36acfb2a5fde6b3a534311a2870063d2761e3))
+
+
+### Bug Fixes
+
+* **domain:** a participant can no longer switch the board mode through board.init ([396d630](https://github.com/maoudia/RetroBoard/commit/396d630893f7ba2b409b1cc1c9b9d28f3a0b40f7))
+
 ## [1.48.0](https://github.com/maoudia/RetroBoard/compare/v1.47.0...v1.48.0) (2026-11-06)
 
 
