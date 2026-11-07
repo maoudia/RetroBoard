@@ -12,7 +12,7 @@
 - [x] 2.2 `protocol` (39): 100%
 - [x] 2.3 `crypto` (54): 100%
 - [x] 2.4 `exporters` (93): 100%
-- [ ] 2.5 `domain` (441)
+- [x] 2.5 `domain` (441): 100%
 - [ ] 2.6 `application` (790)
 
 ## 3. Keep it at 100%
