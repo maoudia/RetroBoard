@@ -73,7 +73,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       maxVotesPerItem: Math.min(c.maxVotesPerItem ?? s.settings.maxVotesPerItem, c.voteLimit ?? s.settings.voteLimit),
       votable: c.votable ?? s.settings.votable,
       secretVoting: c.secretVoting ?? s.settings.secretVoting,
-      ...(c.votingEnabled !== undefined || s.settings.votingEnabled !== undefined ? { votingEnabled: c.votingEnabled ?? s.settings.votingEnabled } : {}),
+      ...(c.votingEnabled !== undefined ? { votingEnabled: c.votingEnabled } : {}),
       locked: c.locked ?? s.settings.locked,
       browserAgentsAllowed: c.browserAgentsAllowed ?? s.settings.browserAgentsAllowed,
       openFacilitation: c.openFacilitation ?? s.settings.openFacilitation,
@@ -84,7 +84,9 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       talkSelfStart: c.talkSelfStart ?? s.settings.talkSelfStart,
       noteMaxLength: c.noteMaxLength ?? s.settings.noteMaxLength,
       ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}),
+      // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type
       ...(c.noteSize !== undefined && DISPLAY_SCALES.includes(c.noteSize) ? { noteSize: c.noteSize } : {}),
+      // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type
       ...(c.noteText !== undefined && DISPLAY_SCALES.includes(c.noteText) ? { noteText: c.noteText } : {}),
     }
     return done({ ...s, settings }, { meta: true })
