@@ -9,6 +9,9 @@ on:
     branches: [main]
     paths: ['docs/adr/**', 'scripts/adr/**', '.github/workflows/adr.yml']
   pull_request:
+  # By hand, and by release.yml on the release branch: the pull request of the release is opened with the Actions token,
+  # which starts no workflow, so the release run dispatches the required checks itself.
+  workflow_dispatch:
 
 concurrency:
   group: adr-${{ github.ref }}

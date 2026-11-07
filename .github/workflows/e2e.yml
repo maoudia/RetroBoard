@@ -3,6 +3,9 @@ name: E2E
 # Pull requests. Commits on main run the same matrix in quality.yml, which also publishes the reports.
 on:
   pull_request:
+  # By hand, and by release.yml on the release branch: the pull request of the release is opened with the Actions token,
+  # which starts no workflow, so the release run dispatches the required checks itself.
+  workflow_dispatch:
 
 concurrency:
   group: e2e-${{ github.ref }}
