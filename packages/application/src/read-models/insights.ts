@@ -36,9 +36,12 @@ export function buildInsights(
     const unvoted = ranking.filter((r) => r.votes === 0).length
     if (ranking.length >= 4 && unvoted / ranking.length >= 0.4) list.push({ id: 'unvoted', n: { ideas: unvoted, of: ranking.length } })
     const perColumn = s.columns.filter((c) => c.votable !== false).map((c) => ({ columnId: c.id, votes: ranking.filter((r) => r.columnId === c.id).reduce((n, r) => n + r.votes, 0) }))
-    const lead = perColumn.sort((a, b) => b.votes - a.votes)[0]
-    if (lead && perColumn.length > 1 && lead.votes / total >= 0.6) list.push({ id: 'columnLead', n: { share: pct(lead.votes / total) }, columnId: lead.columnId })
-    const available = participants && participants > 0 ? participants * s.settings.voteLimit : 0
+    if (perColumn.length > 1) {
+      const lead = perColumn.sort((a, b) => b.votes - a.votes)[0]!
+      if (lead.votes / total >= 0.6) list.push({ id: 'columnLead', n: { share: pct(lead.votes / total) }, columnId: lead.columnId })
+    }
+    const available = (participants ?? 0) * s.settings.voteLimit
+    // Stryker disable next-line EqualityOperator: with nobody available the ratio is infinite and fails the next test anyway
     if (available > 0 && total / available < 0.5) list.push({ id: 'lowParticipation', n: { used: total, available, share: pct(total / available) } })
     const voted = ranking.filter((r) => r.votes > 0).length
     if (s.actions.length > 0) list.push({ id: 'actionsForIdeas', n: { actions: s.actions.length, ideas: voted } })

@@ -21,7 +21,7 @@ export function topKeywords(texts: readonly string[], opts: { minNotes?: number;
   for (const text of texts) {
     const inThis = new Set<string>()
     for (const raw of text.toLowerCase().match(WORD) ?? []) {
-      const w = raw.replace(/^['-]+|['-]+$/g, '')
+      const w = raw.replace(/['-]+$/, '')
       const key = fold(w)
       if (key.length < 3 || STOP.has(key) || STOP.has(w) || /^\d+$/.test(key) || inThis.has(key)) continue
       inThis.add(key)
