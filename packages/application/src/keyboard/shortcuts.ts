@@ -92,6 +92,7 @@ export function resolveShortcut(input: KeyInput, ctx: KeyContext): ShortcutMatch
   let digit = Number(input.key)
   if (!def && !input.shiftKey && !input.altGraph) {
     // AZERTY: the top row types "&", "e-acute"... unshifted, so the digit comes from the physical key.
+    // Stryker disable next-line StringLiteral: no code at all and any non-matching text both fail the pattern
     const m = /^(?:Digit|Numpad)([1-8])$/.exec(input.code ?? '')
     if (m) { def = BY_KEY.get(m[1]!); digit = Number(m[1]) }
   }

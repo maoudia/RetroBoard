@@ -72,7 +72,8 @@ describe('use cases that send one command, exactly', () => {
 describe('locked boards, exactly', () => {
   const locked = () => rig(baseView({ settings: { locked: true } }))
   it('refuses the writes that are guarded, and still lets colours and cluster titles through', () => {
-    for (const run of [(c: ReturnType<typeof rig>['commands']) => c.editNote('n1', 'x'), (c) => c.deleteNote('n1'), (c) => c.moveNote('n1', 'c2'), (c) => c.groupNotes('n1', 'n2'), (c) => c.ungroupNote('n1'), (c) => c.dissolveGroup('g1'), (c) => c.moveGroup('g1', 'c2'), (c) => c.mergeGroups('g1', 'g2')]) {
+    const guarded: ((c: ReturnType<typeof rig>['commands']) => unknown)[] = [(c) => c.editNote('n1', 'x'), (c) => c.deleteNote('n1'), (c) => c.moveNote('n1', 'c2'), (c) => c.groupNotes('n1', 'n2'), (c) => c.ungroupNote('n1'), (c) => c.dissolveGroup('g1'), (c) => c.moveGroup('g1', 'c2'), (c) => c.mergeGroups('g1', 'g2')]
+    for (const run of guarded) {
       const { sent, commands } = locked()
       expect(run(commands)).toEqual({ ok: false, error: 'locked' })
       expect(sent).toEqual([])
