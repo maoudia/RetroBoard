@@ -41,13 +41,15 @@ export function voteStats(s: Pick<Snapshot, 'notes' | 'groups' | 'columns' | 'se
   const lead = ranking[0]?.votes ?? 0
   const count = new Map<number, number>()
   for (const r of ranking) count.set(r.votes, (count.get(r.votes) ?? 0) + 1)
+  // Only voted ideas are listed, so the lead is above zero whenever there is a ratio to compute.
   const top = ranking.filter((r) => r.votes > 0).slice(0, TOP_COUNT)
-    .map((r) => ({ ...r, ratio: lead > 0 ? r.votes / lead : 0, tied: (count.get(r.votes) ?? 0) > 1 }))
+    .map((r) => ({ ...r, ratio: r.votes / lead, tied: (count.get(r.votes) ?? 0) > 1 }))
   const perColumn = s.columns.filter((c) => c.votable !== false).map((c) => {
     const votes = ranking.filter((r) => r.columnId === c.id).reduce((n, r) => n + r.votes, 0)
     return { columnId: c.id, votes, share: totalVotes > 0 ? votes / totalVotes : 0 }
   })
-  const votesAvailable = participants && participants > 0 ? participants * s.settings.voteLimit : null
+  const people = participants ?? 0
+  const votesAvailable = people > 0 ? people * s.settings.voteLimit : null
   const topThree = ranking.slice(0, 3).reduce((n, r) => n + r.votes, 0)
   return {
     totalVotes,

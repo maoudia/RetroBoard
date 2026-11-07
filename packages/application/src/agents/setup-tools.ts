@@ -41,7 +41,7 @@ export function createSetupAgentTools(deps: SetupToolDeps): AgentTool[] {
       const mood = Math.min(5, Math.max(1, Math.round(Number(input.mood ?? 3))))
       const minutes = Math.min(180, Math.max(10, Math.round(Number(input.minutes ?? 45))))
       return ok({ suggestions: suggestTemplates({ goal: input.goal as Goal, mood, minutes }).map((s) => ({
-        id: s.template.id, name: format(s.template.id)?.name, reasons: s.reasons,
+        id: s.template.id, name: localizeTemplate(s.template, deps.locale()).name, reasons: s.reasons,
       })) })
     },
   }
@@ -51,7 +51,7 @@ export function createSetupAgentTools(deps: SetupToolDeps): AgentTool[] {
     description: 'Fills the new retro form (title, format, theme). The participant reviews it and clicks Create; nothing is created by this tool.',
     inputSchema: { type: 'object', properties: { title: { type: 'string', maxLength: 80 }, formatId: { type: 'string' }, themeId: { type: 'string' } }, required: ['formatId'], additionalProperties: false },
     run: (input) => {
-      const id = typeof input.formatId === 'string' ? input.formatId : ''
+      const id = input.formatId as string
       if (!format(id)) return fail('Unknown format. Use retro_list_formats.')
       if (input.themeId && !deps.themeIds().includes(input.themeId)) return fail(`themeId must be one of ${deps.themeIds().join(', ')}`)
       deps.prepare({ templateId: id, title: input.title?.trim() || undefined, themeId: input.themeId })

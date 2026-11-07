@@ -41,8 +41,8 @@ export function phaseStepper(agenda: AgendaState, now: number): PhaseStepper {
   return {
     steps,
     current: cur ? { kind: cur.kind, plannedMs: cur.plannedMs, elapsedMs: clock.elapsedMs, remainingMs: clock.remainingMs, overtime: clock.overtime, paused: clock.paused } : null,
-    // Before the start, the first phase is the next one.
-    next: agenda.phases[agenda.current < 0 ? 0 : agenda.current + 1]?.kind ?? null,
+    // Before the start (current -1), the first phase is the next one.
+    next: agenda.phases[agenda.current + 1]?.kind ?? null,
     started: agenda.current >= 0,
     ended,
   }

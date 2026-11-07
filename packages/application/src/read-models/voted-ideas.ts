@@ -32,6 +32,7 @@ export function votingOver(s: Pick<VotingView, 'settings' | 'agenda'>): boolean 
 }
 
 /** The ideas to list after the vote, or null while voting is not over. */
+// Stryker disable next-line StringLiteral,ArrayDeclaration: any other sort name or an empty order falls through to the same default
 export function votedIdeas(s: VotingView, sort: VotedSort = 'votes', columnOrder: readonly string[] = []): VotedIdea[] | null {
   if (!votingOver(s)) return null
   const ranking = buildRanking(s)
@@ -49,6 +50,7 @@ export function votedIdeas(s: VotingView, sort: VotedSort = 'votes', columnOrder
   switch (sort) {
     case 'column': return [...ideas].sort((a, b) => colIndex(a.columnId) - colIndex(b.columnId))
     case 'newest': return [...ideas].sort((a, b) => b.createdAt - a.createdAt)
+    // Stryker disable next-line StringLiteral: two anonymous authors compare equal with any shared stand-in
     case 'author': return [...ideas].sort((a, b) => (a.author === null ? 1 : 0) - (b.author === null ? 1 : 0) || (a.author ?? '').localeCompare(b.author ?? '', undefined, { sensitivity: 'base' }))
     default: return ideas
   }

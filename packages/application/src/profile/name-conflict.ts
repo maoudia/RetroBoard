@@ -10,7 +10,7 @@ export interface ConflictPeer {
 
 /** Case, accents and spacing do not tell two names apart. */
 export const nameKey = (name: string | null | undefined): string =>
-  (name ?? '').normalize('NFD').replace(/\p{M}+/gu, '').replace(/\s+/g, ' ').trim().toLowerCase()
+  (name ?? '').normalize('NFD').replace(/\p{M}/gu, '').replace(/\s+/g, ' ').trim().toLowerCase()
 
 /**
  * The name of a participant who was here first and is called like me, or null.
@@ -20,6 +20,7 @@ export const nameKey = (name: string | null | undefined): string =>
 export function nameConflict(peers: readonly ConflictPeer[], earlier: ReadonlySet<string>): string | null {
   const mine = nameKey(peers.find((p) => p.me)?.name)
   if (!mine) return null
+  // Stryker disable next-line ConditionalExpression: earlier.has(undefined) is already false, the guard only narrows the type
   const other = peers.find((p) => !p.me && p.key !== undefined && earlier.has(p.key) && nameKey(p.name) === mine)
   return other?.name ?? null
 }

@@ -21,6 +21,7 @@ export function buildRanking(s: Pick<Snapshot, 'notes' | 'groups'> & { columns?:
   if (s.notes.some((n) => n.votes === null) || s.groups.some((g) => g.votes === null)) return null
   const order = new Map(s.notes.map((n, i) => [n.id, i]))
   // Ideas of a column where voting is off are not part of the ranking (change column-voting-scope).
+  // Stryker disable next-line ArrayDeclaration: a string stand-in has no votable flag, so it filters out like an empty list
   const off = new Set((s.columns ?? []).filter((c) => c.votable === false).map((c) => c.id))
   const items: (RankedItem & { pos: number })[] = []
   for (const g of s.groups) {

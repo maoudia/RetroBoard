@@ -8,6 +8,7 @@ import { emptyLedger, type FoldResult, foldEvent, type Ledger, type VerifiedEven
 
 export const CHECKPOINT_EVERY = 200
 
+// Stryker disable next-line EqualityOperator: two events never share an id (duplicates are refused), so <= and < agree
 const before = (a: VerifiedEvent, b: VerifiedEvent) => a.at < b.at || (a.at === b.at && a.id < b.id)
 
 export class EventLog<E extends VerifiedEvent = VerifiedEvent> {
@@ -56,6 +57,7 @@ export class EventLog<E extends VerifiedEvent = VerifiedEvent> {
     let l = ledger
     for (let i = from; i < this.events.length; i++) {
       l = foldEvent(l, this.events[i]!).ledger
+      // Stryker disable next-line ConditionalExpression: a stray fractional index on the array is never read
       if ((i + 1) % CHECKPOINT_EVERY === 0) this.checkpoints[(i + 1) / CHECKPOINT_EVERY] = l
     }
     this.current = l

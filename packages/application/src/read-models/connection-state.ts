@@ -24,5 +24,6 @@ export interface ConnectionInput {
 export function connectionState(i: ConnectionInput): ConnectionState {
   if (i.status === 'reconnecting' || i.status === 'connecting') return 'reconnecting'
   if (i.me) return i.p2p ? 'direct' : 'relay'
+  // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type
   return i.conn !== undefined && i.direct.includes(i.conn) ? 'direct' : 'relay'
 }

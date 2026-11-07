@@ -44,7 +44,7 @@ export function filterItems(items: readonly ColumnItem[], f: NoteFilter): Column
     }
     // "Has votes" applies to the cluster as a whole (its score includes its notes' votes).
     if (f.voted && it.votes <= 0) continue
-    const titleHit = f.text.trim() !== '' && foldText(it.title).includes(foldText(f.text.trim()))
+    const titleHit = foldText(it.title).includes(foldText(f.text.trim()))
     const notes = it.notes.filter((n) => matchesFilter(n, { ...f, text: titleHit ? '' : f.text, voted: false }))
     if (notes.length) out.push({ ...it, notes })
   }
@@ -92,9 +92,8 @@ const grams = (w: string): Set<string> => {
   return g
 }
 
-/** How alike two words are: 1 when equal, a Dice score on character trigrams for typos and close forms (0 under 0.7). */
+/** How alike two different words are: a Dice score on character trigrams for typos and close forms (0 under 0.7). */
 function wordMatch(a: string, b: string): number {
-  if (a === b) return 1
   if (a.length < 5 || b.length < 5) return 0
   const ga = grams(a)
   const gb = grams(b)
@@ -128,6 +127,7 @@ export const SIMILAR_THRESHOLD = 0.75
 
 /** Published ideas of a column that look like the draft being written, most similar first (3 max). */
 export function similarIdeas(draft: string, notes: readonly SnapshotNote[], columnId: string, max = 3): SnapshotNote[] {
+  // Stryker disable next-line ConditionalExpression: a draft without tokens has similarity 0 with everything, below the threshold
   if (tokens(draft).size === 0) return []
   return notes
     .filter((n) => n.columnId === columnId)

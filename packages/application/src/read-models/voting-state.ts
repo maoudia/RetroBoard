@@ -12,5 +12,6 @@ export type VotingState = 'open' | 'overridden' | 'phase-closed' | 'closed'
 export function votingState(s: Pick<Snapshot, 'settings' | 'agenda'>): VotingState {
   if (s.settings.votingClosed) return 'closed'
   if (!allowedInPhase(s.agenda, 'vote.add')) return 'phase-closed'
+  // Stryker disable next-line OptionalChaining: agendaRunning guarantees the current index is in range
   return agendaRunning(s.agenda) && s.agenda.voteOpen && s.agenda.rules && s.agenda.phases[s.agenda.current]?.kind !== 'vote' ? 'overridden' : 'open'
 }

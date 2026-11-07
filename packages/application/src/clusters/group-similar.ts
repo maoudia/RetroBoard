@@ -18,6 +18,7 @@ export function groupSimilarPlan(s: Pick<Snapshot, 'notes'>, columnId: string): 
   // Tokenise each idea once: re-tokenising per pair made big columns freeze (change ux-irritants-wave-2).
   const toks = pool.map((n) => tokens(n.text))
   const overlap = (a: Set<string>, b: Set<string>): number => {
+    // Stryker disable next-line ConditionalExpression,LogicalOperator: an empty set shares 0 over a minimum of 0, NaN, which is never >= the threshold
     if (!a.size || !b.size) return 0
     let shared = 0
     for (const t of a) if (b.has(t)) shared++
@@ -25,6 +26,7 @@ export function groupSimilarPlan(s: Pick<Snapshot, 'notes'>, columnId: string): 
   }
   const parent = pool.map((_, i) => i)
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i]!)))
+  // Stryker disable next-line EqualityOperator: past the last idea the inner loop does not run
   for (let i = 0; i < pool.length; i++) {
     for (let j = i + 1; j < pool.length; j++) {
       if (overlap(toks[i]!, toks[j]!) >= SIMILAR_THRESHOLD) parent[find(j)] = find(i)
@@ -35,7 +37,7 @@ export function groupSimilarPlan(s: Pick<Snapshot, 'notes'>, columnId: string): 
   return [...groups.values()]
     .filter((g) => g.length >= 2)
     .map((g) => ({
-      label: cutOnWord([...g].sort((a, b) => a.text.length - b.text.length)[0]!.text.trim(), LABEL_MAX),
+      label: cutOnWord([...g].sort((a, b) => a.text.length - b.text.length)[0]!.text, LABEL_MAX),
       noteIds: g.map((n) => n.id),
     }))
 }

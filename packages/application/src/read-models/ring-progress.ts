@@ -31,7 +31,7 @@ export interface RingProgress {
 
 function ring(elapsedMs: number, plannedMs: number): Ring {
   const turns = plannedMs > 0 ? Math.max(0, elapsedMs) / plannedMs : 0
-  return { fill: Math.min(1, turns), over: turns > 1 ? Math.min(1, turns - 1) : 0, turns, complete: turns >= 1, plannedMs }
+  return { fill: Math.min(1, turns), over: Math.min(1, Math.max(0, turns - 1)), turns, complete: turns >= 1, plannedMs }
 }
 
 export function ringProgress(agenda: AgendaState, now: number): RingProgress {
@@ -44,8 +44,8 @@ export function ringProgress(agenda: AgendaState, now: number): RingProgress {
   return {
     outer,
     current: cur ? mk(cur, clock.elapsedMs) : null,
-    // Before the start, the first phase is "next".
-    next: agenda.current < 0 ? (agenda.phases[0] ? mk(agenda.phases[0], 0) : null) : nextPhase ? mk(nextPhase, 0) : null,
+    // Before the start (current -1), the first phase is "next".
+    next: nextPhase ? mk(nextPhase, 0) : null,
     paused: clock.paused,
     overtime: clock.overtime,
     ended,
