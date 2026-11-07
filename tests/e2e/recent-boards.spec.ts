@@ -52,7 +52,8 @@ test('the creation page suggests the next sprint number from the last board (cha
   await expect(page.getByTestId('setup-title')).toHaveValue('Sprint 43')
 })
 
-test('the boards menu ends with a New board entry (change boards-menu-new)', async ({ page }) => {
+test('the boards menu ends with a New board entry (change boards-menu-new)', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the boards switcher is hidden on phones, the title opens the options instead')
   await createBoard(page, { title: 'Menu' })
   await page.getByTestId('btn-boards').click()
   await page.getByTestId('boards-new').click()
