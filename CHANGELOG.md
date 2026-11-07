@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.2](https://github.com/maoudia/RetroBoard/compare/v1.49.1...v1.49.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* **web:** wide-screen open column and chat strip accessible name ([d3b3d6a](https://github.com/maoudia/RetroBoard/commit/d3b3d6a5af4033274751dd98e4c0f7cc557376ca))
+
 ## [1.49.1](https://github.com/maoudia/RetroBoard/compare/v1.49.0...v1.49.1) (2026-11-07)
 
 
