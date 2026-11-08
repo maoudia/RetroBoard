@@ -41,7 +41,8 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
     await expect(page.getByTestId('btn-presenter')).toHaveAttribute('aria-pressed', 'false')
   })
 
-  test('the accordion animates the fold, a click on a spine unfolds it, and folded content leaves the tab order (change presenter-accordion-motion)', async ({ page }) => {
+  test('the accordion animates the fold, a click on a spine unfolds it, and folded content leaves the tab order (change presenter-accordion-motion)', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'WebKit runs with reduced motion here, so there is no fold animation to observe')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await publishNote(page, 1, 'Hidden while folded')
     await page.getByTestId('btn-presenter').click()
@@ -65,7 +66,7 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
   })
 
   test('a sideways swipe moves the focus from column to column (change presenter-accordion-motion)', async ({ page, browserName }) => {
-    test.skip(browserName === 'firefox', 'Firefox desktop has no TouchEvent to dispatch')
+    test.skip(browserName === 'firefox' || browserName === 'webkit', 'Firefox and WebKit desktop cannot construct a TouchEvent')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await page.getByTestId('btn-presenter').click()
     await page.keyboard.press('ArrowRight')
