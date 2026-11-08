@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain ESM script without types
-import { bumpFor, checkMessage, MAX_HEADER } from '../lib.mjs'
+import { bumpFor, checkMessage, checkTrailers, MAX_HEADER } from '../lib.mjs'
 
 describe('checkMessage', () => {
   it.each([
@@ -42,5 +42,18 @@ describe('bumpFor', () => {
     expect(bumpFor(['fix: a', 'feat: b'])).toBe('minor')
     expect(bumpFor(['feat: a', 'fix(x)!: b'])).toBe('major')
     expect(bumpFor(['feat: a\n\nBREAKING CHANGE: the wire format changed'])).toBe('major')
+  })
+})
+
+describe('checkTrailers', () => {
+  it('refuses a human or agent co-author, in any case', () => {
+    expect(checkTrailers('feat: x\n\nCo-Authored-By: Claude <noreply@anthropic.com>')).toHaveLength(1)
+    expect(checkTrailers('feat: x\n\nco-authored-by: Someone <a@b.c>')).toHaveLength(1)
+  })
+
+  it('allows the trailers GitHub adds for bots, and messages without any', () => {
+    expect(checkTrailers('chore: x\n\nCo-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>')).toEqual([])
+    expect(checkTrailers('feat: x\n\nbody mentions Co-Authored-By in the middle of a sentence')).toEqual([])
+    expect(checkTrailers('feat: x')).toEqual([])
   })
 })

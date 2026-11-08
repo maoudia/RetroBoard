@@ -6,7 +6,7 @@
 // Without arguments it checks the commits not yet on origin/main.
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-import { checkMessage } from './lib.mjs'
+import { checkMessage, checkTrailers } from './lib.mjs'
 
 const args = process.argv.slice(2)
 const arg = (name) => { const i = args.indexOf(name); return i === -1 ? null : args[i + 1] }
@@ -36,7 +36,8 @@ if (arg('--file')) {
 
 let failed = 0
 for (const it of items) {
-  for (const p of checkMessage(it.message)) {
+  const problems = [...checkMessage(it.message), ...(it.label === 'pull request title' ? [] : checkTrailers(it.message))]
+  for (const p of problems) {
     failed++
     console.log(ci ? `::error title=Conventional Commits (${it.label})::${p}` : `${it.label}: ${p}`)
   }
