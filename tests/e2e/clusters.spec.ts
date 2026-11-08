@@ -58,7 +58,8 @@ test.describe('clusters as merged ideas', () => {
     await settle(page)
   }
 
-  test('spring open and close: the panel animates in under 400 ms and closes back into the stack', async ({ page }) => {
+  test('spring open and close: the panel animates in under 400 ms and closes back into the stack', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'WebKit runs with reduced motion here, so there is no spring to time')
     await twoNoteCluster(page)
     // WebKit has no `longtask` entries: the 50 ms check only runs where the browser reports them.
     const hasLongTasks = await page.evaluate(() => {

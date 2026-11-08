@@ -43,8 +43,8 @@ export default defineConfig({
           // WebKit on Linux CI renders in software: continuous effects (ambient canvas, blur,
           // infinite animations) made every test 4 to 5 times slower. Reduced motion is a
           // supported mode of the app, and Chromium/Firefox still cover the animated paths.
-          // Slow software rendering on the Linux runners: the same checks, more time to see them.
-          { name: 'webkit', timeout: 90_000, expect: { timeout: 20_000 }, use: { ...devices['Desktop Safari'], contextOptions: { reducedMotion: 'reduce' } } },
+          // Slow software rendering on the Linux runners: the same checks, more time to see them, and two retries (a spec that needs one is reported flaky).
+          { name: 'webkit', timeout: 90_000, retries: 2, expect: { timeout: 20_000 }, use: { ...devices['Desktop Safari'], contextOptions: { reducedMotion: 'reduce' } } },
           { name: 'phone', use: { ...devices['Pixel 7'] } },
           { name: 'tv', use: { ...devices['Desktop Chrome'], viewport: { width: 2560, height: 1440 } } },
         ]

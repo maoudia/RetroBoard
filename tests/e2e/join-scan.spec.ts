@@ -28,7 +28,8 @@ async function fakeCamera(page: Page, payload: string | string[], camera: 'ok' |
 test.describe('scan a QR code to join (change short-links-and-join)', () => {
   test.skip(({ isMobile }) => isMobile, 'the camera dialog is checked on desktop with a fake camera')
 
-  test('the camera reads the invitation QR code and opens the board; the camera is released', async ({ page, browser }) => {
+  test('the camera reads the invitation QR code and opens the board; the camera is released', async ({ page, browser, browserName }) => {
+    test.skip(browserName === 'webkit' && !!process.env.CI, 'WebKit on the Linux runners has no camera to fake')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
     const link = await page.getByTestId('share-url').inputValue()
 
