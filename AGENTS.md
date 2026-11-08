@@ -41,7 +41,7 @@ Rules:
 - **Work in progress is capped**: `pnpm wip` (part of `pnpm verify`) counts changes with some tasks ticked and some open and fails above the ceiling in `quality/wip-baseline.json`. The ceiling only goes down (target 3). Finish or split a change before starting another; lower the ceiling when the count drops.
 - Implement **one task group per PR**. Tick tasks in `tasks.md` as you finish them.
 - If the code must diverge from the spec, update the spec delta in the same PR and say why.
-- PR body must contain `Change: <change-name>` (spec gate). Docs or dependency-only PRs use the `no-spec` label.
+- **Every feature has an OpenSpec change**: a `feat`, `fix`, `perf` or breaking pull request must name it (`Change: <change-name>` in the body, the change open or archived) and the `no-spec` label does not apply to it (spec gate, `scripts/ci/spec-gate.mjs`). Only pull requests that change no behaviour (`docs`, `test`, `build`, `ci`, `chore`, `style`, `refactor`, `revert`, dependency updates) may use the `no-spec` label. No idea is implemented before its proposal exists: `/opsx:propose` first.
 
 ## Commands
 

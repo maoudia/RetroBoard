@@ -19,3 +19,6 @@ allure-results/
 
 # The user guide tour (pnpm docs:tour)
 .guide-tmp/
+
+# Agent worktrees
+.claude/worktrees/

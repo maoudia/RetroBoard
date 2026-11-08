@@ -9,7 +9,7 @@ Use this to put code in the right place, respect the hard constraints and prove 
 
 ## 0. Start from a spec
 
-1. Find the change: `npx openspec list`, `npx openspec show <change>`. No change? Propose one first (`/opsx:propose` or `/opsx-propose`). Bug fixes that do not change specified behaviour may skip specs (`no-spec` label).
+1. Find the change: `npx openspec list`, `npx openspec show <change>`. No change? Propose one first (`/opsx:propose` or `/opsx-propose`): every feature, fix and performance change has an OpenSpec change, and the pull request names it (`Change: <name>` in the body); the spec gate refuses `feat`, `fix`, `perf` and breaking pull requests without one, and the `no-spec` label does not apply to them. Only pull requests that change no behaviour (`docs`, `test`, `build`, `ci`, `chore`, `style`, `refactor`, `revert`, dependency updates) may carry `no-spec`.
 2. Work one task group at a time from `openspec/changes/<change>/tasks.md`. Tick tasks when verified.
 3. If reality contradicts the spec, update the spec delta in the same PR and explain why.
 
@@ -80,6 +80,10 @@ Also check:
 - fr and en keys present; long strings do not overflow at 360 px.
 - Reduced motion respected for any animation.
 - Free-plan budget note in the proposal if relay traffic changes.
+
+## 5a. Verify locally first, CI confirms
+
+Do the maximum on the local machine before pushing, then let CI confirm: `pnpm prepush` (verify, generate, bundle budget, commit check, core e2e, mutation of the changed files) must be green on the exact commit you push, plus the e2e of the flows you touched (`pnpm exec playwright test tests/e2e/<spec>`; for the guide `pnpm docs:tour`) and, for CI or workflow changes, `actionlint` and `zizmor`. Check exit codes (do not pipe `pnpm verify` into `tail`). A red CI after a green local run is a finding about the environment, not a reason to push untested. The WebRTC specs of the core gate cannot pass on a laptop: `pnpm e2e:core` skips them locally with a notice and CI runs them.
 
 ## 5b. Commits and releases (ADR-0025)
 
