@@ -71,6 +71,7 @@ onBeforeUnmount(() => host.stop())
 <template>
   <BaseDialog v-model:open="open" :title="t('share.title')" width="520px">
     <p class="muted">{{ t('share.intro') }}</p>
+    <p class="guide-line"><GuideLink chapter="invite" step="share" label="learn" /></p>
     <ol class="how" data-testid="share-how">
       <li><Icon name="lucide:qr-code" /> {{ t('share.how.scan') }}</li>
       <li><Icon name="lucide:link" /> {{ t('share.how.link') }}</li>

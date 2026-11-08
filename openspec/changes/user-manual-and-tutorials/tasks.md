@@ -17,7 +17,8 @@
 
 ## 4. Access from the app
 
-- [ ] 4.1 "User guide" link in the Help dialog and contextual links (language aware, opens the matching chapter); fr and en keys; verify e2e and axe
+- [x] 4.1 "User guide" link in the Help dialog and contextual links (language aware, opens the matching chapter); fr and en keys; verify e2e and axe
+- [x] 4.2 Guide badge on the landing page and in its footer, and contextual links in the share panel, the agenda panel and the options dialog; verify e2e and axe
 
 ## 5. Tutorial video
 

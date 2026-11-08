@@ -141,6 +141,7 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
         </button>
         <span class="total mono muted" :title="t('agenda.total', { planned: `${minutes(clock.totalPlannedMs)} min`, elapsed: spent(clock.totalElapsedMs) })">{{ spent(clock.totalElapsedMs) }} / {{ minutes(clock.totalPlannedMs) }} min</span>
       </div>
+      <p class="guide-line"><GuideLink chapter="agenda" step="panel" label="learn" /></p>
     </div>
   </Dropdown>
   <!-- Start or pause from the clock itself (facilitator-controls-v2): pausing stops the phase clock too. -->
