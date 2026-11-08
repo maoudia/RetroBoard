@@ -12,8 +12,8 @@
 
 ## 3. Freshness and agent rules
 
-- [ ] 3.1 `pnpm docs:check` (anchors, bilingual text, image references, manifest hash) added to `pnpm verify`; verify unit tests with a renamed anchor and a missing step
-- [ ] 3.2 `AGENTS.md` definition of done, `retroboard-stack` skill (and its `.opencode` copy) and the PR template line: regenerate the guide when user-facing behaviour changes; verify `pnpm docs:check` and the openspec validation
+- [x] 3.1 `pnpm docs:check` (anchors, bilingual text, image references, manifest hash) added to `pnpm verify`; verify unit tests with a renamed anchor and a missing step
+- [x] 3.2 `AGENTS.md` definition of done, `retroboard-stack` skill (and its `.opencode` copy) and the PR template line: regenerate the guide when user-facing behaviour changes; verify `pnpm docs:check` and the openspec validation
 
 ## 4. Access from the app
 

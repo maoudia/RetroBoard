@@ -180,23 +180,29 @@ const read = (p) => readFileSync(p, 'utf8')
 const sha = (s) => createHash('sha256').update(s).digest('hex').slice(0, 12)
 
 /** What guide.json records: the manifest hash and a hash of the sources, so a check can tell the pages are stale. */
-export function guideInfo(sources) {
-  return { manifest: manifestHash(), sources: sha(JSON.stringify(sources)), chapters: CHAPTERS.map((c) => c.id), locales: LOCALES }
+export function guideInfo(sources, chapters = CHAPTERS) {
+  return { manifest: manifestHash(chapters), sources: sha(JSON.stringify(sources)), chapters: chapters.map((c) => c.id), locales: LOCALES }
+}
+
+/** The Markdown sources of the guide, keyed "<locale>/index" and "<locale>/<chapter>". Throws on a missing file. */
+export function readSources(src = SRC) {
+  const sources = {}
+  for (const locale of LOCALES) {
+    for (const name of ['index', ...CHAPTERS.map((c) => c.id)]) {
+      const file = join(src, locale, `${name}.md`)
+      if (!existsSync(file)) throw new Error(`missing guide text: ${file}`)
+      sources[`${locale}/${name}`] = read(file)
+    }
+  }
+  return sources
 }
 
 export function build(out = OUT) {
-  const sources = {}
+  const sources = readSources()
   for (const locale of LOCALES) {
     mkdirSync(join(out, locale), { recursive: true })
-    const idx = join(SRC, locale, 'index.md')
-    sources[`${locale}/index`] = read(idx)
     writeFileSync(join(out, locale, 'index.html'), indexPage(locale, sources[`${locale}/index`]))
-    for (const chapter of CHAPTERS) {
-      const file = join(SRC, locale, `${chapter.id}.md`)
-      if (!existsSync(file)) throw new Error(`missing guide text: ${file}`)
-      sources[`${locale}/${chapter.id}`] = read(file)
-      writeFileSync(join(out, locale, `${chapter.id}.html`), chapterPage(locale, chapter, sources[`${locale}/${chapter.id}`]))
-    }
+    for (const chapter of CHAPTERS) writeFileSync(join(out, locale, `${chapter.id}.html`), chapterPage(locale, chapter, sources[`${locale}/${chapter.id}`]))
   }
   writeFileSync(join(out, 'guide.css'), css())
   writeFileSync(join(out, 'guide.js'), script())
