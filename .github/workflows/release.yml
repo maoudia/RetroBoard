@@ -59,8 +59,8 @@ jobs:
           echo "main commit under test: $sha"
           ok=true
           for name in Checks Quality; do
-            result=$(gh api "repos/$REPO/actions/runs?head_sha=$sha&event=push&per_page=50" \
-              --jq "[.workflow_runs[] | select(.name == \"$name\")] | sort_by(.created_at) | last | (.status + \"/\" + (.conclusion // \"none\"))")
+            result=$(gh api "repos/$REPO/actions/runs?head_sha=$sha&branch=main&per_page=50" \
+              --jq "[.workflow_runs[] | select(.name == \"$name\" and (.event == \"push\" or .event == \"workflow_dispatch\"))] | sort_by(.created_at) | last | (.status + \"/\" + (.conclusion // \"none\"))")
             echo "$name: ${result:-missing}"
             [[ "$result" == "completed/success" ]] || ok=false
           done

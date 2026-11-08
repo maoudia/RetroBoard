@@ -11,15 +11,20 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: agent-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   automerge:
     name: Enable auto-merge
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 60
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - name: Enable auto-merge when every commit is Claude's
         env:
@@ -30,3 +35,15 @@ jobs:
           others=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --paginate --jq '[.[] | select(.commit.author.email != "noreply@anthropic.com")] | length')
           if [ "$others" != "0" ]; then echo "::notice::$others commit(s) are not authored by Claude: a human merges this pull request"; exit 0; fi
           gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --rebase
+          # A push made with the Actions token starts no workflow, so the checks of main would never run on this merge:
+          # wait for it, then start them by hand (the Release and Deploy gates accept a dispatched run on main).
+          for _ in $(seq 1 100); do
+            state=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json state --jq .state)
+            [ "$state" = MERGED ] && break
+            [ "$state" = CLOSED ] && exit 0
+            sleep 30
+          done
+          [ "$state" = MERGED ] || { echo "::notice::not merged after 50 minutes, nothing to start"; exit 0; }
+          for wf in checks.yml quality.yml security.yml adr.yml; do
+            gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref main
+          done
