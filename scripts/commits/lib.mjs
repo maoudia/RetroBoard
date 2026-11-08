@@ -22,6 +22,15 @@ export function checkMessage(message) {
   return problems
 }
 
+/**
+ * This project is fully agentic: a commit has one author (Claude <noreply@anthropic.com>) and no co-author. GitHub adds a
+ * Co-authored-by trailer for bots on squash merges (release-please, Dependabot): those are not written by anybody and stay allowed.
+ */
+export function checkTrailers(message) {
+  const bad = String(message).split('\n').filter((l) => /^co-authored-by:/i.test(l.trim()) && !/\[bot\]/i.test(l))
+  return bad.map((l) => `"${l.trim()}": no co-author trailers (one author only: Claude <noreply@anthropic.com>)`)
+}
+
 /** Bump a version from the commit messages, mirroring the release rules (used to explain a release). */
 export function bumpFor(messages) {
   let level = 'none'
