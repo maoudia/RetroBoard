@@ -7,8 +7,8 @@
 
 ## 2. Guide generation
 
-- [ ] 2.1 Chapter sources in `docs/user-guide/fr` and `docs/user-guide/en` and the static page generator (design tokens CSS, language and variant switch loaded from `'self'`, alt text from captions); verify the pages load under the strict CSP with no console error
-- [ ] 2.2 Accessibility and size: axe on every guide page, image and total size caps, `pnpm size` unchanged for the entry bundle; verify e2e and `pnpm size`
+- [x] 2.1 Chapter sources in `docs/user-guide/fr` and `docs/user-guide/en` and the static page generator (design tokens CSS, language and variant switch loaded from `'self'`, alt text from captions); verify the pages load under the strict CSP with no console error
+- [x] 2.2 Accessibility and size: axe on every guide page, image and total size caps, `pnpm size` unchanged for the entry bundle; verify e2e and `pnpm size`
 
 ## 3. Freshness and agent rules
 

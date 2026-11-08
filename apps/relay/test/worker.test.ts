@@ -107,6 +107,9 @@ describe('error responses', () => {
     expect(isUnknownAppPath('/boards', html)).toBe(false)
     expect(isUnknownAppPath('/board', html)).toBe(false)
     expect(isUnknownAppPath('/nwe', html)).toBe(true)
+    expect(isUnknownAppPath('/guide/en/create.html', html)).toBe(false)
+    expect(isUnknownAppPath('/guide/', html)).toBe(false)
+    expect(isUnknownAppPath('/guidebook', html)).toBe(true)
     expect(isUnknownAppPath('/robots.txt', new Response('x', { headers: { 'content-type': 'text/plain' } }))).toBe(false)
   })
   it('sends html to browsers and text to scripts with the same status', async () => {

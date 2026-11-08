@@ -89,6 +89,15 @@ Also check:
 - Never edit `package.json` version, `CHANGELOG.md` or `.release-please-manifest.json`, never tag by hand. The Release workflow merges the release PR, tags, publishes the GitHub Release and the `ghcr.io/maoudia/retroboard` image once `Checks` and `Quality` are green on main.
 - PR titles use the same format (squash merge uses the title).
 
+## 5c. Work in parallel (worktrees)
+
+Never wait on one checkout when work is independent (task groups with no dependency, a fix next to a feature, a CI repair next to a refactor):
+
+- One git worktree per branch: `git worktree add ../RetroBoard-<topic> -b <branch> origin/main`, then `pnpm install` there (the pnpm store is shared, it takes seconds). Each worktree has its own `node_modules`, `.output` and `reports/`, so a verify, an e2e run or a mutation run in one never disturbs another. Give each its own dev server port (`E2E_PORT=88NN pnpm e2e:core`, `playwright.docs.config.ts` reads it too). Open the pull request from the worktree and `git worktree remove ../RetroBoard-<topic>` once it merged.
+- With Claude Code, hand each independent group to its own agent with `isolation: "worktree"` (or a fork), one group per agent, and keep the plan and the merging in the main session. Never two agents in the same checkout. Groups that depend on each other (a generator and its check) stay sequential.
+- Run the slow commands in the background (`pnpm verify`, `pnpm prepush`, e2e, `pnpm mutation:changed`) and start the next task while they run; wait with one polling loop, not with repeated sleeps. One pull request per group, as always (`.github/workflows/agent-automerge.yml` merges them).
+- The WIP ceiling (`quality/wip-baseline.json`) still counts changes, not worktrees: parallel work is for task groups of the same or already started changes.
+
 ## 6. Pitfalls already met in this repo
 
 - Vue static hoisting turned constant `:style` into `style="..."` attributes blocked by CSP: keep `vue.compilerOptions.hoistStatic: false`.

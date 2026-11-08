@@ -8,6 +8,8 @@ export function normalizePath(pathname: string): string {
 /** True when the asset layer answered with the SPA shell for a path that is not an app route. */
 export function isUnknownAppPath(pathname: string, response: Response): boolean {
   if (!(response.headers.get('content-type') ?? '').includes('text/html')) return false
+  // The static user guide (pages generated into /guide/) is HTML that is not an app route.
+  if (pathname.startsWith('/guide/')) return false
   return !APP_ROUTES.has(normalizePath(pathname))
 }
 

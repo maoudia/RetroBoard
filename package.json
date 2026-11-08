@@ -39,7 +39,8 @@
     "prepush": "node scripts/quality/prepush.mjs",
     "adr:check": "node scripts/adr/check.mjs && markdownlint-cli2 \"docs/adr/*.md\"",
     "commits:check": "node scripts/commits/check.mjs",
-    "docs:tour": "node scripts/docs/tour.mjs"
+    "docs:tour": "node scripts/docs/tour.mjs",
+    "docs:guide": "node scripts/docs/guide.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
