@@ -2,17 +2,11 @@
 
 Design: ADR-0030.
 
-## Today (Workers Builds, gated by the ruleset)
+## Today
 
-- Cloudflare Workers Builds deploys every push to `main` (build `pnpm generate`, deploy `npx wrangler deploy`), whatever
-  the result of the checks: main only receives commits that passed the required checks (ruleset in
-  `docs/runbooks/repo-settings.md`), so the deploy is gated. This is the setup in use; the CI deploy below is optional.
-- `.github/workflows/post-deploy.yml` waits for the Cloudflare build of each commit, smoke tests `PROD_URL` and opens an
-  urgent issue when production fails. Rollback stays manual (dashboard or `wrangler rollback`).
-- Cloudflare builds non-production branches too; that check (`Workers Builds: retroboard`) is not required and fails on
-  pull requests. Switch it off in Settings > Builds > Branch control if the noise bothers you.
-- Smoke tests: `.github/workflows/smoke.yml` runs every 6 hours and on demand against the `PROD_URL` repository
-  variable (`node scripts/smoke.mjs <url>` locally).
+The Cloudflare Workers Builds Git integration is switched off (2026-11-08): production is deployed by
+`.github/workflows/deploy.yml` only, from a green main commit. **Until the secrets below exist, nothing deploys.**
+Smoke tests also run every 6 hours (`.github/workflows/smoke.yml`, `PROD_URL` is set).
 
 ## Switch on the gated deploy from CI
 
@@ -21,10 +15,9 @@ production, and rolls back by itself when the smoke test fails. `.github/workflo
 version of each pull request and comments its URL. Both are dormant until you do this, once:
 
 1. Create a Cloudflare API token with "Workers Scripts: Edit" (and "Account: Read") for this account.
-2. Repository secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Repository variable `PROD_URL`
-   (for example `https://retroboard.maoudia.com`). Both live in the `production` environment too if you add required
+2. Repository secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (`PROD_URL` is already set). Both live in the `production` environment too if you add required
    reviewers there.
-3. In Cloudflare, Workers > retroboard > Settings > Builds: disconnect the Git repository, or every push deploys twice.
+3. Cloudflare Workers Builds is already off (do not turn it on again: every push would deploy twice).
 4. Set the repository variable `CLOUDFLARE_DEPLOY` to `true`.
 
 ## Rollback
