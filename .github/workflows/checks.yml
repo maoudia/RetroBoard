@@ -139,21 +139,18 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: PR names an OpenSpec change or carries no-spec
+      - name: Every feature, fix or performance change names its OpenSpec change
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
-          # Read the labels and the body now, not from the event: a label added right after the pull request opened
-          # (gh pr create --label) is not in the payload of the run that the opening started.
+          # Read title, labels and body now, not from the event: a label or an edit made right after the pull request
+          # opened is not in the payload of the run that the opening started.
+          TITLE=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json title --jq .title)
           BODY=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json body --jq .body)
           LABELS=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json labels --jq '[.labels[].name] | join(",")')
-          if echo ",$LABELS," | grep -q ",no-spec,"; then echo "no-spec label: skipped"; exit 0; fi
-          change=$(printf '%s' "$BODY" | grep -oE 'Change: *[a-z0-9-]+' | head -1 | sed 's/Change: *//')
-          if [ -z "$change" ]; then echo "::error::Add 'Change: <openspec-change>' to the PR body, or the no-spec label."; exit 1; fi
-          if [ -d "openspec/changes/$change" ]; then pnpm exec openspec validate "$change" --strict
-          elif compgen -G "openspec/changes/archive/*-$change" > /dev/null; then echo "Change $change is archived."
-          else echo "::error::Unknown change $change"; exit 1; fi
+          export TITLE BODY LABELS
+          node scripts/ci/spec-gate.mjs
 
   workflows:
     name: Workflow lint (actionlint, zizmor)
