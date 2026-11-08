@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.0](https://github.com/maoudia/RetroBoard/compare/v1.49.2...v1.50.0) (2026-11-08)
+
+
+### Features
+
+* **quality:** mutation testing in the Allure report; spec gate reads live labels ([#488](https://github.com/maoudia/RetroBoard/issues/488)) ([8a03c99](https://github.com/maoudia/RetroBoard/commit/8a03c990846cd3d2b9f5d51fd8e7dc600cb6f099))
+
 ## [1.49.2](https://github.com/maoudia/RetroBoard/compare/v1.49.1...v1.49.2) (2026-11-07)
 
 
