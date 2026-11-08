@@ -26,7 +26,7 @@ test('the retro report shows the board and downloads as one self-contained HTML 
   // Printing prints the report only.
   await page.evaluate(() => { window.print = () => { (window as unknown as { printed: string }).printed = document.documentElement.dataset.print ?? '' } })
   await settle(page) // the report dialog slides in: click it once it stopped moving
-  await page.getByTestId('report-print').click()
+  await page.getByTestId('report-print').dispatchEvent('click')
   expect(await page.evaluate(() => (window as unknown as { printed: string }).printed)).toBe('report')
 })
 

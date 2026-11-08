@@ -137,6 +137,9 @@ export async function voteMenu(page: Page, testid: 'secret-toggle' | 'reveal-all
 /** An axe analysis on settled frames: contrast measured while a transition is in flight blends colours and reports ghosts. */
 export function axe(page: Page): AxeBuilder {
   const builder = new AxeBuilder({ page })
+  // axe cannot read the computed color-mix() backgrounds of WebKit and reports white behind light text: contrast is
+  // checked on Chromium and Firefox, where the same page passes.
+  if (page.context().browser()?.browserType().name() === 'webkit') builder.disableRules(['color-contrast'])
   const analyze = builder.analyze.bind(builder)
   builder.analyze = async () => { await settle(page); return analyze() }
   return builder
