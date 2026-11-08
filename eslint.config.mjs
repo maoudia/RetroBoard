@@ -1,7 +1,7 @@
 import withNuxt from './apps/web/.nuxt/eslint.config.mjs'
 
 export default withNuxt(
-  { ignores: ['apps/relay/worker-configuration.d.ts', '**/.nuxt/**', '**/.output/**', '.output/**', 'playwright-report/**', 'test-results/**'] },
+  { ignores: ['apps/relay/worker-configuration.d.ts', '**/.nuxt/**', '**/.output/**', '.output/**', 'playwright-report/**', 'test-results/**', '.claude/worktrees/**'] },
   {
     rules: {
       'vue/multi-word-component-names': 'off',
