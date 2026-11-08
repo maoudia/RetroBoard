@@ -1,0 +1,32 @@
+name: Agent auto-merge
+
+# A pull request whose commits are all authored by Claude <noreply@anthropic.com> merges by itself once the required checks pass.
+# The bot (not the maintainer's account) enables auto-merge, so the merge is recorded as the bot's: a Claude commit never
+# carries the maintainer's identity. Pull requests with any other author (the maintainer, a contributor) are left to a human.
+# Rebase merge keeps the commits and their authors as they are (a squash commit would be authored by the merging account).
+on:
+  # zizmor: pull_request_target is needed for a write token; nothing of the pull request is checked out or run.
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions: {}
+
+jobs:
+  automerge:
+    name: Enable auto-merge
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Enable auto-merge when every commit is Claude's
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          others=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --paginate --jq '[.[] | select(.commit.author.email != "noreply@anthropic.com")] | length')
+          if [ "$others" != "0" ]; then echo "::notice::$others commit(s) are not authored by Claude: a human merges this pull request"; exit 0; fi
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --rebase
