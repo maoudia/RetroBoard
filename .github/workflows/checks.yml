@@ -156,13 +156,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The actionlint wheel downloads a binary from GitHub releases, which answers 5xx now and then: retry.
+      # actionlint comes from the Go module proxy (the PyPI wheel downloads a binary from GitHub releases, which answered
+      # 504 for hours), zizmor from PyPI. Both are retried.
       - name: Install actionlint and zizmor
         run: |
           for attempt in 1 2 3 4; do
-            pipx install actionlint-py && pipx install zizmor && exit 0
+            go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 && pipx install zizmor && exit 0
             echo "attempt $attempt failed, retrying"; sleep $((attempt * 15))
           done
           exit 1
+      - run: echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - run: actionlint
       - run: zizmor --offline .github/workflows
