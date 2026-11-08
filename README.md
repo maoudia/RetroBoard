@@ -26,6 +26,7 @@
 
 <p align="center">
   <b>Project</b><br>
+  <a href="https://retroboard.maoudia.com/guide/en/"><img alt="User guide" src="https://img.shields.io/badge/user%20guide-EN%20%7C%20FR-0066cc?labelColor=1d1d1f&style=flat-square&logo=gitbook&logoColor=white"></a>
   <a href="https://github.com/maoudia/RetroBoard/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/maoudia/RetroBoard?display_name=tag&labelColor=1d1d1f&style=flat-square&logo=github"></a>
   <a href="https://github.com/maoudia/RetroBoard/pkgs/container/retroboard"><img alt="Container image" src="https://img.shields.io/badge/ghcr.io-maoudia%2Fretroboard-2496ED?labelColor=1d1d1f&style=flat-square&logo=docker&logoColor=white"></a>
   <a href="https://github.com/maoudia/RetroBoard/blob/main/LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue?labelColor=1d1d1f&style=flat-square"></a>
@@ -38,7 +39,9 @@
 </p>
 
 Real-time, account-free retrospective boards. One link, and the team is in.
-Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 themes (professional and seasonal), English and French.
+Private drafts, votes, groups, a shared agenda with timer, presenter mode, chat, action plan, retro report, 13 retro formats, 9 themes (professional and seasonal), English and French.
+
+**[User guide](https://retroboard.maoudia.com/guide/en/)** (illustrated, [en](https://retroboard.maoudia.com/guide/en/) and [fr](https://retroboard.maoudia.com/guide/fr/), generated from the real app) - [Quality reports](https://maoudia.github.io/RetroBoard/) - [Self-hosting](docs/self-hosting.md)
 
 > A static Nuxt site served by a Cloudflare Worker. Boards are end-to-end encrypted; the relay is a memory-only Durable Object that forwards ciphertext and stores nothing.
 
@@ -48,24 +51,31 @@ Private drafts, votes, groups, shared timer, action plan, 13 retro formats, 9 th
 - Roadmap (release milestones R1 to R4, GitHub project): [docs/roadmap.md](docs/roadmap.md); decisions: [docs/adr](docs/adr/README.md)
 - Quality reports for every commit on main (the Allure test report with history, plus coverage and mutation score): [maoudia.github.io/RetroBoard](https://maoudia.github.io/RetroBoard/), see [docs/quality.md](docs/quality.md)
 - Specs and planned changes ([OpenSpec](https://www.npmjs.com/package/@fission-ai/openspec)): `openspec/specs`, `openspec/changes`
-- Agent instructions: [AGENTS.md](AGENTS.md), skill `.claude/skills/retroboard-stack`
+- Every feature, fix and performance change has an OpenSpec change (`Change: <name>` in the pull request; the spec gate refuses the rest), everything is verified locally first (`pnpm prepush`), and the guide and docs move with the code
+- Agent instructions: [AGENTS.md](AGENTS.md), skill `.claude/skills/retroboard-stack` (commits are authored by Claude only, work goes through pull requests merged by a bot, in parallel git worktrees)
 - Claude Code: `/opsx:propose`, `/opsx:apply`, `/opsx:archive`. OpenCode: `/opsx-propose`, `/opsx-apply`, `/opsx-archive`.
 
 ## Features
 
 | | |
 |---|---|
-| Real time | Every note, vote, move and column change reaches everyone over a WebSocket (hibernation API, auto ping/pong). |
-| Private drafts | Notes stay in your browser until you publish them, with a "flight" animation. |
-| Groups | Drag a note onto another to stack it (folded corner, panel with title, dissolve, ungroup). |
-| Votes | Per-person limit, optional secret voting (counters hidden by the server, not just the UI). |
-| Columns | Add, rename (title, subtitle, icon), reorder, delete. |
-| Formats | 13 templates and a suggestion wizard (goal, team mood, time, season). |
-| Themes | 5 pro (Studio, Corporate, Slate, Paper, Minimal) and 4 fun (Halloween, Noel, Cyber, Sakura). Tokens, fonts, motion and ambient effects per theme. |
-| Profile | Local only: name, avatar, language, "my theme" override, density, reduced motion, sound, recent boards. |
-| Export | Markdown, copy as Markdown, CSV (formula-injection safe), JSON. |
-| i18n | English and French, auto-detected, switchable. Formats are created in the language of the person who creates the board. |
-| Timer, actions | Shared countdown with celebration, action plan with owners. |
+| Real time | Every note, vote, move and column change reaches everyone: board events travel peer to peer (WebRTC) with the relay as fallback, over an encrypted WebSocket. |
+| End-to-end encryption | The key is in the link after `#`; events are signed (Ed25519) and sealed (AES-GCM). An optional passcode adds a second factor. Nothing is stored on a server. |
+| Private drafts | Notes stay in your browser until you publish them, with a "flight" animation and a few seconds to undo a publication. |
+| Groups, undo | Drag a note onto another to stack it (title, dissolve, ungroup); undo, redo and a facilitator history with restore. |
+| Votes | Per-person and per-item limits, votable notes or clusters, optional secret voting (counts stay hidden until the facilitator closes voting), ranking and results charts. |
+| Agenda and timer | Phases with a timed activity ring, chained phases, a shared countdown, and the rules each phase allows. |
+| Presenter mode | One column in focus for the room screen, a laser pointer, spotlight on a note, QR code to join. |
+| Roles | Everyone facilitates by default, or one facilitator with delegation; the facilitator can lock the board and change who animates. |
+| Chat, presence | A board chat, who is typing and where, live pointers, join and leave notices. |
+| Actions | An action plan with owners, due dates and a status workflow, created from votes, carried over from the previous retro. |
+| Retro report | Podium, ideas by column, insights, talk time and ROTI, as one self-contained HTML file (optionally encrypted by a passphrase), plus Markdown, CSV (formula-injection safe) and JSON. |
+| Formats and themes | 13 formats with a suggestion wizard; 5 pro themes (Studio, Corporate, Slate, Paper, Minimal) and 4 fun ones (Halloween, Noel, Cyber, Sakura) with tokens, fonts and motion; each person picks light or dark. |
+| Joining | Link, QR code or a short code typed on the home page; a QR scanner on the home page. |
+| Local profile and teams | Name, avatar, language, display options and recent boards, and local team workspaces, all on your device. |
+| Browser agents | WebMCP tools let an agent in the browser read the board and draft, with your confirmation ([docs/webmcp.md](docs/webmcp.md)). |
+| i18n, accessibility | English and French, auto-detected; WCAG 2.2 AA checked with axe on every theme ([docs/accessibility.md](docs/accessibility.md)). |
+| Self-hosting | A signed container image with its SBOM ([docs/self-hosting.md](docs/self-hosting.md)). |
 
 ## Architecture
 
@@ -87,6 +97,7 @@ Browser (Nuxt SPA, generated)                 Cloudflare
    runs in every browser                     +--------------------------------+
 ```
 
+- **Peer to peer first**: board events and cursors travel directly between browsers when WebRTC links open; the relay carries signalling, presence and the fallback path, never plaintext.
 - **Functional core**: `packages/domain` has no I/O. Every browser folds the same signed event log with `reduce(state, command, actor, ctx)`; the relay never sees plaintext.
 - **No server-side storage**: the board lives on the participants' devices (encrypted IndexedDB replica, retention setting) and in `.retro` board files. When everyone has left, the relay forgets the room.
 - **Ports and adapters**: replica store, transport, signing and files are interfaces with swappable adapters.
@@ -111,23 +122,21 @@ pnpm dev          # http://localhost:3000
 ## Quality
 
 ```bash
-pnpm lint
-pnpm typecheck    # vue-tsc (app) + tsc (worker)
-pnpm test             # Vitest: reducer, snapshots, schemas, templates, themes, i18n, worker
-pnpm e2e          # Playwright against `wrangler dev` (multi-user, drag and drop, CSP, i18n)
+pnpm verify        # lint, typecheck, architecture rules, duplication, unused code, ADRs, WIP ceiling, guide check, unit tests, OpenSpec
+pnpm prepush       # the whole local gate before any push: verify, generate, bundle budget, commits, core e2e, mutation of the changed files
+pnpm e2e:core      # the push gate: core specs against `wrangler dev` (the WebRTC ones are skipped on a laptop, CI runs them)
+pnpm e2e           # the full suite, every spec; nightly on every browser (Chromium, Firefox, WebKit, phone, TV)
+pnpm mutation:changed   # Stryker on the files you changed; every package is at 100% and any survivor fails the build
+pnpm docs:tour && pnpm docs:guide   # regenerate the user guide from the real app
 ```
 
-CI (`.github/workflows/ci.yml`) runs all of the above plus a Worker bundle dry run, and deploys `main` when Cloudflare credentials are configured.
+Everything is verified on your machine first; CI confirms. Workflows (`.github/workflows/`): `checks.yml` (lint, types, architecture, unit with coverage ratchets, build, spec gate, commit check), `e2e.yml` (pull request gate), `quality.yml` (every commit on main: full e2e, mutation in parallel shards, the [Allure report](https://maoudia.github.io/RetroBoard/) on GitHub Pages), `security.yml` (CodeQL, dependency review, OSV), `nightly.yml` (every browser and viewport), `scorecard.yml`, `release.yml` (automatic semantic releases and the signed image), `deploy.yml`, and the agent workflows. `main` is protected: pull requests only, merged by a bot once the required checks pass. See [docs/quality.md](docs/quality.md).
 
 ## Deploy
 
-**Option A - GitHub Actions.** Add the repository secrets `CLOUDFLARE_API_TOKEN` (permission "Workers Scripts: Edit") and `CLOUDFLARE_ACCOUNT_ID`. Every push to `main` that passes CI is deployed.
+Production is deployed by `.github/workflows/deploy.yml`: after Checks and Quality are green on the head of `main` it deploys with Wrangler, smoke tests the site and rolls back if the smoke test fails. It needs the secrets `CLOUDFLARE_API_TOKEN` (permission "Workers Scripts: Edit") and `CLOUDFLARE_ACCOUNT_ID` and the variable `CLOUDFLARE_DEPLOY=true`; see [docs/runbooks/deploy.md](docs/runbooks/deploy.md). By hand: `pnpm run deploy`.
 
-**Option B - Workers Builds (Cloudflare dashboard).** Connect the repository, build command `pnpm generate`, deploy command `npx wrangler deploy`.
-
-**Option C - by hand.** `pnpm run deploy`.
-
-The Worker is named `retroboard` (`wrangler.jsonc`). Why a Worker and not Pages: Durable Objects with WebSockets and per-response security headers live in the same deployable unit as the static assets.
+The Worker is named `retroboard` (`wrangler.jsonc`). Why a Worker and not Pages: Durable Objects with WebSockets and per-response security headers live in the same deployable unit as the static assets. Releases are automatic (Conventional Commits, [ADR-0025](docs/adr/0025-automatic-semantic-releases-from-conventional-commits-github.md)); every release publishes a scanned, signed container image with provenance and an SBOM.
 
 ### Observability
 
@@ -137,7 +146,7 @@ The Worker is named `retroboard` (`wrangler.jsonc`). Why a Worker and not Pages:
 
 - Strict CSP, no `unsafe-inline`: inline script hashes are computed after the build (`apps/web/scripts/csp-hashes.mjs`) and read by the Worker. `default-src 'none'`, `frame-ancestors 'none'`, `connect-src 'self'`.
 - WebSocket upgrades only from the site's own origin (plus `ALLOWED_ORIGINS`), room ids validated, message size and rate limits, caps on notes, actions and connections.
-- All commands validated with valibot before reaching the reducer. Only the author can edit or delete a note.
+- All commands validated with valibot before reaching the reducer; every event is signed and checked against the board's roles.
 - No cookies, no third-party requests, fonts self-hosted.
 
 Board links are capability URLs: anyone who has the link can join. Share them accordingly.
@@ -160,18 +169,21 @@ Add `packages/i18n/src/<code>.ts` typed as `Record<keyof typeof fr, string>` (th
 ## Project layout
 
 ```
-apps/web/          Nuxt 4 SPA: pages, components, Pinia view models, adapters, composition root
-apps/relay/        Cloudflare Worker + Room Durable Object, security headers, logger
-packages/domain/   Pure domain by bounded context: ideation, voting, action-tracking, facilitation, catalogue
+apps/web/          Nuxt 4 SPA: pages, components, Pinia view models, adapters, composition root; the generated user guide (public/guide)
+apps/relay/        Cloudflare Worker + Durable Object relay, security headers, logger
+packages/domain/   Pure domain by bounded context: ideation, voting, action-tracking, facilitation, access, presence, catalogue
 packages/application/  Use cases, ports, read models
 packages/protocol/ Wire schemas (valibot)
+packages/crypto/   WebCrypto primitives (keys, sealing, signing)
+packages/sync/     Event log, clocks, mesh and resync
 packages/themes/   Themes, contrast helpers, theme texts
 packages/i18n/     Dictionaries (fr, en), translate
-packages/exporters/    Markdown, CSV, JSON exports
+packages/exporters/    Markdown, CSV, JSON, report and destinations
 packages/testkit/  Test harness shared by package tests
 tests/e2e/         Playwright against wrangler dev
-openspec/          Specs and planned changes
-docs/              Plan, architecture, runbooks
+tests/docs/        The user guide manifest and the tour that photographs it
+openspec/          Specs and changes (one per feature)
+docs/              Plan, architecture, ADRs, runbooks, quality, user guide sources
 ```
 
 ## License
