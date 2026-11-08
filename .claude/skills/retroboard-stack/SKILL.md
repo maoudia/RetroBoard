@@ -98,6 +98,15 @@ Never wait on one checkout when work is independent (task groups with no depende
 - Run the slow commands in the background (`pnpm verify`, `pnpm prepush`, e2e, `pnpm mutation:changed`) and start the next task while they run; wait with one polling loop, not with repeated sleeps. One pull request per group, as always (`.github/workflows/agent-automerge.yml` merges them).
 - The WIP ceiling (`quality/wip-baseline.json`) still counts changes, not worktrees: parallel work is for task groups of the same or already started changes.
 
+## 5d. Keep the documentation and the guide current
+
+The documentation is part of the product and moves with it, in the same pull request as the change, never "later":
+
+- **User-facing behaviour** (a control, a screen, a label, a flow): update the manifest entry in `tests/docs/manifest.ts` (a new feature gets a chapter or a step with its anchors), the French and English text in `docs/user-guide/<fr|en>/<chapter>.md`, then `pnpm docs:tour && pnpm docs:guide` and commit the regenerated pages and pictures under `apps/web/public/guide/`. A renamed `data-testid` that the tour uses fails the tour with the guide step's name: fix the manifest, do not skip the step.
+- **Commands, settings, workflow or architecture**: update `docs/` (`DEVELOPMENT.md`, `quality.md`, runbooks, `architecture.md`), the README when a badge or a command changes, and add or supersede an ADR when a decision changes.
+- **Specs**: tick the task, update the spec delta when the code diverges from it.
+- Before calling a task done, ask: would a new facilitator or a new contributor, reading only the guide and `docs/`, still be right? If not, the task is not done.
+
 ## 6. Pitfalls already met in this repo
 
 - Vue static hoisting turned constant `:style` into `style="..."` attributes blocked by CSP: keep `vue.compilerOptions.hoistStatic: false`.
