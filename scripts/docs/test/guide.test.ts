@@ -66,6 +66,16 @@ describe('guide pages', () => {
     for (const c of CHAPTERS) expect(page).toContain(`href="${c.id}.html"`)
   })
 
+  it('shows the tutorial video on the index page when there is one: captions on a track, loaded only when played, from the same origin', () => {
+    const page = indexPage('en', 'Welcome.', true) as string
+    expect(page).toMatch(/<video controls preload="none"[^>]*src="\.\.\/video\/en\/tutorial\.webm"/)
+    expect(page).toContain('<track kind="captions" src="../video/en/tutorial.vtt" srclang="en" label="English" default>')
+    expect(page).not.toMatch(/\sstyle=|\sautoplay/)
+    expect(indexPage('fr', 'Bienvenue.', true)).toContain('srclang="fr" label="Français" default')
+    expect(indexPage('en', 'Welcome.')).not.toContain('<video')
+    expect(indexPage('en', 'Welcome.', false)).not.toContain('<video')
+  })
+
   it('ships a stylesheet from the design tokens (light, dark and system) and a script that remembers the variant', () => {
     const style = css() as string
     expect(style).toContain('--accent: #0066cc')

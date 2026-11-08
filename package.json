@@ -41,7 +41,9 @@
     "commits:check": "node scripts/commits/check.mjs",
     "docs:tour": "node scripts/docs/tour.mjs",
     "docs:guide": "node scripts/docs/guide.mjs",
-    "docs:check": "node scripts/docs/check.mjs"
+    "docs:check": "node scripts/docs/check.mjs",
+    "docs:video": "node scripts/docs/video.mjs",
+    "docs:voice": "node scripts/docs/voiceover.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

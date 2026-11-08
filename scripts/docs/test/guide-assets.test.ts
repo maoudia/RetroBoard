@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -21,3 +21,16 @@ describe('guide pictures', () => {
     expect(pictures.reduce((n, f) => n + statSync(f).size, 0)).toBeLessThanOrEqual(3 * 1024 * 1024)
   })
 })
+
+describe('guide video', () => {
+  for (const locale of ['fr', 'en']) {
+    it(`${locale}: a WebM of at most 3 MB with its WebVTT captions`, () => {
+      const webm = `apps/web/public/guide/video/${locale}/tutorial.webm`
+      const vtt = `apps/web/public/guide/video/${locale}/tutorial.vtt`
+      expect(existsSync(webm), webm).toBe(true)
+      expect(statSync(webm).size).toBeLessThanOrEqual(3 * 1024 * 1024)
+      expect(readFileSync(vtt, 'utf8').startsWith('WEBVTT\n\n1\n')).toBe(true)
+    })
+  }
+})
+

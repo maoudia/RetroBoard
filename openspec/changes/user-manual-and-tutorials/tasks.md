@@ -22,9 +22,9 @@
 
 ## 5. Tutorial video
 
-- [ ] 5.1 Recorded tour with highlight overlay (test page only) and WebVTT captions in fr and en generated from the manifest; verify the video plays with captions and that no request leaves the origin
-- [ ] 5.2 Optional voice-over script (local engine by default, ElevenLabs as an owner-run option, key from the environment, narration text only) and ffmpeg muxing; verify a dry run without a key still produces the captioned video and never reads board content
-- [ ] 5.3 Owner guide in `docs/` (how to regenerate the guide, record the video, add a voice-over, publish the asset); verify the commands run from a clean checkout
+- [x] 5.1 Recorded tour with highlight overlay (test page only) and WebVTT captions in fr and en generated from the manifest; verify the video plays with captions and that no request leaves the origin
+- [x] 5.2 Optional voice-over script (local engine by default, ElevenLabs as an owner-run option, key from the environment, narration text only) and ffmpeg muxing; verify a dry run without a key still produces the captioned video and never reads board content
+- [x] 5.3 Owner guide in `docs/` (how to regenerate the guide, record the video, add a voice-over, publish the asset); verify the commands run from a clean checkout
 
 ## 6. Decision records
 

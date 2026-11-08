@@ -2,6 +2,8 @@
 
 RetroBoard pins two tool versions that must match across every contributor's machine and CI: Node (`24`) and pnpm (`10.28.0`). This page covers getting them right on macOS, Linux and Windows. For the day-to-day commands (`pnpm verify`, `pnpm e2e`, commit conventions), see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+- User guide and tutorial video: how to regenerate them, record the video and add a voice-over: [user-guide-howto.md](user-guide-howto.md).
+
 ## Option A: mise (recommended)
 
 [mise](https://mise.jdx.dev) reads the project's `.mise.toml` and installs the exact pinned Node and pnpm for you, on any platform.

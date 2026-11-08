@@ -25,6 +25,7 @@ h2 { font-size: var(--fs-xl); margin: var(--sp-6) 0 var(--sp-3); display: flex; 
 .n { display: inline-grid; place-items: center; min-width: 1.8rem; height: 1.8rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-sm); }
 .lead { font-size: var(--fs-lg); color: var(--muted); }
 code { font-family: var(--mono); font-size: .9em; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xs); padding: 0 .3em; }
+.video video { display: block; width: 100%; max-width: 60rem; border-radius: var(--r-card); border: 1px solid var(--border); background: #000; }
 .shot { margin: var(--sp-4) 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--sp-3); }
 .shot img { display: block; max-width: 100%; height: auto; margin: 0 auto; border-radius: var(--r-sm); }
 .shot .dark { display: none; }

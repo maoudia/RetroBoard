@@ -41,7 +41,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const tool = converter()
   if (!tool) { console.error('docs:tour needs cwebp (brew install webp) or an ffmpeg built with libwebp'); process.exit(1) }
   rmSync(SHOTS, { recursive: true, force: true })
-  const run = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'playwright.docs.config.ts', ...extra], { stdio: 'inherit', env: { ...process.env, GUIDE_SHOTS: SHOTS } })
+  const run = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'playwright.docs.config.ts', 'tour.spec', ...extra], { stdio: 'inherit', env: { ...process.env, GUIDE_SHOTS: SHOTS } })
   if (run.status !== 0) process.exit(run.status ?? 1)
   const shots = listShots(SHOTS)
   let bytes = 0
