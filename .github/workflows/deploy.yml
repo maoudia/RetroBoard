@@ -25,7 +25,7 @@ permissions:
 jobs:
   deploy:
     name: Deploy to Cloudflare Workers
-    if: vars.CLOUDFLARE_DEPLOY == 'true' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    if: vars.CLOUDFLARE_DEPLOY == 'true' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -44,8 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           for name in Checks Quality; do
-            result=$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&event=push&per_page=50" \
-              --jq "[.workflow_runs[] | select(.name == \"$name\")] | sort_by(.created_at) | last | (.status + \"/\" + (.conclusion // \"none\"))")
+            result=$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&branch=main&per_page=50" \
+              --jq "[.workflow_runs[] | select(.name == \"$name\" and (.event == \"push\" or .event == \"workflow_dispatch\"))] | sort_by(.created_at) | last | (.status + \"/\" + (.conclusion // \"none\"))")
             echo "$name: ${result:-missing}"
             [[ "$result" == "completed/success" ]] || { echo "::warning::$name is not green for $SHA, not deploying (the $name run shows why)"; echo "stale=true" >> "$GITHUB_OUTPUT"; exit 0; }
           done
