@@ -67,7 +67,7 @@ The repository is a pnpm workspace (apps/*, packages/*); `pnpm arch` checks the 
 - i18n keys in fr and en; pseudo-locale overflow check passes once it exists.
 - No CSP violation, no console error (`tests/e2e` has a guard test).
 - `pnpm verify` green; e2e green for touched flows; `pnpm prepush` green before the push.
-- Docs updated when behaviour or commands change.
+- Docs and guides kept current as the application evolves: when user-facing behaviour changes, update the guide manifest (`tests/docs/manifest.ts`) and the chapter text (`docs/user-guide/<fr|en>/`), regenerate with `pnpm docs:tour && pnpm docs:guide` and commit the result in the same pull request. When a command, a setting or an architecture rule changes, update `docs/` (and an ADR if it changes a decision) in that pull request too. A change is not done while the guide and the docs say something the product no longer does.
 - Commit messages pass `pnpm commits:check`. Release only through the automatic workflow, which waits for a green main.
 
 ## Things agents must not do

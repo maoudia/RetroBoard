@@ -1,6 +1,6 @@
 {
   "path": ["apps", "packages"],
-  "ignore": ["**/node_modules/**", "**/.nuxt/**", "**/.output/**", "**/dist/**", "**/test/**", "**/*.test.ts", "**/i18n/src/**", "**/themes/src/**", "**/worker-configuration.d.ts", "apps/web/public/guide/**"],
+  "ignore": ["**/node_modules/**", "**/.nuxt/**", "**/.output/**", "**/dist/**", "**/test/**", "**/*.test.ts", "**/i18n/src/**", "**/themes/src/**", "**/worker-configuration.d.ts", "**/public/guide/**"],
   "minLines": 6,
   "minTokens": 50,
   "threshold": 1,

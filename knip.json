@@ -22,7 +22,8 @@
       "entry": [
         "app/**/*.{vue,ts}",
         "public/*.js",
-        "scripts/*.mjs"
+        "scripts/*.mjs",
+        "public/guide/*.js"
       ],
       "ignoreDependencies": [
         "@iconify-json/lucide"
