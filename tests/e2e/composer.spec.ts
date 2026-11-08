@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText } from './helpers'
+import { axe, createBoard, join, noteByText, settle } from './helpers'
 
 test.describe('phone', () => {
   test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true })
@@ -112,6 +112,7 @@ test('a new board takes notes of 160 characters; the composer has swatches, a sh
   const bob = bobSide.page
   await col.locator('[data-testid^="compose-colour-toggle-"]').click()
   await col.locator('[data-testid*="compose-color-"][data-testid$="-4"]').click()
+  await settle(page) // the paper colour transitions to the chosen swatch: read it once it arrived
   const paper = await col.locator('label.composer').evaluate((el) => getComputedStyle(el).backgroundColor)
   await col.locator('[data-testid^="compose-publish-"]').click()
   await expect(noteByText(page, 'Vert')).toBeVisible()

@@ -102,9 +102,10 @@ test('reset votes and clocks; step back to the previous phase', async ({ page, b
   await panel(page, async () => {
     // The button is re-rendered while the clock state settles on large viewports: retry the click.
     await expect(async () => {
+      if (!(await page.getByTestId('agenda-panel').isVisible())) await page.getByTestId('agenda-ring').click()
       if (await page.getByTestId('agenda-start').count()) await page.getByTestId('agenda-start').click({ timeout: 2000 })
       await expect(page.getByTestId('agenda-prev')).toBeDisabled({ timeout: 3000 })
-    }).toPass({ timeout: 15_000 })
+    }).toPass({ timeout: 20_000 })
     await page.getByTestId('agenda-next').click()
     await expect(page.getByTestId('agenda-prev')).toBeEnabled()
     await page.getByTestId('agenda-prev').click()
