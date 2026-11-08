@@ -7,7 +7,7 @@ Settings that cannot live in files. Apply once, then keep this list in sync.
 Applied by the maintainer tooling (`gh api repos/maoudia/RetroBoard/rulesets`); keep this list in sync with it.
 
 - Pull request required, no required approval while the project has one maintainer (add 1 approval with a second one).
-  Squash merge only, linear history, branches deleted after merge, auto-merge allowed.
+  Rebase merge for agent pull requests (a squash merge is authored by the GitHub account of whoever merges and adds a `Co-authored-by` trailer, which the one-author rule refuses; squash stays allowed for the release and Dependabot bots), linear history, branches deleted after merge, auto-merge allowed.
 - Required status checks: `Specs, lint, types, architecture, unit`, `Static build, bundle budget, Worker dry run`,
   `Workflow lint (actionlint, zizmor)`, `Conventional Commits`, `Playwright (chromium 1/2)`, `Playwright (chromium 2/2)`,
   `CodeQL`, `Mutants of the changed files`.
