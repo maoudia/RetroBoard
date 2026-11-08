@@ -25,7 +25,8 @@ for (const theme of THEMES) for (const variant of ['light', 'dark'] as const) {
   })
 }
 
-test('the run catches a seeded low-contrast token', async ({ page }) => {
+test('the run catches a seeded low-contrast token', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'axe contrast is switched off on WebKit (it cannot read color-mix backgrounds)')
   await createBoard(page, { theme: 'studio', template: 'start-stop-continue' })
   await publishNote(page, 0, 'Seeded')
   await page.evaluate(() => { for (const el of document.querySelectorAll<HTMLElement>('article.note')) { el.style.setProperty('color', '#d8d8d8', 'important'); el.style.setProperty('background', '#fff', 'important') } }) // CSSOM is allowed under the strict CSP
