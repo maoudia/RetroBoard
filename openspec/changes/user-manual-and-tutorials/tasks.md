@@ -27,4 +27,4 @@
 
 ## 6. Decision records
 
-- [ ] 6.1 ADR "Generated user documentation and optional voice-over" (including the service terms and cost), roadmap entry and issues sync; verify `pnpm adr:check`
+- [x] 6.1 ADR "Generated user documentation and optional voice-over" (including the service terms and cost), roadmap entry and issues sync; verify `pnpm adr:check`

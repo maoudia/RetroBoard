@@ -41,3 +41,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0028](0028-join-a-board-with-a-short-code.md) | Join a board with a short code | accepted | 2026-11-02 |
 | [0029](0029-compact-board-links-with-128-bit-board-keys.md) | Compact board links with 128-bit board keys | accepted | 2026-11-06 |
 | [0030](0030-ci-cd-protected-main-gated-deploy-signed-and-attested-artifa.md) | CI/CD: protected main, gated deploy, signed and attested artifacts | accepted | 2026-11-07 |
+| [0031](0031-generated-user-documentation-and-optional-voice-over.md) | Generated user documentation and optional voice-over | accepted | 2026-11-08 |
