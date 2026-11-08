@@ -35,7 +35,7 @@ closes every gap with the tools already in use and costs nothing.
 
 * **Protected main.** A ruleset requires a pull request and the checks `Specs, lint, types, architecture, unit`,
   `Static build, bundle budget, Worker dry run`, `Workflow lint (actionlint, zizmor)`, `Conventional Commits`,
-  `Playwright (chromium 1/2)` and `(2/2)`, `CodeQL` and `Mutants of the changed files`; squash merge only, no force push.
+  `Playwright (chromium 1/2)` and `(2/2)`, `CodeQL` and `Mutants of the changed files`; rebase merge for agent pull requests (squash for the release and Dependabot bots), no force push.
   Pull requests merge by themselves when green (auto-merge). Dependabot updates that are green merge by themselves for
   patch and minor versions.
 * **Mutation floors of 100.** A full pass per package, the two biggest split into shards balanced by file size and
