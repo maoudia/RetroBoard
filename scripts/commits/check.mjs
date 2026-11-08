@@ -15,6 +15,14 @@ const ZERO = /^0+$/
 
 const items = []
 if (arg('--file')) {
+  // Inside a Claude Code session the commit is the agent's: it must not carry a person's identity (humans commit freely).
+  if (process.env.CLAUDECODE) {
+    const ident = execFileSync('git', ['var', 'GIT_AUTHOR_IDENT'], { encoding: 'utf8' })
+    if (!/<noreply@anthropic\.com>/.test(ident)) {
+      console.log(`commit author ${ident.split('>')[0]}> is not Claude: set GIT_AUTHOR_NAME=Claude GIT_AUTHOR_EMAIL=noreply@anthropic.com (and the GIT_COMMITTER_* pair) for agent commits`)
+      process.exit(1)
+    }
+  }
   // Comment lines (starting with #) are not part of the message.
   const text = readFileSync(arg('--file'), 'utf8').split('\n').filter((l) => !l.startsWith('#')).join('\n')
   items.push({ label: 'commit message', message: text })

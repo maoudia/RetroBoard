@@ -18,7 +18,7 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 - **Strict CSP**: no inline scripts or styles, no `eval`, no third-party origins. Constant `:style` bindings are fine (static hoisting is off).
 - **Board theme is imposed**; only light/dark variant is personal.
 - **UI follows `docs/design-system.md`**: font sizes, radii and spacing come from the shared tokens (`--fs-*`, `--r-*`, `--sp-*`); `apps/web/test/design-tokens.test.ts` enforces it.
-- **One author, no co-author**: commits are authored and committed by `Claude <noreply@anthropic.com>`, with no `Co-Authored-By` trailer (hook and CI refuse it). The project is fully agentic.
+- **One author, no co-author**: commits are authored and committed by `Claude <noreply@anthropic.com>`, with no `Co-Authored-By` trailer (hook and CI refuse it). Humans may commit under their own name; an agent never uses a person's identity (the hook refuses it inside a Claude Code session). Pull requests made only of Claude commits are auto-merged by the Actions bot (`.github/workflows/agent-automerge.yml`), by rebase.
 - ASCII in code comments and docs. **Conventional Commits are enforced** (`type(scope): subject`, hook and CI, also for PR titles): `feat` = minor, `fix`/`perf` = patch, `!` or `BREAKING CHANGE` = major. Versions, `CHANGELOG.md` and releases are automatic (ADR-0025): never edit them by hand.
 
 ## Architecture decisions (ADR)
