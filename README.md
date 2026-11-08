@@ -1,6 +1,13 @@
 # RetroBoard
 
 <p align="center">
+  <b>Read and run it</b><br>
+  <a href="https://retroboard.maoudia.com/guide/en/"><img alt="User guide: illustrated, English and French, generated from the real app" src="https://img.shields.io/badge/User%20guide-illustrated%20%C2%B7%20EN%20%7C%20FR-0066cc?labelColor=1d1d1f&style=for-the-badge&logo=gitbook&logoColor=white"></a>
+  <a href="https://maoudia.github.io/RetroBoard/"><img alt="Quality reports" src="https://img.shields.io/badge/Quality%20reports-tests%20%C2%B7%20coverage%20%C2%B7%20mutation-8A4FFF?labelColor=1d1d1f&style=for-the-badge&logo=qameta&logoColor=white"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/self-hosting.md"><img alt="Self-hosting" src="https://img.shields.io/badge/Self--hosting-signed%20image%20%C2%B7%20SBOM-2496ED?labelColor=1d1d1f&style=for-the-badge&logo=docker&logoColor=white"></a>
+</p>
+
+<p align="center">
   <b>Pipelines</b><br>
   <a href="https://github.com/maoudia/RetroBoard/actions/workflows/checks.yml"><img alt="Checks" src="https://github.com/maoudia/RetroBoard/actions/workflows/checks.yml/badge.svg?branch=main"></a>
   <a href="https://github.com/maoudia/RetroBoard/actions/workflows/quality.yml"><img alt="Quality" src="https://github.com/maoudia/RetroBoard/actions/workflows/quality.yml/badge.svg?branch=main"></a>
