@@ -212,10 +212,18 @@ jobs:
       - name: Merge the shards
         # 9 = the shards of the mutation matrix above
         run: node scripts/quality/mutation-merge.mjs shards reports/mutation 9
+      - name: Mutation results for the Allure report
+        run: node scripts/quality/mutation-allure.mjs reports/mutation/mutation.json allure-results-mutation
       - name: Compare with the floor and the previous main run
         run: node scripts/quality/mutation-score.mjs
         env:
           PAGES_URL: https://maoudia.github.io/RetroBoard
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && hashFiles('allure-results-mutation/*-result.json') != ''
+        with:
+          name: allure-results-mutation
+          path: allure-results-mutation
+          retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
