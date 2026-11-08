@@ -1,0 +1,19 @@
+{
+  "manifest": "d5b2e03a",
+  "sources": "a93954adb36f",
+  "chapters": [
+    "create",
+    "invite",
+    "write",
+    "agenda",
+    "people",
+    "actions",
+    "present",
+    "export",
+    "options"
+  ],
+  "locales": [
+    "fr",
+    "en"
+  ]
+}
