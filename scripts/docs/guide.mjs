@@ -14,10 +14,11 @@ import { CHAPTERS, imageName, manifestHash } from '../../tests/docs/manifest.ts'
 export const LOCALES = ['fr', 'en']
 const OUT = process.env.GUIDE_PAGES ?? 'apps/web/public/guide'
 const SRC = 'docs/user-guide'
+const VIDEO = 'apps/web/public/guide/video'
 
 const UI = {
-  fr: { title: 'Guide d’utilisation', home: 'Accueil du guide', open: 'Ouvrir RetroBoard', prev: 'Précédent', next: 'Suivant', chapters: 'Chapitres', variant: 'Thème clair ou sombre', other: 'English', otherCode: 'en', skip: 'Aller au contenu' },
-  en: { title: 'User guide', home: 'Guide home', open: 'Open RetroBoard', prev: 'Previous', next: 'Next', chapters: 'Chapters', variant: 'Light or dark theme', other: 'Français', otherCode: 'fr', skip: 'Skip to content' },
+  fr: { title: 'Guide d’utilisation', home: 'Accueil du guide', open: 'Ouvrir RetroBoard', prev: 'Précédent', next: 'Suivant', chapters: 'Chapitres', variant: 'Thème clair ou sombre', other: 'English', otherCode: 'en', skip: 'Aller au contenu', video: 'Vidéo de démonstration', videoHint: 'Un tour de 1 minute, sous-titré.', videoFallback: 'Ton navigateur ne lit pas cette vidéo.' },
+  en: { title: 'User guide', home: 'Guide home', open: 'Open RetroBoard', prev: 'Previous', next: 'Next', chapters: 'Chapters', variant: 'Light or dark theme', other: 'Français', otherCode: 'fr', skip: 'Skip to content', video: 'Demo video', videoHint: 'A 1 minute tour, captioned.', videoFallback: 'Your browser cannot play this video.' },
 }
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
@@ -106,11 +107,22 @@ ${picture(locale, chapter, s)}
   return page({ locale, title: chapter.title[locale], body, root: '../', nav: header(locale, `${chapter.id}.html`) })
 }
 
+/** The tutorial video: self-hosted, captions on a track (no sound is needed), loaded only when played. */
+export const videoSection = (locale) => `<section class="video" aria-labelledby="video-h">
+<h2 id="video-h">${esc(UI[locale].video)}</h2>
+<p class="muted">${esc(UI[locale].videoHint)}</p>
+<video controls preload="none" playsinline poster="../img/${locale}/light/create-form.webp" src="../video/${locale}/tutorial.webm">
+<track kind="captions" src="../video/${locale}/tutorial.vtt" srclang="${locale}" label="${locale === 'fr' ? 'Français' : 'English'}" default>
+${esc(UI[locale].videoFallback)}
+</video>
+</section>`
+
 /** The guide home of a language. */
-export function indexPage(locale, source) {
+export function indexPage(locale, source, withVideo = false) {
   const body = `<article class="home">
 <h1>${esc(UI[locale].title)}</h1>
 ${markdown(source)}
+${withVideo ? videoSection(locale) : ''}
 ${toc(locale, '')}
 </article>`
   return page({ locale, title: UI[locale].title, body, root: '../', nav: header(locale, 'index.html') })
@@ -146,6 +158,7 @@ h2 { font-size: var(--fs-xl); margin: var(--sp-6) 0 var(--sp-3); display: flex; 
 .n { display: inline-grid; place-items: center; min-width: 1.8rem; height: 1.8rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: var(--fs-sm); }
 .lead { font-size: var(--fs-lg); color: var(--muted); }
 code { font-family: var(--mono); font-size: .9em; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xs); padding: 0 .3em; }
+.video video { display: block; width: 100%; max-width: 60rem; border-radius: var(--r-card); border: 1px solid var(--border); background: #000; }
 .shot { margin: var(--sp-4) 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--sp-3); }
 .shot img { display: block; max-width: 100%; height: auto; margin: 0 auto; border-radius: var(--r-sm); }
 .shot .dark { display: none; }
@@ -185,7 +198,7 @@ export function guideInfo(sources, chapters = CHAPTERS) {
 }
 
 /** The Markdown sources of the guide, keyed "<locale>/index" and "<locale>/<chapter>". Throws on a missing file. */
-export function readSources(src = SRC) {
+export function readSources(src = SRC, video = VIDEO) {
   const sources = {}
   for (const locale of LOCALES) {
     for (const name of ['index', ...CHAPTERS.map((c) => c.id)]) {
@@ -193,6 +206,9 @@ export function readSources(src = SRC) {
       if (!existsSync(file)) throw new Error(`missing guide text: ${file}`)
       sources[`${locale}/${name}`] = read(file)
     }
+    // The tutorial video, when there is one: its captions decide whether the index page shows it.
+    const vtt = join(video, locale, 'tutorial.vtt')
+    sources[`${locale}/video`] = existsSync(vtt) ? read(vtt) : ''
   }
   return sources
 }
@@ -201,7 +217,7 @@ export function build(out = OUT) {
   const sources = readSources()
   for (const locale of LOCALES) {
     mkdirSync(join(out, locale), { recursive: true })
-    writeFileSync(join(out, locale, 'index.html'), indexPage(locale, sources[`${locale}/index`]))
+    writeFileSync(join(out, locale, 'index.html'), indexPage(locale, sources[`${locale}/index`], sources[`${locale}/video`] !== ''))
     for (const chapter of CHAPTERS) writeFileSync(join(out, locale, `${chapter.id}.html`), chapterPage(locale, chapter, sources[`${locale}/${chapter.id}`]))
   }
   writeFileSync(join(out, 'guide.css'), css())

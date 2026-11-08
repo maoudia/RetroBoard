@@ -15,7 +15,10 @@
       ],
       "ignoreBinaries": [
         "cwebp",
-        "ffmpeg"
+        "ffmpeg",
+        "ffprobe",
+        "piper",
+        "say"
       ]
     },
     "apps/web": {

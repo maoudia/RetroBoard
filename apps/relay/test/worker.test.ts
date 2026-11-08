@@ -39,6 +39,8 @@ describe('security headers', () => {
     expect(csp).toContain("script-src 'self' 'sha256-AAA'")
     expect(csp).toContain("style-src 'self' 'sha256-BBB'")
     expect(csp).toContain("frame-ancestors 'none'")
+    expect(csp).toContain("media-src 'self'")
+    expect(csp.split('; ').filter((d) => d.startsWith('media-src'))).toEqual(["media-src 'self'"])
     expect(csp).not.toContain('unsafe-')
   })
   it('adds the CSP to html only, other headers to everything', () => {

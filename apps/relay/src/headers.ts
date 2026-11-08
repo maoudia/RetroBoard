@@ -23,6 +23,7 @@ export function buildCsp(hashes: CspHashes, extraConnect: string[] = []): string
     `style-src 'self' ${src(hashes.styles)}`.trim(),
     "font-src 'self'",
     "img-src 'self' data:",
+    "media-src 'self'",
     `connect-src 'self' ${extraConnect.join(' ')}`.trim(),
     "manifest-src 'self'",
     "base-uri 'none'",
