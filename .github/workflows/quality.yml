@@ -8,10 +8,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Cancel superseded runs: queuing made a push wait for the previous one (27 minutes end to end).
+# A run in progress is never cancelled: the Release and Deploy gates wait for a green Quality on the commit it ran for, and a
+# cancelled run never turns green. Newer pushes queue behind it, and only the newest queued run is kept (GitHub replaces the
+# older pending one), so a burst of merges costs one extra run, not one per commit.
 concurrency:
   group: quality-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
