@@ -54,7 +54,8 @@
   },
   "ignore": [
     "**/worker-configuration.d.ts",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    ".claude/worktrees/**"
   ],
   "ignoreExportsUsedInFile": true
 }
