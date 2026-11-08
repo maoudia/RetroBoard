@@ -14,6 +14,9 @@ jobs:
     name: Playwright (${{ matrix.project }} ${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # WebKit renders in software on the Linux runners and its failures change from run to run (the same specs pass on a
+    # Mac): it reports, it does not gate the nightly run. Every other browser and viewport gates it.
+    continue-on-error: ${{ matrix.project == 'webkit' }}
     strategy:
       fail-fast: false
       matrix:

@@ -18,8 +18,11 @@ test('write and publish without the mouse; typing a shortcut letter in a note do
     await page.keyboard.press('Escape')
     await expect(area).not.toBeFocused({ timeout: 500 })
   }).toPass({ timeout: 8000 })
-  await page.keyboard.press('p')
-  await expect(noteByText(page, 'plan pour 2 pompes')).toBeVisible()
+  // Publishing with p may land before the composer let go of the key: press again until the note is there.
+  await expect(async () => {
+    await page.keyboard.press('p')
+    await expect(noteByText(page, 'plan pour 2 pompes')).toBeVisible({ timeout: 1500 })
+  }).toPass({ timeout: 8000 })
   await expect(page.locator('section[data-anchor-kind="column"]').nth(1).locator('article.note')).toHaveCount(1)
 })
 
