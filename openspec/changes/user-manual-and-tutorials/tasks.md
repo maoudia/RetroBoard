@@ -2,8 +2,8 @@
 
 ## 1. Tour foundations
 
-- [ ] 1.1 Guide manifest (`tests/docs/manifest.ts`: chapters, steps, anchors, caption keys, fr and en) covering the current features (board creation, writing and publishing, voting, agenda and timer, presenter and laser, chat, filter, layout and writing sizes, export, themes, sharing and join); verify a unit test that every anchor exists in `apps/web/app` and every step has both languages
-- [ ] 1.2 Tour runner over seeded demo boards (fixed clock, invented names, light and dark, fr and en) writing optimised WebP under `apps/web/public/guide/img`; verify the tour runs green twice with identical output names
+- [x] 1.1 Guide manifest (`tests/docs/manifest.ts`: chapters, steps, anchors, caption keys, fr and en) covering the current features (board creation, writing and publishing, voting, agenda and timer, presenter and laser, chat, filter, layout and writing sizes, export, themes, sharing and join); verify a unit test that every anchor exists in `apps/web/app` and every step has both languages
+- [x] 1.2 Tour runner over seeded demo boards (fixed clock, invented names, light and dark, fr and en) writing optimised WebP under `apps/web/public/guide/img`; verify the tour runs green twice with identical output names
 
 ## 2. Guide generation
 
