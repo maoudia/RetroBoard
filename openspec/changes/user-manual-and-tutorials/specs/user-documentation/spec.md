@@ -52,6 +52,14 @@ The Help dialog and the pages' contextual help links SHALL open the guide in the
 - **WHEN** a participant opens the Help dialog and chooses the user guide
 - **THEN** the guide opens in her language on the matching chapter
 
+#### Scenario: From a panel
+- **WHEN** a participant opens the share panel, the agenda panel or the options dialog
+- **THEN** a link in the panel opens the matching guide chapter, in her language, at the step that explains that panel
+
+#### Scenario: From the landing page
+- **WHEN** a visitor opens the landing page in French or English
+- **THEN** a visible badge and a footer link lead to the guide of her language
+
 #### Scenario: Accessibility
 - **WHEN** the automated accessibility check runs on a guide page
 - **THEN** it reports no violation and every screenshot has a text alternative describing the step

@@ -30,6 +30,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 <template>
   <BaseDialog v-model:open="open" :title="t('options.title')" width="640px">
     <template v-if="board.settings">
+      <p class="guide-line"><GuideLink chapter="options" step="options" label="learn" /></p>
       <p v-if="!board.access.canSteer" class="readonly" role="note" data-testid="opt-readonly"><Icon name="lucide:lock" /> {{ t('roles.readonly') }}</p>
       <!-- Facilitation settings: read-only for participants (native disabled fieldset). -->
       <fieldset class="steer" :disabled="!board.access.canSteer">

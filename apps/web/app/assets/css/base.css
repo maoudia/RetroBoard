@@ -112,6 +112,8 @@ select.field option { font-weight: 500; background: var(--surface); color: var(-
 label.lbl { display: grid; gap: .35rem; font-weight: 600; font-size: var(--fs-sm); color: var(--muted); }
 
 /* Surfaces */
+/* A link to the user guide inside a dialog or a panel. */
+.guide-line { margin: 0 0 var(--sp-2); }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-1); }
 .glass.float { background: color-mix(in oklab, var(--surface) 94%, transparent); } /* floating over the board: readable, never see-through */
 .glass { background: var(--glass); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); }

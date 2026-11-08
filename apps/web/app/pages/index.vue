@@ -3,7 +3,8 @@ import '@fontsource-variable/inter/index.css'
 import { THEMES } from '@retroboard/themes'
 import { inviteFromHash } from '~/utils/invite'
 import { normalizeJoinCode } from '~/utils/join-code'
-const { t } = useT()
+const { t, locale } = useT()
+const guideHref = computed(() => `/guide/${locale.value}/`)
 
 useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color', content: '#fbfbfd' }] })
 const router = useRouter()
@@ -94,6 +95,7 @@ onMounted(() => {
           <NuxtLink to="/new" class="cta" data-testid="hero-create">{{ t('landing.create') }} <Icon name="lucide:arrow-right" /></NuxtLink>
           <button class="ghost" type="button" data-testid="solo" @click="solo">{{ t('landing.trySolo') }}</button>
         </div>
+        <a class="guide-pill" :href="guideHref" data-reveal :style="{ '--d': '260ms' }" data-testid="landing-guide"><Icon name="lucide:book-open" /> {{ t('landing.guide') }} <Icon name="lucide:arrow-right" /></a>
         <form class="join" data-reveal :style="{ '--d': '280ms' }" data-testid="join-form" @submit.prevent="join">
           <label class="sr" for="join-input">{{ t('landing.join.label') }}</label>
           <input id="join-input" v-model="joinText" type="text" inputmode="url" autocomplete="off" spellcheck="false" :placeholder="t('landing.join.placeholder')" :aria-invalid="joinError" :aria-describedby="joinError ? 'join-error' : undefined" data-testid="join-input" @input="joinError = false" />
@@ -192,6 +194,7 @@ onMounted(() => {
 
     <footer class="foot">
       <span>{{ t('landing.footer') }}</span>
+      <a :href="guideHref" data-testid="link-guide">{{ t('guide.open') }}</a>
       <NuxtLink to="/check" data-testid="link-check">{{ t('landing.check') }}</NuxtLink>
       <a href="https://github.com/maoudia/retroboard" rel="noopener" target="_blank">GitHub</a>
       <a href="https://github.com/maoudia/retroboard/issues/new/choose" rel="noopener" target="_blank" data-testid="link-feedback">{{ t('feedback.bug') }}</a>
@@ -223,6 +226,8 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .links { display: flex; gap: 1.6rem; } .links a { color: #48484c; font-size: var(--fs-sm); text-decoration: none; transition: color .2s; } .links a:hover { color: var(--ink); }
 .right { display: flex; align-items: center; gap: .8rem; }
 .cta { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .85rem 1.6rem; border-radius: 999px; background: var(--blue); color: #fff; font-size: var(--fs-md); font-weight: 600; text-decoration: none; transition: background .2s, transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; box-shadow: 0 10px 24px -10px rgb(0 113 227 / .6); }
+.guide-pill { display: inline-flex; align-items: center; gap: .5rem; padding: .4rem 1rem; border-radius: 999px; border: 1px solid var(--line); background: var(--fill); color: var(--ink); font-size: var(--fs-sm); font-weight: 600; text-decoration: none; transition: background .15s, transform .15s; }
+.guide-pill:hover { background: #fff; transform: translateY(-1px); }
 .cta:hover { background: var(--blue-d); transform: translateY(-2px) scale(1.02); } .cta:active { transform: scale(.98); }
 .cta.sm { padding: .45rem 1rem; font-size: var(--fs-sm); box-shadow: none; white-space: nowrap; flex: none; } .cta.big { padding: 1rem 2rem; font-size: var(--fs-lg); }
 .join { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .5rem; width: min(520px, 100%); justify-self: center; }
