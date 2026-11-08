@@ -64,3 +64,10 @@ Theme animation SHALL be on by default and the creation form SHALL offer a toggl
 #### Scenario: Turn it off
 - **WHEN** the creator switches the animation off
 - **THEN** the board shows no ambient animation
+
+### Requirement: Themed rings
+Every theme SHALL define the colours of the timer rings for both variants, readable against the board background.
+
+#### Scenario: Halloween board
+- **WHEN** a board uses the Halloween theme
+- **THEN** the rings use that theme's ring colours and keep a 3:1 contrast with the background

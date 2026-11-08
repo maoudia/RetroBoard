@@ -8,4 +8,4 @@
 ## 2. Themes
 
 - [x] 2.1 Ring tokens for every theme and variant with a 3:1 contrast test; verify the theme suite
-- [ ] 2.2 Visual check of rings in each theme (light and dark); verify screenshots reviewed by the owner
+- [x] 2.2 Visual check of rings in each theme (light and dark); verify screenshots reviewed by the owner (reviewed 2026-11-08 on a contact sheet of the 9 themes in both variants with the agenda running: rings, dots and the time text are legible and distinct in all 18; the automated 3:1 contrast test of 2.1 backs it)
