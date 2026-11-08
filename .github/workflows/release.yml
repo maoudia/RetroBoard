@@ -83,7 +83,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ fromJSON(steps.prepare.outputs.pr || '{}').headBranchName }}
+          PR: ${{ fromJSON(steps.prepare.outputs.pr || '{}').number }}
         run: |
+          # The spec gate wants a change or the no-spec label: a release is neither a feature nor an OpenSpec change.
+          gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label no-spec
           for wf in checks.yml e2e.yml security.yml adr.yml; do
             gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
           done

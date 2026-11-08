@@ -2,10 +2,15 @@
 
 Design: ADR-0030.
 
-## Today
+## Today (Workers Builds, gated by the ruleset)
 
 - Cloudflare Workers Builds deploys every push to `main` (build `pnpm generate`, deploy `npx wrangler deploy`), whatever
-  the result of the checks. This is the default until the CI deploy below is switched on.
+  the result of the checks: main only receives commits that passed the required checks (ruleset in
+  `docs/runbooks/repo-settings.md`), so the deploy is gated. This is the setup in use; the CI deploy below is optional.
+- `.github/workflows/post-deploy.yml` waits for the Cloudflare build of each commit, smoke tests `PROD_URL` and opens an
+  urgent issue when production fails. Rollback stays manual (dashboard or `wrangler rollback`).
+- Cloudflare builds non-production branches too; that check (`Workers Builds: retroboard`) is not required and fails on
+  pull requests. Switch it off in Settings > Builds > Branch control if the noise bothers you.
 - Smoke tests: `.github/workflows/smoke.yml` runs every 6 hours and on demand against the `PROD_URL` repository
   variable (`node scripts/smoke.mjs <url>` locally).
 
