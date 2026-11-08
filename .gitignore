@@ -16,3 +16,6 @@ reports/
 allure-results/
 .idea/
 .env.local
+
+# The user guide tour (pnpm docs:tour)
+.guide-tmp/

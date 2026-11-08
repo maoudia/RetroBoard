@@ -5,11 +5,17 @@
       "entry": [
         "tests/e2e/**/*.ts",
         "scripts/**/*.mjs",
-        "allurerc.mjs"
+        "allurerc.mjs",
+        "tests/docs/**/*.ts",
+        "playwright.docs.config.ts"
       ],
       "ignoreDependencies": [
         "allure-playwright",
         "allure-vitest"
+      ],
+      "ignoreBinaries": [
+        "cwebp",
+        "ffmpeg"
       ]
     },
     "apps/web": {
