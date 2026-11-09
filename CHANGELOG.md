@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.51.2](https://github.com/maoudia/RetroBoard/compare/v1.51.1...v1.51.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **deploy:** production deploys the release commit, so the guide and every merged feature reach the site ([42ebac6](https://github.com/maoudia/RetroBoard/commit/42ebac66886e3bdc96476578bd62778b9cfe4fd8))
+
 ## [1.51.1](https://github.com/maoudia/RetroBoard/compare/v1.51.0...v1.51.1) (2026-11-09)
 
 
