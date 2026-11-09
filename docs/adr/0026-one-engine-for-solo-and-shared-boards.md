@@ -36,6 +36,7 @@ Chosen option: "Run the ledger engine against an in-tab relay", because it is th
 * Good, because solo boards get every present and future feature with no extra code, and reopen from the local replica.
 * Good, because a later "share this solo board" only has to forget the solo mark and let the transport reseed the real relay.
 * Bad, because old `#local-...` links stop working (they never survived the tab).
+* Addendum (change `solo-board-parity`): one engine does not make the web layer identical, so the two modes are kept honest by a guard. `tests/e2e/solo-parity.spec.ts` plays the same scenarios (write, publish, vote and the vote limit, lock, timer, actions, report) on a solo and on a shared board and fails on any difference that is not listed in its `DECLARED` table. The in-tab relay refuses the same frames as the Durable Object because both call `checkFrame` (`packages/protocol/src/budgets.ts`), and a solo board only reaches the real relay after the owner chose "Make this board shareable".
 
 ## More Information
 

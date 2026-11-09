@@ -26,5 +26,5 @@
 
 ## 6. Parity guard
 
-- [ ] 6.1 Parity matrix in `tests/e2e/solo-parity.spec.ts`: a list of scenarios (write, publish, group, vote with a running agenda, vote limits, lock, timer, actions, report) run in both modes, and the declared differences as the only allowed delta; verify the matrix fails on a seeded drift
-- [ ] 6.2 ADR-0026 gets a "Consequences" addendum linking this change; docs and guide chapter text updated (`pnpm docs:tour && pnpm docs:guide`); verify `pnpm adr:check` and `pnpm docs:check`
+- [x] 6.1 Parity matrix in `tests/e2e/solo-parity.spec.ts`: a list of scenarios (write, publish, group, vote with a running agenda, vote limits, lock, timer, actions, report) run in both modes, and the declared differences as the only allowed delta; verify the matrix fails on a seeded drift
+- [x] 6.2 ADR-0026 gets a "Consequences" addendum linking this change; docs and guide chapter text updated (no guide chapter describes solo boards and this group changes no behaviour, so `pnpm docs:tour && pnpm docs:guide` produce no change); verify `pnpm adr:check` and `pnpm docs:check`
