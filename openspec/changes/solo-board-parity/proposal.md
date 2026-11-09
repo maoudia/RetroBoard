@@ -14,7 +14,7 @@ ADR-0026 made solo and shared boards run the same ledger engine, and `solo-parit
 - **Rule**: a solo board follows exactly the rules of a shared board; the only differences are the absence of other participants and of a network, and they are listed (no invitation, no passcode, no peer-to-peer, no relay status).
 - **Voting explained for whoever can override the phase**: outside the Vote phase the vote control shows a disabled, labelled state with the reason and a one-tap "Open voting now"; the facilitator, the co-facilitators, everyone on an open board and the solo user see it.
 - **Same budgets**: the in-tab relay applies the real relay's limits (frame size, message rate), from one shared module.
-- **A solo board stays solo until its owner says otherwise**: the solo mark has no cap and no silent expiry; making a solo board shareable is an explicit "Make this board shareable" action that explains encryption, offers a passcode and then forgets the solo mark.
+- **A solo board stays solo until its owner says otherwise**: the solo mark has no cap and no silent expiry; making a solo board shareable is an explicit "Make this board shareable" action that explains encryption (no passcode can be added afterwards: it derives the content key) and then forgets the solo mark.
 - **Share button honest in solo**: it opens that action instead of an invitation that cannot work.
 - **Carry-over from a solo board** reads its local replica.
 - **Presence and links panel** say "only you" and show no relay or direct status in solo.

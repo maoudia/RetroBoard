@@ -26,10 +26,10 @@ A board marked solo SHALL stay marked for as long as its local replica exists an
 - **THEN** it is still a solo board and nothing about it is sent to the relay
 
 ### Requirement: Making a solo board shareable
-The Share action of a solo board SHALL offer "Make this board shareable": it explains that the board stays end-to-end encrypted and cannot go back to solo, offers an optional passcode, and then shows the normal invitation.
+The Share action of a solo board SHALL offer "Make this board shareable": it explains that the board stays end-to-end encrypted and cannot go back to solo, and then shows the normal invitation. A passcode cannot be added at that point: it derives the content key, so the events already written would become unreadable.
 
 #### Scenario: Convert
-- **WHEN** Alice presses Share on a solo board, accepts and sets no passcode
+- **WHEN** Alice presses Share on a solo board, accepts
 - **THEN** the board connects to the relay, the invitation link and the join code appear, and a second browser opening the link sees the board
 
 #### Scenario: No dead link

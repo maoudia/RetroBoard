@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { axe, noteByText, publishNote } from './helpers'
+import { axe, join, noteByText, publishNote } from './helpers'
 
 /** change solo-parity-and-dedup: a solo board is the same engine as a shared one, so it has the same toolbar and panels. */
 const FEATURES = ['btn-actions', 'btn-export', 'btn-filter', 'btn-presenter', 'btn-options', 'btn-participants', 'btn-profile', 'agenda-ring']
@@ -52,4 +52,33 @@ test('solo: voting is locked outside the vote phase for the facilitator too, and
   await expect(locked).toHaveCount(0)
   await note.locator('[data-testid^="vote-"]').first().click()
   await expect(note.locator('[data-testid^="vote-"]').first()).toContainText('1')
+})
+
+test('solo: Share offers to make the board shareable, then a second browser joins and sees the notes', async ({ page, browser }) => {
+  await startSolo(page)
+  await publishNote(page, 0, 'Shared later')
+  await page.getByTestId('btn-share').click()
+  // No dead link: the invitation does not exist until the owner converts the board.
+  await expect(page.getByTestId('share-solo')).toBeVisible()
+  await expect(page.getByTestId('share-url')).toHaveCount(0)
+  expect((await axe(page).include('[data-testid="share-solo"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+  await page.getByTestId('make-shareable').click()
+  await expect(page.getByTestId('share-url')).toBeVisible()
+  await expect(page.getByTestId('share-room-code')).toBeVisible()
+  const link = await page.getByTestId('share-url').inputValue()
+  const bob = await join(browser, link, 'Bob')
+  await expect(noteByText(bob.page, 'Shared later')).toBeVisible()
+  await bob.ctx.close()
+})
+
+test('solo: many solo boards all stay solo and never open a socket to the relay', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.setItem('retroboard:solo', JSON.stringify(Array.from({ length: 60 }, (_, i) => `filler${i}`))))
+  const sockets: string[] = []
+  page.on('websocket', (ws) => sockets.push(ws.url()))
+  await startSolo(page)
+  await publishNote(page, 0, 'Still solo')
+  await page.reload()
+  await expect(noteByText(page, 'Still solo')).toBeVisible()
+  expect(sockets).toEqual([])
 })

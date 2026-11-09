@@ -407,7 +407,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       </main>
       <ChatPanel v-if="board.ready" />
       <ActionsDrawer />
-      <ShareDialog :passcode="passcode" />
+      <ShareDialog :passcode="passcode" @convert="enter" />
       <RankingDialog />
       <ReportDialog />
       <ExportDialog />
