@@ -7,7 +7,7 @@
 // Needs the silent video and its timings from `pnpm docs:video`, and ffmpeg/ffprobe. Without a voice-over the video still
 // carries its captions: this step is only ever an addition.
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CHAPTERS } from '../../tests/docs/manifest.ts'
 import { captionOf } from './video.mjs'
