@@ -22,6 +22,11 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     expect(contrast(k.danger, k.surface), 'danger on surface').toBeGreaterThanOrEqual(3)
   })
 
+  it.each(['light', 'dark'] as const)('keeps the ink readable on the danger colour in the %s variant (unread badge)', (variant) => {
+    const k = tokensFor(t, variant)
+    expect(contrast(k.accentInk, k.danger), 'ink on danger').toBeGreaterThanOrEqual(4.5)
+  })
+
   it.each(['light', 'dark'] as const)('has ring colours at 3:1 on every ground in the %s variant (activity rings)', (variant) => {
     const k = tokensFor(t, variant)
     const r = ringColors(k)
