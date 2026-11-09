@@ -52,8 +52,9 @@ export type FrameCheck =
 export function checkFrame(b: Budgets, data: unknown, now: number, windowMs: number): FrameCheck {
   if (typeof data !== 'string' || data.length > MAX_FRAME_BYTES) return { verdict: 'close', ...CLOSE_TOO_LARGE }
   let raw: unknown
-  try { raw = JSON.parse(data) } catch { raw = null }
+  try { raw = JSON.parse(data) } catch { /* not JSON: parses as no frame */ }
   const frame = parseClientFrame(raw)
+  // Stryker disable next-line StringLiteral: admit treats every kind other than live and sig as a board frame
   const verdict = admit(b, frame?.t === 'eph' ? 'live' : frame?.t === 'sig' ? 'sig' : 'board', now, windowMs)
   if (verdict === 'drop') return { verdict }
   if (verdict === 'close') return { verdict, ...CLOSE_RATE_LIMIT }
