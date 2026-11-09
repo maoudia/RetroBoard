@@ -11,7 +11,7 @@ describe('phase availability, exactly', () => {
     phases: [{ id: 'a', kind: 'write', plannedMs: MIN }, { id: 'b', kind: 'vote', plannedMs: MIN }], current: 0, startedAt: 0, pausedAt: null, rules: true, autoPublish: true, ...over,
   })
   it('keeps every vote command open while the facilitator opened voting, and nothing else', () => {
-    const open = { allowed: true, bypassed: false, closedBy: null, opensAt: null }
+    const open = { allowed: true, canOverride: false, closedBy: null, opensAt: null }
     for (const command of ['vote.add', 'vote.remove', 'vote.toggle'] as const) {
       expect(phaseAvailability(agenda(), command, false)).toMatchObject({ allowed: false, closedBy: 'write', opensAt: 'vote' })
       expect(phaseAvailability(agenda({ voteOpen: true }), command, false), command).toEqual(open)

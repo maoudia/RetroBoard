@@ -2,8 +2,8 @@
 
 ## 1. Voting is explained (the owner's question)
 
-- [ ] 1.1 `canOverride` on `Availability` (`phase-availability.ts`) and the vote control renders the locked state with reason and the "Open voting now" action for those who can override, fr and en copy; verify unit tests of the read model for participant, facilitator and no agenda, and e2e that plays the same steps solo and shared and finds the same vote control states
-- [ ] 1.2 The vote bar names the override ("Open voting now") with the same wording; verify e2e and axe on the locked state
+- [x] 1.1 `canOverride` on `Availability` (`phase-availability.ts`) and the vote control renders the locked state with reason and the "Open voting now" action for those who can override, fr and en copy; verify unit tests of the read model for participant, facilitator and no agenda, and e2e that plays the same steps solo and shared and finds the same vote control states
+- [x] 1.2 The vote bar names the override ("Open voting now") with the same wording; verify e2e and axe on the locked state
 
 ## 2. Same budgets
 

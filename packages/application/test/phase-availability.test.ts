@@ -17,7 +17,7 @@ describe('phase availability', () => {
   })
 
   it('is open in the phase the command belongs to', () => {
-    expect(phaseAvailability(agenda(ALL, ALL.indexOf('write')), 'note.addMany', false)).toEqual({ allowed: true, bypassed: false, closedBy: null, opensAt: null })
+    expect(phaseAvailability(agenda(ALL, ALL.indexOf('write')), 'note.addMany', false)).toEqual({ allowed: true, canOverride: false, closedBy: null, opensAt: null })
     expect(phaseAvailability(agenda(ALL, ALL.indexOf('vote')), 'vote.add', false).allowed).toBe(true)
   })
 
@@ -37,6 +37,6 @@ describe('phase availability', () => {
   })
 
   it('lets facilitators through and says so', () => {
-    expect(phaseAvailability(agenda(ALL, ALL.indexOf('vote')), 'note.add', true)).toEqual({ allowed: true, bypassed: true, closedBy: 'vote', opensAt: null })
+    expect(phaseAvailability(agenda(ALL, ALL.indexOf('vote')), 'note.add', true)).toEqual({ allowed: true, canOverride: true, closedBy: 'vote', opensAt: null })
   })
 })

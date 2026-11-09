@@ -8,15 +8,15 @@ import { type AgendaState, agendaRunning, type CommandType, type PhaseKind, phas
 export interface Availability {
   /** The control can be used by this person right now. */
   allowed: boolean
-  /** Allowed only because the person bypasses phase rules (facilitator): others are blocked. */
-  bypassed: boolean
-  /** Phase that closes it (when closed or bypassed). */
+  /** The person may override the closed phase (facilitator): allowed is true only because of that. */
+  canOverride: boolean
+  /** Phase that closes it (when closed or canOverride). */
   closedBy: PhaseKind | null
   /** Next phase that opens it, null when no later phase does. */
   opensAt: PhaseKind | null
 }
 
-const OPEN: Availability = { allowed: true, bypassed: false, closedBy: null, opensAt: null }
+const OPEN: Availability = { allowed: true, canOverride: false, closedBy: null, opensAt: null }
 
 export function phaseAvailability(agenda: AgendaState | null, command: CommandType, bypassesRules: boolean): Availability {
   if (!agendaRunning(agenda) || !agenda.rules) return OPEN
@@ -25,5 +25,5 @@ export function phaseAvailability(agenda: AgendaState | null, command: CommandTy
   const here = agenda.phases[agenda.current]!.kind
   if (phaseAllows(here, command)) return OPEN
   const next = agenda.phases.slice(agenda.current + 1).find((p) => phaseAllows(p.kind, command))
-  return { allowed: bypassesRules, bypassed: bypassesRules, closedBy: here, opensAt: next?.kind ?? null }
+  return { allowed: bypassesRules, canOverride: bypassesRules, closedBy: here, opensAt: next?.kind ?? null }
 }
