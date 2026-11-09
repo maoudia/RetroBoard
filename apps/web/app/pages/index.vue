@@ -109,6 +109,7 @@ onMounted(() => {
         </form>
         <section v-if="recents.items.length" class="mine card" data-reveal :style="{ '--d': '300ms' }" data-testid="landing-recents" :aria-label="t('landing.recents')">
           <h2>{{ t('landing.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h2>
+          <TeamSwitcher />
           <RecentBoards :limit="4" testid="landing-recents-list" />
         </section>
 

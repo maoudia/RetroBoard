@@ -149,6 +149,8 @@ export const en: Record<keyof typeof fr, string> = {
   'carry.intro': 'Bring the open actions of the previous retro into this board.',
   "team.default": "My team",
   "team.rest": "Other boards",
+  "team.switcher": "Show the boards of a team",
+  "team.all": "All teams",
   "team.title": "Team and project",
   "team.intro": "Carried-over actions come from this team's previous retros, never from another team.",
   "team.team": "Team",

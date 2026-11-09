@@ -10,10 +10,12 @@ const props = withDefaults(defineProps<{ limit?: number; exclude?: string; remov
 const emit = defineEmits<{ open: [] }>()
 const { t, locale } = useT()
 const recents = useRecentsStore()
-const items = computed(() => recents.items.filter((r) => r.id !== props.exclude).slice(0, props.limit))
-const now = ref(Date.now())
-// With several teams the list becomes one lane per team, newest board first (change team-workspaces).
 const team = useTeamStore()
+// The team switcher narrows the list to one team (change team-workspaces).
+const inView = (id: string) => !team.view || team.ws.boards[id]?.teamId === team.view
+const items = computed(() => recents.items.filter((r) => r.id !== props.exclude && inView(r.id)).slice(0, props.limit))
+const now = ref(Date.now())
+// With several teams the list becomes one lane per team, newest board first.
 const lanes = computed(() => {
   if (team.teams.length < 2) return [{ id: '', label: '', items: items.value }]
   const out = team.teams.map((x) => ({ id: x.id, label: `${x.emoji} ${x.name}`, items: items.value.filter((r) => team.ws.boards[r.id]?.teamId === x.id) }))

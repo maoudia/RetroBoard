@@ -52,6 +52,9 @@ export const currentTeam = (ws: Workspace): Team | null => ws.teams.find((t) => 
 export const projectsOf = (ws: Workspace, teamId: string): string[] =>
   [...new Set(ws.retros.filter((r) => r.teamId === teamId && r.project).map((r) => r.project!))].sort((a, b) => a.localeCompare(b))
 
+/** Makes a known team the one the next board belongs to; an unknown id changes nothing. */
+export const switchTeam = (ws: Workspace, teamId: string): Workspace => (ws.teams.some((t) => t.id === teamId) ? { ...ws, lastTeamId: teamId } : ws)
+
 /** Remembers how the team created its latest board, so the next one starts the same way. */
 export function setDefaults(ws: Workspace, teamId: string, defaults: TeamDefaults): Workspace {
   return { ...ws, teams: ws.teams.map((t) => (t.id === teamId ? { ...t, defaults } : t)) }

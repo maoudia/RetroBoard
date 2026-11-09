@@ -1,6 +1,6 @@
 import type { ActionItem, ImportedAction } from '@retroboard/domain'
 import {
-  addTeam, assignBoard, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
+  addTeam, assignBoard, switchTeam, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
   rememberOwner as rememberOwnerIn, saveRetro, setDefaults, type Team, type TeamDefaults, type Workspace,
 } from '@retroboard/application'
 import { randomId, safeStorage } from '~/utils/storage'
@@ -35,6 +35,9 @@ export const useTeamStore = defineStore('team', () => {
 
   const teams = computed(() => ws.value.teams)
   const current = computed<Team | null>(() => currentTeam(ws.value))
+  /** Team whose boards the lists show (home and profile); empty shows every team. Picking one also makes it the team of the next board. */
+  const view = ref('')
+  function switchTo(teamId: string) { view.value = teamId; commit(switchTeam(ws.value, teamId)) }
   const owners = computed(() => ws.value.owners)
 
   /** The team of the next board: the last used one, created on first use so every board belongs to a team. */
@@ -70,5 +73,5 @@ export const useTeamStore = defineStore('team', () => {
     commit(next)
   }
   function clear() { commit({ ...EMPTY_WORKSPACE }) }
-  return { ws, teams, current, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, defaultsOf, remember, saveActions, clear }
+  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, defaultsOf, remember, saveActions, clear }
 })

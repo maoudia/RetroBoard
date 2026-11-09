@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { closeShare, createBoard } from './helpers'
+import { axe, closeShare, createBoard } from './helpers'
 
 test('carry-over lists the open actions of the chosen team and project only', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', title: 'Sprint 7', name: 'Alice' })
@@ -56,4 +56,37 @@ test('a team starts its next board like its last one: format, theme, agenda and 
   await page.getByTestId('team-select').selectOption('__new')
   await expect(page.getByTestId('team-name')).toBeVisible()
   await expect(page.getByTestId('carry-none')).toBeVisible()
+})
+
+test('the team switcher narrows the recent boards on the home page and in the profile, and passes axe', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', title: 'Alpha retro', name: 'Alice' })
+  await page.goto('/new')
+  await page.getByTestId('team-select').selectOption('__new')
+  await page.getByTestId('team-name').fill('Beta')
+  await page.getByTestId('setup-title').fill('Beta retro')
+  await page.getByTestId('setup-passcode').fill('')
+  await page.getByTestId('setup-submit').click()
+  await page.getByTestId('confirm').click()
+  await expect(page.getByTestId('board')).toBeVisible()
+  await page.goto('/')
+  const sw = page.getByTestId('team-switcher')
+  await expect(sw).toBeVisible()
+  await expect(page.getByTestId('landing-recents-list')).toContainText('Alpha retro')
+  await expect(page.getByTestId('landing-recents-list')).toContainText('Beta retro')
+  await sw.getByRole('button', { name: /Beta|Béta/ }).click()
+  await expect(page.getByTestId('landing-recents-list')).toContainText('Beta retro')
+  await expect(page.getByTestId('landing-recents-list')).not.toContainText('Alpha retro')
+  expect((await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+  // The chosen team is also the team of the next board.
+  await page.goto('/new')
+  await page.getByTestId('mode-advanced').click()
+  await expect(page.getByTestId('team-select')).not.toHaveValue('__new')
+  await page.goto('/')
+  await page.getByTestId('btn-profile').click()
+  await expect(page.getByTestId('recents')).toContainText('Alpha retro')
+  await page.getByRole('dialog').getByRole('button', { name: /Beta|Béta/ }).click()
+  await expect(page.getByTestId('recents')).not.toContainText('Alpha retro')
+  await page.getByRole('dialog').getByTestId('team-switch-all').click()
+  await expect(page.getByTestId('recents')).toContainText('Alpha retro')
+  expect((await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
 })
