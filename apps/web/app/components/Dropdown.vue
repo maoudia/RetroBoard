@@ -2,8 +2,9 @@
 /**
  * Menu rendered in the browser top layer (Popover API) and positioned against its trigger.
  * Being in the top layer, it is never clipped by a scrolling column or a transformed note.
+ * `width` is a minimum; with `fixed` it is the exact width (the list panels share one, change history-panel-phone-layout).
  */
-const props = withDefaults(defineProps<{ align?: 'start' | 'end'; width?: string; menu?: boolean; tall?: boolean }>(), { align: 'end', width: '', menu: false, tall: false })
+const props = withDefaults(defineProps<{ align?: 'start' | 'end'; width?: string; fixed?: boolean; menu?: boolean; tall?: boolean }>(), { align: 'end', width: '', fixed: false, menu: false, tall: false })
 const open = ref(false)
 const trigger = ref<HTMLElement | null>(null)
 const panel = ref<HTMLElement | null>(null)
@@ -107,7 +108,7 @@ defineExpose({ close })
 <template>
   <span ref="trigger" class="dd">
     <slot name="trigger" :open="open" :toggle="toggle" />
-    <div ref="panel" popover="manual" @scroll.passive="edge" class="dd-panel" :class="{ tall }" :role="menu ? 'menu' : undefined" :style="width ? { minWidth: width } : undefined">
+    <div ref="panel" popover="manual" @scroll.passive="edge" class="dd-panel" :class="{ tall }" :role="menu ? 'menu' : undefined" :style="width ? (fixed ? { width, maxWidth: width } : { minWidth: width }) : undefined">
       <slot v-if="open" :close="close" />
     </div>
   </span>

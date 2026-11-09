@@ -60,13 +60,14 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
 </script>
 
 <template>
-  <Dropdown width="300px">
+  <Dropdown width="var(--panel-w)" fixed>
     <template #trigger="{ toggle, open }">
-      <button class="icon-btn" type="button" :aria-expanded="open" data-testid="btn-participants" @click="toggle">
+      <button class="icon-btn" type="button" :aria-expanded="open" aria-haspopup="dialog" data-testid="btn-participants" @click="toggle">
         <Icon name="lucide:users" class="ico" /><span>{{ t('toolbar.participants') }}</span>
         <span class="badge" data-testid="peer-count">{{ board.peers.length }}</span>
       </button>
     </template>
+    <div class="people" role="region" :aria-label="t('toolbar.participants')" data-testid="participants-panel">
     <span class="head muted">{{ t('participants.online') }}</span>
     <p v-if="board.roomCode" class="code muted" :title="t('share.roomCode.hint')" data-testid="peers-room-code">{{ t('share.roomCode') }} <strong>{{ board.roomCode }}</strong></p>
     <ul class="list" data-testid="peers">
@@ -98,6 +99,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
       <p class="mode" :class="{ on: board.links.p2p && board.links.peers > 0 }" data-mode="direct"><Icon name="lucide:zap" /><span>{{ board.links.p2p && board.links.peers > 0 ? t('links.p2p', { n: board.links.peers }) : t('links.p2p.idle') }}</span></p>
       <p class="mode" :class="{ on: !board.links.p2p }" data-mode="relay"><Icon name="lucide:radio-tower" /><span>{{ board.links.p2p ? t('links.relay.idle') : t('links.relay') }}</span></p>
     </div>
+    </div>
   </Dropdown>
   <RenameDialog :open="renaming !== null" :name="renaming?.name ?? null" @update:open="(v: boolean) => { if (!v) renaming = null }" @save="(n: string) => renaming && rename(renaming, n)" />
   <ConfirmDialog
@@ -110,7 +112,8 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
 <style scoped>
 .head { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .3rem .5rem; }
 .code { margin: 0 .5rem .35rem; font-size: var(--fs-xs); }
-.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.people { padding: var(--panel-pad); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--row-gap); }
 li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: var(--r-sm); flex-wrap: wrap; }
 .av { position: relative; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: var(--fs-xs); color: #1b1b1b; flex: none; }
 .cd { position: absolute; right: -3px; bottom: -3px; background-clip: padding-box; outline: 2px solid var(--surface); }
