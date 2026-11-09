@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.51.0](https://github.com/maoudia/RetroBoard/compare/v1.50.0...v1.51.0) (2026-11-09)
+
+
+### Features
+
+* **docs:** captioned tutorial video recorded from the tour, optional voice-over and the owner how-to ([844a19b](https://github.com/maoudia/RetroBoard/commit/844a19b4b099c7814972b8cbb0630135efb0678b))
+* **docs:** generated bilingual user guide with pictures, served under /guide, and a worktree rule for parallel work ([0048d26](https://github.com/maoudia/RetroBoard/commit/0048d262afd3b57796b3a10a222de4fff31a4a29))
+* **docs:** pnpm docs:check fails when the guide, its texts, pictures or anchors are out of date ([97b96a2](https://github.com/maoudia/RetroBoard/commit/97b96a2c580599ea9f3bd2afafb29e2a91828487))
+* **docs:** user guide manifest and a tour that photographs it in both languages and variants ([d350f64](https://github.com/maoudia/RetroBoard/commit/d350f6476688eb75d8691540bd5a6691b34d1037))
+* **web:** a team starts its next board like its last one (team-workspaces 2.3) ([2827480](https://github.com/maoudia/RetroBoard/commit/282748019e4678574c2743c1b6c2811fa7b3c196))
+* **web:** team switcher on the home page and in the profile (team-workspaces 3.1) ([5bc3442](https://github.com/maoudia/RetroBoard/commit/5bc3442ca3d1bdc4759dc58c7a60bf7e988aba01))
+* **web:** the user guide is one click away: landing badge, Help dialog and contextual links ([67af606](https://github.com/maoudia/RetroBoard/commit/67af6067b378a2f9a72336380a4a6525189b08a4))
+
+
+### Bug Fixes
+
+* **application:** bump the title number with a linear scan instead of a regex (team-workspaces 2.3) ([e4a244a](https://github.com/maoudia/RetroBoard/commit/e4a244a4e8b7de84fc79d7f3a5576614832ae0c8))
+* **web:** history entries on a grid, a short Restore pill with a 40 px target (history-panel-phone-layout 2) ([730a916](https://github.com/maoudia/RetroBoard/commit/730a9165ec8f927753febf312abc78792ab8b9fa))
+* **web:** panel tokens, shared clock and a Dropdown that fits the viewport (history-panel-phone-layout 1) ([9803ae4](https://github.com/maoudia/RetroBoard/commit/9803ae4820b7c511419826542d750f82748ef590))
+* **web:** solo boards stay solo and Share converts them instead of showing a dead link (solo-board-parity 3) ([36e1c49](https://github.com/maoudia/RetroBoard/commit/36e1c49da4581652cd7a67800aa5ee1f0d979042))
+* **web:** the in-tab relay of a solo board applies the real relay budgets (solo-board-parity 2) ([2d52d27](https://github.com/maoudia/RetroBoard/commit/2d52d27c57eb740774829bb860592807687cf5b0))
+* **web:** voting shows the same locked state in solo, with an Open voting now action (solo-board-parity 1) ([75be03a](https://github.com/maoudia/RetroBoard/commit/75be03af32bc1fb184457fd4b7096473d3a16da8))
+
 ## [1.50.0](https://github.com/maoudia/RetroBoard/compare/v1.49.2...v1.50.0) (2026-11-08)
 
 
