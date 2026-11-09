@@ -125,6 +125,7 @@ onBeforeUnmount(() => host.stop())
         <p class="muted small">{{ t('join.hint') }}</p>
         <strong class="jc-code mono" data-testid="join-code-value">{{ host.code }}</strong>
         <p class="muted small">{{ t('join.expires', { n: minutesLeft }) }}</p>
+        <p v-if="host.imitation" class="imitation small" role="alert" data-testid="join-imitation"><Icon name="lucide:triangle-alert" /> {{ t('join.imitation') }}</p>
         <ul v-if="host.knocks.length" class="knocks" data-testid="join-knocks">
           <li v-for="k in host.knocks" :key="k.n" data-testid="join-knock">
             <span>{{ t('join.knock', { name: k.name || t('common.anonymous') }) }} <strong class="mono" data-testid="knock-number">{{ k.number }}</strong></span>
@@ -198,6 +199,7 @@ onBeforeUnmount(() => host.stop())
 h3 { font-size: var(--fs-md); margin: 0; }
 .jc { display: grid; gap: .5rem; justify-items: start; padding-top: .5rem; }
 .jc-code { font-size: var(--fs-2xl); letter-spacing: .12em; font-weight: 800; }
+.imitation { display: flex; gap: .4rem; align-items: start; margin: 0; color: var(--text); font-weight: 600; }
 .knocks { display: grid; gap: .5rem; width: 100%; margin: 0; padding: 0; list-style: none; }
 .knocks li { display: grid; gap: .25rem; padding: .6rem .75rem; border: 1px solid var(--border); border-radius: var(--r-card); }
 .kb { display: flex; gap: .5rem; flex-wrap: wrap; }

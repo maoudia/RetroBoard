@@ -1231,6 +1231,7 @@ export const en: Record<keyof typeof fr, string> = {
   "join.expires": "Valid for {n} more min.",
   "join.knock": "{name} wants to join. Number:",
   "join.check": "Check that this number is the one on their screen before you accept.",
+  "join.imitation": "Two requests showed the same number, so both were refused. Someone may be trying to pass for another person. Ask them to try again, or stop this code and show a new one.",
   "join.letIn": "Let in",
   "join.refuse": "Refuse",
   "join.stop": "Stop the code",
