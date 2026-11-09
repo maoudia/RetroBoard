@@ -1,9 +1,8 @@
 import { DurableObject } from 'cloudflare:workers'
 import { LIMITS } from '@retroboard/domain'
-import { MAX_FRAME_BYTES, parseClientFrame, type RelayFrame } from '@retroboard/protocol'
+import { type Budgets, CLOSE_TOO_LARGE, checkFrame, EnvelopeBuffer, type RelayFrame } from '@retroboard/protocol'
 import type { Env } from './env'
 import { consoleLogger, type Logger } from './logger'
-import { admit, type Budgets, EnvelopeBuffer } from './relay-core'
 
 /** Survives hibernation in the WebSocket attachment (max 2 KB). No board data here. */
 interface Attachment extends Budgets { rh: string; room: string; conn: string }
@@ -56,21 +55,14 @@ export class RelayRoom extends DurableObject<Env> {
 
   override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
     const att = ws.deserializeAttachment() as Attachment
-    if (typeof message !== 'string' || message.length > MAX_FRAME_BYTES) {
-      this.log.warn('msg.too-large', { rh: att.rh })
-      return ws.close(1009, 'Message too large')
-    }
-    let raw: unknown
-    try { raw = JSON.parse(message) } catch { raw = null }
-    const frame = parseClientFrame(raw)
-
-    const verdict = admit(att, frame?.t === 'eph' ? 'live' : frame?.t === 'sig' ? 'sig' : 'board', Date.now(), LIMITS.rateWindowMs)
+    const checked = checkFrame(att, message, Date.now(), LIMITS.rateWindowMs)
     ws.serializeAttachment(att)
-    if (verdict === 'drop') return
-    if (verdict === 'close') {
-      this.log.warn('rate.limited', { rh: att.rh })
-      return ws.close(1008, 'Rate limit')
+    if (checked.verdict === 'drop') return
+    if (checked.verdict === 'close') {
+      this.log.warn(checked.code === CLOSE_TOO_LARGE.code ? 'msg.too-large' : 'rate.limited', { rh: att.rh })
+      return ws.close(checked.code, checked.reason)
     }
+    const frame = checked.frame
     if (!frame) return this.send(ws, { t: 'err', code: 'invalid' })
     if (frame.t === 'eph') {
       if (frame.env.room !== att.room) return this.send(ws, { t: 'err', code: 'wrong-room' })

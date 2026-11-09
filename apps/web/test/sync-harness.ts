@@ -25,7 +25,7 @@ const hex = (n: number) => Array.from({ length: n }, () => Math.floor(Math.rando
 
 // ---------------------------------------------------------------- relay
 
-/** Same budget logic as apps/relay/src/relay-core.ts EnvelopeBuffer (fresh ids only, arrival order). */
+/** Same budget logic as packages/protocol/src/buffer.ts EnvelopeBuffer (fresh ids only, arrival order). */
 class Buffer {
   private readonly byId = new Map<string, Envelope>()
   add(envs: readonly Envelope[]): Envelope[] {

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import type { Envelope } from '@retroboard/protocol'
-import { allow, chunk, EnvelopeBuffer } from '../src/relay-core'
+import { chunk, EnvelopeBuffer } from '@retroboard/protocol'
 
 const env = (i: number, ct = 'AAAA'): Envelope => ({ v: 2, room: 'Ab3dEfGhIjKlMnOpQrStUv', id: `01J${String(i).padStart(23, '0')}`, hlc: i, ct })
 
@@ -34,47 +34,17 @@ describe('EnvelopeBuffer', () => {
   })
 })
 
-describe('chunk and rate', () => {
+describe('chunk', () => {
   it('splits by bytes', () => {
     expect(chunk([env(1, 'A'.repeat(600)), env(2, 'A'.repeat(600))], 1000)).toHaveLength(2)
-  })
-  it('limits frames per window', () => {
-    const w = { windowStart: 0, count: 0 }
-    expect([1, 2, 3].map(() => allow(w, 10, 2, 1000))).toEqual([true, true, false])
-    expect(allow(w, 2000, 2, 1000)).toBe(true)
   })
 })
 
 describe('no server-side storage (docs/PLAN.md 5.3)', () => {
   it('the v2 relay never references the storage API', () => {
-    for (const f of ['relay-room.ts', 'relay-core.ts']) {
+    for (const f of ['relay-room.ts']) {
       const src = readFileSync(fileURLToPath(new URL(`../src/${f}`, import.meta.url).href), 'utf8')
       expect(src.replace(/\/\/.*$|\/\*[\s\S]*?\*\//gm, '')).not.toMatch(/\bstorage\b|\bsetAlarm\b|\bKV\b|\bD1\b|\bR2\b/)
     }
-  })
-})
-
-describe('admit (per-socket budgets)', () => {
-  it('closes on board-frame abuse but only drops excess live frames', async () => {
-    const { admit, EPH_MAX, FRAME_MAX } = await import('../src/relay-core')
-    const b = { windowStart: 0, count: 0 }
-    const live = Array.from({ length: EPH_MAX + 5 }, () => admit(b, 'live', 1_000, 10_000))
-    expect(live.filter((v) => v === 'ok')).toHaveLength(EPH_MAX)
-    expect(live.at(-1)).toBe('drop')
-    // Live traffic does not eat the board budget.
-    const frames = Array.from({ length: FRAME_MAX + 1 }, () => admit(b, 'board', 1_000, 10_000))
-    expect(frames.filter((v) => v === 'ok')).toHaveLength(FRAME_MAX)
-    expect(frames.at(-1)).toBe('close')
-    // A new window resets both.
-    expect([admit(b, 'live', 12_000, 10_000), admit(b, 'board', 12_000, 10_000)]).toEqual(['ok', 'ok'])
-  })
-
-  it('signalling has its own budget and is dropped, never fatal', async () => {
-    const { admit, SIG_MAX } = await import('../src/relay-core')
-    const b = { windowStart: 0, count: 0 }
-    const sig = Array.from({ length: SIG_MAX + 1 }, () => admit(b, 'sig', 1_000, 10_000))
-    expect(sig.filter((v) => v === 'ok')).toHaveLength(SIG_MAX)
-    expect(sig.at(-1)).toBe('drop')
-    expect(admit(b, 'board', 1_000, 10_000)).toBe('ok')
   })
 })
