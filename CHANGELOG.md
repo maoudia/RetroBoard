@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.51.3](https://github.com/maoudia/RetroBoard/compare/v1.51.2...v1.51.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* **web:** menus keep their rows and stay open when a submenu grows; the guide follows a late colour scheme ([cd984c0](https://github.com/maoudia/RetroBoard/commit/cd984c0b8fb5ac611e6f534030281760d1b9e234))
+
 ## [1.51.2](https://github.com/maoudia/RetroBoard/compare/v1.51.1...v1.51.2) (2026-11-09)
 
 
