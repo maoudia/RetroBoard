@@ -7,7 +7,7 @@ const label = (e: ActivityEntry) => t(`activity.${e.kind}` as never, { phase: e.
 </script>
 
 <template>
-  <Dropdown width="280px">
+  <Dropdown width="var(--panel-w)" fixed>
     <template #trigger="{ toggle, open }">
       <button class="icon-btn" type="button" :aria-expanded="open" aria-haspopup="dialog" data-testid="btn-activity" :aria-label="activity.unread ? t('activity.unread', { n: activity.unread }) : t('activity.title')" @click="toggle">
         <Icon name="lucide:bell" class="ico" /><span>{{ t('activity.title') }}</span>
@@ -17,9 +17,9 @@ const label = (e: ActivityEntry) => t(`activity.${e.kind}` as never, { phase: e.
     <template #default>
       <div class="feed" role="region" :aria-label="t('activity.title')" data-testid="activity-panel">
         <ActivityOpened @opened="activity.markRead()" />
-        <p v-if="!activity.entries.length" class="muted empty">{{ t('activity.empty') }}</p>
+        <p v-if="!activity.entries.length" class="muted panel-empty">{{ t('activity.empty') }}</p>
         <ul v-else>
-          <li v-for="e in activity.entries" :key="e.id"><span class="mono muted">{{ time(e.at) }}</span> {{ label(e) }}</li>
+          <li v-for="e in activity.entries" :key="e.id" class="panel-row"><span class="meta">{{ time(e.at) }}</span><span class="body">{{ label(e) }}</span></li>
         </ul>
       </div>
     </template>
@@ -27,7 +27,6 @@ const label = (e: ActivityEntry) => t(`activity.${e.kind}` as never, { phase: e.
 </template>
 
 <style scoped>
-.feed { padding: .5rem .6rem; max-height: 50vh; overflow: auto; }
-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; font-size: var(--fs-sm); }
-.empty { margin: 0; font-size: var(--fs-sm); }
+.feed { padding: var(--panel-pad); }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--row-gap); }
 </style>

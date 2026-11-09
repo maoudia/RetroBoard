@@ -11,8 +11,8 @@
 
 ## 3. Coherence
 
-- [ ] 3.1 Move Activity and Participants to the shared tokens and row anatomy, remove the per-panel widths and `max-height`s, align trigger ARIA and empty states; verify e2e that measures width, padding and gap of the three panels and the existing activity, presence and roles specs
-- [ ] 3.2 Guard in `apps/web/test/design-tokens.test.ts`: a `.mini-btn` with visible text fails; verify the test fails on a seeded violation
+- [x] 3.1 Move Activity and Participants to the shared tokens and row anatomy, remove the per-panel widths and `max-height`s, align trigger ARIA and empty states; verify e2e that measures width, padding and gap of the three panels and the existing activity, presence and roles specs
+- [x] 3.2 Guard in `apps/web/test/design-tokens.test.ts`: a `.mini-btn` with visible text fails; verify the test fails on a seeded violation
 
 ## 4. Docs
 

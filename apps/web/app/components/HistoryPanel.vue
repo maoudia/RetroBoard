@@ -23,7 +23,7 @@ function restore() {
 </script>
 
 <template>
-  <Dropdown width="var(--panel-w)">
+  <Dropdown width="var(--panel-w)" fixed>
     <template #trigger="{ toggle, open }">
       <button class="icon-btn" type="button" :aria-expanded="open" aria-haspopup="dialog" data-testid="btn-history" @click="toggle">
         <Icon name="lucide:history" class="ico" /><span>{{ t('history.title') }}</span>
@@ -31,7 +31,7 @@ function restore() {
     </template>
     <template #default>
       <div class="history" role="region" :aria-label="t('history.title')" data-testid="history-panel">
-        <p v-if="!shown.length" class="muted empty">{{ t('history.empty') }}</p>
+        <p v-if="!shown.length" class="muted panel-empty">{{ t('history.empty') }}</p>
         <ul v-else>
           <li v-for="e in shown" :key="e.id" class="panel-row" data-testid="history-entry">
             <span class="meta">{{ time(e.at) }}</span>
@@ -51,5 +51,4 @@ function restore() {
 .history { padding: var(--panel-pad); }
 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--row-gap); }
 .restore { min-height: 40px; }
-.empty { margin: 0; font-size: var(--fs-sm); }
 </style>

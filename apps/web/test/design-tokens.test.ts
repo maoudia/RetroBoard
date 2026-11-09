@@ -54,3 +54,22 @@ describe('one button shape (change ui-coherence-pass)', () => {
     expect(bad.map((b) => `${b.f}: ${b.sel} { border-radius: ${b.v} }`), 'buttons use var(--r-pill)').toEqual([])
   })
 })
+
+describe('a labelled button is not an icon-only button (change history-panel-phone-layout)', () => {
+  /** The visible text of every `.mini-btn` (a fixed 30 px square for an icon) in a template; the icon and its markup do not count. */
+  const labelled = (src: string) => [...src.matchAll(/<(button|NuxtLink|a)\b((?:"[^"]*"|'[^']*'|[^>"'])*)>([\s\S]*?)<\/\1>/g)]
+    .filter((m) => /class="[^"]*\bmini-btn\b/.test(m[2]!))
+    .map((m) => m[3]!.replace(/<Icon\b[^>]*\/>|<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+
+  it('flags a .mini-btn that shows text (seeded violation)', () => {
+    expect(labelled('<button class="mini-btn" type="button"><Icon name="lucide:x" /> Restore</button>')).toEqual(['Restore'])
+    expect(labelled('<button class="mini-btn" type="button">{{ t(\'x\') }}</button>')).toEqual(["{{ t('x') }}"])
+    expect(labelled('<button class="mini-btn" type="button" :aria-label="t(\'x\')"><Icon name="lucide:x" /></button>')).toEqual([])
+  })
+
+  it('no component uses .mini-btn with a visible label', () => {
+    const bad = all.filter(({ f }) => f.endsWith('.vue')).flatMap(({ f, s }) => labelled(s).map((txt) => `${f.replace(`${root}/`, '')}: ${txt}`))
+    expect(bad, 'use .btn .btn-sm for a labelled button; .mini-btn is icon-only').toEqual([])
+  })
+})
