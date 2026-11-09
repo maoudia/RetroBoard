@@ -13,6 +13,13 @@ const WORD = /[\p{L}\p{N}][\p{L}\p{N}'-]*/gu
 /** Lower case, accents kept for display but folded for matching, so "equipe" and "équipe" count together. */
 const fold = (w: string) => w.normalize('NFD').replace(/\p{M}/gu, '')
 
+/** Drops trailing apostrophes and hyphens with a plain scan: a regex on a long run of them backtracks quadratically. */
+export function trimTrailingJoiners(w: string): string {
+  let end = w.length
+  while (end > 0 && (w[end - 1] === "'" || w[end - 1] === '-')) end--
+  return w.slice(0, end)
+}
+
 /** Words used in at least `minNotes` different notes, most frequent first. Counts notes, not repeats inside one note. */
 export function topKeywords(texts: readonly string[], opts: { minNotes?: number; limit?: number } = {}): Keyword[] {
   const minNotes = opts.minNotes ?? 2
@@ -21,7 +28,7 @@ export function topKeywords(texts: readonly string[], opts: { minNotes?: number;
   for (const text of texts) {
     const inThis = new Set<string>()
     for (const raw of text.toLowerCase().match(WORD) ?? []) {
-      const w = raw.replace(/['-]+$/, '')
+      const w = trimTrailingJoiners(raw)
       const key = fold(w)
       if (key.length < 3 || STOP.has(key) || STOP.has(w) || /^\d+$/.test(key) || inThis.has(key)) continue
       inThis.add(key)

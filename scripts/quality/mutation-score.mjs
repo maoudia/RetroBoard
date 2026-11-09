@@ -60,7 +60,12 @@ async function previous() {
   if (!base) return null
   try {
     const res = await fetch(`${base.replace(/\/$/, '')}/mutation/summary.json`, { headers: { 'cache-control': 'no-cache' } })
-    return res.ok ? await res.json() : null
+    if (!res.ok) return null
+    // Only a number and a commit id leave this function: nothing else of the remote document reaches a file.
+    const raw = await res.json()
+    const score = Number(raw?.score)
+    const commit = /^[0-9a-f]{7,40}$/.test(String(raw?.commit)) ? String(raw.commit) : null
+    return Number.isFinite(score) ? { ...raw, score, commit } : null
   } catch { return null }
 }
 

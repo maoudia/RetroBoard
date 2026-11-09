@@ -96,7 +96,7 @@ export function renderIndex(adrs) {
     '',
     '| ADR | Title | Status | Date |',
     '|---|---|---|---|',
-    ...sorted.map((a) => `| [${String(a.number).padStart(4, '0')}](${a.file}) | ${a.title.replace(/\|/g, '\\|')} | ${status(a)} | ${a.date} |`),
+    ...sorted.map((a) => `| [${String(a.number).padStart(4, '0')}](${a.file}) | ${a.title.replace(/[\\|]/g, '\\$&')} | ${status(a)} | ${a.date} |`),
     '',
   ].join('\n')
 }

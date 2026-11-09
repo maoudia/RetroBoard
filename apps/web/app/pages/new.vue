@@ -67,7 +67,7 @@ function onMinutes(minutes: number) {
 const { $ports } = useNuxtApp()
 // "Try solo" lands here with solo preselected: same form, same engine, the relay just lives in this tab.
 const soloMode = ref(useRoute().query.solo === '1')
-function create({ passcode, ...form }: SetupResult) {
+async function create({ passcode, ...form }: SetupResult) {
   const a = agenda.value
   const setup: SetupResult = {
     ...form,
@@ -83,11 +83,9 @@ function create({ passcode, ...form }: SetupResult) {
     templateId: setup.templateId, themeId: setup.themeId, title: setup.title, at: Date.now(),
     ...(setup.agenda ? { agenda: setup.agenda } : {}),
   })
-  try {
-    sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
-    // Hand-off to the board page of this tab only; read once and removed there.
-    if (passcode && !soloMode.value) { sessionStorage.setItem(`retroboard:pass:${ring.roomId}`, passcode); void $ports.vault.set(ring.roomId, passcode) }
-  } catch { /* the board page will ask for the passcode */ }
+  try { sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup)) } catch { /* the board page will ask for the passcode */ }
+  // The board page reads the passcode from the sealed device vault, never from a clear-text hand-off.
+  if (passcode && !soloMode.value) { try { await $ports.vault.set(ring.roomId, passcode) } catch { /* the board page will ask for the passcode */ } }
   void router.push({ path: '/boards', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
 }
 </script>

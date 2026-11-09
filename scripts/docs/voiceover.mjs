@@ -64,6 +64,8 @@ export function pickEngine(asked, { platform, hasSay, hasPiper }) {
 const flag = (name) => { const i = process.argv.indexOf(`--${name}`); return i === -1 ? null : (process.argv[i + 1] ?? true) }
 const has = (bin) => spawnSync(bin, ['--version'], { stdio: 'ignore' }).error === undefined
 
+const MAX_AUDIO_BYTES = 20 * 1024 * 1024
+
 async function speak(engine, text, locale, file) {
   if (engine === 'say') {
     const out = file.replace(/\.\w+$/, '.aiff')
@@ -82,8 +84,11 @@ async function speak(engine, text, locale, file) {
   const { url, init } = elevenRequest(text, process.env.ELEVENLABS_VOICE_ID, process.env.ELEVENLABS_API_KEY)
   const res = await fetch(url, init)
   if (!res.ok) throw new Error(`ElevenLabs answered ${res.status}`)
+  if (!(res.headers.get('content-type') ?? '').startsWith('audio/')) throw new Error('ElevenLabs did not answer with audio')
+  const audio = Buffer.from(await res.arrayBuffer())
+  if (audio.length === 0 || audio.length > MAX_AUDIO_BYTES) throw new Error('ElevenLabs audio has an unexpected size')
   const out = file.replace(/\.\w+$/, '.mp3')
-  writeFileSync(out, Buffer.from(await res.arrayBuffer()))
+  writeFileSync(out, audio)
   return out
 }
 

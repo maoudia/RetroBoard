@@ -8,7 +8,8 @@ params?: { n: number }) => string
 
 export interface ExportMeta { date: Date; labels: ExportLabels }
 
-const oneLine = (s: string) => s.replace(/\s*\n\s*/g, ' ').trim()
+/** One line: each line trimmed, empty ones dropped, joined by a space (no regex, so a long run of spaces stays linear). */
+export const oneLine = (s: string) => s.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')
 
 export function toMarkdown(s: Snapshot, meta: ExportMeta): string {
   const t = meta.labels
