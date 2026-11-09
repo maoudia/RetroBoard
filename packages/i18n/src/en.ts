@@ -52,7 +52,7 @@ export const en: Record<keyof typeof fr, string> = {
   'history.delete': '{name} deleted "{text}"',
   'history.color': '{name} changed the colour of "{text}"',
   'history.rename': '{name} renamed the cluster "{text}"',
-  'history.restore': 'Restore before',
+  'history.restore': 'Restore',
   'history.restore.label': 'Restore before: {action}',
   'history.restore.title': 'Restore this state?',
   'history.restore.message': 'The board gets back the place, text, colour and clusters of the ideas as they were before this action. A deleted idea comes back without its votes. Votes, chat and ideas written since stay as they are.',
