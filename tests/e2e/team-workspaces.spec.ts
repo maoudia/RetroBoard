@@ -44,3 +44,16 @@ test('recent boards form one lane per team once there are two teams', async ({ p
   await expect(page.getByTestId('new-resume')).toBeVisible()
   await expect(page.locator('[data-testid^="lane-"]')).toHaveCount(2)
 })
+
+test('a team starts its next board like its last one: format, theme, agenda and the next title', async ({ page }) => {
+  await createBoard(page, { template: 'mad-sad-glad', theme: 'studio', title: 'Sprint 7', name: 'Alice' })
+  await page.goto('/new')
+  await expect(page.getByTestId('setup-title')).toHaveValue('Sprint 8')
+  await page.getByTestId('tab-all').click()
+  await expect(page.getByTestId('template-mad-sad-glad')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByTestId('theme-studio')).toHaveAttribute('aria-checked', 'true')
+  // Another team starts clean: no carried format.
+  await page.getByTestId('team-select').selectOption('__new')
+  await expect(page.getByTestId('team-name')).toBeVisible()
+  await expect(page.getByTestId('carry-none')).toBeVisible()
+})

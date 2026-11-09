@@ -30,6 +30,7 @@ onMounted(() => {
   const c = cloned.value
   if (c?.actions?.length) carry.value = c.actions
   if (c?.agenda) { agenda.value = { enabled: true, phases: c.agenda.phases, rules: c.agenda.rules, autoPublish: c.agenda.autoPublish, autoStart: true, chain: c.agenda.chain }; agendaEdited.value = true }
+  if (!c) applyTeamLook()
 })
 
 /** Previous actions to carry over into the new board (team profile or a file). */
@@ -41,6 +42,18 @@ const teamChoice = ref(team.current?.id ?? NEW_TEAM)
 const newTeamName = ref('')
 const project = ref('')
 const projectName = computed(() => project.value.trim() || null)
+/** A team starts its next board like its last one: format and series title go to the form, theme and agenda here (change team-workspaces). */
+const prefill = computed(() => {
+  const d = team.defaultsOf(teamChoice.value)
+  return { key: teamChoice.value, ...(d?.templateId ? { templateId: d.templateId } : {}), title: team.suggestTitle(teamChoice.value) }
+})
+function applyTeamLook() {
+  const d = team.defaultsOf(teamChoice.value)
+  if (!d) return
+  if (d.themeId) void theme.use(d.themeId, false)
+  if (d.agenda) { agenda.value = { enabled: true, autoStart: true, chain: true, ...d.agenda }; agendaEdited.value = true }
+}
+watch(teamChoice, () => { if (!cloned.value) applyTeamLook() })
 /** Default: the one-hour agenda (spec: 8 phases, 60 minutes) unless the facilitator edits it. */
 const agenda = ref<AgendaDraft>({ enabled: true, phases: presetPhases(60), rules: true, autoPublish: true, autoStart: true, chain: true })
 /** The time available in the format picker picks the closest agenda preset, until the agenda is edited by hand (#224). */
@@ -66,6 +79,10 @@ function create({ passcode, ...form }: SetupResult) {
   if (soloMode.value) markSolo(ring.roomId)
   const chosen = advanced.value && teamChoice.value === NEW_TEAM && newTeamName.value.trim() ? team.create(newTeamName.value) : team.teams.find((x) => x.id === teamChoice.value) ?? team.ensureTeam()
   team.assign(ring.roomId, chosen.id, advanced.value ? projectName.value : null)
+  team.remember(chosen.id, {
+    templateId: setup.templateId, themeId: setup.themeId, title: setup.title, at: Date.now(),
+    ...(setup.agenda ? { agenda: setup.agenda } : {}),
+  })
   try {
     sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup))
     // Hand-off to the board page of this tab only; read once and removed there.
@@ -98,7 +115,7 @@ function create({ passcode, ...form }: SetupResult) {
         <ToggleSwitch v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
         <ToggleSwitch plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
         <p v-if="cloned" class="clone-banner" role="status" data-testid="clone-banner"><Icon name="lucide:copy" /> {{ t(cloned.kind === 'actions' ? 'clone.banner.actions' : 'clone.banner') }}</p>
-        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
+        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :prefill="prefill" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
       </section>
       <section v-if="advanced" class="card panel">
         <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />

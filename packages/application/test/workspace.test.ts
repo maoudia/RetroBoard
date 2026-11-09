@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addTeam, assignBoard, carryOver, currentTeam, EMPTY_WORKSPACE, MAX_RETROS_PER_TEAM, nextTitle, projectsOf, saveRetro, type SavedRetro } from '../src'
+import { addTeam, assignBoard, carryOver, currentTeam, EMPTY_WORKSPACE, MAX_RETROS_PER_TEAM, nextTitle, projectsOf, saveRetro, setDefaults, type SavedRetro } from '../src'
 
 const retro = (over: Partial<SavedRetro>): SavedRetro => ({ boardId: 'b', teamId: 't1', project: null, title: 'Sprint 42', at: 1, actions: [], ...over })
 const act = (text: string, status = 'todo', owner = 'Ana') => ({ text, owner, status })
@@ -48,5 +48,30 @@ describe('workspace', () => {
     expect(nextTitle(ws, 't1')).toBe('Sprint 43')
     expect(nextTitle(ws, 't2')).toBeNull()
     expect(nextTitle(saveRetro(EMPTY_WORKSPACE, retro({ title: 'Retro' })), 't1')).toBeNull()
+  })
+
+  it('a team starts its next board like its last one, and only that team', () => {
+    const a = addTeam(EMPTY_WORKSPACE, 'Payments', 't1')
+    const b = addTeam(a.ws, 'Search', 't2')
+    const agenda = { phases: [{ kind: 'write' as const, minutes: 7 }], rules: true, autoPublish: false }
+    const ws = setDefaults(b.ws, 't1', { templateId: 'mad-sad-glad', themeId: 'ocean', agenda, title: 'Sprint 9', at: 5 })
+    expect(ws.teams.find((t) => t.id === 't1')?.defaults).toEqual({ templateId: 'mad-sad-glad', themeId: 'ocean', agenda, title: 'Sprint 9', at: 5 })
+    expect(ws.teams.find((t) => t.id === 't2')?.defaults).toBeUndefined()
+    expect(setDefaults(ws, 'nope', { themeId: 'x' })).toEqual(ws)
+  })
+
+  it('the title series follows the newest of the last created board and the last saved retro', () => {
+    let ws = addTeam(EMPTY_WORKSPACE, 'Payments', 't1').ws
+    expect(nextTitle(ws, 't1')).toBeNull()
+    ws = setDefaults(ws, 't1', { title: 'Sprint 9', at: 5 })
+    expect(nextTitle(ws, 't1')).toBe('Sprint 10')
+    ws = saveRetro(ws, retro({ title: 'Sprint 12', at: 9 }))
+    expect(nextTitle(ws, 't1')).toBe('Sprint 13')
+    ws = setDefaults(ws, 't1', { title: 'Sprint 13', at: 9 })
+    expect(nextTitle(ws, 't1')).toBe('Sprint 14')
+    expect(nextTitle(setDefaults(ws, 't1', { title: 'Retro', at: 20 }), 't1')).toBeNull()
+    const two = setDefaults(addTeam(setDefaults(addTeam(EMPTY_WORKSPACE, 'A', 'a').ws, 'a', { title: 'Alpha 1', at: 1 }), 'B', 'b').ws, 'b', { title: 'Beta 4', at: 2 })
+    expect(nextTitle(two, 'b')).toBe('Beta 5')
+    expect(nextTitle(two, 'a')).toBe('Alpha 2')
   })
 })

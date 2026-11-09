@@ -9,7 +9,7 @@ const { t, locale } = useT()
 const appSettings = useSettingsStore()
 const advanced = computed(() => appSettings.s.uiMode === 'advanced')
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
-const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean; /** A cloned board proposes its title (change feedback-wave-7). */ cloneTitle?: string }>()
+const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean; /** A cloned board proposes its title (change feedback-wave-7). */ cloneTitle?: string; /** The chosen team's way of starting a board (change team-workspaces): its format and the next title of its series. */ prefill?: { key: string; templateId?: string; title?: string | null } }>()
 const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult]; 'update:minutes': [minutes: number] }>()
 
 const d = new Date()
@@ -24,6 +24,11 @@ watch(() => recents.items[0]?.title, (prev) => {
 }, { immediate: true })
 watch(() => props.cloneTitle, (v) => { if (v) { title.value = v; typed.value = true } }, { immediate: true })
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
+watch(() => props.prefill, (p) => {
+  if (!p || props.cloneTitle) return
+  if (p.templateId && getTemplate(p.templateId)) templateId.value = p.templateId
+  if (p.title && !typed.value) title.value = p.title
+}, { immediate: true })
 /** Votes per person and sealed ballot (advanced): applied right after the board exists. */
 const voteLimit = ref<number>(DEFAULT_VOTE_LIMIT)
 const secretVoting = ref(false)
