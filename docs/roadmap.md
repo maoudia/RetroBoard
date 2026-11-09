@@ -19,6 +19,8 @@ Feature freeze until main is green. Gate: 7 green nightly runs in a row, at most
 * `reliable-board-sync` ([proposal](../openspec/changes/reliable-board-sync/proposal.md))
 * `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
 * `quality-gates-v2` ([proposal](../openspec/changes/quality-gates-v2/proposal.md))
+* `history-panel-phone-layout` ([proposal](../openspec/changes/history-panel-phone-layout/proposal.md))
+* `solo-board-parity` ([proposal](../openspec/changes/solo-board-parity/proposal.md))
 * Epic #443 `stabilise-main`: roadmap source of truth, WIP limit, landing truth and favicon, phone UX and docs truth pass are delivered; the trademark check is the owner's task. Hotfix waves are archived as soon as they are merged (last: `2026-11-05-hotfix-ux-wave8`).
 
 ## R2 Public launch (target 2026-12-13)
@@ -41,6 +43,14 @@ Brand identity, landing v2, user manual, short links, report and insights, code 
 * `ci-toolchain-speed` ([proposal](../openspec/changes/ci-toolchain-speed/proposal.md))
 * `edge-security-and-domain` ([proposal](../openspec/changes/edge-security-and-domain/proposal.md))
 * `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md))
+* `note-edit-and-unpublish` ([proposal](../openspec/changes/note-edit-and-unpublish/proposal.md))
+* `note-zoom-on-double-tap` ([proposal](../openspec/changes/note-zoom-on-double-tap/proposal.md))
+* `group-colors-menu-and-scope` ([proposal](../openspec/changes/group-colors-menu-and-scope/proposal.md))
+* `column-defaults-and-collapse` ([proposal](../openspec/changes/column-defaults-and-collapse/proposal.md))
+* `chat-floating-dock` ([proposal](../openspec/changes/chat-floating-dock/proposal.md))
+* `chat-message-controls` ([proposal](../openspec/changes/chat-message-controls/proposal.md))
+* `phase-transition-guidance` ([proposal](../openspec/changes/phase-transition-guidance/proposal.md))
+* `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
 * `brand-identity` (change to open: `/opsx:propose`)
 * `code-health-for-agents` (change to open: `/opsx:propose`)
 * `public-launch` (change to open: `/opsx:propose`)
@@ -49,6 +59,7 @@ Brand identity, landing v2, user manual, short links, report and insights, code 
 
 Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: actions are taken over from one retro to the next.
 
+* `attention-and-notifications` ([proposal](../openspec/changes/attention-and-notifications/proposal.md))
 * `team-workspaces` ([proposal](../openspec/changes/team-workspaces/proposal.md))
 * `actions-v2-and-carry-over` ([proposal](../openspec/changes/actions-v2-and-carry-over/proposal.md))
 * `profile-avatars-and-team-space` ([proposal](../openspec/changes/profile-avatars-and-team-space/proposal.md))
