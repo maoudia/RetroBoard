@@ -38,6 +38,7 @@ for (const locale of ['fr', 'en'] as const) {
           const scan = await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
           expect(scan.violations.map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`), `${name} ${variant}`).toEqual([])
         }
+        await expect(page.locator('html')).toHaveAttribute('data-variant', variant)
         const shown = await page.locator('img:visible').evaluateAll((imgs) => (imgs as HTMLImageElement[]).map((i) => i.src))
         expect(shown.length).toBeGreaterThan(0)
         expect(shown.filter((s) => !s.includes(`/${variant}/`))).toEqual([])

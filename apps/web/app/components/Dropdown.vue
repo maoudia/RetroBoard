@@ -12,7 +12,13 @@ const panel = ref<HTMLElement | null>(null)
 const close = () => { open.value = false }
 /** The browser may scroll the focused trigger into view right after opening: that must not close the menu. */
 let openedAt = 0
-const onScroll = (e: Event) => { if (panel.value?.contains(e.target as Node)) return; if (performance.now() - openedAt > 250) close() }
+/** Where the trigger was when the panel was placed: a scroll that leaves it there (the browser revealing a button inside the panel) keeps the menu open. */
+let placedAt = { top: 0, left: 0 }
+const onScroll = (e: Event) => {
+  if (panel.value?.contains(e.target as Node) || performance.now() - openedAt <= 250) return
+  const t = trigger.value?.getBoundingClientRect()
+  if (!t || Math.abs(t.top - placedAt.top) > 1 || Math.abs(t.left - placedAt.left) > 1) close()
+}
 const toggle = () => { open.value = !open.value }
 
 /** Space taken at the bottom of the viewport by fixed bars (presenter bar, turn bar): they mark themselves data-reserve-bottom. */
@@ -25,11 +31,12 @@ function reservedBottom(vh: number): number {
   return r
 }
 
-/** Fit the panel in the visible area (visual viewport, minus the reserved bars): below the trigger, else above, else the larger side, scrolling inside. */
+/** Fit the panel in the visible area (visual viewport, minus the reserved bars): below the trigger, else above, else over the trigger using the whole height, scrolling inside only when even that is too short. */
 function place() {
   const t = trigger.value?.getBoundingClientRect()
   const p = panel.value
   if (!t || !p) return
+  placedAt = { top: t.top, left: t.left }
   const vv = window.visualViewport
   const vw = vv?.width ?? window.innerWidth
   const vh = vv?.height ?? window.innerHeight
@@ -45,8 +52,7 @@ function place() {
   let room: number
   if (cap <= below) { top = t.bottom + gap; room = below }
   else if (cap <= above) { room = above; top = t.top - gap - Math.min(cap, above) }
-  else if (below >= above) { top = t.bottom + gap; room = below }
-  else { room = above; top = gap }
+  else { room = Math.max(120, bottomLimit - gap); top = gap }
   p.style.setProperty('--dd-max', `${Math.max(120, Math.floor(room))}px`)
   const left = props.align === 'start' ? t.left : t.right - w
   p.style.left = `${Math.min(Math.max(gap, left), Math.max(gap, vw - w - gap))}px`
@@ -64,6 +70,8 @@ function edge() {
 
 /** A height-only resize (the phone keyboard, the URL bar) re-places the panel; only a width change closes it. */
 let openWidth = 0
+/** A menu that grows (a submenu opens) is placed again so that it keeps fitting. */
+let grow: MutationObserver | null = null
 const onResize = () => {
   if (Math.abs((window.visualViewport?.width ?? window.innerWidth) - openWidth) > 1) close()
   else place()
@@ -84,6 +92,8 @@ watch(open, async (v) => {
     openedAt = performance.now()
     openWidth = window.visualViewport?.width ?? window.innerWidth
     place()
+    grow = new MutationObserver(() => place())
+    grow.observe(p, { childList: true, subtree: true })
     document.addEventListener('pointerdown', onDown, true)
     document.addEventListener('keydown', onKey)
     window.addEventListener('resize', onResize)
@@ -95,6 +105,8 @@ watch(open, async (v) => {
   }
 })
 function cleanup() {
+  grow?.disconnect()
+  grow = null
   document.removeEventListener('pointerdown', onDown, true)
   document.removeEventListener('keydown', onKey)
   window.removeEventListener('resize', onResize)
@@ -124,5 +136,5 @@ defineExpose({ close })
 }
 .dd-panel[popover].tall { max-height: var(--dd-max, calc(100dvh - 110px)); scrollbar-width: thin; } /* everything shows when it fits; a visible scrollbar appears only when it cannot */
 .dd-panel[popover][data-more] { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent); }
-.dd-panel[popover]:popover-open { display: grid; gap: 2px; animation: dd-in .16s ease-out; }
+.dd-panel[popover]:popover-open { display: grid; grid-auto-rows: max-content; gap: 2px; animation: dd-in .16s ease-out; }
 </style>
