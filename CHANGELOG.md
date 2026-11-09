@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.51.1](https://github.com/maoudia/RetroBoard/compare/v1.51.0...v1.51.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **build:** the runtime image drops npm and upgrades zlib so the release scan passes ([12d790b](https://github.com/maoudia/RetroBoard/commit/12d790ba0632a9f4ba101c7a4a53c16902dffab8))
+* **web:** list panels share tokens and row anatomy; guard labelled .mini-btn (history-panel-phone-layout 3) ([c2ac280](https://github.com/maoudia/RetroBoard/commit/c2ac280c19b8e29c279477c95c1e951fc746c485))
+* **web:** read the text nodes of a button without a tag-stripping regex (history-panel-phone-layout 3) ([2cb3bc4](https://github.com/maoudia/RetroBoard/commit/2cb3bc4d30227a1698c243b1330616c44af668c0))
+
 ## [1.51.0](https://github.com/maoudia/RetroBoard/compare/v1.50.0...v1.51.0) (2026-11-09)
 
 
