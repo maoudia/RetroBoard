@@ -254,7 +254,7 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .bubble-box { position: fixed; z-index: 45; bottom: 18px; touch-action: none; }
 .bubble-x { position: absolute; top: -8px; left: -8px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--text); font-size: var(--fs-xs); cursor: pointer; box-shadow: var(--shadow-1); }
 .bubble { position: relative; display: grid; touch-action: none; grid-auto-flow: column; align-items: center; gap: .5rem; min-height: 52px; padding: 0 .9rem; border-radius: 999px; border: 1px solid var(--border); background: var(--accent); color: var(--accent-ink); font-size: var(--fs-xl); cursor: pointer; box-shadow: var(--shadow-2); }
-.bubble .badge { position: absolute; top: -6px; right: -4px; min-width: 20px; padding: 0 .35rem; border-radius: 999px; background: var(--danger); color: #fff; font-size: var(--fs-xs); font-weight: 800; text-align: center; }
+.bubble .badge { position: absolute; top: -6px; right: -4px; min-width: 20px; padding: 0 .35rem; border-radius: 999px; background: var(--danger); color: var(--accent-ink); font-size: var(--fs-xs); font-weight: 800; text-align: center; }
 .stack { display: inline-flex; }
 .stack i { display: grid; place-items: center; width: 24px; height: 24px; margin-inline-start: -8px; border-radius: 50%; border: 2px solid var(--accent); font: 800 var(--fs-xs) var(--f-body, inherit); font-style: normal; color: #1b1b1b; }
 .stack i:first-child { margin-inline-start: 0; }
