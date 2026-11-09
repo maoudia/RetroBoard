@@ -7,7 +7,7 @@
 
 ## 2. History panel
 
-- [ ] 2.1 Rebuild the entry layout (`auto 1fr auto` row, wrapping body, nowrap restore pill with icon, 40 px target), short fr and en labels, accessible name kept; verify e2e `history-panel-layout` at 360 and 390 px with a 40-entry fixture (no intersection between entries, no horizontal overflow, panel inside the viewport) and axe
+- [x] 2.1 Rebuild the entry layout (`auto 1fr auto` row, wrapping body, nowrap restore pill with icon, 40 px target), short fr and en labels, accessible name kept; verify e2e `history-panel-layout` at 360 and 390 px with a 40-entry fixture (no intersection between entries, no horizontal overflow, panel inside the viewport) and axe
 
 ## 3. Coherence
 
