@@ -8,6 +8,10 @@ const eph = JSON.stringify({ t: 'eph', env: env(1) })
 const sig = JSON.stringify({ t: 'sig', to: 'abcdef012345', env: env(1) })
 const fresh = () => ({ windowStart: 0, count: 0 })
 
+it('keeps the documented budgets', () => {
+  expect([FRAME_MAX, EPH_MAX, SIG_MAX]).toEqual([80, 60, 120])
+})
+
 describe('allow', () => {
   it('limits frames per window and starts a new window after it', () => {
     const w = fresh()
