@@ -54,17 +54,9 @@ watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal() }, { immedia
 
 useHead({ title: computed(() => `${board.settings?.title ?? t('board.defaultTitle')} - RetroBoard`) })
 
-/** Passcode of a protected board: memory only (the creator's tab hands it over once). */
+/** Passcode of a protected board: memory only, fetched from the sealed device vault. */
 const passcode = ref<string | null>(null)
 const needsPasscode = computed(() => invite.value?.kind === 'encrypted' && !!invite.value.ring.passcode && (passcode.value === null || board.accessDenied))
-
-function takeHandoff(id: string): string | null {
-  try {
-    const v = sessionStorage.getItem(`retroboard:pass:${id}`)
-    sessionStorage.removeItem(`retroboard:pass:${id}`)
-    return v
-  } catch { return null }
-}
 
 function hasSetupHandoff(id: string): boolean {
   try { return sessionStorage.getItem(`retroboard:init:${id}`) !== null } catch { return false }
@@ -84,10 +76,8 @@ async function enter() {
   if (inv.kind !== 'encrypted') return
   if (inv.ring.passcode) {
     if (passcode.value === null) {
-      // The creator's hand-off, else the code remembered on this device (change password-by-default).
-      const handed = takeHandoff(inv.ring.roomId)
-      passcode.value = handed ?? await $ports.vault.get(inv.ring.roomId)
-      if (handed) void $ports.vault.set(inv.ring.roomId, handed)
+      // The creator's code is sealed in the device vault before the page opens; so is any code remembered here.
+      passcode.value = await $ports.vault.get(inv.ring.roomId)
       if (mine !== entering) return
     }
     if (passcode.value === null) return

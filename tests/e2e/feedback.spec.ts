@@ -6,7 +6,7 @@ test('landing and help offer bug, idea, discussion and the owner profiles (chang
   const block = page.getByTestId('landing-community')
   await block.scrollIntoViewIfNeeded()
   await expect(block.getByTestId('feedback-bug')).toBeVisible()
-  await expect(block.getByTestId('follow-linkedin')).toHaveAttribute('href', /linkedin\.com/)
+  await expect(block.getByTestId('follow-linkedin')).toHaveAttribute('href', /^https:\/\/([a-z]+\.)?linkedin\.com\//)
   await expect(page.getByTestId('link-feedback')).toBeVisible()
 })
 

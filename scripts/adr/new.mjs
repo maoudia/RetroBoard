@@ -14,7 +14,7 @@ const file = newFileName(next, title)
 if (existsSync(join(ADR_DIR, file))) { console.error(`${file} exists`); process.exit(1) }
 const today = new Date().toISOString().slice(0, 10)
 const text = readFileSync(join(ADR_DIR, 'template.md'), 'utf8')
-  .replace('status: proposed', 'status: proposed').replace('date: YYYY-MM-DD', `date: ${today}`).replace('# Title', `# ${title}`)
+  .replace('date: YYYY-MM-DD', `date: ${today}`).replace('# Title', `# ${title}`)
 writeFileSync(join(ADR_DIR, file), text)
 writeFileSync(join(ADR_DIR, 'README.md'), renderIndex(loadAdrs()))
 console.log(`docs/adr/${file} created (status: proposed). Fill it in, then run pnpm adr:check.`)
