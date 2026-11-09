@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { axe, join, noteByText, publishNote } from './helpers'
+import { axe, column, createBoard, join, noteByText, publishNote } from './helpers'
 
 /** change solo-parity-and-dedup: a solo board is the same engine as a shared one, so it has the same toolbar and panels. */
 const FEATURES = ['btn-actions', 'btn-export', 'btn-filter', 'btn-presenter', 'btn-options', 'btn-participants', 'btn-profile', 'agenda-ring']
@@ -110,4 +110,85 @@ test('solo: the participants panel says you are alone and shows no connection mo
   await expect(page.getByTestId('links-state')).toHaveCount(0)
   await expect(page.getByTestId('my-conn')).toHaveCount(0)
   expect((await axe(page).include('[data-testid="participants-panel"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+})
+
+/**
+ * change solo-board-parity 6: the same scenarios run on a solo board and on a shared one, and what a person can see
+ * and do must be identical. The only allowed differences are listed in DECLARED (design.md, "Declared differences").
+ */
+type Observation = Record<string, string>
+
+/** Observed key -> [solo value, shared value]. Anything else that differs between the two modes is a bug. */
+const DECLARED: Record<string, [string, string]> = {}
+
+/** The keys whose values differ between two observations, minus the declared differences. Pure. */
+export function drift(solo: Observation, shared: Observation, declared: Record<string, [string, string]> = DECLARED): string[] {
+  const keys = [...new Set([...Object.keys(solo), ...Object.keys(shared)])].sort()
+  return keys.flatMap((k) => {
+    const want = declared[k]
+    if (want) return solo[k] === want[0] && shared[k] === want[1] ? [] : [`${k}: declared ${want.join(' / ')}, got ${solo[k]} / ${shared[k]}`]
+    return solo[k] === shared[k] ? [] : [`${k}: solo ${solo[k]}, shared ${shared[k]}`]
+  })
+}
+
+const text = async (page: Page, id: string) => ((await page.getByTestId(id).textContent()) ?? '').replace(/\s+/g, ' ').trim()
+
+/** Plays every scenario of the matrix on the board in `page` and records what it observed. */
+async function play(page: Page): Promise<Observation> {
+  const seen: Observation = {}
+  // Write and publish.
+  await publishNote(page, 0, 'Matrix idea')
+  seen['publish.notes'] = String(await column(page, 0).locator('article.note').count())
+  // Vote with no agenda, up to the limit and one past it.
+  const vote = noteByText(page, 'Matrix idea').locator('[data-testid^="vote-"]').first()
+  await vote.click()
+  seen['vote.left.after-one'] = await text(page, 'votes-left')
+  await vote.click()
+  await vote.click()
+  seen['vote.left.at-limit'] = await text(page, 'votes-left')
+  seen['vote.button.at-limit'] = (await vote.isDisabled()) ? 'disabled' : 'enabled'
+  // Lock: the composer stops taking notes.
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-lock').check()
+  await page.keyboard.press('Escape')
+  seen['lock.composer'] = (await column(page, 0).locator('textarea').isDisabled()) ? 'disabled' : 'enabled'
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-lock').uncheck()
+  await page.keyboard.press('Escape')
+  seen['unlock.composer'] = (await column(page, 0).locator('textarea').isDisabled()) ? 'disabled' : 'enabled'
+  // Timer.
+  seen['timer.toggle'] = (await page.getByTestId('timer-toggle').isVisible()) ? 'visible' : 'hidden'
+  // Actions.
+  await page.getByTestId('btn-actions').click()
+  await page.getByTestId('action-text').fill('Matrix action')
+  await page.getByTestId('action-add').click()
+  seen['actions.added'] = (await page.getByText('Matrix action').count()) > 0 ? 'listed' : 'missing'
+  await page.keyboard.press('Escape')
+  // Report.
+  await page.getByTestId('btn-export').click()
+  await page.getByTestId('export-report').click()
+  seen['report.dialog'] = (await page.getByTestId('report').isVisible()) ? 'visible' : 'hidden'
+  return seen
+}
+
+test.describe('parity matrix: the same scenarios, solo and shared', () => {
+  test('a solo board and a shared board behave the same, apart from the declared differences', async ({ page, browser }) => {
+    await startSolo(page)
+    const solo = await play(page)
+    const other = await (await browser.newContext()).newPage()
+    await createBoard(other, { template: 'start-stop-continue' })
+    const shared = await play(other)
+    expect(drift(solo, shared), `solo ${JSON.stringify(solo)} shared ${JSON.stringify(shared)}`).toEqual([])
+    // Every scenario of the matrix observed something.
+    expect(Object.keys(solo).length).toBeGreaterThanOrEqual(9)
+  })
+
+  test('the matrix fails on a seeded drift, and a declared difference is the only one it lets through', async () => {
+    const base = { 'vote.left.at-limit': '0', 'lock.composer': 'disabled' }
+    expect(drift(base, { ...base })).toEqual([])
+    expect(drift(base, { ...base, 'lock.composer': 'enabled' })).toEqual(['lock.composer: solo disabled, shared enabled'])
+    expect(drift(base, { ...base, extra: 'x' })).toEqual(['extra: solo undefined, shared x'])
+    expect(drift({ ...base, invite: 'hidden' }, { ...base, invite: 'shown' }, { invite: ['hidden', 'shown'] })).toEqual([])
+    expect(drift({ ...base, invite: 'shown' }, { ...base, invite: 'shown' }, { invite: ['hidden', 'shown'] })).toHaveLength(1)
+  })
 })
