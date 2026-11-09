@@ -193,6 +193,11 @@ async function wipe() {
       </template>
     </section>
 
+    <section class="grp" data-testid="team-section">
+      <h3>{{ t('team.share.title') }}</h3>
+      <LazyTeamShare />
+    </section>
+
     <section class="grp" data-testid="settings-file">
       <h3>{{ t('profile.settingsFile') }}</h3>
       <div class="line">

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, closeShare, createBoard } from './helpers'
+import { axe, closeShare, createBoard, enterName } from './helpers'
 
 test('carry-over lists the open actions of the chosen team and project only', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', title: 'Sprint 7', name: 'Alice' })
@@ -59,6 +59,8 @@ test('a team starts its next board like its last one: format, theme, agenda and 
 })
 
 test('the team switcher narrows the recent boards on the home page and in the profile, and passes axe', async ({ page }) => {
+  // The landing hero loops an animation: contrast is audited with reduced motion, as in the other audits.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await createBoard(page, { template: 'start-stop-continue', title: 'Alpha retro', name: 'Alice' })
   await page.goto('/new')
   await page.getByTestId('team-select').selectOption('__new')
@@ -89,4 +91,70 @@ test('the team switcher narrows the recent boards on the home page and in the pr
   await page.getByRole('dialog').getByTestId('team-switch-all').click()
   await expect(page.getByTestId('recents')).toContainText('Alpha retro')
   expect((await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+})
+
+test('a team travels by encrypted link and by .retroteam file, without any board content', async ({ browser, page }) => {
+  // Alice: a Search team with a board and a saved action whose text must never leave her device.
+  await page.goto('/new')
+  await page.getByTestId('mode-advanced').click()
+  await page.getByTestId('team-select').selectOption('__new')
+  await page.getByTestId('team-name').fill('Search')
+  await page.getByTestId('setup-title').fill('Private retro')
+  await page.getByTestId('setup-passcode').fill('')
+  await page.getByTestId('setup-submit').click()
+  await page.getByTestId('confirm').click()
+  await enterName(page, 'Alice')
+  await expect(page.getByTestId('board')).toBeVisible()
+  await closeShare(page).catch(() => {})
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-action-workflow').click()
+  await page.keyboard.press('Escape')
+  await page.getByTestId('btn-actions').click()
+  await page.getByTestId('action-text').fill('NOTE-SECRET-42')
+  await page.getByTestId('owner-input').fill('Ana')
+  await page.getByTestId('owner-input').press('Tab')
+  await page.getByTestId('action-add').click()
+  await page.getByTestId('actions-save-team').click()
+  await page.keyboard.press('Escape')
+
+  await page.goto('/')
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('team-link-make').click()
+  const link = await page.getByTestId('team-link').inputValue()
+  expect(link).toContain('#team=')
+  for (const secret of ['Search', 'Private', 'NOTE-SECRET-42']) expect(link).not.toContain(secret)
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('team-file-export').click()])
+  expect(download.suggestedFilename()).toBe('search.retroteam')
+  const path = await download.path()
+  const fs = await import('node:fs/promises')
+  const file = await fs.readFile(path, 'utf8')
+  expect(file).toContain('Search')
+  for (const secret of ['NOTE-SECRET-42', 'Private', 'Ana']) expect(file).not.toContain(secret)
+
+  // Bob opens the link: his Search team has the same id and is the team of his next board.
+  const bob = await browser.newContext()
+  const bp = await bob.newPage()
+  await bp.goto(link)
+  await bp.getByTestId('confirm').click()
+  await bp.getByTestId('btn-profile').click()
+  await expect(bp.getByTestId('team-names')).toContainText('Search')
+  const id = (ws: string | null) => (JSON.parse(ws ?? '{}') as { teams?: { id: string }[] }).teams?.[0]?.id
+  const mine = id(await page.evaluate(() => localStorage.getItem('retroboard:workspace')))
+  expect(mine).toBeTruthy()
+  expect(id(await bp.evaluate(() => localStorage.getItem('retroboard:workspace')))).toBe(mine)
+  await bp.goto('/new')
+  await bp.getByTestId('mode-advanced').click()
+  await expect(bp.getByTestId('team-select').locator('option:checked')).toContainText('Search')
+  await bob.close()
+
+  // Carol takes the file instead; a foreign file is refused.
+  const carol = await browser.newContext()
+  const cp = await carol.newPage()
+  await cp.goto('/')
+  await cp.getByTestId('btn-profile').click()
+  await cp.getByTestId('team-file-input').setInputFiles({ name: 'x.retroteam', mimeType: 'application/json', buffer: Buffer.from('{"format":"nope"}') })
+  await expect(cp.getByTestId('team-names')).toHaveCount(0)
+  await cp.getByTestId('team-file-input').setInputFiles(path)
+  await expect(cp.getByTestId('team-names')).toContainText('Search')
+  await carol.close()
 })

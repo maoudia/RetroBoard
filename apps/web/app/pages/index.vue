@@ -8,6 +8,9 @@ const guideHref = computed(() => `/guide/${locale.value}/`)
 
 useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color', content: '#fbfbfd' }] })
 const router = useRouter()
+/** A team link (#team=...) opens its join dialog; the component is loaded only then. */
+const joiningTeam = ref(false)
+onMounted(() => { joiningTeam.value = window.location.hash.startsWith('#team=') })
 const recents = useRecentsStore()
 useSetupAgentTools()
 const tab = ref<'pro' | 'fun'>('pro')
@@ -86,6 +89,7 @@ onMounted(() => {
       </div>
     </header>
 
+    <LazyTeamJoin v-if="joiningTeam" />
     <main>
       <section class="hero">
         <span class="eyebrow" data-reveal><Icon name="lucide:sparkles" /> {{ t('landing.eyebrow') }}</span>
