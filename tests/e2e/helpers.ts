@@ -141,6 +141,12 @@ export function axe(page: Page): AxeBuilder {
   // checked on Chromium and Firefox, where the same page passes.
   if (page.context().browser()?.browserType().name() === 'webkit') builder.disableRules(['color-contrast'])
   const analyze = builder.analyze.bind(builder)
-  builder.analyze = async () => { await settle(page); return analyze() }
+  builder.analyze = async () => {
+    // Animations that start a frame after the first settle (staggered entrances) are caught by the second pass.
+    await settle(page)
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+    await settle(page)
+    return analyze()
+  }
   return builder
 }
