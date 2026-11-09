@@ -1,7 +1,7 @@
 import type { ActionItem, ImportedAction } from '@retroboard/domain'
 import {
   addTeam, assignBoard, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
-  rememberOwner as rememberOwnerIn, saveRetro, type Team, type Workspace,
+  rememberOwner as rememberOwnerIn, saveRetro, setDefaults, type Team, type TeamDefaults, type Workspace,
 } from '@retroboard/application'
 import { randomId, safeStorage } from '~/utils/storage'
 
@@ -54,6 +54,8 @@ export const useTeamStore = defineStore('team', () => {
   const rememberOwner = (name: string) => commit(rememberOwnerIn(ws.value, name))
   const projects = (teamId: string) => projectsOf(ws.value, teamId)
   const candidates = (teamId: string, project?: string | null): CarryCandidate[] => carryOver(ws.value, teamId, project)
+  const defaultsOf = (teamId: string): TeamDefaults | undefined => ws.value.teams.find((x) => x.id === teamId)?.defaults
+  const remember = (teamId: string, defaults: TeamDefaults) => commit(setDefaults(ws.value, teamId, defaults))
   const suggestTitle = (teamId: string) => nextTitle(ws.value, teamId)
 
   /** "Save actions for next time": the board's actions with their final statuses, under the board's team. */
@@ -68,5 +70,5 @@ export const useTeamStore = defineStore('team', () => {
     commit(next)
   }
   function clear() { commit({ ...EMPTY_WORKSPACE }) }
-  return { ws, teams, current, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, saveActions, clear }
+  return { ws, teams, current, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, defaultsOf, remember, saveActions, clear }
 })

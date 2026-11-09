@@ -9,7 +9,7 @@
 
 - [x] 2.1 Team and project at creation (simple prefills the last team; advanced shows both); verify e2e
 - [x] 2.2 Carry-over picker by team and project with source board and date; verify e2e with two teams
-- [ ] 2.3 Team series: smart title, default format, theme and agenda per team; verify unit and e2e
+- [x] 2.3 Team series: smart title, default format, theme and agenda per team; verify unit and e2e
 
 ## 3. Home and sharing
 

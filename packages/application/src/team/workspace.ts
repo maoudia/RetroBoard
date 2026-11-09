@@ -3,7 +3,17 @@
  * Pure functions over a plain value; the web adapter persists it on the device. No server, no board content
  * beyond the action texts the person chose to save.
  */
-export interface Team { id: string; name: string; emoji: string; color: string }
+import type { PhaseInput } from '@retroboard/domain'
+
+/** What a team's next board starts with: the last format, theme, agenda and title it was created with. */
+export interface TeamDefaults {
+  templateId?: string
+  themeId?: string
+  agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean; chain?: boolean }
+  title?: string
+  at?: number
+}
+export interface Team { id: string; name: string; emoji: string; color: string; defaults?: TeamDefaults }
 export interface SavedAction { text: string; owner: string; status: string; due?: string }
 export interface SavedRetro {
   /** Board room id, so saving the same board again replaces its entry. */
@@ -41,6 +51,11 @@ export const currentTeam = (ws: Workspace): Team | null => ws.teams.find((t) => 
 
 export const projectsOf = (ws: Workspace, teamId: string): string[] =>
   [...new Set(ws.retros.filter((r) => r.teamId === teamId && r.project).map((r) => r.project!))].sort((a, b) => a.localeCompare(b))
+
+/** Remembers how the team created its latest board, so the next one starts the same way. */
+export function setDefaults(ws: Workspace, teamId: string, defaults: TeamDefaults): Workspace {
+  return { ...ws, teams: ws.teams.map((t) => (t.id === teamId ? { ...t, defaults } : t)) }
+}
 
 export function assignBoard(ws: Workspace, boardId: string, teamId: string, project: string | null): Workspace {
   return { ...ws, lastTeamId: teamId, boards: { ...ws.boards, [boardId]: { teamId, project: project?.trim() || null } } }
@@ -84,8 +99,10 @@ export function carryOver(ws: Workspace, teamId: string, project?: string | null
 
 /** Suggested title for the next retro of a team: "Sprint 42" becomes "Sprint 43". Null when there is nothing to follow. */
 export function nextTitle(ws: Workspace, teamId: string): string | null {
-  const last = ws.retros.filter((r) => r.teamId === teamId).sort((a, b) => b.at - a.at)[0]
+  const saved = ws.retros.filter((r) => r.teamId === teamId).sort((a, b) => b.at - a.at)[0]
+  const made = ws.teams.find((t) => t.id === teamId)?.defaults
+  const last = made?.title && (made.at ?? 0) >= (saved?.at ?? 0) ? made.title : saved?.title
   if (!last) return null
-  const m = /(.*?)(\d+)(\D*)$/.exec(last.title.trim())
+  const m = /(.*?)(\d+)(\D*)$/.exec(last.trim())
   return m ? `${m[1]}${Number(m[2]) + 1}${m[3]}` : null
 }
