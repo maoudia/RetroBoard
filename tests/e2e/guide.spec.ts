@@ -29,17 +29,19 @@ for (const locale of ['fr', 'en'] as const) {
   })
 
   for (const variant of ['light', 'dark'] as const) {
-    test(`guide ${locale} ${variant}: the pages have no accessibility violation and the variant picks the right pictures`, async ({ page }) => {
-      await page.emulateMedia({ colorScheme: variant, reducedMotion: 'reduce' })
-      for (const name of ['index', 'write', 'agenda']) {
-        await page.goto(`/guide/${locale}/${name}.html`)
-        await settle(page)
-        const scan = await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
-        expect(scan.violations.map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`), `${name} ${variant}`).toEqual([])
-      }
-      const shown = await page.locator('img:visible').evaluateAll((imgs) => (imgs as HTMLImageElement[]).map((i) => i.src))
-      expect(shown.length).toBeGreaterThan(0)
-      expect(shown.every((s) => s.includes(`/${variant}/`))).toBe(true)
+    test.describe(`${locale} ${variant}`, () => {
+      test.use({ colorScheme: variant, reducedMotion: 'reduce' })
+      test(`guide ${locale} ${variant}: the pages have no accessibility violation and the variant picks the right pictures`, async ({ page }) => {
+        for (const name of ['index', 'write', 'agenda']) {
+          await page.goto(`/guide/${locale}/${name}.html`)
+          await settle(page)
+          const scan = await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
+          expect(scan.violations.map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`), `${name} ${variant}`).toEqual([])
+        }
+        const shown = await page.locator('img:visible').evaluateAll((imgs) => (imgs as HTMLImageElement[]).map((i) => i.src))
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.filter((s) => !s.includes(`/${variant}/`))).toEqual([])
+      })
     })
   }
 }
