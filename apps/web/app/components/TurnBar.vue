@@ -12,7 +12,7 @@ const go = (i: number) => { const c = cols.value[i]; if (c) board.commands.setTu
 </script>
 
 <template>
-  <div v-if="current" class="turnbar glass" role="status" data-testid="turn-bar">
+  <div v-if="current" class="turnbar glass" role="status" data-testid="turn-bar" data-reserve-bottom>
     <Icon name="lucide:scan-line" class="ti" />
     <button v-if="board.access.canSteer" class="mini-btn" type="button" :disabled="at <= 0" :aria-label="t('turn.prev')" :title="t('turn.prev')" data-testid="turn-prev" @click="go(at - 1)"><Icon name="lucide:chevron-left" /></button>
     <span class="name"><strong>{{ current.title }}</strong><small class="muted sr-only">{{ t('turn.open.text', { title: current.title }) }}</small></span>
