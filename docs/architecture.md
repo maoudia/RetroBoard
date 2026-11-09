@@ -9,13 +9,13 @@ Split out of the former master plan on 2026-11-05 (change stabilise-main, docs t
 +-------------------------------------------------------------------------------------------+
 | Worker "retroboard"                                                                       |
 |  - static assets (Nuxt generate)        - security headers, CSP with build hashes         |
-|  - /relay  WebSocket -> Durable Object  - /license  stateless entitlement minting         |
-|  - Turnstile verification on create     - rate limiting, admission, quotas                |
+|  - /ws2  WebSocket -> Durable Object  - rate limiting (per isolate), admission            |
+|  - /healthz, maintenance and busy pages   - planned: /license (licensing-and-monetization)|
 |                                                                                           |
-|  Durable Object "Room" (memory only, hibernation)                                         |
+|  Durable Object "RelayRoom" (memory only, hibernation)                                    |
 |   - forwards opaque encrypted events, WebRTC signalling                                   |
 |   - keeps a bounded in-memory ring of recent ciphertext for fast catch-up                 |
-|   - on wake with empty memory: asks connected peers to re-seed (resurrection)             |
+|   - participants who connect upload what the relay lacks (re-seed)                        |
 +-------------------------------------------------------------------------------------------+
         ^  encrypted events (wss)                      ^ signalling only
         |                                              |
@@ -118,7 +118,7 @@ Plaintext (encrypted)       = { type, actor (pubkey hash), payload, signature }
 
 ### 5.3 Relay behaviour (Durable Object, memory only)
 
-- Admission: origin, room id format, Turnstile token on room creation, entitlement token (optional), max participants, message size (64 KB), message rate (per connection), room lifetime cap.
+- Admission: origin (`apps/relay/src/origin.ts`), room id format, at most 30 connections per room, frame size (256 KB, ciphertext of one message 16 KB), frame rate per connection (`packages/protocol/src/budgets.ts`). Planned and not built: entitlement token (change `licensing-and-monetization`) and a room lifetime cap. No Turnstile: ADR-0019 chose edge protection instead.
 - Fan-out of envelopes to the other sockets of the room.
 - Bounded ring buffer of the last N envelopes in memory (e.g. 2,000 or 4 MB) for fast catch-up.
 - WebRTC signalling: forwards SDP offers/answers and ICE candidates between peers (encrypted too).
@@ -273,7 +273,7 @@ For `retroboard.maoudia.com`:
 - DNS: proxied record or Workers custom domain; DNSSEC on; CAA limiting issuers.
 - TLS: Always Use HTTPS, minimum TLS 1.2, TLS 1.3 on, HSTS (start at 6 months, preload later).
 - WAF: Cloudflare Free managed ruleset, Bot Fight Mode, a few custom rules (block non-GET/HEAD on static paths, challenge suspicious countries only if abuse appears). The number of free custom and rate-limiting rules must be checked in the dashboard.
-- Turnstile on board creation and license redemption (free).
+- No Turnstile (ADR-0019): one rate-limiting rule on `/ws2`, Bot Fight Mode and relay budgets instead (`docs/runbooks/edge.md`).
 - Worker: existing strict CSP, COOP/CORP, Permissions-Policy, origin checks, per-IP connection caps (in the Durable Object), Workers rate limiting binding if available on Free (to verify: <https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/>).
 - `/.well-known/security.txt`, privacy page, legal notice (mentions legales).
 - Observability: Workers Logs (already on), traces on, no content in logs.
