@@ -2,8 +2,8 @@
 
 ## 1. Panel primitives
 
-- [ ] 1.1 Panel tokens in `base.css` (`--panel-w`, `--panel-pad`, `--row-gap`, row grid classes) and `~/utils/time.ts` `formatClock` with tabular digits; verify unit test of `formatClock` (12 h and 24 h locales) and the design-token test
-- [ ] 1.2 `Dropdown.vue` fits the visual viewport: max height from `visualViewport`, reserved top and bottom insets and safe areas, one scroll container with a bottom fade, `tabindex` when it overflows, close on width change only; verify e2e at 360 x 640 with the presenter bar open and a height-only resize
+- [x] 1.1 Panel tokens in `base.css` (`--panel-w`, `--panel-pad`, `--row-gap`, row grid classes) and `~/utils/time.ts` `formatClock` with tabular digits; verify unit test of `formatClock` (12 h and 24 h locales) and the design-token test
+- [x] 1.2 `Dropdown.vue` fits the visual viewport: max height from `visualViewport`, reserved top and bottom insets and safe areas, one scroll container with a bottom fade, `tabindex` when it overflows, close on width change only; verify e2e at 360 x 640 with the presenter bar open and a height-only resize
 
 ## 2. History panel
 

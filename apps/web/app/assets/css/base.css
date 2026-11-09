@@ -13,6 +13,8 @@
   --fs-xs: .75rem; --fs-sm: .875rem; --fs-md: 1rem; --fs-lg: 1.125rem; --fs-xl: 1.25rem; --fs-2xl: 1.5rem; --fs-3xl: 2rem;
   --r-xs: 6px; --r-sm: 8px;
   --sp-1: .25rem; --sp-2: .5rem; --sp-3: .75rem; --sp-4: 1rem; --sp-5: 1.5rem; --sp-6: 2rem;
+  /* List panels (history, activity, participants): one width, padding and row gap, one row anatomy (.panel-row). */
+  --panel-w: min(92vw, 22rem); --panel-pad: var(--sp-2) var(--sp-3); --row-gap: var(--sp-2);
   --dur-fast: .15s; --dur-base: .25s; --dur-slow: .4s;
   --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
   --glass: color-mix(in oklab, var(--surface) 72%, transparent);
@@ -78,6 +80,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
   position: absolute; top: 2px; right: 8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
   display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 700; background: var(--accent2); color: var(--accent-ink);
 }
+.panel-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: var(--row-gap); align-items: start; padding: var(--sp-1) 0; }
+.panel-row > .meta { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; }
+.panel-row > .body { min-width: 0; overflow-wrap: anywhere; font-size: var(--fs-sm); line-height: 1.5; }
+.panel-row > .act { white-space: nowrap; }
 .mini-btn {
   display: inline-grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: var(--r-pill);
   background: transparent; color: inherit; cursor: pointer; transition: background .15s;

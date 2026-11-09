@@ -5,7 +5,7 @@ const board = useBoardStore()
 const { push } = useToasts()
 const pending = ref<HistoryEntry | null>(null)
 const confirmOpen = ref(false)
-const time = (at: number) => new Date(at).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
+const time = (at: number) => formatClock(at, locale.value)
 const hiddenColumns = computed(() => new Set(board.hiddenColumns.map((c) => c.id)))
 const label = (e: HistoryEntry) => t(`history.${e.kind}` as never, { name: e.by ?? t('common.anonymous'), text: hiddenColumns.value.has(e.columnId) ? t('history.hidden') : e.text } as never)
 /** Newest first: the last thing that went wrong is at the top. Read from the log only while the menu is open (the slot renders then). */
@@ -48,7 +48,7 @@ function restore() {
 </template>
 
 <style scoped>
-.history { padding: .5rem .6rem; max-height: 50vh; overflow: auto; }
+.history { padding: .5rem .6rem; }
 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; font-size: var(--fs-sm); }
 li { display: grid; grid-template-columns: auto 1fr; gap: .1rem .5rem; align-items: baseline; }
 .what { min-width: 0; overflow-wrap: anywhere; }

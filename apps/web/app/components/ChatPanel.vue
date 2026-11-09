@@ -22,7 +22,7 @@ const clearAsk = ref(false)
 const layout = useLayoutStore()
 const side = computed(() => layout.chatSide ?? settings.s.chatSide)
 
-const time = (at: number) => new Date(at).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
+const time = (at: number) => formatClock(at, locale.value)
 const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
 
 /** People here now, with the dot of their connection (direct, relay, reconnecting) and what they do. */

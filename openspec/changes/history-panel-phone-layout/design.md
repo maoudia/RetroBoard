@@ -42,3 +42,7 @@ Presentation only. The history text already goes through the hidden-column filte
 
 - `visualViewport` is missing in very old browsers: fall back to `window.innerHeight` (the current behaviour).
 - Reserved insets set by other components must be removed on unmount: covered by the e2e that opens the presenter, closes it and reopens the panel.
+
+## Implementation note (group 1)
+
+Fixed bars (presenter bar, turn bar) mark themselves `data-reserve-bottom`; `Dropdown.vue` measures them at placement time and subtracts the occupied height from the room below the trigger, so no component needs to know about another. The panel height is the `--dd-max` custom property (visual viewport based) and a height-only resize re-places the panel instead of closing it; only a width change closes it.
