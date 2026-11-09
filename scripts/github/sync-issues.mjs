@@ -326,6 +326,9 @@ const PRIORITY = {
 const GROUP_OVERRIDES = {
   'stabilise-main:5': { priority: 3 },
   'open-source-business:1': { release: 'R2', priority: 3 },
+  // Production audit 2026-11-09: removal is undone by a new tab until the fresh link ships; snapshots bound what a relay-only joiner gets.
+  'facilitator-moderation:2': { release: 'R1', priority: 1 },
+  'p2p-presence-and-cursors:4': { priority: 2 },
 }
 // A change with every task ticked needs no priority (its issues only wait to be closed).
 const prioLabels = (c, g) => {
