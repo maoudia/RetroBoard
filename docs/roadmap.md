@@ -49,6 +49,7 @@ Brand identity, landing v2, user manual, short links, report and insights, code 
 * `column-defaults-and-collapse` ([proposal](../openspec/changes/column-defaults-and-collapse/proposal.md))
 * `chat-floating-dock` ([proposal](../openspec/changes/chat-floating-dock/proposal.md))
 * `chat-message-controls` ([proposal](../openspec/changes/chat-message-controls/proposal.md))
+* `scorecard-hardening` ([proposal](../openspec/changes/scorecard-hardening/proposal.md))
 * `phase-transition-guidance` ([proposal](../openspec/changes/phase-transition-guidance/proposal.md))
 * `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
 * `brand-identity` (change to open: `/opsx:propose`)
