@@ -18,7 +18,7 @@
 
 ## 4. Carry-over
 
-- [ ] 4.1 Live carry-over reads the local replica when the previous room is solo (`useLiveCarryOver.ts`); verify e2e with a solo previous board
+- [x] 4.1 Live carry-over reads the local replica when the previous room is solo (`useLiveCarryOver.ts`); verify e2e with a solo previous board
 
 ## 5. Presence panel
 

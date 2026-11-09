@@ -4,6 +4,7 @@
  * then closes the connection.
  */
 import { inviteFromHash, inviteRoomId } from '~/utils/invite'
+import { isSolo } from '~/utils/solo'
 import type { ImportedAction, Snapshot } from '@retroboard/domain'
 
 /**
@@ -72,7 +73,7 @@ export function useLiveCarryOver() {
 
     try {
       // Create a channel factory and transport for this board
-      const channelFactory = $ports.encryptedChannelFactory(invite.ring, undefined, { solo: false })
+      const channelFactory = $ports.encryptedChannelFactory(invite.ring, undefined, { solo: isSolo(invite.ring.roomId) })
       const { randomId } = await import('~/utils/storage')
 
       return await new Promise<ImportedAction[] | null>((resolve) => {

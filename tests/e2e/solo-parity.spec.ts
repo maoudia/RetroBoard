@@ -82,3 +82,21 @@ test('solo: many solo boards all stay solo and never open a socket to the relay'
   await expect(noteByText(page, 'Still solo')).toBeVisible()
   expect(sockets).toEqual([])
 })
+
+test('carry-over reads a previous solo board from this browser without the relay', async ({ page }) => {
+  await startSolo(page)
+  await page.getByTestId('btn-actions').click()
+  await page.getByTestId('action-text').fill('Solo follow-up')
+  await page.getByTestId('action-add').click()
+  await expect(page.getByTestId('actions')).toContainText('Solo follow-up')
+  await page.keyboard.press('Escape')
+  const link = page.url()
+  const sockets: string[] = []
+  page.on('websocket', (ws) => sockets.push(ws.url()))
+  await page.goto('/new')
+  await page.getByTestId('mode-advanced').click()
+  await page.getByTestId('carry-live-url').fill(link)
+  await page.getByTestId('carry-live-fetch').click()
+  await expect(page.getByTestId('carry-list')).toContainText('Solo follow-up', { timeout: 10000 })
+  expect(sockets).toEqual([])
+})
