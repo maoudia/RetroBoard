@@ -16,4 +16,4 @@
 
 ## 4. Docs
 
-- [ ] 4.1 `docs/design-system.md`: list panels and the row anatomy; guide manifest entry if a photographed panel changes (`pnpm docs:tour && pnpm docs:guide`); verify `pnpm docs:check`
+- [x] 4.1 `docs/design-system.md`: list panels and the row anatomy; guide manifest entry if a photographed panel changes (`pnpm docs:tour && pnpm docs:guide`); verify `pnpm docs:check`

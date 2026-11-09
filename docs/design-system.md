@@ -27,8 +27,10 @@ Type roles: body `--fs-md`; secondary text and hints `--fs-sm` in `--muted`; bad
 ## 3. Components and states
 
 - **Button** (`.btn`): primary (filled, one per view), default, ghost (toolbar and dense rows), danger (text in `--danger`, confirmed in a dialog). Small (`.btn-sm`) inside bars and cards.
-- **Icon button** (`.icon-btn`, `.mini-btn`): always has an `aria-label`; the label is visible in the main toolbar.
+- **Icon button** (`.icon-btn`, `.mini-btn`): always has an `aria-label`; the label is visible in the main toolbar. `.mini-btn` is a fixed square for an icon only: a button with a visible label is `.btn .btn-sm` (`design-tokens.test.ts` fails otherwise).
 - **Menu / Dropdown**: opens in the top layer; items have an icon and a verb; a checked item uses `role="menuitemradio"` or `menuitemcheckbox`; the trigger shows the current value when it is a choice (sort, size).
+- **List panels** (History, Activity, Participants): one width (`--panel-w`, passed to `Dropdown` with `fixed`), one inner padding (`--panel-pad`), one row gap (`--row-gap`), one empty state (`.panel-empty`), one clock (`formatClock`, tabular digits) and one trigger pattern (`aria-haspopup="dialog"`, a `role="region"` with the panel name). A row is `.panel-row`: leading `.meta`, wrapping `.body`, optional trailing `.act` that never wraps (a 40 px `.btn .btn-sm` pill with icon, short visible label, full accessible name).
+- **Fitting the screen**: `Dropdown` places itself in the visual viewport (below the trigger, else above, else the larger side), subtracts any fixed bar marked `data-reserve-bottom` (presenter bar, turn bar), scrolls in one container with a bottom fade, takes `tabindex` when it overflows, and closes only on a width change (a keyboard or browser-bar height change re-places it).
 - **Segmented control** (`.seg`): two to four exclusive options with a visible current one.
 - **Dialog**: title says the action, body one or two sentences, footer has Cancel (ghost) then the confirming action named like the trigger.
 - **Toast / popup**: one at a time, important ones stay until dismissed or 20 s, never below the columns. Position is a personal setting.
