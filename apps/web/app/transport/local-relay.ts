@@ -1,9 +1,11 @@
-import { type Envelope, EnvelopeBuffer, type RelayFrame, parseRelayFrame } from '@retroboard/protocol'
+import { LIMITS } from '@retroboard/domain'
+import { type Budgets, checkFrame, EnvelopeBuffer, type RelayFrame, parseRelayFrame } from '@retroboard/protocol'
 
 /**
  * In-memory relay for solo boards (change solo-parity-and-dedup): a stand-in for the WebSocket of the real relay,
  * so a solo board runs the very same signed ledger engine as a shared one and nothing leaves the tab.
  * One client, no fan-out: it greets the client, replays what it has pushed and drops live frames.
+ * It applies the budgets of the real relay (size, rate) with the same close codes (change solo-board-parity).
  */
 const OPEN = 1
 const CLOSED = 3
@@ -12,10 +14,11 @@ export class LocalRelaySocket {
   readyState = 0
   onopen: (() => void) | null = null
   onmessage: ((ev: MessageEvent) => void) | null = null
-  onclose: (() => void) | null = null
+  onclose: ((ev: { code: number; reason: string }) => void) | null = null
   onerror: (() => void) | null = null
   private static readonly buffers = new Map<string, EnvelopeBuffer>()
   private readonly buffer: EnvelopeBuffer
+  private readonly budgets: Budgets = { windowStart: Date.now(), count: 0 }
 
   constructor(url: string) {
     const room = new URL(url, 'http://local').searchParams.get('room') ?? ''
@@ -36,17 +39,18 @@ export class LocalRelaySocket {
   send(data: string): void {
     if (this.readyState !== OPEN) return
     if (data === 'ping') { this.onmessage?.({ data: 'pong' } as MessageEvent); return }
-    let raw: unknown
-    try { raw = JSON.parse(data) } catch { return }
-    const frame = raw as { t?: string, envs?: Envelope[] }
-    if (frame.t === 'pub' && Array.isArray(frame.envs)) this.buffer.add(frame.envs)
+    const checked = checkFrame(this.budgets, data, Date.now(), LIMITS.rateWindowMs)
+    if (checked.verdict === 'close') return this.shut(checked.code, checked.reason)
+    if (checked.verdict === 'ok' && checked.frame?.t === 'pub') this.buffer.add(checked.frame.envs)
     // eph and sig frames have nobody to reach.
   }
 
-  close(): void {
+  close(): void { this.shut(1000, '') }
+
+  private shut(code: number, reason: string): void {
     if (this.readyState === CLOSED) return
     this.readyState = CLOSED
-    this.onclose?.()
+    this.onclose?.({ code, reason })
   }
 
   private emit(frame: RelayFrame): void {

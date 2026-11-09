@@ -9,8 +9,8 @@ Measured on 2026-10-24 with `pnpm load:relay` (scripts/load/relay-load.mjs) agai
 |---|---|---|
 | Participants (open tabs) per board | **30**, hard cap | `LIMITS.maxConnections`, relay admission |
 | Notes / actions / columns | 300 / 100 / 8 | `LIMITS` |
-| Board messages per socket | 80 frames / 10 s, socket closed above (abuse) | `relay-core.ts` `FRAME_MAX` |
-| Live frames (cursors, focus) per socket | 60 / 10 s, excess dropped silently | `relay-core.ts` `EPH_MAX` |
+| Board messages per socket | 80 frames / 10 s, socket closed above (abuse) | `packages/protocol/src/budgets.ts` `FRAME_MAX` (also applied by the in-tab relay of solo boards) |
+| Live frames (cursors, focus) per socket | 60 / 10 s, excess dropped silently | `packages/protocol/src/budgets.ts` `EPH_MAX` |
 | Events kept by the relay for late joiners | 2,000 envelopes or 4 MB, then peers re-seed | `RELAY_BUFFER`, `RELAY_BUFFER_BYTES` |
 | Cursor rate per participant | 4 Hz up to 10 people, 2 Hz up to 20, 1 Hz above | `cursorInterval()` |
 

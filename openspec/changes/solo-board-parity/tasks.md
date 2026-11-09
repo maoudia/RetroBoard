@@ -7,8 +7,8 @@
 
 ## 2. Same budgets
 
-- [ ] 2.1 `packages/protocol/src/budgets.ts` (frame size, rate window, `checkFrame`) used by `relay-room.ts` and `local-relay.ts`; verify unit tests of the module and a relay test that both reject the same frames
-- [ ] 2.2 The in-tab relay answers the real error codes and the board shows the real notices; verify e2e with an oversized paste in solo
+- [x] 2.1 `packages/protocol/src/budgets.ts` (frame size, rate window, `checkFrame`) used by `relay-room.ts` and `local-relay.ts`; verify unit tests of the module and a relay test that both reject the same frames
+- [x] 2.2 The in-tab relay answers the real error codes and the board shows the real notices; verify with a unit test of the in-tab relay (the app chunks pastes below the frame limit, so no UI path produces an oversized frame)
 
 ## 3. Solo stays solo, and can become shared
 
