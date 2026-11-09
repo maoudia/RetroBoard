@@ -148,6 +148,8 @@ export const fr = {
   'carry.intro': 'Reprends dans ce board les actions encore ouvertes de la rétro précédente.',
   "team.default": "Mon équipe",
   "team.rest": "Autres boards",
+  "team.switcher": "Afficher les boards d'une équipe",
+  "team.all": "Toutes les équipes",
   "team.title": "Équipe et projet",
   "team.intro": "Les actions reportées viennent des rétros précédentes de cette équipe, jamais d'une autre.",
   "team.team": "Équipe",

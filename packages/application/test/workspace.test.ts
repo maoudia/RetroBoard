@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addTeam, assignBoard, carryOver, currentTeam, EMPTY_WORKSPACE, MAX_RETROS_PER_TEAM, nextTitle, projectsOf, saveRetro, setDefaults, type SavedRetro } from '../src'
+import { addTeam, assignBoard, carryOver, currentTeam, EMPTY_WORKSPACE, MAX_RETROS_PER_TEAM, nextTitle, projectsOf, saveRetro, setDefaults, switchTeam, type SavedRetro } from '../src'
 
 const retro = (over: Partial<SavedRetro>): SavedRetro => ({ boardId: 'b', teamId: 't1', project: null, title: 'Sprint 42', at: 1, actions: [], ...over })
 const act = (text: string, status = 'todo', owner = 'Ana') => ({ text, owner, status })
@@ -89,5 +89,11 @@ describe('workspace', () => {
     expect(series('0'.repeat(50_000) + 'x'.repeat(50_000))).toBe('1' + 'x'.repeat(50_000))
     expect(series('a'.repeat(100_000))).toBeNull()
     expect(performance.now() - t0).toBeLessThan(500)
+  })
+
+  it('switching team changes the team of the next board, and ignores a team that does not exist', () => {
+    const b = addTeam(addTeam(EMPTY_WORKSPACE, 'Payments', 't1').ws, 'Search', 't2').ws
+    expect(currentTeam(switchTeam(b, 't1'))?.id).toBe('t1')
+    expect(switchTeam(b, 'nope')).toBe(b)
   })
 })

@@ -187,7 +187,10 @@ async function wipe() {
     <section class="grp">
       <h3>{{ t('profile.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h3>
       <p v-if="!recents.items.length" class="muted">{{ t('profile.recents.none') }}</p>
-      <RecentBoards v-else removable testid="recents" @open="ui.close()" />
+      <template v-else>
+        <TeamSwitcher />
+        <RecentBoards removable testid="recents" @open="ui.close()" />
+      </template>
     </section>
 
     <section class="grp" data-testid="settings-file">
