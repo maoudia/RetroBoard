@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { connectionState, nameKey } from '@retroboard/application'
 import type { Peer } from '@retroboard/domain'
+import { isSolo } from '~/utils/solo'
 const { t } = useT()
 const board = useBoardStore()
 const live = useLiveStore()
@@ -12,6 +13,8 @@ const initial = (p: Peer) => (shown(p)?.[0] ?? '?').toUpperCase()
 
 /** Dot of each participant: direct link, through the relay, or reconnecting (change presence-status). */
 const stateOf = (p: Peer) => connectionState({ me: p.me, conn: p.conn, direct: board.links?.direct ?? [], status: board.status, p2p: board.links?.p2p ?? false })
+/** A solo board has nobody else and no network: no connection status (change solo-board-parity). */
+const solo = computed(() => isSolo(board.roomId))
 const myState = computed(() => connectionState({ me: true, direct: board.links?.direct ?? [], status: board.status, p2p: board.links?.p2p ?? false }))
 
 /** Two people with the same name: a small rank tells them apart (identity-conflicts). */
@@ -94,8 +97,9 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
         </span>
       </li>
     </ul>
-    <p v-if="myState !== 'direct'" class="note muted" role="status" data-testid="my-conn">{{ t(myState === 'relay' ? 'presence.mine.relay' : 'presence.mine.reconnecting') }}</p>
-    <div v-if="board.links" class="modes" :data-p2p="board.links.p2p" data-testid="links-state">
+    <p v-if="solo" class="note muted" role="status" data-testid="solo-presence"><Icon name="lucide:user-round" /> {{ t('presence.solo') }}</p>
+    <p v-else-if="myState !== 'direct'" class="note muted" role="status" data-testid="my-conn">{{ t(myState === 'relay' ? 'presence.mine.relay' : 'presence.mine.reconnecting') }}</p>
+    <div v-if="board.links && !solo" class="modes" :data-p2p="board.links.p2p" data-testid="links-state">
       <p class="mode" :class="{ on: board.links.p2p && board.links.peers > 0 }" data-mode="direct"><Icon name="lucide:zap" /><span>{{ board.links.p2p && board.links.peers > 0 ? t('links.p2p', { n: board.links.peers }) : t('links.p2p.idle') }}</span></p>
       <p class="mode" :class="{ on: !board.links.p2p }" data-mode="relay"><Icon name="lucide:radio-tower" /><span>{{ board.links.p2p ? t('links.relay.idle') : t('links.relay') }}</span></p>
     </div>

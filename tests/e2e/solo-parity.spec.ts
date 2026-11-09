@@ -100,3 +100,14 @@ test('carry-over reads a previous solo board from this browser without the relay
   await expect(page.getByTestId('carry-list')).toContainText('Solo follow-up', { timeout: 10000 })
   expect(sockets).toEqual([])
 })
+
+test('solo: the participants panel says you are alone and shows no connection mode', async ({ page }) => {
+  await startSolo(page)
+  await page.getByTestId('btn-participants').click()
+  await expect(page.getByTestId('participants-panel')).toBeVisible()
+  await expect(page.getByTestId('peer-0')).toBeVisible()
+  await expect(page.getByTestId('solo-presence')).toBeVisible()
+  await expect(page.getByTestId('links-state')).toHaveCount(0)
+  await expect(page.getByTestId('my-conn')).toHaveCount(0)
+  expect((await axe(page).include('[data-testid="participants-panel"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+})

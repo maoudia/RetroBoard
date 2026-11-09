@@ -1096,6 +1096,7 @@ export const fr = {
   'presence.relay': 'Via le relais',
   'presence.reconnecting': 'Reconnexion...',
   'presence.mine.relay': 'Connecté via le relais : plus lent, toujours privé.',
+  'presence.solo': 'Tu es seul ici : ce board vit dans ce navigateur.',
   'presence.mine.reconnecting': 'Reconnexion en cours...',
   'note.edit': 'Modifier',
   'note.edited': "modifié",
