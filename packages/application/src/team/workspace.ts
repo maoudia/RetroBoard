@@ -103,6 +103,19 @@ export function nextTitle(ws: Workspace, teamId: string): string | null {
   const made = ws.teams.find((t) => t.id === teamId)?.defaults
   const last = made?.title && (made.at ?? 0) >= (saved?.at ?? 0) ? made.title : saved?.title
   if (!last) return null
-  const m = /(.*?)(\d+)(\D*)$/.exec(last.trim())
-  return m ? `${m[1]}${Number(m[2]) + 1}${m[3]}` : null
+  return bumpNumber(last.trim())
+}
+
+const isDigit = (c: string) => c >= '0' && c <= '9'
+
+/** Adds one to the last number of a title, keeping what surrounds it; null when there is no number. Linear scan, no regex. */
+function bumpNumber(title: string): string | null {
+  let end = title.length
+  // Stryker disable next-line EqualityOperator: at index 0, charAt(-1) is empty, so one extra step ends on the same null
+  while (end > 0 && !isDigit(title.charAt(end - 1))) end--
+  let start = end
+  // Stryker disable next-line ConditionalExpression,EqualityOperator: charAt(-1) is empty and not a digit, so the bound check is redundant
+  while (start > 0 && isDigit(title.charAt(start - 1))) start--
+  if (start === end) return null
+  return `${title.slice(0, start)}${Number(title.slice(start, end)) + 1}${title.slice(end)}`
 }
