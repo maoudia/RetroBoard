@@ -2,15 +2,25 @@
 import { chatInvite, emailInvite, mailtoHref } from '@retroboard/application'
 import { td } from '~/i18n'
 import { boardHash, inviteFromHash, participantLink } from '~/utils/invite'
+import { isSolo, unmarkSolo } from '~/utils/solo'
 const { t } = useT()
 /** The creator's tab keeps the passcode in memory: offered for copy, never put in a message. */
 const props = defineProps<{ passcode?: string | null }>()
+const emit = defineEmits<{ convert: [] }>()
 const board = useBoardStore()
 const ui = useUiStore()
 const { push } = useToasts()
 const { $ports } = useNuxtApp()
 const open = computed({ get: () => ui.dialog === 'share', set: (v) => { if (!v && ui.dialog === 'share') ui.close() } })
 const route = useRoute()
+/** A solo board has no invitation until its owner makes it shareable (change solo-board-parity). */
+const solo = computed(() => isSolo(board.roomId))
+function makeShareable() {
+  if (!board.roomId) return
+  unmarkSolo(board.roomId)
+  emit('convert')
+  push(t('share.solo.done'), 'ok')
+}
 /** Participants' link: never the facilitator secret, whoever opens this dialog. */
 const invite = computed(() => (import.meta.client ? inviteFromHash(route.hash) : null))
 const encrypted = computed(() => invite.value?.kind === 'encrypted')
@@ -69,7 +79,16 @@ onBeforeUnmount(() => host.stop())
 </script>
 
 <template>
-  <BaseDialog v-model:open="open" :title="t('share.title')" width="520px">
+  <BaseDialog v-model:open="open" :title="solo ? t('share.solo.title') : t('share.title')" width="520px">
+    <section v-if="solo" class="solo-share" data-testid="share-solo">
+      <p class="muted">{{ t('share.solo.body') }}</p>
+      <ul class="notes muted">
+        <li><Icon name="lucide:shield-check" /> {{ t('share.solo.e2e') }}</li>
+        <li><Icon name="lucide:arrow-right-left" /> {{ t('share.solo.oneway') }}</li>
+      </ul>
+      <button class="btn btn-primary" type="button" data-testid="make-shareable" @click="makeShareable"><Icon name="lucide:share-2" /> {{ t('share.solo.confirm') }}</button>
+    </section>
+    <template v-else>
     <p class="muted">{{ t('share.intro') }}</p>
     <p class="guide-line"><GuideLink chapter="invite" step="share" label="learn" /></p>
     <ol class="how" data-testid="share-how">
@@ -149,10 +168,12 @@ onBeforeUnmount(() => host.stop())
         <button class="btn" type="button" @click="copyFacilitator"><Icon name="lucide:copy" /> {{ t('share.copy') }}</button>
       </div>
     </details>
+    </template>
   </BaseDialog>
 </template>
 
 <style scoped>
+.solo-share { display: grid; gap: .75rem; justify-items: start; }
 .row { display: flex; gap: .5rem; }
 .row .btn { flex: none; white-space: nowrap; }
 .row .field { min-width: 0; flex: 1; }

@@ -12,9 +12,9 @@
 
 ## 3. Solo stays solo, and can become shared
 
-- [ ] 3.1 Solo registry without cap, stored with the replica metadata; migrate the existing `retroboard:solo` list; verify unit tests with 60 rooms and the migration
-- [ ] 3.2 "Make this board shareable" flow (explanation, optional passcode, `unmarkSolo`, reconnect with `solo: false`, then the normal invitation); verify e2e with two contexts (solo board converted, a second browser joins and sees the notes)
-- [ ] 3.3 The Share action of a solo board opens that flow, never a dead link; verify e2e and axe
+- [x] 3.1 Solo registry without cap (localStorage, see design); migrate the existing `retroboard:solo` list; verify unit tests with 60 rooms and the migration
+- [x] 3.2 "Make this board shareable" flow (explanation, `unmarkSolo`, reconnect with `solo: false`, then the normal invitation); verify e2e with two contexts (solo board converted, a second browser joins and sees the notes)
+- [x] 3.3 The Share action of a solo board opens that flow, never a dead link; verify e2e and axe
 
 ## 4. Carry-over
 
