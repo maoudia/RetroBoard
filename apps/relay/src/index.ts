@@ -1,21 +1,20 @@
-import { ROOM_ID_RE } from '@retroboard/protocol'
 import type { Env } from './env'
 import { createLimiter, isMaintenance, maintenanceAction, RETRY_AFTER_SECONDS } from './guards'
 import { isUnknownAppPath, pickErrorResponse, wantsHtml } from './errors'
 import { buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
-import { roomHash } from './logger'
-import { isAllowedOrigin } from './origin'
+import { consoleLogger, roomHash } from './logger'
+import { admitUpgrade } from './origin'
 
 export { RelayRoom } from './relay-room'
 
 async function handleSocket(request: Request, env: Env, url: URL): Promise<Response> {
-  if (request.headers.get('Upgrade') !== 'websocket') return new Response('Expected WebSocket', { status: 426 })
-  if (!isAllowedOrigin(request.headers.get('Origin'), url, env.ALLOWED_ORIGINS)) {
-    return new Response('Forbidden origin', { status: 403 })
+  const verdict = admitUpgrade(request.headers.get('Upgrade'), request.headers.get('Origin'), url, env.ALLOWED_ORIGINS)
+  if (!verdict.ok) {
+    // Content-free (see logger.ts): the reason only, never the origin or the room id.
+    if (verdict.reason !== 'upgrade') consoleLogger.warn('ws.reject', { reason: verdict.reason })
+    return new Response(verdict.text, { status: verdict.status })
   }
-  const room = url.searchParams.get('room') ?? ''
-  if (!ROOM_ID_RE.test(room)) return new Response('Invalid room', { status: 400 })
-
+  const room = verdict.room
   const stub = env.RELAY.get(env.RELAY.idFromName(room))
   const headers = new Headers(request.headers)
   headers.set('x-room-hash', await roomHash(room))

@@ -6,7 +6,7 @@ import { buildCsp, HSTS, httpsRedirect, originTrialToken, withSecurityHeaders } 
 import { roomHash } from '../src/logger'
 import { isUnknownAppPath, pickErrorResponse } from '../src/errors'
 import { createLimiter, isMaintenance, maintenanceAction } from '../src/guards'
-import { isAllowedOrigin } from '../src/origin'
+import { admitUpgrade, isAllowedOrigin } from '../src/origin'
 
 describe('isAllowedOrigin', () => {
   const url = new URL('https://retroboard.example.workers.dev/ws?room=x')
@@ -16,6 +16,27 @@ describe('isAllowedOrigin', () => {
     expect(isAllowedOrigin('https://app.example.com', url, 'https://x.io, https://app.example.com')).toBe(true)
     expect(isAllowedOrigin(null, url, undefined)).toBe(false)
     expect(isAllowedOrigin('not a url', url, undefined)).toBe(false)
+  })
+})
+
+describe('admitUpgrade', () => {
+  const url = (room: string) => new URL(`https://retroboard.example.workers.dev/ws2?room=${room}`)
+  const room = 'a'.repeat(22)
+  const own = 'https://retroboard.example.workers.dev'
+  it('lets an upgrade from the site itself into a well-formed room', () => {
+    expect(admitUpgrade('websocket', own, url(room), undefined)).toEqual({ ok: true, room })
+  })
+  it('names why a request is refused, in the order upgrade, origin, room', () => {
+    expect(admitUpgrade(null, own, url(room), undefined)).toMatchObject({ ok: false, status: 426, reason: 'upgrade' })
+    expect(admitUpgrade('websocket', 'https://evil.example', url(room), undefined)).toMatchObject({ ok: false, status: 403, reason: 'origin' })
+    expect(admitUpgrade('websocket', null, url(room), undefined)).toMatchObject({ ok: false, status: 403, reason: 'origin' })
+    expect(admitUpgrade('websocket', own, url('short'), undefined)).toMatchObject({ ok: false, status: 400, reason: 'room' })
+    expect(admitUpgrade('websocket', own, new URL('https://retroboard.example.workers.dev/ws2'), undefined)).toMatchObject({ ok: false, status: 400, reason: 'room' })
+  })
+  it('keeps the origin and the room id out of every refusal', () => {
+    const r = admitUpgrade('websocket', 'https://evil.example', url(room), undefined)
+    expect(JSON.stringify(r)).not.toContain('evil.example')
+    expect(JSON.stringify(r)).not.toContain(room)
   })
 })
 
@@ -145,5 +166,19 @@ describe('maintenance and rate limit', () => {
     expect(allow('b', 30)).toBe(true)
     expect(allow('a', 2000)).toBe(true)
     expect(createLimiter(0, 1000)('a', 0)).toBe(true)
+  })
+})
+
+describe('wrangler configuration', () => {
+  const strip = (text: string) => JSON.parse(text.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n').replace(/,(\s*[}\]])/g, '$1')) as Record<string, unknown>
+  const schema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve('../../../node_modules/wrangler/config-schema.json')), 'utf8')) as { definitions: { Observability: { properties: Record<string, { properties?: Record<string, unknown> }> } } }
+
+  it('uses only observability keys that wrangler knows (an unknown key is ignored with a warning)', () => {
+    const known = schema.definitions.Observability.properties
+    const config = strip(readFileSync(fileURLToPath(import.meta.resolve('../../../wrangler.jsonc')), 'utf8')).observability as Record<string, unknown>
+    for (const [key, value] of Object.entries(config)) {
+      expect(Object.keys(known), `observability.${key}`).toContain(key)
+      if (value && typeof value === 'object') for (const sub of Object.keys(value)) expect(Object.keys(known[key]?.properties ?? {}), `observability.${key}.${sub}`).toContain(sub)
+    }
   })
 })
