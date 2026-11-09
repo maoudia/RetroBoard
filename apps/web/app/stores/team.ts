@@ -1,6 +1,6 @@
 import type { ActionItem, ImportedAction } from '@retroboard/domain'
 import {
-  addTeam, assignBoard, joinTeam, switchTeam, teamShareOf, type TeamShare, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
+  addTeam, assignBoard, switchTeam, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
   rememberOwner as rememberOwnerIn, saveRetro, setDefaults, type Team, type TeamDefaults, type Workspace,
 } from '@retroboard/application'
 import { randomId, safeStorage } from '~/utils/storage'
@@ -72,9 +72,8 @@ export const useTeamStore = defineStore('team', () => {
     for (const a of actions) next = rememberOwnerIn(next, a.owner)
     commit(next)
   }
-  /** Adds a shared team (or refreshes one already here) and makes it the team of the next board. */
-  function join(share: TeamShare) { view.value = ''; commit(joinTeam(ws.value, share)) }
-  const shareOf = (teamId: string): TeamShare | null => { const x = ws.value.teams.find((t) => t.id === teamId); return x ? teamShareOf(x) : null }
+  /** Applies a change to the workspace (used by the lazy team-sharing components, so their code stays out of the entry). */
+  function update(fn: (w: Workspace) => Workspace) { view.value = ''; commit(fn(ws.value)) }
   function clear() { commit({ ...EMPTY_WORKSPACE }) }
-  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, defaultsOf, remember, join, shareOf, saveActions, clear }
+  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, defaultsOf, remember, update, saveActions, clear }
 })

@@ -19,8 +19,10 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-11-02: entry raised from 40 to 44 kB and total from 300 to 330 kB for the phone layout (one column per
 // screen, dots), the resizable columns and writing field, the shared board display and the edit-by-facilitator
 // flow (41.3 and 299.3 kB measured). Splitting the board dialogs into lazy chunks is tracked in quality-gates-v2.
+// 2026-11-09: total raised from 330 to 335 kB for team sharing (encrypted team link, .retroteam file, join dialog,
+// fr/en strings; +4.8 kB measured over 327.3). The entry stays at 43.3 kB: the sharing UI is lazy but every chunk is counted.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 44, totalKb: 330 }
+const BUDGET = { entryKb: 44, totalKb: 335 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')

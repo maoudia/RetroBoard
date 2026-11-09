@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TeamShare } from '@retroboard/application'
+import { joinTeam, type TeamShare } from '@retroboard/application'
 import { teamFromHash } from '~/utils/team-share'
 
 /** Opens a team link: asks before adding the team to this device, then clears the fragment (change team-workspaces). */
@@ -21,7 +21,7 @@ onMounted(async () => {
 function join() {
   const share = pending.value
   if (!share) return
-  team.join(share)
+  team.update((w) => joinTeam(w, share))
   push(t('team.share.joined', { name: share.name }), 'ok')
   leave()
 }
