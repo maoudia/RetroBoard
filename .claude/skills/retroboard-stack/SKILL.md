@@ -85,6 +85,10 @@ Also check:
 
 Do the maximum on the local machine before pushing, then let CI confirm: `pnpm prepush` (verify, generate, bundle budget, commit check, core e2e, mutation of the changed files) must be green on the exact commit you push, plus the e2e of the flows you touched (`pnpm exec playwright test tests/e2e/<spec>`; for the guide `pnpm docs:tour`) and, for CI or workflow changes, `actionlint` and `zizmor`. Check exit codes (do not pipe `pnpm verify` into `tail`). A red CI after a green local run is a finding about the environment, not a reason to push untested. The WebRTC specs of the core gate cannot pass on a laptop: `pnpm e2e:core` skips them locally with a notice and CI runs them.
 
+## 5a2. Read the security findings of a PR before it merges
+
+Before a pull request merges (and before you report it done), read what the scanners said about it, not only the check colours: open code-scanning alerts on the PR (`gh api "repos/maoudia/RetroBoard/code-scanning/alerts?ref=refs/pull/<n>/merge&state=open"`), the `github-advanced-security` and Dependabot comments (`gh pr view <n> --comments`, `gh api repos/maoudia/RetroBoard/pulls/<n>/comments`), and the Trivy, OSV and dependency-review results. Fix every finding in the PR itself (a real fix, not a dismissal); dismiss only a documented false positive, with the reason. A PR with an open alert does not merge, whatever the auto-merge says.
+
 ## 5b. Commits and releases (ADR-0025)
 
 - Every commit message is a Conventional Commit: `type(scope): subject`, types `feat fix perf refactor docs test build ci chore revert style`, header up to 120 characters, no final period. The `commit-msg` hook (`.githooks`, installed by `pnpm install`) and CI refuse anything else. Check with `pnpm commits:check`.

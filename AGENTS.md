@@ -68,6 +68,7 @@ The repository is a pnpm workspace (apps/*, packages/*); `pnpm arch` checks the 
 - No CSP violation, no console error (`tests/e2e` has a guard test).
 - `pnpm verify` green; e2e green for touched flows; `pnpm prepush` green before the push.
 - Docs and guides kept current as the application evolves: when user-facing behaviour changes, update the guide manifest (`tests/docs/manifest.ts`) and the chapter text (`docs/user-guide/<fr|en>/`), regenerate with `pnpm docs:tour && pnpm docs:guide` and commit the result in the same pull request. When a command, a setting or an architecture rule changes, update `docs/` (and an ADR if it changes a decision) in that pull request too. A change is not done while the guide and the docs say something the product no longer does.
+- Security findings of the pull request read and fixed before it merges: code-scanning alerts on the PR, `github-advanced-security` and Dependabot comments, Trivy/OSV results (skill section 5a2). An open alert blocks the merge.
 - Commit messages pass `pnpm commits:check`. Release only through the automatic workflow, which waits for a green main.
 
 ## Things agents must not do
