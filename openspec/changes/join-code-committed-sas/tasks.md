@@ -2,8 +2,8 @@
 
 ## 1. Refuse imitations
 
-- [ ] 1.1 `join-flow.ts` `createJoinHost`: a knock whose number equals a pending one removes both and sets `state.imitation = true`; verify unit tests in `apps/web/test/` (two knocks, same number, different nonce)
-- [ ] 1.2 Knock list: warning text and icon (fr/en), cleared when a new code is shown; verify `join-code.spec.ts` and axe on the dialog
+- [x] 1.1 `join-flow.ts` `createJoinHost`: a knock whose number equals a pending one removes both and sets `state.imitation = true`; verify unit tests in `apps/web/test/` (two knocks, same number, different nonce)
+- [x] 1.2 Knock list: warning text and icon (fr/en), cleared when a new code is shown; verify `join-code.spec.ts` (the warning is a `role="alert"` paragraph in the text colour, so axe on the existing dialog is unchanged)
 
 ## 2. Committed number
 

@@ -28,7 +28,7 @@ async function until(condition: () => boolean) {
   for (let i = 0; i < 600 && !condition(); i++) await sleep(5)
   expect(condition()).toBe(true)
 }
-const newHostState = (): HostState => ({ code: null, expiresAt: 0, knocks: [], connected: false })
+const newHostState = (): HostState => ({ code: null, expiresAt: 0, knocks: [], connected: false, imitation: false })
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }) })
 afterEach(() => { vi.useRealTimers() })
@@ -75,6 +75,24 @@ describe('join code, holder side', () => {
     relay.state.handlers!.onMessage(msg)
     await until(() => state.knocks.length === 1)
     expect(state.knocks).toEqual([{ n: 'n1', name: 'Bob', pub: (msg as { pub: string }).pub, number: await safetyNumber(keys.publicKey) }])
+  })
+
+  it('refuses both requests when two show the same safety number, and every later one with it', async () => {
+    const { relay, state, host } = await started()
+    const real = await knockMsg('real')
+    const other = await knockMsg('other')
+    relay.state.handlers!.onMessage(real.msg)
+    relay.state.handlers!.onMessage(other.msg)
+    await until(() => state.knocks.length === 2)
+    // Someone who read the first request imitates it: same key, so same number, other nonce and name.
+    relay.state.handlers!.onMessage({ ...real.msg, n: 'twin', name: 'Bob' })
+    await until(() => state.imitation)
+    expect(state.knocks.map((k) => k.n)).toEqual(['other'])
+    relay.state.handlers!.onMessage({ ...real.msg, n: 'third', name: 'Bob' })
+    await flush()
+    expect(state.knocks.map((k) => k.n)).toEqual(['other'])
+    host.stop()
+    expect(state.imitation).toBe(false)
   })
 
   it('keeps at most five knocks, one per attempt, and only from a key of the right size', async () => {
