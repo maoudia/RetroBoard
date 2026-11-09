@@ -33,12 +33,17 @@ ENV NODE_ENV=production \
     XDG_CONFIG_HOME=/tmp/config
 WORKDIR /app
 COPY --from=build /out/ /app/
-RUN echo '{"private":true}' > package.json \
+# The base image ships npm with its own dependencies (undici, ip-address...) that the scan reports and the relay never
+# runs: npm is used once to install Wrangler, then removed, and the container starts Wrangler directly.
+RUN apt-get update && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+ && rm -rf /var/lib/apt/lists/* \
+ && echo '{"private":true}' > package.json \
  && npm install --no-audit --no-fund --omit=dev "wrangler@$(cat wrangler.version)" \
- && rm -rf /root/.npm \
+ && rm -rf /root/.npm /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
  && chown -R node:node /app
 USER node
 EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s \
   CMD node -e "fetch('http://127.0.0.1:8787/healthz').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
-CMD ["npx", "wrangler", "dev", "--local", "--ip", "0.0.0.0", "--port", "8787", "--persist-to", "/tmp/state"]
+CMD ["node_modules/.bin/wrangler", "dev", "--local", "--ip", "0.0.0.0", "--port", "8787", "--persist-to", "/tmp/state"]
