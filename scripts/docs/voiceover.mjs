@@ -88,7 +88,9 @@ async function speak(engine, text, locale, file) {
   const audio = Buffer.from(await res.arrayBuffer())
   if (audio.length === 0 || audio.length > MAX_AUDIO_BYTES) throw new Error('ElevenLabs audio has an unexpected size')
   const out = file.replace(/\.\w+$/, '.mp3')
-  writeFileSync(out, audio)
+  // ffmpeg decodes the answer and writes the file: only well-formed audio lands on disk, never the raw response.
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-i', 'pipe:0', '-codec:a', 'libmp3lame', out], { input: audio })
+  if (r.status !== 0) throw new Error('ElevenLabs audio could not be decoded by ffmpeg')
   return out
 }
 
