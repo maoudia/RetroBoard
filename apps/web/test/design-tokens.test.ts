@@ -59,7 +59,7 @@ describe('a labelled button is not an icon-only button (change history-panel-pho
   /** The visible text of every `.mini-btn` (a fixed 30 px square for an icon) in a template; the icon and its markup do not count. */
   const labelled = (src: string) => [...src.matchAll(/<(button|NuxtLink|a)\b((?:"[^"]*"|'[^']*'|[^>"'])*)>([\s\S]*?)<\/\1>/g)]
     .filter((m) => /class="[^"]*\bmini-btn\b/.test(m[2]!))
-    .map((m) => m[3]!.replace(/<Icon\b[^>]*\/>|<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
+    .map((m) => [...m[3]!.matchAll(/(?:^|>)([^<>]+)/g)].map((t) => t[1]!).join(' ').replace(/\s+/g, ' ').trim())
     .filter(Boolean)
 
   it('flags a .mini-btn that shows text (seeded violation)', () => {
