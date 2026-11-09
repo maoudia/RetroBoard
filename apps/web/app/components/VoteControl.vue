@@ -42,13 +42,16 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
 
 <template>
   <!-- Closed by the phase: the same greyed look as a closed composer, with the reason for assistive technologies. -->
-  <span v-if="gate.closedBy && !gate.allowed" class="vc">
+  <span v-if="gate.closedBy" class="vc">
     <button class="vote off gated" type="button" disabled aria-disabled="true" :aria-label="`${t('gated.vote.closed', { phase: t(`agenda.phase.${gate.closedBy}`) })} - ${label}`" :title="t('gated.vote.closed', { phase: t(`agenda.phase.${gate.closedBy}`) })" :data-testid="`gated-vote-${id}`">
       <span class="thumb"><Icon name="lucide:lock" /></span>
     </button>
+    <!-- Same locked state for every role (solo included); a facilitator may open voting now instead of waiting for the phase (#231). -->
+    <button v-if="gate.canOverride" class="vote open-now" type="button" :title="t('vote.openNow.hint')" :data-testid="`open-voting-${id}`" @click="board.commands.openVotingNow(true)">
+      <Icon name="lucide:lock-open" /><span>{{ t('votebar.openNow') }}</span>
+    </button>
   </span>
-  <!-- A facilitator who could override the phase sees no vote buttons outside the vote phase either (#231). -->
-  <span v-else-if="board.allowed('vote.add') && !gate.bypassed" class="vc" :data-testid="`votes-${id}`">
+  <span v-else-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
     <button
       v-if="!single && voted && !closed" class="vote undo" type="button"
       :aria-label="t('vote.undo', { label })" :data-testid="`unvote-${id}`" @click="remove"
@@ -78,6 +81,7 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
 .vote.voted { background: var(--note-ink, currentColor); color: var(--c, #fff); border-color: var(--note-ink, currentColor); }
 .vote.off { opacity: .55; cursor: not-allowed; }
 .vote.gated { background: var(--gated-bg); border-style: dashed; }
+.vote.open-now { font-size: var(--fs-sm); font-weight: 600; }
 .vote.undo { padding: .2rem .4rem; }
 .mine { display: inline-flex; gap: 3px; }
 .mine i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }

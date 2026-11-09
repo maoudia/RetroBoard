@@ -14,7 +14,7 @@ const stateText = computed(() => {
 const isOpen = computed(() => vstate.value === 'open' || vstate.value === 'overridden')
 /** One word for the chip: what is true now. */
 const chipText = computed(() => t(isOpen.value ? 'votebar.voteOpen' : vstate.value === 'phase-closed' ? 'votebar.voteWaiting' : 'votebar.voteClosed'))
-const chipTitle = computed(() => (board.access.canSteer ? (isOpen.value ? t('votebar.closeAction') : t('votebar.openAction')) : t('roles.askFacilitator')))
+const chipTitle = computed(() => (board.access.canSteer ? (isOpen.value ? t('votebar.closeAction') : vstate.value === 'phase-closed' ? t('votebar.openNow') : t('votebar.openAction')) : t('roles.askFacilitator')))
 function toggleVoting() { if (isOpen.value) board.commands.closeVoting(); else openVoting() }
 /** Open voting: reopen after a close, or open it now outside the Vote phase (until the next phase change). */
 function openVoting() {
