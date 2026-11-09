@@ -20,7 +20,7 @@ const styles = new Set()
 
 for (const file of walk(dir)) {
   const html = readFileSync(file, 'utf8')
-  for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+  for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script[^>]*>/gi)) {
     const attrs = m[1] ?? ''
     const body = m[2] ?? ''
     if (/\bsrc\s*=/.test(attrs) || !body.trim()) continue
