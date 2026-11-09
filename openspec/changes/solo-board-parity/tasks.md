@@ -22,7 +22,7 @@
 
 ## 5. Presence panel
 
-- [ ] 5.1 Verify D6 on a solo board (relay or direct status shown?), then show "Only you here" and no link modes in solo; verify e2e
+- [x] 5.1 Verify D6 on a solo board (relay or direct status shown?), then show "Only you here" and no link modes in solo; verify e2e
 
 ## 6. Parity guard
 
