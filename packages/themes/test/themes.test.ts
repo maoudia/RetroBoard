@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, getTheme, mix, ringColors, stickyColor, tokensFor } from '../src'
+import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, derivedPairs, getTheme, mix, ringColors, stickyColor, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -20,6 +20,10 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     expect(contrast(k.accentInk, k.accent), 'ink on accent').toBeGreaterThanOrEqual(4.5)
     expect(contrast(k.accent, k.surface), 'accent on surface').toBeGreaterThanOrEqual(3)
     expect(contrast(k.danger, k.surface), 'danger on surface').toBeGreaterThanOrEqual(3)
+  })
+
+  it.each(['light', 'dark'] as const)('keeps every colour pair the shared stylesheet derives readable in the %s variant (pressed buttons, placeholder, ink on danger)', (variant) => {
+    for (const p of derivedPairs(tokensFor(t, variant))) expect(contrast(p.fg, p.bg), p.name).toBeGreaterThanOrEqual(4.5)
   })
 
   it.each(['light', 'dark'] as const)('keeps the ink readable on the danger colour in the %s variant (unread badge)', (variant) => {

@@ -61,3 +61,20 @@ export interface RingColors {
 export function ringColors(k: { accent: string; accent2: string; muted: string; danger: string; border: string }): RingColors {
   return { ring1: k.accent, ring2: k.accent2, ring3: k.muted, over: k.danger, track: k.border }
 }
+
+export interface DerivedPair { name: string; fg: string; bg: string }
+
+/**
+ * The colour pairs the shared stylesheet builds from a variant's tokens (apps/web base.css): a pressed toolbar button
+ * (text on the accent tint over each ground), a field placeholder (muted on the field background) and the ink on the
+ * danger colour (unread badge, note counter at its limit). The colour tests keep each pair at 4.5:1.
+ * The tint is an sRGB approximation of the stylesheet's `color-mix(in oklab, accent 16%, transparent)`.
+ */
+export function derivedPairs(k: { bg: string; bg2: string; surface: string; surface2: string; text: string; muted: string; accent: string; accentInk: string; danger: string }): DerivedPair[] {
+  const grounds = { bg: k.bg, bg2: k.bg2, surface: k.surface, surface2: k.surface2 }
+  return [
+    ...Object.entries(grounds).map(([name, ground]) => ({ name: `pressed button on ${name}`, fg: k.text, bg: mix(k.accent, ground, 0.16) })),
+    { name: 'placeholder', fg: k.muted, bg: mix(k.bg, k.surface, 0.6) },
+    { name: 'ink on danger', fg: k.accentInk, bg: k.danger },
+  ]
+}
