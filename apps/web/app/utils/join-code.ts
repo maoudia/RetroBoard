@@ -33,16 +33,45 @@ export async function joinRoomId(code: string): Promise<string> {
 }
 const joinKey = (code: string) => hkdf(utf8(code), utf8('rb-join'), utf8('envelope-key'))
 
-/** Six digits from the joiner's one-time public key, read aloud on both screens. */
-export async function safetyNumber(publicKey: Uint8Array): Promise<string> {
-  const h = await sha256(publicKey)
+/** Six digits from the first four bytes of a hash, written "123 456". */
+function digits(h: Uint8Array): string {
   const n = ((h[0]! << 24) | (h[1]! << 16) | (h[2]! << 8) | h[3]!) >>> 0
   const d = String(n % 1_000_000).padStart(6, '0')
   return `${d.slice(0, 3)} ${d.slice(3)}`
 }
 
+/** Six digits from the joiner's one-time public key, read aloud on both screens (older joiners, no commitment). */
+export async function safetyNumber(publicKey: Uint8Array): Promise<string> {
+  return digits(await sha256(publicKey))
+}
+
+const concatBytes = (...parts: Uint8Array[]): Uint8Array => {
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0))
+  let at = 0
+  for (const p of parts) { out.set(p, at); at += p.length }
+  return out
+}
+
+/**
+ * Commitment to a one-time key, sent before the key itself: a knock then cannot be ground against the number of
+ * another request, because the number depends on a value the holder only chooses after the commitment (change
+ * join-code-committed-sas).
+ */
+export async function commitKey(publicKey: Uint8Array, nonce: string): Promise<string> {
+  return toBase64Url(await sha256(concatBytes(utf8(`rb-join-commit|${nonce}|`), publicKey)))
+}
+
+/** The number both screens show: it binds the key, the holder's fresh challenge and the request nonce. */
+export async function committedNumber(publicKey: Uint8Array, challenge: Uint8Array, nonce: string): Promise<string> {
+  return digits(await sha256(concatBytes(utf8(`rb-join-sas|${nonce}|`), challenge, publicKey)))
+}
+
 export type JoinMsg =
   | { t: 'knock'; n: string; pub: string; name: string }
+  /** Committed knock: `c` is `commitKey(pub, n)`; the key follows in `reveal` once the holder answered with a `challenge`. */
+  | { t: 'knock2'; n: string; c: string; name: string }
+  | { t: 'challenge'; n: string; h: string }
+  | { t: 'reveal'; n: string; pub: string }
   | { t: 'let'; n: string; ct: string }
   | { t: 'deny'; n: string }
 
@@ -62,6 +91,9 @@ export async function openJoinMsg(code: string, env: Envelope): Promise<JoinMsg 
     const m = JSON.parse(fromUtf8(pt)) as Record<string, unknown>
     if (!isStr(m.n, 40)) return null
     if (m.t === 'knock' && isStr(m.pub, 64) && isStr(m.name, 40)) return { t: 'knock', n: m.n, pub: m.pub, name: m.name }
+    if (m.t === 'knock2' && isStr(m.c, 64) && isStr(m.name, 40)) return { t: 'knock2', n: m.n, c: m.c, name: m.name }
+    if (m.t === 'challenge' && isStr(m.h, 64)) return { t: 'challenge', n: m.n, h: m.h }
+    if (m.t === 'reveal' && isStr(m.pub, 64)) return { t: 'reveal', n: m.n, pub: m.pub }
     if (m.t === 'let' && isStr(m.ct, 4096)) return { t: 'let', n: m.n, ct: m.ct }
     if (m.t === 'deny') return { t: 'deny', n: m.n }
   } catch { /* not ours */ }

@@ -1231,6 +1231,7 @@ export const fr = {
   "join.knock": "{name} veut rejoindre. Numéro :",
   "join.check": "Vérifie que ce numéro est celui affiché sur son écran avant d'accepter.",
   "join.imitation": "Deux demandes affichaient le même numéro, elles ont donc été refusées. Quelqu'un essaie peut-être de se faire passer pour une autre personne. Demande-leur de réessayer, ou arrête ce code et affiches-en un nouveau.",
+  "join.unverified": "Cette demande vient d'une ancienne version de l'application et ne peut pas être vérifiée aussi solidement. Ne laisse entrer que si tu sais qui c'est.",
   "join.letIn": "Laisser entrer",
   "join.refuse": "Refuser",
   "join.stop": "Arrêter le code",

@@ -13,10 +13,13 @@ test('joining with a short code: knock, safety number, let in (change short-link
   await bob.getByTestId('join-input').fill(code.toLowerCase())
   await bob.getByTestId('join-go').click()
   await expect(bob.getByTestId('join-code-state')).toHaveAttribute('data-state', 'waiting')
+  await expect(bob.getByTestId('join-number')).toHaveText(/^\d{3} \d{3}$/)
   const mine = (await bob.getByTestId('join-number').textContent())!.trim()
 
   // Alice sees the same number and lets Bob in.
   await expect(page.getByTestId('knock-number')).toHaveText(mine)
+  // Both sides run the committed exchange, so the request is verified.
+  await expect(page.getByTestId('knock-unverified')).toHaveCount(0)
   await page.getByTestId('knock-admit').click()
   await bob.waitForURL(/\/boards#/)
   await expect(bob.getByTestId('name-input').or(bob.getByTestId('board'))).toBeVisible()
