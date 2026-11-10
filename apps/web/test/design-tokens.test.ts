@@ -14,6 +14,13 @@ const all = files(root).map((f) => ({ f, s: readFileSync(f, 'utf8') }))
 
 const decl = (prop: string) => all.flatMap(({ f, s }) => [...s.matchAll(new RegExp(`${prop}: *([^;}]+)(?=[;}])`, 'g'))].map((m) => ({ f: f.replace(`${root}/`, ''), v: m[1]!.trim() })))
 
+/** Hex colours that existed when the guard was added (fixed palettes, print, QR code, avatars). Lower a number when you remove one; never raise it. */
+const BASELINE: Record<string, number> = {
+  'assets/css/base.css': 17, 'components/AgendaRing.vue': 1, 'components/AppToolbar.vue': 2, 'components/ChatPanel.vue': 2, 'components/Dropdown.vue': 2,
+  'components/GroupCard.vue': 2, 'components/JoinScanner.vue': 1, 'components/ParticipantsMenu.vue': 1, 'components/PrivateSection.vue': 1,
+  'components/ProfileButton.vue': 1, 'components/ProfileDialog.vue': 1, 'components/QrCode.vue': 2, 'pages/check.vue': 1,
+}
+
 describe('design tokens', () => {
   it('font sizes use the type scale, a fluid clamp or inherit', () => {
     const bad = decl('font-size').filter(({ v }) => !/^(var\(--fs-(xs|sm|md|lg|xl|2xl|3xl)\)|inherit|clamp\(.*\)|calc\(.*\)|[\d.]+em|[\d.]+%|larger|smaller)$/.test(v))
@@ -36,6 +43,15 @@ describe('design tokens', () => {
       .map((m) => ({ f: f.replace(`${root}/`, ''), txt: m[3]!.replace(/\s+/g, ' ').trim() }))
       .filter(({ txt }) => txt && !exempt.test(txt)))
     expect(bad.map((b) => `${b.f}: ${b.txt}`), 'put <Icon name="lucide:..." /> before the label (docs/design-system.md)').toEqual([])
+  })
+
+  it('hard-coded colours only shrink: no component gets a new hex colour (docs/design-system.md, section 2)', () => {
+    const marketing = /^(components\/Landing|pages\/index\.vue|components\/LocaleSwitch\.vue)/
+    // Hex inside a style block, except a fallback written as var(--token, #hex).
+    const hex = (src: string) => [...(src.match(/<style[\s\S]*?<\/style>/g)?.join('\n') ?? (src.includes('</') ? '' : src)).replace(/var\(--[\w-]+,\s*#[0-9a-fA-F]{3,8}\)/g, '').matchAll(/#[0-9a-fA-F]{3,8}\b/g)].length
+    const now = Object.fromEntries(all.map(({ f, s }) => [f.replace(`${root}/`, ''), hex(s)] as const).filter(([f, n]) => n > 0 && !marketing.test(f)))
+    const over = Object.entries(now).filter(([f, n]) => n > (BASELINE[f] ?? 0)).map(([f, n]) => `${f}: ${n} (allowed ${BASELINE[f] ?? 0})`)
+    expect(over, 'use a theme token (var(--text), var(--accent-ink), ...) instead of a hex colour').toEqual([])
   })
 
   it('the shared scales exist in base.css', () => {
