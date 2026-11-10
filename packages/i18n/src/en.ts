@@ -1232,6 +1232,7 @@ export const en: Record<keyof typeof fr, string> = {
   "join.knock": "{name} wants to join. Number:",
   "join.check": "Check that this number is the one on their screen before you accept.",
   "join.imitation": "Two requests showed the same number, so both were refused. Someone may be trying to pass for another person. Ask them to try again, or stop this code and show a new one.",
+  "join.unverified": "This request comes from an older version of the app and cannot be verified as strongly. Let them in only if you know who it is.",
   "join.letIn": "Let in",
   "join.refuse": "Refuse",
   "join.stop": "Stop the code",

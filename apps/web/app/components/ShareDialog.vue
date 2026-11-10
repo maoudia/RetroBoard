@@ -130,6 +130,7 @@ onBeforeUnmount(() => host.stop())
           <li v-for="k in host.knocks" :key="k.n" data-testid="join-knock">
             <span>{{ t('join.knock', { name: k.name || t('common.anonymous') }) }} <strong class="mono" data-testid="knock-number">{{ k.number }}</strong></span>
             <small class="muted">{{ t('join.check') }}</small>
+            <small v-if="!k.verified" class="muted" data-testid="knock-unverified"><Icon name="lucide:triangle-alert" /> {{ t('join.unverified') }}</small>
             <span class="kb">
               <button class="btn btn-sm btn-primary" type="button" data-testid="knock-admit" @click="host.admit(k)"><Icon name="lucide:user-check" /> {{ t('join.letIn') }}</button>
               <button class="btn btn-sm" type="button" data-testid="knock-refuse" @click="host.refuse(k)"><Icon name="lucide:user-x" /> {{ t('join.refuse') }}</button>
