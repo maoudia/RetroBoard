@@ -6,3 +6,5 @@ Sur téléphone, un bouton « Écrire une idée » ouvre le champ dans un pannea
 Un bandeau permet d'annuler une publication faite par erreur pendant quelques secondes.
 
 Une idée longue montre ses premières lignes et un lien « Lire la suite » qui ouvre le reste (« Réduire » le replie); le texte n'est jamais plus petit que 14 px. Les post-its de hauteurs différentes se rangent dans la colonne sans trous, et la colonne défile. Pour en voir plus ou moins sur ton écran, appuie sur `d` pour changer la densité (confortable, compacte, serrée) et sur `+`, `-` et `0` pour agrandir, réduire et revenir à 100 % le zoom des post-its. Les deux sont personnels, retenus sur cet appareil pour chaque type d'écran, et réglables aussi dans le profil (mode avancé).
+
+Les post-its bougent avec retenue: le coin d'un post-it se décolle quand la souris s'y arrête, ton idée publiée vole jusqu'à sa place et s'y colle, l'idée d'un autre arrive en voletant, et un groupe se cale d'un coup quand un post-it le rejoint. Chaque mouvement dure moins de 0,4 seconde, aucun ne déplace un post-it que tu modifies, et tous s'arrêtent avec le réglage de mouvement « Réduites » ou la préférence du système.

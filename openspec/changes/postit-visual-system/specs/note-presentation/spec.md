@@ -40,6 +40,14 @@ Note animations SHALL last under 400 ms, SHALL never move text while it is being
 - **WHEN** reduced motion is on
 - **THEN** publishing and grouping happen without animated transitions
 
+#### Scenario: Four motions
+- **WHEN** a participant rests the mouse on a note, publishes one, sees another participant's note arrive, or groups two notes
+- **THEN** the note corner peels, the published note flies and sticks, the arriving note flutters in and the cluster snaps into place, each in under 400 ms
+
+#### Scenario: Large board
+- **WHEN** a board holds 60 notes and a participant hovers, zooms, publishes and groups
+- **THEN** no task blocks the main thread for more than 50 ms
+
 ### Requirement: Similar idea hint
 While writing, the system SHALL show a hint when published ideas in the same column look similar, computed on the device.
 

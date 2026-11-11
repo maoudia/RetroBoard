@@ -14,7 +14,12 @@
 [data-leave="fade"] { --leave-anim: note-fade; }
 
 /* TransitionGroup hooks used by every note list */
-.note-enter-active { animation: var(--enter-anim) var(--enter-ms) var(--ease) both; }
+.note-enter-active { animation: var(--enter-anim) min(var(--enter-ms), 400ms) var(--ease) both; }
+/* Flutter (change postit-visual-system, task 3.1): a note that lands on the board settles with a small paper wobble after its entrance.
+   Transform only, under 400 ms, on a note nobody is reading yet; the flight of my own published note has its own motion. */
+.note-enter-active:not(.is-flying) { animation: var(--enter-anim) min(var(--enter-ms), 400ms) var(--ease) both, note-flutter 340ms ease-out min(var(--enter-ms), 400ms); }
+/* Snap: a note joining a cluster makes the stack click into place (the stack of a new cluster enters with the same motion). */
+.note-enter-active > .stack, .stack.snap { animation: stack-snap 280ms var(--ease); }
 .note-leave-active { position: absolute; width: var(--col-w, var(--note-w, 150px)); animation: var(--leave-anim) 320ms ease-in both; z-index: 0; pointer-events: none; }
 .note-move { transition: transform var(--move-ms) var(--ease); }
 .note-enter-active.is-flying { animation: none; }
@@ -46,6 +51,17 @@
   0% { opacity: 0; transform: scale(.25) rotate(40deg); filter: blur(6px); }
   70% { opacity: 1; transform: scale(1.08) rotate(-4deg); filter: blur(0); }
   100% { transform: scale(1) rotate(var(--tilt, 0deg)); }
+}
+@keyframes note-flutter {
+  0% { transform: rotate(var(--tilt, 0deg)); }
+  30% { transform: translateY(-2px) rotate(calc(var(--tilt, 0deg) + 2.2deg)); }
+  62% { transform: translateY(1px) rotate(calc(var(--tilt, 0deg) - 1.4deg)); }
+  100% { transform: rotate(var(--tilt, 0deg)); }
+}
+@keyframes stack-snap {
+  0% { transform: scale(1.07) rotate(-1.5deg); }
+  55% { transform: scale(.97) rotate(.5deg); }
+  100% { transform: none; }
 }
 @keyframes note-poof { to { opacity: 0; transform: scale(.6) rotate(12deg); filter: blur(6px) saturate(0); } }
 @keyframes note-melt { to { opacity: 0; transform: translateY(18px) scaleY(.2) scaleX(1.08); filter: blur(3px); } }
