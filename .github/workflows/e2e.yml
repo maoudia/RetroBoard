@@ -18,6 +18,12 @@ jobs:
   e2e:
     name: Playwright (${{ matrix.project }}${{ matrix.shard != '1/1' && format(' {0}', matrix.shard) || '' }})
     runs-on: ubuntu-latest
+    # Ready-made browsers: no apt packages to download (the Ubuntu mirrors failed for hours and blocked every run).
+    # Keep the tag equal to @playwright/test in pnpm-lock.yaml and bump the digest with it (same image in e2e.yml,
+    # quality.yml and nightly.yml): docker buildx imagetools inspect mcr.microsoft.com/playwright:v<version>-noble
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+      options: --ipc=host --init
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -35,8 +41,6 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Install the browser
-        run: pnpm exec playwright install --with-deps ${{ matrix.project == 'firefox' && 'firefox' || matrix.project == 'webkit' && 'webkit' || 'chromium' }}
       - run: pnpm generate
       # Core specs only (tests/e2e/core.json): the full suite runs nightly on every browser.
       - run: pnpm e2e:core --project=${{ matrix.project }} --shard=${{ matrix.shard }}
