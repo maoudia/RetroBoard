@@ -62,7 +62,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: t('Écrire et publier des idées', 'Write and publish ideas'),
     intro: t('Les idées restent privées tant que tu ne les publies pas.', 'Ideas stay private until you publish them.'),
     steps: [
-      { id: 'board', caption: t('Chaque colonne a son champ de saisie, les brouillons restent sur ton appareil.', 'Each column has its own field, drafts stay on your device.'), ops: [{ press: 'Escape' }], anchors: ['board'] },
+      { id: 'board', caption: t('Chaque colonne a son champ de saisie en haut, les brouillons restent sur ton appareil.', 'Each column has its own field at the top, drafts stay on your device.'), ops: [{ press: 'Escape' }], anchors: ['board'] },
     ],
   },
   {

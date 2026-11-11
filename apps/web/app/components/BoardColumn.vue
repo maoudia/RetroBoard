@@ -121,6 +121,10 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
       <ColumnMenu :column="column" :index="index" :count="total" :note-count="noteCount" />
     </header>
 
+    <!-- The composer sits at the top of the column, under its title; the drafts tray hangs under it (change publishing-ux-redesign).
+         Presenter mode is shown to the room: my private drafts stay off screen. -->
+    <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
+
     <div class="notes">
       <TransitionGroup name="note" tag="div" class="grid" :style="display" :data-note-size="board.settings?.noteSize ?? 'normal'">
         <template v-for="it in items" :key="it.key">
@@ -131,8 +135,6 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
       <p v-if="!items.length" class="empty muted">{{ themeText(theme.theme).emptyColumn }}</p>
     </div>
 
-    <!-- Presenter mode is shown to the room: my private drafts stay off screen. -->
-    <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
     <GroupPanel v-if="openGroup" :item="openGroup" />
     <span
       class="col-grip" role="separator" aria-orientation="vertical" tabindex="0" :aria-label="t('column.resize', { title: column.title })"

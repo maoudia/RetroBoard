@@ -72,12 +72,35 @@ export async function settle(page: Page) {
   ))
 }
 
+/** Id of the column at this index (the part of its test id after `column-`). */
+export async function columnId(page: Page, colIndex: number) {
+  return (await column(page, colIndex).getAttribute('data-testid'))!.replace('column-', '')
+}
+
+/**
+ * Puts a private draft in a column. On a phone the composer is a bottom sheet (write button, chip of the column, field), closed
+ * afterwards so the column is reachable again; elsewhere the field sits at the top of the column (change publishing-ux-redesign).
+ */
+export async function addDraft(page: Page, colIndex: number, text: string) {
+  const id = await columnId(page, colIndex)
+  const fab = page.getByTestId('compose-open')
+  if (await fab.isVisible()) {
+    await fab.click()
+    await page.getByTestId(`compose-chip-${id}`).click()
+    await page.getByTestId(`draft-${id}`).fill(text)
+    await page.getByTestId(`compose-add-${id}`).click()
+    await page.getByTestId('compose-close').click()
+    await expect(page.getByTestId('compose-sheet')).toHaveCount(0)
+  } else {
+    await column(page, colIndex).locator('textarea').fill(text)
+    await column(page, colIndex).locator('[data-testid^="compose-add-"]').click()
+  }
+}
+
 /** Writes a private draft then publishes it from the column. */
 export async function publishNote(page: Page, colIndex: number, text: string) {
-  const col = column(page, colIndex)
-  await col.locator('textarea').fill(text)
-  await col.locator('[data-testid^="compose-add-"]').click()
-  await col.locator('[data-testid^="publish-"]').click()
+  await addDraft(page, colIndex, text)
+  await column(page, colIndex).locator('[data-testid^="publish-"]').click()
   await expect(noteByText(page, text)).toBeVisible()
   await settle(page)
 }

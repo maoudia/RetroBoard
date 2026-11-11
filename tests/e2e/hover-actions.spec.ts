@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, noteByText, publishNote } from './helpers'
+import { addDraft, createBoard, noteByText, publishNote } from './helpers'
 
 const opacity = (loc: ReturnType<import('@playwright/test').Page['locator']>) => loc.evaluate((el) => Number(getComputedStyle(el).opacity))
 
@@ -53,8 +53,7 @@ test.describe('touch', () => {
   test('draft actions are always visible and tappable', async ({ page }) => {
     await createBoard(page)
     const col = page.locator('[data-testid^="column-"]').first()
-    await col.locator('textarea').fill('mobile')
-    await col.locator('[data-testid^="compose-add-"]').tap()
+    await addDraft(page, 0, 'mobile')
     const acts = col.locator('[data-draft-id] .acts')
     expect(await opacity(acts)).toBe(1)
     await col.locator('[data-testid^="draft-dismiss-"]').tap()

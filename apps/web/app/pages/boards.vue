@@ -15,6 +15,7 @@ const drafts = useDraftsStore()
 const recents = useRecentsStore()
 const theme = useThemeStore()
 const ui = useUiStore()
+const layoutStore = useLayoutStore()
 const { push } = useToasts()
 
 const invite = computed(() => inviteFromHash(route.hash))
@@ -129,6 +130,16 @@ function syncActive() {
   activeCol.value = Math.max(0, Math.min(visibleCols.value.length - 1, best))
 }
 const tabsEl = ref<HTMLElement | null>(null)
+const isPhone = computed(() => layoutStore.cls === 'phone')
+const fabEl = ref<HTMLElement | null>(null)
+function openCompose() {
+  const col = visibleCols.value[activeCol.value] ?? visibleCols.value[0]
+  if (col) ui.openCompose(col.id)
+}
+// The sheet closed: the button that opened it gets the focus back.
+watch(() => ui.composeColumn, async (now, was) => { if (now === null && was !== null) { await nextTick(); fabEl.value?.focus({ preventScroll: true }) } })
+// The board changed under the sheet (a column hidden, the window widened, the presenter mode on): it closes.
+watch([isPhone, () => ui.presenter, () => visibleCols.value.map((c) => c.id).join()], () => { if (ui.composeColumn !== null && (!isPhone.value || ui.presenter || !visibleCols.value.some((c) => c.id === ui.composeColumn))) ui.closeCompose() })
 /** The tab bar scrolls when there are more tabs than fit: the active one stays in view. */
 watch(activeCol, async (i) => {
   await nextTick()
@@ -337,7 +348,6 @@ watch(() => board.snapshot?.agenda?.current, (cur, prev) => {
 })
 
 // The Write phase is for writing: entering it (or opening the board during it) unfolds every writing area.
-const layoutStore = useLayoutStore()
 const phaseKind = computed(() => { const a = board.snapshot?.agenda; return a && a.current >= 0 ? a.phases[a.current]?.kind : undefined })
 watch(phaseKind, (k) => { if (k === 'write' && (layoutStore.writingHidden || Object.keys(layoutStore.current.writeOff ?? {}).length)) layoutStore.setWritingHidden(false) }, { immediate: true })
 
@@ -407,6 +417,13 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
           <span class="tab-name" aria-hidden="true">{{ c.title }}</span>
         </button>
       </nav>
+      <!-- Phones: one thumb-sized button writes an idea; the composer opens as a bottom sheet on the column in view, chips pick another (change publishing-ux-redesign). -->
+      <button
+        v-if="board.ready && isPhone && !ui.presenter && !layoutStore.writingHidden && ui.composeColumn === null" ref="fabEl" class="compose-fab" :class="{ 'above-tabs': visibleCols.length > 1 }" type="button"
+        :aria-label="t('compose.open')" :title="t('compose.open')" data-testid="compose-open" @click="openCompose"
+      >
+        <Icon name="lucide:pencil" /><span class="fab-label" aria-hidden="true">{{ t('compose.open') }}</span>
+      </button>
       <ChatPanel v-if="board.ready" />
       <ActionsDrawer />
       <ShareDialog :passcode="passcode" @convert="enter" />
@@ -443,6 +460,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .board { flex: 1; min-height: 0; display: flex; gap: 1rem; padding: 1rem; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; align-items: stretch; }
 .board > .col { scroll-snap-align: start; }
 .col-tabs { display: none; }
+.compose-fab { display: none; }
 @media (max-width: 600px) {
   /* One column per screen, swipe sideways, snap on each (change mobile-board-space). The width menu works here:
      narrow and normal leave the next column peeking, which tells there is more on the right (ux-irritants-wave-2). */
@@ -461,6 +479,9 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   .tab.on::before { background: var(--accent); }
   .tab-ico { font-size: var(--fs-xl); }
   .tab-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The write button floats at the right of the thumb zone, just above the tab bar (or the foot of the screen with a single column). */
+  .page > .compose-fab { position: fixed; z-index: 20; right: var(--sp-3); bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 56px; padding: 0 var(--sp-4); border: 0; border-radius: var(--r-pill); background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 700; box-shadow: var(--shadow-2); cursor: pointer; }
+  .page > .compose-fab.above-tabs { bottom: calc(56px + var(--sp-3) + env(safe-area-inset-bottom)); }
 }
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }

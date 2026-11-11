@@ -63,8 +63,8 @@ test('the publish toast floats under the header, never over a writing area, on a
   expect(t.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1)
   expect(t.x).toBeGreaterThanOrEqual(0)
   expect(t.x + t.width).toBeLessThanOrEqual(390)
-  const field = (await page.getByTestId(`draft-${(await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')}`).boundingBox())!
-  expect(t.y + t.height).toBeLessThan(field.y)
+  const write = (await page.getByTestId('compose-open').boundingBox())!
+  expect(t.y + t.height).toBeLessThan(write.y)
   const action = (await page.getByTestId('undo-publish').boundingBox())!
   expect(action.height).toBeGreaterThanOrEqual(44)
   await toast.hover()
@@ -77,16 +77,18 @@ test('the publish toast floats under the header, never over a writing area, on a
 test('on a phone the field keeps focus after Add; Publish sends the whole stack of the column and closes the keyboard (change toast-notifications-v2)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 780 })
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
-  const col = column(page, 0)
-  const field = col.locator('textarea')
+  await page.getByTestId('compose-open').click()
+  const sheet = page.getByTestId('compose-sheet')
+  const field = sheet.locator('textarea')
+  await expect(field).toBeFocused()
   await field.fill('First')
-  await col.locator('[data-testid^="compose-add-"]').click()
+  await sheet.locator('[data-testid^="compose-add-"]').click()
   await expect(field).toBeFocused()
   await field.fill('Second')
-  await col.locator('[data-testid^="compose-add-"]').click()
+  await sheet.locator('[data-testid^="compose-add-"]').click()
   await expect(field).toBeFocused()
   await field.fill('Third')
-  await col.locator('[data-testid^="compose-publish-"]').click()
+  await sheet.locator('[data-testid^="compose-publish-"]').click()
   for (const t of ['First', 'Second', 'Third']) await expect(noteByText(page, t)).toBeVisible()
-  await expect(field).not.toBeFocused()
+  await expect(sheet).toHaveCount(0) // the sheet closes with the keyboard
 })
