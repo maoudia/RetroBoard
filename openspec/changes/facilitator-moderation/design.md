@@ -12,7 +12,7 @@ Security and privacy note: the relay sees one `room.moved` frame per remaining p
 
 ## Fresh link (task group 2)
 
-ADR-0034 settles the question that blocked 2.1: the signature of an event is bound to the room id, so the new room keeps the **signing domain** of the first one. Nothing is re-signed and the fold does not change.
+ADR-0035 settles the question that blocked 2.1: the signature of an event is bound to the room id, so the new room keeps the **signing domain** of the first one. Nothing is re-signed and the fold does not change.
 
 ### Key ring
 

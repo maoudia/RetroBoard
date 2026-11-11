@@ -9,7 +9,7 @@ The system SHALL let the facilitator move a board to a new room and key, deliver
 
 #### Scenario: Same board, new room
 - **WHEN** the facilitator moves the team to a fresh link
-- **THEN** the remaining participants open the new link with the same notes, authors and votes, sealed under a new room key, and the new link names the signing room of the first (ADR-0034)
+- **THEN** the remaining participants open the new link with the same notes, authors and votes, sealed under a new room key, and the new link names the signing room of the first (ADR-0035)
 
 ### Requirement: The new link reaches only the remaining participants
 The system SHALL seal the new link to each remaining participant's own key and sign it with the lead facilitator's key, and SHALL NOT send it to a removed participant or accept it from anyone else.
