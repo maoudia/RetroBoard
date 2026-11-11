@@ -34,6 +34,7 @@ const sameName = computed(() => {
 const manageable = (p: Peer) => board.access.canManageRoles && !p.me && !!p.key
 const handOver = ref<Peer | null>(null)
 const renaming = ref<Peer | null>(null)
+const removing = ref<Peer | null>(null)
 function rename(p: Peer, name: string) {
   if (!p.key || !board.sendRename(p.key, name)) push(t('roles.failed'), 'warn')
 }
@@ -93,6 +94,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
           <button v-if="!p.hidden" class="mini-btn" type="button" :aria-label="t('roles.handover', { name: p.name ?? t('common.anonymous') })" :title="t('roles.handover.short')" data-testid="role-handover" @click="handOver = p"><Icon name="lucide:crown" /></button>
           <button v-if="p.role === 'participant'" class="mini-btn" type="button" :aria-label="t('roles.rename', { name: p.name ?? t('common.anonymous') })" :title="t('roles.rename.short')" data-testid="role-rename" @click="renaming = p"><Icon name="lucide:pencil" /></button>
           <button v-if="p.role === 'participant' && !p.hidden" class="mini-btn" type="button" :aria-label="t('roles.hide', { name: p.name ?? t('common.anonymous') })" :title="t('roles.hide.short')" data-testid="role-hide" @click="role('participant.hide', p)"><Icon name="lucide:eye-off" /></button>
+          <button v-if="p.role === 'participant'" class="mini-btn" type="button" :aria-label="t('roles.remove', { name: p.name ?? t('common.anonymous') })" :title="t('roles.remove.short')" data-testid="role-remove" @click="removing = p"><Icon name="lucide:user-x" /></button>
           <button v-if="p.hidden" class="mini-btn" type="button" :aria-label="t('roles.unhide', { name: p.name ?? t('common.anonymous') })" :title="t('roles.unhide.short')" data-testid="role-unhide" @click="role('participant.unhide', p)"><Icon name="lucide:eye" /></button>
         </span>
       </li>
@@ -106,6 +108,7 @@ function role(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.
     </div>
   </Dropdown>
   <RenameDialog :open="renaming !== null" :name="renaming?.name ?? null" @update:open="(v: boolean) => { if (!v) renaming = null }" @save="(n: string) => renaming && rename(renaming, n)" />
+  <RemoveDialog :peer="removing" @close="removing = null" />
   <ConfirmDialog
     :open="handOver !== null" confirm-icon="lucide:arrow-right-left" :title="t('roles.handover.title')" :confirm-label="t('roles.handover.ok')"
     :message="t('roles.handover.msg', { name: handOver?.name ?? t('common.anonymous') })"

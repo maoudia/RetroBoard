@@ -103,6 +103,7 @@ Ubiquitous language (FR/EN): retro/retro, idee/idea (published note), brouillon/
 - Passcode derivation: `contentKey = HKDF(roomKey, salt=roomId, info=PBKDF2(passcode, 600k iterations))`. Participants need both the link and the passcode; the passcode is shared through another channel.
 - Facilitator capability: an Ed25519 key pair created with the board. The public key is in the genesis event; the private key is only in the facilitator link (`#k=...&f=...`) and the facilitator's browser. Phase changes, vote reveal, role delegation and settings are signed with it; every peer rejects unsigned privileged events.
 - Every participant has a session Ed25519 key; their events are signed so authorship ("only the author edits") holds without a server.
+- Move to a fresh link (change `facilitator-moderation`, ADR-0033): the facilitator can move a board to a new room and room key so a removed participant cannot read what comes next. A signature is bound to the room id (`signedMessage`), so the new ring keeps the signing room of the first one (`signRoomId`, written `&d=<room id>` in the long link); events are never re-signed. Each client seals its own log under the new room and key in its local copy. Each remaining participant is sent one `room.moved` frame in the old room: the new link, sealed to the X25519 key announced in presence (`sealTo`) and signed by the lead facilitator; a removed participant holds the old room key but gets no frame, and cannot forge one. The old room is then closed with `board.destroy`.
 
 ### 5.2 Event log
 

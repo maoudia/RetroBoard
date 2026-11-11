@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatInvite, isFacilitatorRing, KEY_RE, type KeyRing, parseInvite, participantRing } from '../src'
+import { formatInvite, isFacilitatorRing, KEY_RE, type KeyRing, movedRing, parseInvite, participantRing, signingRoom } from '../src'
 
 const roomId = 'Ab3dEfGhIjKlMnOpQrStUv'
 const roomKey = 'k'.repeat(42) + 'A'
@@ -124,3 +124,47 @@ describe('keys and links, exactly', () => {
   })
 })
 
+
+describe('moved board (ADR-0033)', () => {
+  const room2 = 'Zz9dEfGhIjKlMnOpQrStUv'
+  const key2 = 'm'.repeat(21) + 'B'
+  const compactFull: KeyRing = { roomId, roomKey: 'k'.repeat(21) + 'A', facilitatorSecret: 'f'.repeat(21) + 'Q' }
+
+  it('signs for its own room unless the ring names another', () => {
+    expect(signingRoom(full)).toBe(roomId)
+    expect(signingRoom({ roomId: room2, signRoomId: roomId })).toBe(roomId)
+  })
+
+  it('moves to a new room and key, keeping the facilitator secret, the passcode flag and the signing room of the first room', () => {
+    const moved = movedRing({ ...compactFull, passcode: true }, { roomId: room2, roomKey: key2 })
+    expect(moved).toEqual({ roomId: room2, roomKey: key2, facilitatorSecret: compactFull.facilitatorSecret, passcode: true, signRoomId: roomId })
+    // Moving again keeps the first room as the signing room, however many times the board moves.
+    const third = movedRing(moved, { roomId: 'Yy9dEfGhIjKlMnOpQrStUv', roomKey: 'n'.repeat(21) + 'C' })
+    expect(third.signRoomId).toBe(roomId)
+    expect(Object.keys(movedRing({ roomId, roomKey }, { roomId: room2, roomKey: key2 })).sort()).toEqual(['roomId', 'roomKey', 'signRoomId'])
+  })
+
+  it('writes the signing room as d and reads it back, for participants and facilitators, with a passcode too', () => {
+    const moved = movedRing({ ...compactFull, passcode: true }, { roomId: room2, roomKey: key2 })
+    const link = formatInvite(participantRing(moved))
+    expect(link).toBe(`r=${room2}&k=${key2}&d=${roomId}&p=1`)
+    expect(link).not.toContain(compactFull.facilitatorSecret!)
+    expect(parseInvite(link)).toEqual({ kind: 'encrypted', ring: { roomId: room2, roomKey: key2, passcode: true, signRoomId: roomId } })
+    expect(parseInvite(formatInvite(moved, 'facilitator'))).toEqual({ kind: 'encrypted', ring: moved })
+    expect(participantRing(moved)).not.toHaveProperty('facilitatorSecret')
+    expect(participantRing(moved).signRoomId).toBe(roomId)
+  })
+
+  it('never uses the compact syntax for a moved board, and refuses to mix it with d', () => {
+    const moved = movedRing(compactFull, { roomId: room2, roomKey: key2 })
+    expect(formatInvite(moved)).toMatch(/^r=/)
+    expect(formatInvite(compactFull)).toMatch(/^c=/)
+    expect(parseInvite(`c=${room2}${key2}&d=${roomId}`)).toBeNull()
+  })
+
+  it('refuses a malformed or repeated signing room', () => {
+    expect(parseInvite(`r=${room2}&k=${key2}&d=short`)).toBeNull()
+    expect(parseInvite(`r=${room2}&k=${key2}&d=${roomId}&d=${roomId}`)).toBeNull()
+    expect(() => formatInvite({ roomId: room2, roomKey: key2, signRoomId: 'short' })).toThrow('invalid key ring')
+  })
+})

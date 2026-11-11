@@ -60,6 +60,8 @@ export const useUiStore = defineStore('ui', () => {
   const reviewDone = ref(false)
   /** This tab already answered (or caused) the "take over facilitation?" question. */
   const takeoverAsked = ref(false)
+  /** The facilitator is moving the team to a fresh link: closing the old room is not news in this tab, the next page is. */
+  const moving = ref(false)
   /** Presenter mode (screen sharing, room screen): larger type, no drafts, no pointers, QR to join. */
   const presenter = ref(false)
   // Entering or leaving presentation mode starts from the default view: the toggle means "expand" outside, "collapse" inside.
@@ -101,5 +103,5 @@ export const useUiStore = defineStore('ui', () => {
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, dialog, takeoverAsked, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
+  return { composeColumn, openCompose, closeCompose, chromeHidden, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
 })

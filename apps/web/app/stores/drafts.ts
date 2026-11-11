@@ -53,8 +53,13 @@ export const useDraftsStore = defineStore('drafts', () => {
     const next = drafts.value.filter((d) => keep.has(d.columnId))
     if (next.length !== drafts.value.length) { drafts.value = next; persist() }
   }
+  /** Keeps my drafts and typed text in another room too (the team moved to a fresh link). The current room's copy stays. */
+  function copyTo(roomId: string) {
+    if (drafts.value.length) safeStorage.set(`retroboard:drafts:${roomId}`, drafts.value)
+    if (Object.keys(composing.value).length) safeStorage.set(`retroboard:compose:${roomId}`, composing.value)
+  }
   const forColumn = (columnId: string) => drafts.value.filter((d) => d.columnId === columnId)
   const count = computed(() => drafts.value.length)
 
-  return { drafts, composing, compose, setCompose, clear, load, add, restore, remove, removeMany, prune, forColumn, count }
+  return { drafts, composing, compose, setCompose, clear, copyTo, load, add, restore, remove, removeMany, prune, forColumn, count }
 })

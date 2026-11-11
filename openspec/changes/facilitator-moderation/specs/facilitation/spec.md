@@ -5,7 +5,15 @@ The facilitator SHALL be able to remove a participant from the session, and SHAL
 
 #### Scenario: Joined by mistake
 - **WHEN** the facilitator removes participant X and chooses "Move the team to a fresh link"
-- **THEN** X leaves the board, everyone else continues on a new link with the same content, and X's link opens an empty closed room
+- **THEN** X leaves the board and sees a page that says they were removed, everyone else continues on a new link with the same content, and X's link opens no board
+
+#### Scenario: Remove only
+- **WHEN** the facilitator removes participant X without moving the team
+- **THEN** X leaves the board and their notes stop being accepted, and everybody else stays on the same link
+
+#### Scenario: Only the facilitator
+- **WHEN** a participant opens the participants menu
+- **THEN** they are not offered the removal of anybody
 
 ### Requirement: Rename a participant
 The facilitator SHALL be able to set a participant's display name on the board, shown with a hint that the facilitator edited it.

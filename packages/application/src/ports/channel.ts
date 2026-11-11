@@ -1,4 +1,4 @@
-import type { Command, CursorFrame, ErrorCode, FocusFrame, Snapshot } from '@retroboard/domain'
+import type { Command, CursorFrame, ErrorCode, FocusFrame, KeyRing, Snapshot } from '@retroboard/domain'
 import type { HistoryEntry, RewindPlan } from '../board/history-log'
 
 /**
@@ -46,7 +46,12 @@ export interface ChannelHandlers {
   onReplica?(state: 'ok' | 'failing'): void
   /** Events found in this browser's local copy when the board opened (null: the storage could not be read). */
   onLocalCopy?(events: number | null): void
+  /** The facilitator moved the team to a fresh link and sent me the new one (verified): `hash` is its fragment, `ring` its keys. */
+  onMoved?(move: { hash: string; ring: KeyRing }): void
 }
+
+/** The outcome of moving the team to a fresh link: the fragment the facilitator's own tab opens next, and how many participants were sent the link. */
+export interface MoveResult { hash: string; moved: number }
 
 /** What a participant shares live; the channel adds its connection id. */
 export type OwnCursor = Omit<CursorFrame, 'conn'>
@@ -63,6 +68,17 @@ export interface BoardChannel {
   /** Facilitator: set (or clear with an empty name) a participant's display name on this board. */
   sendRename?(key: string, name: string): boolean
   sendRole?(change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide' | 'participant.remove', key: string): boolean
+  /**
+   * Encrypted boards, facilitator: freezes the roster a move to a fresh link would address (the people connected now) and returns how
+   * many of them can be sent the new link; `removing` is the key of the participant being removed, who is never one of them.
+   */
+  beginMove?(removing: string | null): number
+  /**
+   * Encrypted boards, facilitator: moves the team to the fresh room `ring` (change facilitator-moderation, ADR-0033). Keeps a copy of
+   * the board in it, sends each remaining participant the new link (signed, sealed to them), then closes the old room.
+   * Null when this tab cannot do it (not the lead, no local copy store, closed).
+   */
+  moveToFreshLink?(removing: string | null, ring: KeyRing): Promise<MoveResult | null>
   /** Encrypted boards: the board file (.retro) content, or null when there is nothing to export. */
   exportBoardFile?(): Promise<string | null>
   /** Encrypted boards: restores events from a board file. Returns how many were new, or null if the file does not belong to this board. */

@@ -8,6 +8,8 @@
  *   facilitator: #r=<roomId>&k=<roomKey>&f=<facilitatorSecret>
  *   passcode:    &p=1 is appended when the board needs a passcode (the passcode itself never
  *                travels in a link; it is shared through another channel).
+ *   moved board: &d=<signing room id> (ADR-0033): the room id event signatures are bound to, when the
+ *                board moved to a fresh room. Long syntax only.
  * Compact form (ADR-0029), for boards whose secrets are 128 bits (22 characters):
  *   participant: #c=<roomId 22><roomKey 22>
  *   facilitator: #c=<roomId 22><roomKey 22><facilitatorSecret 22>
@@ -31,7 +33,15 @@ export interface KeyRing {
   readonly facilitatorSecret?: string
   /** True when the content key also depends on a passcode. */
   readonly passcode?: boolean
+  /**
+   * The room id that event signatures are bound to (ADR-0033). Absent: `roomId`. A board that moved to a fresh link keeps the
+   * signing domain of its first room, so its events keep their signatures and authors.
+   */
+  readonly signRoomId?: string
 }
+
+/** The room id events of this ring are signed for and verified against. */
+export const signingRoom = (ring: Pick<KeyRing, 'roomId' | 'signRoomId'>): string => ring.signRoomId ?? ring.roomId
 
 export type Invite =
   | { readonly kind: 'encrypted'; readonly ring: KeyRing }
@@ -40,17 +50,29 @@ export type Invite =
 export const isFacilitatorRing = (ring: KeyRing): boolean => ring.facilitatorSecret !== undefined
 
 /** The ring a participant receives: same room and key, never the facilitator secret. */
-export const participantRing = ({ roomId, roomKey, passcode }: KeyRing): KeyRing => (passcode ? { roomId, roomKey, passcode } : { roomId, roomKey })
+export const participantRing = ({ roomId, roomKey, passcode, signRoomId }: KeyRing): KeyRing => ({ roomId, roomKey, ...(passcode ? { passcode } : {}), ...(signRoomId ? { signRoomId } : {}) })
+
+/**
+ * The ring of a board moved to a fresh room (ADR-0033): the new room and key, the facilitator secret and passcode flag of the old
+ * ring, and the signing domain of the room it leaves. `roomId` and `roomKey` come from the caller (random, 128 bits each).
+ */
+export const movedRing = (from: KeyRing, next: { roomId: string; roomKey: string }): KeyRing => ({
+  roomId: next.roomId, roomKey: next.roomKey,
+  ...(from.facilitatorSecret ? { facilitatorSecret: from.facilitatorSecret } : {}),
+  ...(from.passcode ? { passcode: from.passcode } : {}),
+  signRoomId: signingRoom(from),
+})
 
 // Stryker disable next-line StringLiteral: any role other than 'facilitator' means participant, so the default's text never matters
 export function formatInvite(ring: KeyRing, role: 'participant' | 'facilitator' = 'participant'): string {
   if (!ROOM_ID_RE.test(ring.roomId) || !isSecret(ring.roomKey)) throw new Error('invalid key ring')
   const withSecret = role === 'facilitator'
   if (withSecret && (!ring.facilitatorSecret || !isSecret(ring.facilitatorSecret))) throw new Error('missing facilitator secret')
-  const tail = ring.passcode ? '&p=1' : ''
+  if (ring.signRoomId !== undefined && !ROOM_ID_RE.test(ring.signRoomId)) throw new Error('invalid key ring')
+  const tail = `${ring.signRoomId !== undefined ? `&d=${ring.signRoomId}` : ''}${ring.passcode ? '&p=1' : ''}`
   const secret = withSecret ? ring.facilitatorSecret! : ''
-  // Compact when every part has its fixed size; anything else keeps the long, labelled form.
-  if (ring.roomId.length === 22 && SECRET128_RE.test(ring.roomKey) && (!withSecret || SECRET128_RE.test(secret))) return `c=${ring.roomId}${ring.roomKey}${secret}${tail}`
+  // Compact when every part has its fixed size (and nothing needs a label); anything else keeps the long, labelled form.
+  if (ring.signRoomId === undefined && ring.roomId.length === 22 && SECRET128_RE.test(ring.roomKey) && (!withSecret || SECRET128_RE.test(secret))) return `c=${ring.roomId}${ring.roomKey}${secret}${tail}`
   return `r=${ring.roomId}&k=${ring.roomKey}${withSecret ? `&f=${secret}` : ''}${tail}`
 }
 
@@ -75,6 +97,9 @@ export function parseInvite(fragment: string, isLegacyRoom: (id: string) => bool
   const p = fields.get('p')
   if (p !== undefined && p !== '1') return null
   const passcode = p ? { passcode: true } : {}
+  const d = fields.get('d')
+  if (d !== undefined && !ROOM_ID_RE.test(d)) return null
+  const domain = d !== undefined ? { signRoomId: d } : {}
 
   const compact = fields.get('c')
   if (compact !== undefined) {
@@ -87,6 +112,6 @@ export function parseInvite(fragment: string, isLegacyRoom: (id: string) => bool
   const roomId = fields.get('r'); const roomKey = fields.get('k'); const secret = fields.get('f')
   if (!roomId || !ROOM_ID_RE.test(roomId) || !roomKey || !isSecret(roomKey)) return null
   if (secret !== undefined && !isSecret(secret)) return null
-  for (const name of fields.keys()) if (!['r', 'k', 'f', 'p'].includes(name)) return null
-  return { kind: 'encrypted', ring: { roomId, roomKey, ...(secret === undefined ? {} : { facilitatorSecret: secret }), ...passcode } }
+  for (const name of fields.keys()) if (!['r', 'k', 'f', 'p', 'd'].includes(name)) return null
+  return { kind: 'encrypted', ring: { roomId, roomKey, ...(secret === undefined ? {} : { facilitatorSecret: secret }), ...passcode, ...domain } }
 }

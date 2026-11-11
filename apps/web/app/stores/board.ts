@@ -1,5 +1,5 @@
 import { isSolo } from '~/utils/solo'
-import { type ActionItem, allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
+import { type ActionItem, allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, type KeyRing, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { type BoardNotice, buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
@@ -16,6 +16,8 @@ export const useBoardStore = defineStore('board', () => {
   const lastNotice = ref<(BoardNotice & { at: number }) | null>(null)
   /** Encrypted board that does not open with the keys we have (wrong passcode). */
   const accessDenied = ref(false)
+  /** The facilitator moved the team to a fresh link and sent me the new one: the page opens it. */
+  const moved = ref<{ hash: string; ring: KeyRing } | null>(null)
   /** Writes to the local copy keep failing (storage full or blocked): the board is not saved on this device. */
   const replicaFailing = ref(false)
   /** Events found in the local copy at open (null: unreadable, undefined: not loaded yet). Shown on the waiting screen. */
@@ -33,6 +35,7 @@ export const useBoardStore = defineStore('board', () => {
   function connect(room: string, identity: Identity, factory: TransportFactory) {
     disconnect()
     accessDenied.value = false
+    moved.value = null
     replicaFailing.value = false
     localCopy.value = undefined
     roomFull.value = false
@@ -48,6 +51,7 @@ export const useBoardStore = defineStore('board', () => {
       onError: (code) => { lastError.value = { code, at: Date.now() } },
       onStatus: (s) => { status.value = s },
       onAccessDenied: () => { accessDenied.value = true },
+      onMoved: (m) => { moved.value = m },
       onNotice: (n) => { lastNotice.value = { ...n, at: Date.now() } },
       onCursor: (c, name) => live.setCursor(c, name),
       onFocus: (f, name) => live.setFocus(f, name),
@@ -83,6 +87,9 @@ export const useBoardStore = defineStore('board', () => {
   const allowed = (command: CommandType) => access.value.bypassesPhase || (access.value.canSteer && PRIVILEGED_COMMANDS.has(command)) || allowedInPhase(snapshot.value?.agenda ?? null, command)
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide' | 'participant.remove', key: string) => transport?.sendRole?.(change, key) ?? false
   const sendRename = (key: string, name: string) => transport?.sendRename?.(key, name) ?? false
+  /** Facilitator: freezes who a move to a fresh link would address and returns how many can be sent the new link. */
+  const beginMove = (removing: string | null) => transport?.beginMove?.(removing) ?? 0
+  const moveToFreshLink = (removing: string | null, ring: KeyRing) => transport?.moveToFreshLink?.(removing, ring) ?? Promise.resolve(null)
   /** Encrypted boards only: export and restore of the board file (.retro). */
   /** Three words everyone sees for this board (shared boards only), in the board's language. */
   const roomCode = computed(() => (roomId.value && !isSolo(roomId.value) && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
@@ -137,8 +144,8 @@ export const useBoardStore = defineStore('board', () => {
   const groupById = (id: string) => snapshot.value?.groups.find((g) => g.id === id)
 
   return {
-    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, replicaFailing, localCopy, roomFull, roomCode, links, myKey,
-    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, redoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, allowed, availability,
+    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, moved, replicaFailing, localCopy, roomFull, roomCode, links, myKey,
+    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, redoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, beginMove, moveToFreshLink, allowed, availability,
     settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingEnabled, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,
   }

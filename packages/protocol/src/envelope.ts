@@ -102,6 +102,8 @@ export const PresenceSchema = v.strictObject({
   relayOnly: v.optional(v.boolean()),
   /** This participant holds the board (genesis known): it may be the one that re-seeds the relay. */
   ready: v.optional(v.boolean()),
+  /** X25519 public key of this session (sealed hand-offs of a move to a fresh link are addressed to it). A hint only. */
+  xkey: v.optional(Key),
 })
 export type Presence = v.InferOutput<typeof PresenceSchema>
 
@@ -130,7 +132,20 @@ export const FocusSchema = v.strictObject({
 })
 export type Focus = v.InferOutput<typeof FocusSchema>
 
-export const LiveSchema = v.variant('t', [PresenceSchema, CursorSchema, FocusSchema])
+/**
+ * Plaintext inside an `eph` envelope: the facilitator moved the team to a fresh link (facilitator-moderation, ADR-0033).
+ * `ct` is sealed to one participant's X25519 key and holds the new link and the facilitator's signature over it: the old
+ * room key (which a removed participant still holds) opens this envelope, not `ct`. `to` is the recipient's connection.
+ */
+export const MovedSchema = v.strictObject({
+  t: v.literal('room.moved'),
+  conn: ConnId,
+  to: ConnId,
+  ct: v.pipe(v.string(), v.regex(B64URL_RE), v.maxLength(2_000)),
+})
+export type Moved = v.InferOutput<typeof MovedSchema>
+
+export const LiveSchema = v.variant('t', [PresenceSchema, CursorSchema, FocusSchema, MovedSchema])
 
 /** WebRTC set-up, inside an encrypted `sig` envelope: the relay never sees SDP or IP addresses. */
 export const SignalSchema = v.strictObject({
