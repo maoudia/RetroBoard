@@ -22,6 +22,24 @@ The system SHALL expose the current screen class as `data-screen` on the root el
 - **WHEN** the window moves from 1100 px to 2500 px wide
 - **THEN** `data-screen` changes from `laptop` to `tv` and the type scale multiplier grows from 1 to 1.5
 
+### Requirement: Phone navigation and menus
+On phones the columns SHALL be reachable from a tab bar at the foot of the screen (one tab per column, at least 48 px high, the current column marked), and every menu SHALL open as a bottom sheet (full width, glued to the bottom edge, rows at least 48 px high, closed by a tap on the dimmed backdrop).
+
+#### Scenario: Group from the menu on a phone
+- **WHEN** a participant on a 360 px phone opens a note menu and chooses "Group with..."
+- **THEN** the menu is a bottom sheet and the group is made without dragging
+
+#### Scenario: Switch column
+- **WHEN** a participant taps the third tab of the tab bar
+- **THEN** the board scrolls to the third column and the tab is marked as current
+
+### Requirement: Controls fit their label
+The toolbar and the voting bar SHALL NOT cut a control or push it off the screen at 360, 768 and 1440 px, in French, English and the pseudo-locale: when the labels do not fit, the buttons become icon-only, keep their accessible name and show it as a tooltip.
+
+#### Scenario: Long labels
+- **WHEN** the board is opened with `?lang=pseudo` on a 768 px window
+- **THEN** no control leaves the screen or its card, and a toolbar button without room for its label shows an icon with the same accessible name
+
 ### Requirement: Presenter mode
 The system SHALL offer a presenter mode with larger type, the high-contrast variant, a QR code to join and hidden cursors.
 

@@ -119,11 +119,15 @@ function onSubmit() {
 </template>
 
 <style scoped>
-.setup { display: grid; gap: 1.6rem; }
+.setup { display: flex; flex-direction: column; gap: 1.6rem; } /* a flex column, not a grid: the primary button can stick to the bottom on phones (a grid item sticks only inside its own row) */
 .block { display: grid; gap: .8rem; }
 h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-family: var(--f-body); font-size: var(--fs-sm); font-weight: 800; }
-.go { justify-self: end; padding: .8rem 1.5rem; font-size: var(--fs-md); }
+.go { align-self: flex-end; padding: .8rem 1.5rem; font-size: var(--fs-md); }
+/* Phones: the primary action is a large centred button in the thumb zone, full width and stuck to the bottom while the form scrolls (change responsive-and-i18n-hardening). */
+@media (max-width: 480px) {
+  .go { position: sticky; bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); z-index: 5; align-self: stretch; justify-content: center; min-height: 3rem; font-size: var(--fs-lg); box-shadow: var(--shadow-2); }
+}
 .pass { display: grid; gap: .35rem; }
 .adv { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; align-items: start; }
 /* Each group is a bounded tile, not a full-width strip (change ui-coherence-pass). */

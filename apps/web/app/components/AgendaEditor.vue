@@ -52,13 +52,14 @@ const remove = (i: number) => patch({ phases: model.value.phases.filter((_, k) =
 </template>
 
 <style scoped>
-.agenda { display: grid; gap: .6rem; }
+.agenda { display: grid; grid-template-columns: minmax(0, 1fr); gap: .6rem; }
 .head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .head > span { display: grid; }
 .presets { display: flex; gap: .35rem; flex-wrap: wrap; }
 .presets .on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); font-weight: 700; } /* accent on its own tint is under 4.5:1 in some themes */
 .list { margin: 0; padding: 0; list-style: none; display: grid; gap: .25rem; }
-li { display: grid; grid-template-columns: 1fr 5.5rem auto auto auto; gap: .35rem; align-items: center; }
+li { display: grid; grid-template-columns: minmax(0, 1fr) 5.5rem auto auto auto; gap: .35rem; align-items: center; }
+.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* a long phase name never pushes the buttons off a phone */
 .mins { padding: .3rem .5rem; }
 .opt { display: flex; gap: .5rem; align-items: center; }
 </style>

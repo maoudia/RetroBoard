@@ -25,16 +25,44 @@ const publishOffTitle = computed(() => (publishClosed.value ? t('gated.publish.c
 
 // The toolbar can wrap on narrow screens: keep the scroll padding (WCAG 2.4.11) equal to its real height.
 const el = useTemplateRef<HTMLElement>('toolbarEl')
+const toolsEl = useTemplateRef<HTMLElement>('toolsEl')
+/** Room kept for the logo, a few letters of the board title and the shield when the tools sit next to them. */
+const MIN_BRAND_PX = 150
+const stacked = typeof window === 'undefined' ? null : window.matchMedia('(max-width: 1100px)')
+/**
+ * Labels show while they fit; when they do not, the buttons turn icon-only (`data-compact`) and keep their name as tooltip
+ * (the accessible name never leaves: the label is visually hidden, not removed). Measured with the labels on and in one
+ * frame, so nothing flashes (change responsive-and-i18n-hardening).
+ */
+function fit() {
+  const bar = el.value
+  const tools = toolsEl.value
+  if (!bar || !tools) return
+  bar.removeAttribute('data-compact')
+  // At 1100 px and under the tools have their own row; above, they share the row with the brand and the clock.
+  const room = stacked?.matches ? tools.clientWidth : bar.clientWidth - 32 - (bar.querySelector<HTMLElement>('.timer-slot')?.offsetWidth ?? 0) - MIN_BRAND_PX - 32
+  const compact = tools.scrollWidth > room + 1
+  bar.toggleAttribute('data-compact', compact)
+  for (const b of tools.querySelectorAll<HTMLElement>('.icon-btn')) {
+    if (compact && !b.title) { b.title = b.querySelector(':scope > span:not(.badge)')?.textContent?.trim() ?? ''; b.dataset.fitTitle = '' } else if (!compact && 'fitTitle' in b.dataset) { b.removeAttribute('title'); delete b.dataset.fitTitle }
+  }
+}
 let observer: ResizeObserver | undefined
+let content: MutationObserver | undefined
+let fitFrame = 0
+const fitSoon = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fit) }
 onMounted(() => {
   if (!el.value || typeof ResizeObserver === 'undefined') return
   const root = document.documentElement
-  observer = new ResizeObserver(() => root.style.setProperty('--toolbar-actual', `${Math.ceil(el.value?.getBoundingClientRect().height ?? 0)}px`))
+  observer = new ResizeObserver(() => { root.style.setProperty('--toolbar-actual', `${Math.ceil(el.value?.getBoundingClientRect().height ?? 0)}px`); fitSoon() })
   observer.observe(el.value)
+  // Buttons come and go (undo, publish all) and labels change with the language: measure again.
+  if (toolsEl.value) { content = new MutationObserver(fitSoon); content.observe(toolsEl.value, { childList: true, subtree: true, characterData: true }) }
+  fit()
 })
 const recents = useRecentsStore()
 const otherBoards = computed(() => recents.items.some((r) => r.id !== board.roomId))
-onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.removeProperty('--toolbar-actual') })
+onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAnimationFrame(fitFrame); document.documentElement.style.removeProperty('--toolbar-actual') })
 </script>
 
 <template>
@@ -69,7 +97,7 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
     <AgendaRing v-if="board.snapshot?.agenda" class="timer-slot" />
     <TimerWidget v-else class="timer-slot" />
 
-    <nav class="tools" :aria-label="t('toolbar.tools')">
+    <nav ref="toolsEl" class="tools" :aria-label="t('toolbar.tools')">
       <!-- Order by importance (docs/design-system.md, menus): invite, people, actions, find, present, export, activity, settings. -->
       <button class="icon-btn" type="button" data-testid="btn-share" @click="ui.open('share')"><Icon name="lucide:share-2" class="ico" /><span>{{ t('toolbar.share') }}</span><KeyCap k="S" /></button>
       <ParticipantsMenu />
@@ -153,6 +181,10 @@ onBeforeUnmount(() => { observer?.disconnect(); document.documentElement.style.r
 @media (prefers-reduced-motion: no-preference) { .tools { scroll-behavior: smooth; } }
 /* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
 @media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } .toolbar { padding-inline: 1rem; row-gap: .15rem; } }
+/* Icon-only when the labels do not fit (measured in fit()): same visually hidden labels, no shortcut hints. */
+.toolbar[data-compact] :deep(.icon-btn > span:not(.badge)) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.toolbar[data-compact] :deep(.icon-btn) { min-width: 44px; }
+.toolbar[data-compact] :deep(.keycap) { display: none; }
 /* Phone: the board title (not its theme line) and the shield share the first row with the compact clock; the board switcher stays in the profile and on the home page. */
 @media (max-width: 520px) {
   .toolbar { gap: .5rem; }

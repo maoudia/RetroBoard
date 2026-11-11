@@ -3,6 +3,8 @@
  * Menu rendered in the browser top layer (Popover API) and positioned against its trigger.
  * Being in the top layer, it is never clipped by a scrolling column or a transformed note.
  * `width` is a minimum; with `fixed` it is the exact width (the list panels share one, change history-panel-phone-layout).
+ * On a phone (`data-screen="phone"`) it is a bottom sheet instead: full width at the foot of the screen, in the thumb zone,
+ * rows 48 px high, a tap on the dimmed backdrop closes it (change responsive-and-i18n-hardening).
  */
 const props = withDefaults(defineProps<{ align?: 'start' | 'end'; width?: string; fixed?: boolean; menu?: boolean; tall?: boolean }>(), { align: 'end', width: '', fixed: false, menu: false, tall: false })
 const open = ref(false)
@@ -14,8 +16,11 @@ const close = () => { open.value = false }
 let openedAt = 0
 /** Where the trigger was when the panel was placed: a scroll that leaves it there (the browser revealing a button inside the panel) keeps the menu open. */
 let placedAt = { top: 0, left: 0 }
+/** A phone shows every menu as a bottom sheet (the class is written on <html> by the screen plugin). */
+const isSheet = () => document.documentElement.dataset.screen === 'phone'
 const onScroll = (e: Event) => {
-  if (panel.value?.contains(e.target as Node) || performance.now() - openedAt <= 250) return
+  // A sheet dims the page behind it: the page moving under it (the browser revealing a focused control) does not close it.
+  if (panel.value?.contains(e.target as Node) || performance.now() - openedAt <= 250 || panel.value?.dataset.sheet !== undefined) return
   const t = trigger.value?.getBoundingClientRect()
   if (!t || Math.abs(t.top - placedAt.top) > 1 || Math.abs(t.left - placedAt.left) > 1) close()
 }
@@ -37,6 +42,17 @@ function place() {
   const p = panel.value
   if (!t || !p) return
   placedAt = { top: t.top, left: t.left }
+  if (isSheet()) {
+    // The stylesheet pins the sheet to the bottom edge; only the height depends on the visible area (the phone keyboard).
+    p.dataset.sheet = ''
+    p.style.removeProperty('left')
+    p.style.removeProperty('top')
+    const vh = window.visualViewport?.height ?? window.innerHeight
+    p.style.setProperty('--dd-max', `${Math.floor(vh * 0.75)}px`)
+    edge()
+    return
+  }
+  delete p.dataset.sheet
   const vv = window.visualViewport
   const vw = vv?.width ?? window.innerWidth
   const vh = vv?.height ?? window.innerHeight
@@ -79,6 +95,12 @@ const onResize = () => {
 
 const onDown = (e: Event) => {
   const n = e.target as Node
+  // The backdrop of a sheet reports the panel itself as the target: a press outside the panel's box is a press on the backdrop.
+  if (n === panel.value && panel.value.dataset.sheet !== undefined && e instanceof PointerEvent) {
+    const r = panel.value.getBoundingClientRect()
+    if (e.clientY < r.top || e.clientY > r.bottom || e.clientX < r.left || e.clientX > r.right) close()
+    return
+  }
   if (!panel.value?.contains(n) && !trigger.value?.contains(n)) close()
 }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
@@ -137,4 +159,15 @@ defineExpose({ close })
 .dd-panel[popover].tall { max-height: var(--dd-max, calc(100dvh - 110px)); scrollbar-width: thin; } /* everything shows when it fits; a visible scrollbar appears only when it cannot */
 .dd-panel[popover][data-more] { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent); }
 .dd-panel[popover]:popover-open { display: grid; grid-auto-rows: max-content; gap: 2px; animation: dd-in .16s ease-out; }
+/* Phone: a bottom sheet, thumb height rows (the sizes follow the 48 px primary action rule of the responsive-layout spec). */
+.dd-panel[popover][data-sheet] {
+  inset: auto 0 0 0 !important; width: 100% !important; min-width: 0 !important; max-width: none !important; max-height: var(--dd-max, 75dvh);
+  padding: var(--sp-2) var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom)); border-inline: 0; border-bottom: 0; border-radius: var(--r-card) var(--r-card) 0 0;
+}
+.dd-panel[popover][data-sheet]:popover-open { animation: sheet-in .2s var(--ease); }
+.dd-panel[popover][data-sheet]::before { content: ''; justify-self: center; width: 2.5rem; height: 4px; margin: 0 0 var(--sp-2); border-radius: var(--r-pill); background: var(--border); }
+.dd-panel[popover][data-sheet]::backdrop { background: rgb(5 5 12 / .45); }
+.dd-panel[popover][data-sheet] .dd-item { min-block-size: 48px; }
+@keyframes sheet-in { from { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .dd-panel[popover][data-sheet]:popover-open { animation: none; } }
 </style>

@@ -149,7 +149,7 @@ function onKey(e: KeyboardEvent) {
     <header>
       <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
       <GatedHint compact :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
-      <button v-if="mine.length" class="btn btn-sm btn-primary" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
+      <button v-if="mine.length" class="btn btn-sm btn-primary pub-count" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
       <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
@@ -274,6 +274,12 @@ header > .title { margin-inline-end: auto; }
 .act-add { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .act-add:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 88%, #000); }
 .hint-row { justify-content: flex-end; }
+/* Phones: add and publish are thumb-sized (48 px high), the primary action of the writing area (change responsive-and-i18n-hardening). */
+@media (max-width: 600px) {
+  .act { width: 56px; min-height: 48px; }
+  .compose-actions { gap: .6rem; }
+  .pub-count, .draft .mini-btn { min-width: 48px; min-height: 48px; }
+}
 .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(24px, 1fr)); gap: 5px; padding: 0 .2rem; }
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }
 .sw.on { border-color: var(--text); }

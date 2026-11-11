@@ -128,6 +128,15 @@ function syncActive() {
   starts.forEach((x, i) => { if (Math.abs(x - el.scrollLeft) < Math.abs((starts[best] ?? 0) - el.scrollLeft)) best = i })
   activeCol.value = Math.max(0, Math.min(visibleCols.value.length - 1, best))
 }
+const tabsEl = ref<HTMLElement | null>(null)
+/** The tab bar scrolls when there are more tabs than fit: the active one stays in view. */
+watch(activeCol, async (i) => {
+  await nextTick()
+  const bar = tabsEl.value
+  const tab = bar?.querySelectorAll<HTMLElement>('.tab')[i]
+  if (!bar || !tab || bar.scrollWidth <= bar.clientWidth) return
+  bar.scrollTo({ left: tab.offsetLeft - (bar.clientWidth - tab.offsetWidth) / 2, behavior: 'smooth' })
+})
 function goCol(i: number) {
   const el = boardEl.value
   const col = el?.querySelectorAll<HTMLElement>('.col')[i]
@@ -369,13 +378,6 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <div v-else-if="offline && board.ready" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
       <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
 
-      <nav v-if="board.ready && visibleCols.length > 1" class="col-dots" :aria-label="t('board.dots')" data-testid="col-dots">
-        <button
-          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="dot" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
-          :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-dot-${i}`" @click="goCol(i)"
-        />
-      </nav>
-
       <HiddenColumns v-if="board.ready && board.hiddenColumns.length" />
       <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" @retry="enter" />
       <div v-else-if="!board.ready && !needsPasscode" class="opening" role="status" aria-live="polite" data-testid="board-opening">
@@ -395,6 +397,16 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
           <Icon name="lucide:plus" /> {{ t('board.addColumn') }}
         </button>
       </main>
+      <!-- Phones: the columns as a tab bar in the thumb zone, one tab per column; the board scrolls and snaps to the tapped column (change responsive-and-i18n-hardening). -->
+      <nav v-if="board.ready && visibleCols.length > 1" ref="tabsEl" class="col-tabs" :aria-label="t('board.dots')" data-reserve-bottom data-testid="col-tabs">
+        <button
+          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="tab" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
+          :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-tab-${i}`" @click="goCol(i)"
+        >
+          <Icon :name="`lucide:${c.icon}`" class="tab-ico" aria-hidden="true" />
+          <span class="tab-name" aria-hidden="true">{{ c.title }}</span>
+        </button>
+      </nav>
       <ChatPanel v-if="board.ready" />
       <ActionsDrawer />
       <ShareDialog :passcode="passcode" @convert="enter" />
@@ -430,7 +442,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 @media (prefers-reduced-motion: reduce) { .page :deep(.tools), .page :deep(.stepper), .page :deep(.votebar), .chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { transition: none; } }
 .board { flex: 1; min-height: 0; display: flex; gap: 1rem; padding: 1rem; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; align-items: stretch; }
 .board > .col { scroll-snap-align: start; }
-.col-dots { display: none; }
+.col-tabs { display: none; }
 @media (max-width: 600px) {
   /* One column per screen, swipe sideways, snap on each (change mobile-board-space). The width menu works here:
      narrow and normal leave the next column peeking, which tells there is more on the right (ux-irritants-wave-2). */
@@ -439,12 +451,16 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   .board > .col[data-size="narrow"] { flex-basis: 72% !important; }
   .board > .col[data-size="wide"], .board > .col[data-size="full"], .board > .col[data-size="custom"] { flex-basis: 100% !important; }
   .board > .add-col { flex: 0 0 90%; scroll-snap-align: start; }
-  /* Thin segmented slider at the top: one segment per column, the current one filled. Targets stay 24 px high
-     and overlap the empty margins around the bar instead of taking room. */
-  .col-dots { display: flex; gap: 3px; padding: 0 .75rem; margin-block: -6px; position: relative; z-index: 2; }
-  .dot { flex: 1; max-width: 72px; height: 24px; display: grid; align-items: center; border: 0; background: transparent; cursor: pointer; }
-  .dot::after { content: ''; height: 4px; border-radius: var(--r-pill); background: var(--border); transition: background .2s; }
-  .dot.on::after { background: var(--accent); }
+  /* Tab bar at the foot of the screen: one tab per column (icon over a short name), the current one lit. Tabs are 56 px
+     high (the thumb), at least 64 px wide; more tabs than fit slide sideways. */
+  .col-tabs { display: flex; flex: none; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); background: var(--surface); }
+  .col-tabs::-webkit-scrollbar { display: none; }
+  .tab { position: relative; flex: 1 0 4rem; min-width: 0; min-height: 56px; display: grid; justify-items: center; align-content: center; gap: 2px; padding: var(--sp-1) var(--sp-1); border: 0; background: transparent; color: var(--muted); font: inherit; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; }
+  .tab::before { content: ''; position: absolute; inset: 0 var(--sp-3) auto; height: 3px; border-radius: 0 0 var(--r-pill) var(--r-pill); background: transparent; transition: background .2s; }
+  .tab.on { color: var(--accent); }
+  .tab.on::before { background: var(--accent); }
+  .tab-ico { font-size: var(--fs-xl); }
+  .tab-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }

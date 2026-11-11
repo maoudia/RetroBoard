@@ -157,7 +157,7 @@ async function create({ passcode, ...form }: SetupResult) {
 .new { position: relative; min-height: 100dvh; }
 .top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; max-width: 1040px; margin: 0 auto; padding: 1rem; }
 .back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text); font-weight: 700; text-decoration: none; }
-.wrap { position: relative; z-index: 1; display: grid; gap: 1.4rem; width: min(1040px, 100% - 2rem); margin: 0 auto; padding: 1rem 0 3rem; }
+.wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.4rem; width: min(1040px, 100% - 2rem); margin: 0 auto; padding: 1rem 0 3rem; }
 h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
 .h2 { display: flex; gap: .5rem; align-items: center; margin: 0; font-size: var(--fs-lg); }
 .team { display: grid; gap: .6rem; }
