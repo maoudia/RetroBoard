@@ -6,15 +6,16 @@ test.describe('phone', () => {
 
   test('publish an idea with the button, no Enter key; return adds a line', async ({ page }) => {
     await createBoard(page)
-    const col = page.locator('[data-testid^="column-"]').first()
-    const area = col.locator('textarea')
+    await page.getByTestId('compose-open').tap()
+    const sheet = page.getByTestId('compose-sheet')
+    const area = sheet.locator('textarea')
     await area.fill('première ligne')
     await area.press('Enter')
     await area.pressSequentially('seconde')
     await expect(area).toHaveValue('première ligne\nseconde')
-    await col.locator('[data-testid^="compose-publish-"]').tap()
+    await sheet.locator('[data-testid^="compose-publish-"]').tap()
     await expect(noteByText(page, 'seconde')).toBeVisible()
-    await expect(area).toHaveValue('')
+    await expect(sheet).toHaveCount(0) // publishing closes the sheet and the keyboard
   })
 })
 
@@ -85,10 +86,11 @@ test.describe('draft-first on a phone', () => {
   test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true })
   test('same order and 24 px targets at 360 px', async ({ page }) => {
     await createBoard(page)
-    const col = page.locator('[data-testid^="column-"]').first()
-    await col.locator('textarea').fill('une idee')
-    const now = await col.locator('[data-testid^="compose-publish-"]').boundingBox()
-    const add = await col.locator('[data-testid^="compose-add-"]').boundingBox()
+    await page.getByTestId('compose-open').click()
+    const sheet = page.getByTestId('compose-sheet')
+    await sheet.locator('textarea').fill('une idee')
+    const now = await sheet.locator('[data-testid^="compose-publish-"]').boundingBox()
+    const add = await sheet.locator('[data-testid^="compose-add-"]').boundingBox()
     expect(now!.x).toBeLessThan(add!.x)
     expect(Math.min(now!.height, add!.height)).toBeGreaterThanOrEqual(24)
   })
@@ -101,8 +103,8 @@ test('a new board takes notes of 160 characters; the composer has swatches, a sh
   await col.locator('textarea').fill('x'.repeat(200))
   await expect(col.locator('textarea')).toHaveValue('x'.repeat(160))
   await col.locator('textarea').fill('Vert')
-  // The hint is one short line; the keyboard tips live in a popover.
-  await expect(col.locator('.hint-row')).toContainText('Visible de toi seul.')
+  // The hint says what the paper means, in the open; the keyboard tips live in a popover.
+  await expect(col.locator('.hint-row')).toContainText('Visible de toi seul jusqu\'à la publication.')
   await expect(col.getByText('Ctrl+Entrée')).toHaveCount(0)
   await col.locator('[data-testid^="compose-help-"]').click()
   await expect(col.getByText(/Ctrl\+Entrée/)).toBeVisible()

@@ -9,7 +9,11 @@ const props = defineProps<{ column: Column; colorIndex: number }>()
 const board = useBoardStore()
 const drafts = useDraftsStore()
 const layout = useLayoutStore()
-const folded = computed(() => layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id))
+const ui = useUiStore()
+/** Phones write in a bottom sheet (change publishing-ux-redesign): the column keeps only the drafts tray, the folding of the writing area does not apply. */
+const phone = computed(() => layout.cls === 'phone')
+const sheeted = computed(() => phone.value && ui.composeColumn === props.column.id)
+const folded = computed(() => !phone.value && (layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id)))
 /** Columns locked together (the columns icon): the double chevron folds and unfolds every column at once (change feedback-wave-7). */
 function fold() {
   if (ui.writeAll) layout.setWritingHidden(true)
@@ -21,7 +25,6 @@ function unfold() {
   layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, false)
 }
 const identity = useIdentityStore()
-const ui = useUiStore()
 const { publish } = usePublish()
 const text = computed({ get: () => drafts.compose(props.column.id), set: (v: string) => drafts.setCompose(props.column.id, v) })
 /** Drag the grip under the writing field to set its height (mouse, touch, keyboard); a preset clears it (change board-layout-v2). */
@@ -119,6 +122,7 @@ function publishNow() {
   text.value = ''
   const ids = drafts.forColumn(props.column.id).map((d) => d.id)
   fieldEl.value?.blur()
+  if (sheeted.value) ui.closeCompose()
   if (ids.length) publish(ids)
 }
 /** Enter: draft. Shift+Enter: new line. Ctrl/Cmd+Enter: publish now. Escape: clear. */
@@ -133,41 +137,73 @@ function onKey(e: KeyboardEvent) {
   } else if (e.key === 'Escape') {
     e.preventDefault()
     e.stopPropagation()
-    // First Escape clears what was typed, the next one leaves the field (so board shortcuts work again).
+    // First Escape clears what was typed, the next one leaves the field (so board shortcuts work again) or closes the phone sheet.
     if (text.value) text.value = ''
+    else if (sheeted.value) ui.closeCompose()
     else (e.target as HTMLElement).blur()
   }
 }
+
+/** The phone sheet sits above the on-screen keyboard: the visual viewport tells how much of the screen the keyboard takes. */
+const inset = ref(0)
+function syncInset() {
+  const vv = window.visualViewport
+  inset.value = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0
+}
+function watchViewport(on: boolean) {
+  const vv = window.visualViewport
+  if (!vv) return
+  vv.removeEventListener('resize', syncInset)
+  vv.removeEventListener('scroll', syncInset)
+  if (on) { syncInset(); vv.addEventListener('resize', syncInset); vv.addEventListener('scroll', syncInset) } else inset.value = 0
+}
+/** Opening the sheet, or switching column with a chip, puts the cursor in the field. */
+watch(sheeted, async (on) => {
+  watchViewport(on)
+  if (!on) return
+  await nextTick()
+  fieldEl.value?.focus({ preventScroll: true })
+}, { immediate: true, flush: 'post' })
+onBeforeUnmount(() => watchViewport(false))
+/** One chip per visible column in the sheet: the target of the next note. */
+const chips = computed(() => board.columns.filter((c) => !c.hidden))
 </script>
 
 <template>
   <!-- The writing area folds with a vertical slide: for every column (toolbar) or for this one (its own button);
-       one handle brings it back (changes board-layout-v2 and ux-irritants-wave-2). -->
+       one handle brings it back (changes board-layout-v2 and ux-irritants-wave-2). On a phone the composer is a bottom sheet
+       with one chip per column and the column keeps the drafts tray (change publishing-ux-redesign). -->
   <div class="priv-wrap" :data-folded="folded ? '' : undefined">
     <div class="priv-clip" :inert="folded">
-  <section class="priv" :data-area="ui.writeSizeOf(column.id)" :aria-label="t('private.section', { title: column.title })">
+  <section v-show="!phone || mine.length" class="priv" :data-area="ui.writeSizeOf(column.id)" :aria-label="t('private.section', { title: column.title })">
     <header>
-      <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
+      <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span v-if="phone">{{ t('private.tray') }}</span><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
       <GatedHint compact :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
       <button v-if="mine.length" class="btn btn-sm btn-primary pub-count" type="button" :disabled="board.locked || closed" :data-testid="`publish-${column.id}`" @click="publish(mine.map((d) => d.id))">
         <Icon name="lucide:send" /><span class="sr-only">{{ t('private.publish') }}</span><span aria-hidden="true">{{ mine.length }}</span>
       </button>
-      <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
-      <SizePicker :model-value="ui.writeSizeOf(column.id)" :options="WRITE_SIZES" :label="t('private.area')" :option-label="(z) => t(`private.area.${z}` as never)" :testid="(z) => `area-${z}-${column.id}`" @update:model-value="setSize" />
-      <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
-      <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-down" /></button>
+      <template v-if="!phone">
+        <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
+        <SizePicker :model-value="ui.writeSizeOf(column.id)" :options="WRITE_SIZES" :label="t('private.area')" :option-label="(z) => t(`private.area.${z}` as never)" :testid="(z) => `area-${z}-${column.id}`" @update:model-value="setSize" />
+        <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
+        <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-up" /></button>
+      </template>
     </header>
 
-    <ul v-if="mine.length" class="drafts">
-      <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
-        <p>{{ d.text }}</p>
-        <span class="acts">
-          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" :data-testid="`draft-publish-${d.id}`" @click="publish([d.id])"><Icon name="lucide:send" /></button>
-          <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" :data-testid="`draft-dismiss-${d.id}`" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
-        </span>
-      </li>
-    </ul>
-
+    <Teleport to="body" :disabled="!sheeted">
+    <div v-if="!phone || sheeted" class="compose-root" :data-sheet="sheeted ? '' : undefined" :style="sheeted && inset ? { paddingBottom: `${inset}px` } : undefined" @click.self="sheeted && ui.closeCompose()" @keydown.esc="sheeted && ui.closeCompose()">
+    <div class="compose" :class="{ sheet: sheeted }" :role="sheeted ? 'dialog' : undefined" :aria-label="sheeted ? t('compose.sheet') : undefined" :data-testid="sheeted ? 'compose-sheet' : undefined">
+    <div v-if="sheeted" class="sheet-head">
+      <div class="chips" role="group" :aria-label="t('compose.column')">
+        <button
+          v-for="c in chips" :key="c.id" type="button" class="chip" :class="{ on: c.id === column.id }" :aria-pressed="c.id === column.id"
+:style="{ '--col': `var(--note-${c.color ?? board.columns.indexOf(c) % 8})` }" :data-testid="`compose-chip-${c.id}`" @click="ui.openCompose(c.id)"
+        >
+          <Icon :name="`lucide:${c.icon}`" /><span class="chip-name">{{ c.title }}</span><template v-if="drafts.forColumn(c.id).length"><span class="n">{{ drafts.forColumn(c.id).length }}</span><span class="sr-only">{{ t('compose.drafts') }}</span></template>
+        </button>
+      </div>
+      <button class="mini-btn" type="button" :aria-label="t('common.close')" :title="t('common.close')" data-testid="compose-close" @click="ui.closeCompose()"><Icon name="lucide:x" /></button>
+    </div>
     <label class="composer" :class="{ gated: closed }" :style="{ '--c': `var(--note-${colour})` }">
       <span class="sr-only">{{ t('private.newIn', { title: column.title }) }}</span>
       <textarea
@@ -176,7 +212,7 @@ function onKey(e: KeyboardEvent) {
         :placeholder="board.locked ? t('private.locked') : turnOff ? t('turn.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         :style="fieldH ? { minHeight: `${fieldH}px`, height: `${fieldH}px` } : undefined" @keydown="onKey"
       />
-      <small class="hint-row"><span class="sr-only">{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
+      <small class="hint-row"><span class="hint" :data-testid="`only-you-${column.id}`">{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
       <span
         class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
         :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @dblclick="resetSize" @keydown="growKey"
@@ -212,16 +248,31 @@ function onKey(e: KeyboardEvent) {
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
       <button class="link" type="button" @click="showSimilar(similar.id)">« {{ similar.text }} »</button>
     </p>
+    </div>
+    </div>
+    </Teleport>
+
+    <!-- The drafts tray: notes held in hand, tilted, each with its "draft" ribbon, until they are published. -->
+    <ul v-if="mine.length" class="drafts" :aria-label="t('private.tray')" data-testid="drafts-tray">
+      <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
+        <span class="ribbon">{{ t('private.ribbon') }}</span>
+        <p>{{ d.text }}</p>
+        <span class="acts">
+          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" :data-testid="`draft-publish-${d.id}`" @click="publish([d.id])"><Icon name="lucide:send" /></button>
+          <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" :data-testid="`draft-dismiss-${d.id}`" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
+        </span>
+      </li>
+    </ul>
   </section>
     </div>
     <button v-if="folded" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
-      <Icon name="lucide:chevrons-up" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
+      <Icon name="lucide:chevrons-down" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
     </button>
   </div>
 </template>
 
 <style scoped>
-.priv { display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); border-radius: 0 0 var(--r-card) var(--r-card); }
+.priv { display: grid; gap: .6rem; padding: .75rem; border-bottom: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); }
 /* Privacy mark on the left, then everything else pushed to the right with the chevron last (smoother than a centred icon). */
 header { display: flex; align-items: center; gap: .35rem; min-height: 30px; }
 header > .title { margin-inline-end: auto; }
@@ -232,17 +283,21 @@ header > .title { margin-inline-end: auto; }
 .priv-wrap[data-folded] { grid-template-rows: 0fr; }
 .priv-clip { min-height: 0; overflow: hidden; }
 .priv-wrap[data-folded] .priv-clip { visibility: hidden; transition: visibility 0s .3s; }
-.priv-handle { display: flex; align-items: center; justify-content: flex-end; padding-inline: .9rem; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-top: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.priv-handle { display: flex; align-items: center; justify-content: flex-end; padding-inline: .9rem; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-bottom: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
 .priv-handle:hover { color: var(--accent); background: var(--accent-soft); }
-.drafts { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: 22vh; overflow: auto; }
-.draft { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .6rem; border: 1.5px dashed var(--c); border-radius: var(--r-sm); animation: pop-in .25s var(--ease); }
+/* The tray: notes held in hand. Each draft is a tilted paper in its colour with a "draft" ribbon on top; the room cannot see any of them. */
+.drafts { list-style: none; margin: 0; padding: .6rem .25rem .25rem; display: grid; gap: .8rem; max-height: 22vh; overflow: auto; }
+.draft { position: relative; display: flex; justify-content: space-between; gap: .5rem; padding: .7rem .6rem .5rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); rotate: -1deg; animation: pop-in .25s var(--ease); }
+.draft:nth-child(even) { rotate: .8deg; }
+.ribbon { position: absolute; top: -.5rem; left: .6rem; padding: 0 .5rem; border-radius: var(--r-xs); background: var(--accent); color: var(--accent-ink); font-size: var(--fs-xs); font-weight: 700; line-height: 1.5; letter-spacing: .04em; text-transform: uppercase; box-shadow: var(--shadow-1); }
+.draft .mini-btn { color: var(--note-ink); }
 /* Pointer devices reveal the actions on hover or focus; touch screens always show them. */
 @media (hover: hover) {
   .draft .acts { opacity: 0; transition: opacity .15s; }
   .draft:hover .acts, .draft:focus-within .acts { opacity: 1; }
 }
 .draft p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: var(--fs-sm); }
-.acts { display: flex; flex: none; color: var(--muted); }
+.acts { display: flex; flex: none; }
 .composer { position: relative; display: grid; gap: .3rem; padding: .6rem; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); box-shadow: var(--shadow-1); transform: rotate(-.6deg); }
 .priv[data-area="small"] .composer textarea { min-height: 2rem; }
 .priv[data-area="large"] .composer textarea { min-height: 9rem; }
@@ -257,7 +312,8 @@ header > .title { margin-inline-end: auto; }
 .composer textarea { width: 100%; min-height: 3.2rem; resize: none; padding: 0; border: 0; background: transparent; color: inherit; outline: none; font-weight: 500; }
 .composer textarea::placeholder { color: color-mix(in oklab, var(--note-ink) 62%, transparent); }
 .composer small { font-size: var(--fs-xs); font-weight: 500; color: color-mix(in oklab, var(--note-ink) 80%, transparent); }
-.hint-row { padding-right: 22px; display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
+.hint-row { padding-right: 22px; display: flex; justify-content: space-between; gap: .5rem; align-items: flex-start; }
+.hint { overflow-wrap: anywhere; }
 .compose-actions { display: flex; gap: .4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
 .sig-group { display: inline-flex; border: 1px solid var(--control, var(--border)); border-radius: 999px; overflow: hidden; }
 .sig { display: inline-grid; place-items: center; width: 30px; min-height: 28px; padding: 0; border: 0; background: transparent; color: var(--text); cursor: pointer; }
@@ -273,13 +329,26 @@ header > .title { margin-inline-end: auto; }
 .act-publish:hover:not(:disabled) { background: var(--accent-soft); }
 .act-add { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .act-add:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 88%, #000); }
-.hint-row { justify-content: flex-end; }
 /* Phones: add and publish are thumb-sized (48 px high), the primary action of the writing area (change responsive-and-i18n-hardening). */
 @media (max-width: 600px) {
   .act { width: 56px; min-height: 48px; }
   .compose-actions { gap: .6rem; }
   .pub-count, .draft .mini-btn { min-width: 48px; min-height: 48px; }
 }
+/* Phone sheet (change publishing-ux-redesign): the composer slides up from the foot of the screen over a dimmed page, with one chip per
+   column to choose where the note goes. On wider screens the wrapper vanishes and the composer sits in the column. */
+.compose-root { display: contents; }
+.compose { display: grid; gap: .6rem; }
+.compose-root[data-sheet] { position: fixed; inset: 0; z-index: 60; display: grid; align-items: end; background: rgb(5 5 12 / .45); }
+.sheet { max-height: 88dvh; overflow-y: auto; padding: .6rem .75rem calc(.75rem + env(safe-area-inset-bottom)); border-radius: var(--r-card) var(--r-card) 0 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-2); }
+.sheet-head { display: flex; align-items: center; gap: .4rem; }
+.chips { flex: 1; min-width: 0; display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: .35rem; min-height: 48px; max-width: 11rem; padding: 0 .8rem; border: 1px solid var(--border); border-bottom: 3px solid var(--col); border-radius: var(--r-pill); background: var(--surface2); color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
+.chip.on { border-color: var(--accent); border-bottom-color: var(--col); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip .n { padding: 0 .4rem; border-radius: var(--r-pill); background: var(--accent); color: var(--accent-ink); font-size: var(--fs-xs); font-weight: 700; }
+.sheet-head .mini-btn { flex: none; min-width: 48px; min-height: 48px; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(24px, 1fr)); gap: 5px; padding: 0 .2rem; }
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }
 .sw.on { border-color: var(--text); }

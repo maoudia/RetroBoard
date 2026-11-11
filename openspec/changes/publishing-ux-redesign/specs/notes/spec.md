@@ -27,3 +27,18 @@ The system SHALL warn a participant who closes or leaves the board with unpublis
 #### Scenario: Closing the tab
 - **WHEN** a participant with 2 drafts closes the tab
 - **THEN** the browser shows a leave confirmation
+
+### Requirement: Composer at the top of the column
+The system SHALL place each column's composer at the top of the column, under its title and above the published notes, and SHALL label it in words as visible to its author only until published. The author's drafts SHALL hang in a tray under the composer, each shown as a tilted note with a "draft" ribbon.
+
+#### Scenario: Composer and tray
+- **WHEN** a participant opens a board and keeps two ideas as drafts in a column
+- **THEN** the composer sits above the column's published notes with the label "Only you see this until you publish"
+- **AND** the two drafts appear under it as tilted notes, each with a "draft" ribbon
+
+### Requirement: Phone composer sheet
+On a phone-width screen the system SHALL offer one write button in the thumb zone, above the column tab bar, that opens the composer as a bottom sheet with one chip per visible column. The chip chosen SHALL decide the column the notes go to, the column in view SHALL be the default, and the sheet SHALL close on Escape, on a tap beside it and after "Publish now". The column SHALL keep the drafts tray.
+
+#### Scenario: Pick the column with a chip
+- **WHEN** a participant at 360 px taps the write button, taps the chip of the third column, types an idea and adds it
+- **THEN** the idea is a draft of the third column, the chip shows one draft, and the sheet stays open for the next idea

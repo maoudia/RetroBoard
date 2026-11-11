@@ -12,13 +12,16 @@ test.describe('board on a 360 px phone', () => {
     const col = page.locator('section[data-testid^="column-"]').first()
 
     // The composer's add and publish buttons are thumb-sized.
-    await col.locator('textarea').fill('Daily trop long')
+    await page.getByTestId('compose-open').click()
+    const sheet = page.getByTestId('compose-sheet')
+    await sheet.locator('textarea').fill('Daily trop long')
     for (const id of ['compose-add-', 'compose-publish-']) {
-      const box = (await col.locator(`[data-testid^="${id}"]`).boundingBox())!
+      const box = (await sheet.locator(`[data-testid^="${id}"]`).boundingBox())!
       expect(box.height, id).toBeGreaterThanOrEqual(48)
       expect(box.width, id).toBeGreaterThanOrEqual(48)
     }
-    await col.locator('[data-testid^="compose-add-"]').click()
+    await sheet.locator('[data-testid^="compose-add-"]').click()
+    await page.getByTestId('compose-close').click()
     const pub = col.locator('[data-testid^="publish-"]')
     expect((await pub.boundingBox())!.height).toBeGreaterThanOrEqual(48)
     await pub.click()
