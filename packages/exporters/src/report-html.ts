@@ -25,7 +25,9 @@ h1{margin:0 0 .2rem}h2{margin:2rem 0 .6rem;font-size:1.2rem;border-bottom:1px so
 .kpi{border:1px solid #d2d2d7;border-radius:10px;padding:.6rem .8rem}.kpi b{display:block;font-size:1.5rem}
 table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:.35rem .5rem;border-bottom:1px solid #e5e5ea;vertical-align:top}
 ul{padding-left:1.2rem}.v{white-space:nowrap;color:#6e6e73}
-@media print{body{padding:0}h2{break-after:avoid}table,ul{break-inside:auto}}
+@page{size:A4;margin:16mm 14mm}
+@media print{:root{font-size:11pt}body{max-width:none;padding:0}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+h2,h3{break-after:avoid}table,ul{break-inside:auto}tr,li,.kpi{break-inside:avoid}thead{display:table-header-group}.grid{grid-template-columns:repeat(5,1fr)}}
 `
 
 /** The retro report as one self-contained HTML file (no script, no external resource). */

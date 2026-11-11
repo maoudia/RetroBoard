@@ -28,6 +28,21 @@ The system SHALL copy a Slack-formatted summary and SHALL optionally post it to 
 - **WHEN** a facilitator posts to a webhook
 - **THEN** the URL is kept only in that device's settings and never sent to the relay
 
+#### Scenario: Only a Slack webhook, only on a click
+- **WHEN** the entered URL is not an `https://hooks.slack.com/services/...` URL
+- **THEN** it is refused and nothing is posted; a valid URL is posted to only when the participant presses "Post to Slack", as a `text/plain` request so that no CORS preflight is needed
+
+#### Scenario: Not in a settings file
+- **WHEN** the personal settings are exported to a file or imported from one
+- **THEN** the webhook URL is neither written nor read
+
+### Requirement: Printable report
+The HTML report SHALL carry a print stylesheet so that printing it to PDF produces A4 pages that contain the actions table.
+
+#### Scenario: PDF of the report
+- **WHEN** the downloaded report is printed to PDF
+- **THEN** the PDF pages are A4 and contain the report text and the actions table
+
 ### Requirement: Documented JSON schema
 The JSON export SHALL follow a versioned, published JSON Schema so agents and scripts can consume it.
 
@@ -41,6 +56,10 @@ The system SHALL show the exact file about to be saved, rendered for its format,
 #### Scenario: CSV for Jira
 - **WHEN** a participant chooses the Jira CSV of actions
 - **THEN** a table shows the rows and columns of the file with its name and size, and "Save" downloads that same file
+
+#### Scenario: Sandboxed preview
+- **WHEN** the file is HTML (the report) or Markdown
+- **THEN** it is shown in a frame without script or same-origin access, under the same Content-Security-Policy as the page, and the report keeps its own stylesheet
 
 ### Requirement: RAG-friendly export
 The system SHALL export a board as JSON Lines with one self-describing chunk per idea, cluster and action, and as Markdown with front matter per section, so a retrieval pipeline can index it without post-processing.

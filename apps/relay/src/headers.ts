@@ -15,6 +15,9 @@ export function loadCspHashes(assets: Fetcher): Promise<CspHashes> {
   return cache
 }
 
+/** The one third-party origin the page may call: a Slack incoming webhook, posted to only when the user asks (export-hub, ADR-0033). */
+const SLACK_WEBHOOK_ORIGIN = 'https://hooks.slack.com'
+
 export function buildCsp(hashes: CspHashes, extraConnect: string[] = []): string {
   const src = (list: string[]) => list.map((h) => `'${h}'`).join(' ')
   return [
@@ -24,7 +27,7 @@ export function buildCsp(hashes: CspHashes, extraConnect: string[] = []): string
     "font-src 'self'",
     "img-src 'self' data:",
     "media-src 'self'",
-    `connect-src 'self' ${extraConnect.join(' ')}`.trim(),
+    `connect-src 'self' ${SLACK_WEBHOOK_ORIGIN} ${extraConnect.join(' ')}`.trim(),
     "manifest-src 'self'",
     "base-uri 'none'",
     "form-action 'none'",

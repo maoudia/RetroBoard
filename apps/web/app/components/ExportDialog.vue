@@ -3,6 +3,8 @@ import { buildReport } from '@retroboard/application'
 import { toActionsCsv, toAgentsBundle, toDocHtml, toPlainText, toRagJsonl, toRagMarkdown, toSheetsTsv, toSlack } from '@retroboard/exporters'
 import { td } from '~/i18n'
 import { exportLabels, toCsv, toJson, toMarkdown } from '~/utils/export'
+import type { StagedFile } from '~/utils/file-preview'
+import { isSlackWebhook, postToSlack } from '~/utils/slack-webhook'
 const { t } = useT()
 
 /**
@@ -56,7 +58,30 @@ async function copy(text: string, html?: string) {
     push(t('exportHub.copied'), 'ok')
   } catch { push(t('export.copyFailed'), 'warn') }
 }
-const save = (name: string, content: string, mime: string) => $ports.file.save(name, content, mime)
+
+// File preview before saving (task 2.3): a file button stages the exact file, "Save" writes it.
+const staged = ref<StagedFile | null>(null)
+const save = (name: string, content: string, mime: string, opaque = false) => { staged.value = { name, content, mime, opaque } }
+function saveStaged() {
+  const f = staged.value
+  if (!f) return
+  $ports.file.save(f.name, f.content, f.mime)
+  staged.value = null
+}
+watch([dest, open], () => { staged.value = null })
+
+// Slack webhook (task 3.1): optional, typed here, kept in this device's settings only.
+const settings = useSettingsStore()
+const webhook = ref(settings.s.slackWebhook)
+watch(webhook, (v) => settings.patch({ slackWebhook: v.trim() }))
+const webhookValid = computed(() => isSlackWebhook(webhook.value))
+const posting = ref(false)
+async function postSlack() {
+  posting.value = true
+  const r = await postToSlack(webhook.value, preview.value)
+  posting.value = false
+  push(t(`exportHub.slack.post.${r}`), r === 'sent' ? 'ok' : 'warn')
+}
 
 function copyCurrent() {
   const r = report.value
@@ -69,7 +94,7 @@ function copyCurrent() {
 const fileInput = ref<HTMLInputElement | null>(null)
 async function saveBoardFile() {
   const text = await board.exportBoardFile()
-  if (text) save(`${slug.value}.retro`, text, 'application/octet-stream')
+  if (text) save(`${slug.value}.retro`, text, 'application/octet-stream', true)
 }
 async function restoreBoardFile(e: Event) {
   const input = e.target as HTMLInputElement
@@ -98,6 +123,8 @@ async function restoreBoardFile(e: Event) {
       </nav>
 
       <section class="pane">
+        <FilePreview v-if="staged" :file="staged" @save="saveStaged" @back="staged = null" />
+        <template v-else>
         <label v-if="advanced && dest !== 'jira'" class="only">
           <CheckPill v-model="actionsOnly" :label="t('exportHub.actionsOnly')" data-testid="export-actions-only" />
         </label>
@@ -114,7 +141,7 @@ async function restoreBoardFile(e: Event) {
           </template>
           <template v-else>
             <button class="btn btn-primary" type="button" :data-testid="`export-copy-${dest}`" @click="copyCurrent"><Icon name="lucide:copy" /> {{ td(`exportHub.${dest}.copy`) }}</button>
-            <button v-if="dest === 'sheets'" class="btn" type="button" @click="save(`${slug}.tsv`, preview, 'text/tab-separated-values')"><Icon name="lucide:file-down" /> {{ t('exportHub.download') }}</button>
+            <button v-if="dest === 'sheets'" class="btn" type="button" data-testid="export-sheets-file" @click="save(`${slug}.tsv`, preview, 'text/tab-separated-values')"><Icon name="lucide:file-down" /> {{ t('exportHub.download') }}</button>
             <button v-if="dest === 'agents'" class="btn" type="button" data-testid="export-agents-file" @click="save(`${slug}-for-ai.md`, preview, 'text/markdown')"><Icon name="lucide:file-down" /> {{ t('exportHub.download') }}</button>
             <button v-if="dest === 'agents'" class="btn" type="button" data-testid="export-rag-jsonl" @click="save(`${slug}-chunks.jsonl`, toRagJsonl(board.snapshot!, new Date()), 'application/x-ndjson')"><Icon name="lucide:file-json" /> {{ t('exportHub.rag.jsonl') }}</button>
             <button v-if="dest === 'agents'" class="btn" type="button" data-testid="export-rag-md" @click="save(`${slug}-sections.md`, toRagMarkdown(board.snapshot!, new Date()), 'text/markdown')"><Icon name="lucide:file-text" /> {{ t('exportHub.rag.md') }}</button>
@@ -122,10 +149,23 @@ async function restoreBoardFile(e: Event) {
         </div>
 
         <p class="muted small">{{ td(`exportHub.${dest}.how`) }}</p>
-        <!-- Docs preview: the exporter escapes every text from the board. -->
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="dest === 'docs'" class="preview doc" data-testid="export-preview" v-html="preview" />
+        <!-- Docs preview: the HTML that will be pasted, in a frame without script or same-origin access. -->
+        <iframe v-if="dest === 'docs'" class="preview doc" sandbox="" referrerpolicy="no-referrer" :srcdoc="preview" :title="t('exportHub.previewLabel')" data-testid="export-preview" />
         <pre v-else class="preview" tabindex="0" role="region" :aria-label="t('exportHub.previewLabel')" data-testid="export-preview">{{ preview }}</pre>
+
+        <div v-if="advanced && dest === 'slack'" class="webhook">
+          <label for="slack-webhook"><strong>{{ t('exportHub.slack.webhook') }}</strong></label>
+          <p class="muted small">{{ t('exportHub.slack.webhook.hint') }}</p>
+          <input
+            id="slack-webhook" v-model="webhook" class="field" type="password" autocomplete="off" spellcheck="false" placeholder="https://hooks.slack.com/services/..."
+            :aria-invalid="webhook !== '' && !webhookValid" :aria-describedby="webhook !== '' && !webhookValid ? 'slack-webhook-err' : undefined" data-testid="slack-webhook"
+          >
+          <p v-if="webhook !== '' && !webhookValid" id="slack-webhook-err" class="small err" role="alert">{{ t('exportHub.slack.webhook.invalid') }}</p>
+          <span class="acts">
+            <button class="btn" type="button" :disabled="!webhookValid || posting" data-testid="slack-post" @click="postSlack"><Icon name="lucide:send" /> {{ t('exportHub.slack.post') }}</button>
+            <button v-if="webhook" class="btn" type="button" data-testid="slack-forget" @click="webhook = ''"><Icon name="lucide:eraser" /> {{ t('exportHub.slack.forget') }}</button>
+          </span>
+        </div>
 
         <div v-if="advanced && dest === 'files' && board.canUseBoardFile()" class="boardfile">
           <strong><Icon name="lucide:file-lock" /> {{ t('boardFile.export') }}</strong>
@@ -140,6 +180,7 @@ async function restoreBoardFile(e: Event) {
           {{ t('destroy.afterExport') }}
           <button class="link" type="button" data-testid="export-destroy" @click="ui.open('destroy')">{{ t('options.destroyBtn') }}</button>
         </p>
+        </template>
       </section>
     </div>
   </BaseDialog>
@@ -158,7 +199,9 @@ async function restoreBoardFile(e: Event) {
 .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
 .small { font-size: var(--fs-sm); margin: 0; }
 .preview { max-height: 34vh; overflow: auto; margin: 0; padding: .7rem .8rem; border: 1px solid var(--border); border-radius: var(--r-control); background: var(--bg); font-size: var(--fs-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
-.preview.doc { white-space: normal; font-size: var(--fs-sm); }
+.preview.doc { width: 100%; height: 34vh; color-scheme: light; background: Canvas; }
+.webhook { display: grid; gap: .4rem; padding-top: .7rem; border-top: 1px solid var(--border); }
+.err { color: var(--danger); }
 .after { padding-top: .6rem; border-top: 1px solid var(--border); }
 .link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-weight: 600; }
 .boardfile { display: grid; gap: .4rem; padding-top: .7rem; border-top: 1px solid var(--border); }

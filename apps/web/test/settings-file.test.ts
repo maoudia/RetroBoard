@@ -17,6 +17,13 @@ describe('settings file', () => {
     const text = JSON.stringify({ format: 'retroboard-settings', version: 1, exportedAt: 'x', settings: { sound: 'yes', retentionDays: 3, evil: 1, __proto__: { x: 1 } } })
     expect(parseSettingsFile(text, defaults)).toEqual({ retentionDays: 3 })
   })
+  it('keeps the Slack webhook on the device: never exported, never imported', () => {
+    const text = buildSettingsFile({ sound: false, slackWebhook: 'https://hooks.slack.com/services/T0/B0/secret' }, now)
+    expect(text).not.toContain('slackWebhook')
+    expect(text).not.toContain('secret')
+    const foreign = JSON.stringify({ format: 'retroboard-settings', version: 1, exportedAt: 'x', settings: { sound: true, slackWebhook: 'https://hooks.slack.com/services/T0/B0/other' } })
+    expect(parseSettingsFile(foreign, { ...defaults, slackWebhook: '' })).toEqual({ sound: true })
+  })
   it('refuses other files', () => {
     expect(parseSettingsFile('not json', defaults)).toBeNull()
     expect(parseSettingsFile('[]', defaults)).toBeNull()

@@ -20,7 +20,7 @@ Use this to put code in the right place, respect the hard constraints and prove 
 - E2E encryption: plaintext board content never leaves the browser (or the local MCP process).
 - Pure domain, layered architecture, enforced by tests.
 - i18n for every string (fr source, en required).
-- Strict CSP: no inline script/style, no eval, no third-party origins.
+- Strict CSP: no inline script/style, no eval, no third-party origins (one exception: `connect-src` for `hooks.slack.com`, ADR-0033).
 - Board theme imposed by the facilitator; participants only choose light/dark.
 - Free-plan budget: cursors and presence go P2P; relay traffic per participant stays under 4 msg/s.
 

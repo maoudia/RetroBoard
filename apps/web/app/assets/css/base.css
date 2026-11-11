@@ -224,6 +224,9 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 @media print {
   :root[data-print="report"] body > :not(.report-print) { display: none !important; }
   :root[data-print="report"] .report-print { display: block; padding: 0 1rem; color: #000; background: #fff; }
+  :root[data-print="report"] .report-print :is(h2, h3) { break-after: avoid; }
+  :root[data-print="report"] .report-print :is(tr, li) { break-inside: avoid; }
+  :root[data-print="report"] .report-print thead { display: table-header-group; }
 }
 
 /* Phase-gated controls (change phase-availability-cues): one look for everything a phase rule closes.

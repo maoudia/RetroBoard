@@ -2,6 +2,7 @@
 import { buildReport } from '@retroboard/application'
 import { toEncryptedReportHtml, toReportHtml } from '@retroboard/exporters'
 import { td } from '~/i18n'
+import type { StagedFile } from '~/utils/file-preview'
 const { t } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
@@ -13,10 +14,19 @@ const report = computed(() => (open.value || printing.value) && board.snapshot ?
 const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'retro')
 
 const passphrase = ref('')
+/** The file about to be saved, shown as the user will see it (export-hub, task 2.3). A passphrase-protected file is not readable here: name and size only. */
+const staged = ref<StagedFile | null>(null)
+watch(open, () => { staged.value = null })
 async function download() {
   if (!report.value) return
   const html = passphrase.value ? await toEncryptedReportHtml(report.value, td, passphrase.value) : toReportHtml(report.value, td)
-  $ports.file.save(`${slug.value}-report${passphrase.value ? '-encrypted' : ''}.html`, html, 'text/html')
+  staged.value = { name: `${slug.value}-report${passphrase.value ? '-encrypted' : ''}.html`, content: html, mime: 'text/html', opaque: !!passphrase.value }
+}
+function saveStaged() {
+  const f = staged.value
+  if (!f) return
+  $ports.file.save(f.name, f.content, f.mime)
+  staged.value = null
 }
 
 /** Prints only the report: a copy outside the dialog, the rest of the page hidden by print CSS. */
@@ -33,9 +43,12 @@ async function print() {
 
 <template>
   <BaseDialog v-model:open="open" :title="t('report.title')" width="820px">
-    <RotiVote v-if="report" />
-    <ReportView v-if="report" :report="report" />
-    <template #footer>
+    <FilePreview v-if="staged" :file="staged" @save="saveStaged" @back="staged = null" />
+    <template v-else>
+      <RotiVote v-if="report" />
+      <ReportView v-if="report" :report="report" />
+    </template>
+    <template v-if="!staged" #footer>
       <label class="pass">
         <span>{{ t('report.passphrase.label') }}</span>
         <input v-model="passphrase" type="password" autocomplete="off" data-testid="report-passphrase" :title="t('report.passphrase.hint')">

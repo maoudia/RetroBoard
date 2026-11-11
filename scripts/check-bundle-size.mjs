@@ -23,8 +23,11 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // fr/en strings; +4.8 kB measured over 327.3). The entry stays at 43.3 kB: the sharing UI is lazy but every chunk is counted.
 // 2026-11-11: total raised from 335 to 337 kB for touch drag and drop (long press lifts a note or a cluster, +1.1 kB
 // measured over 334.9, 336 kB after). The base was already within 0.1 kB of the old budget.
+// 2026-11-11: total raised from 337 to 342 kB for the export hub: file preview before saving (table, folded JSON,
+// Markdown renderer, sandboxed frame), the optional Slack webhook and their fr/en strings (about 336 kB before,
+// +3.3 kB for the hub, 340.3 kB measured on top of the composer change). The captain allows up to 400 kB; the entry is unchanged.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 44, totalKb: 337 }
+const BUDGET = { entryKb: 44, totalKb: 342 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')

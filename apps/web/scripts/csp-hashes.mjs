@@ -3,6 +3,9 @@
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+// The report stylesheet is inlined in the sandboxed preview frame of a file about to be saved (export-hub 2.3):
+// its hash lets the frame look like the saved file without 'unsafe-inline'.
+import { REPORT_CSS } from '../../../packages/exporters/src/report-html.ts'
 
 const dir = process.argv[2] ?? '.output/public'
 
@@ -16,7 +19,7 @@ function* walk(d) {
 
 const sha = (s) => `sha256-${createHash('sha256').update(s, 'utf8').digest('base64')}`
 const scripts = new Set()
-const styles = new Set()
+const styles = new Set([sha(REPORT_CSS)])
 
 for (const file of walk(dir)) {
   const html = readFileSync(file, 'utf8')
