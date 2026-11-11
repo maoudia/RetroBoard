@@ -18,7 +18,7 @@ board content: it stops people from collaborating until it is fixed. Say so to a
 | Symptom | Likely cause | Action |
 |---|---|---|
 | Smoke fails on `/ws2` after a deploy | The deploy broke the relay | The deploy workflow rolls back by itself; if it did not, roll back by hand (below) |
-| Pages and the relay answer errors for everyone, quota messages in the dashboard | The free plan's 100,000 requests/day is used up (every request invokes the Worker, `wrangler.jsonc` `run_worker_first`) | Check Workers > retroboard > Metrics. Apply the edge rules of `docs/runbooks/edge.md` (Bot Fight Mode, rate limiting rule). The quota resets at 00:00 UTC |
+| Pages and the relay answer errors for everyone, quota messages in the dashboard | The free plan's 100,000 requests/day is used up (every request except the hashed files under `/_nuxt/` invokes the Worker, `wrangler.jsonc` `run_worker_first`; the hashed files keep being served once the quota is gone) | Check Workers > retroboard > Metrics. Apply the edge rules of `docs/runbooks/edge.md` (Bot Fight Mode, rate limiting rule). The quota resets at 00:00 UTC |
 | Many `ws.reject` with `reason: origin` | A page on another site is opening the relay, or a misconfigured `ALLOWED_ORIGINS` | Compare with the origin list in `wrangler.jsonc` `vars.ALLOWED_ORIGINS`; the edge rule on `/ws2` blocks the rest |
 | Boards show "reconnecting" for everyone at once | A deploy just restarted the relay | Wait 30 seconds; participants reconnect and re-sync by themselves |
 | Users report "this board is full" | 30 connections is the hard cap (`LIMITS.maxConnections`) | Expected; stale tabs count, ask people to close them |

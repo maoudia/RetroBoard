@@ -53,7 +53,8 @@ export default {
     const hashes = await loadCspHashes(env.ASSETS)
     const extra = (env.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim().replace(/^http/, 'ws')).filter(Boolean)
     let res = await env.ASSETS.fetch(request)
-    if (isUnknownAppPath(url.pathname, res)) {
+    // The asset layer answers 404 itself (not_found_handling "none"); an unknown path still gets the branded page.
+    if (res.status === 404 || isUnknownAppPath(url.pathname, res)) {
       const shell = await env.ASSETS.fetch(new Request(new URL('/404.html', url), { headers: { Accept: 'text/html' } }))
       res = pickErrorResponse(request, 404, shell.ok ? shell : null, 'Not found')
     }

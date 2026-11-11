@@ -9,8 +9,10 @@
   "assets": {
     "directory": "apps/web/.output/public",
     "binding": "ASSETS",
-    "run_worker_first": true,
-    "not_found_handling": "single-page-application"
+    // The hashed files go straight to the asset layer (no Worker invocation, ADR-0034). The Worker still runs for everything else.
+    "run_worker_first": ["/*", "!/_nuxt/*"],
+    // "none": a missing file is a 404 from the asset layer, never the app shell. Every app route is a prerendered file.
+    "not_found_handling": "none"
   },
   "durable_objects": {
     "bindings": [{ "name": "RELAY", "class_name": "RelayRoom" }]
