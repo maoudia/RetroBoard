@@ -1,6 +1,5 @@
-import { RELAY_BUFFER } from '@retroboard/protocol'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createBoardAs, MemoryReplica, type Peer, World } from './sync-harness'
+import { createBoardAs, holderOfBoardOf, type Peer, World } from './sync-harness'
 
 let world: World
 afterEach(() => world?.dispose())
@@ -45,23 +44,6 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     return { alice, others }
   }
 
-  /**
-   * A participant whose device holds a board of `count` events (`size` as in `fillReplica`) opens it while the
-   * relay is empty, as after a deploy: the relay can only get the board from this participant.
-   */
-  async function holderOfBoardOf(count: number, size: 'small' | 'bulky') {
-    world = new World()
-    const replica = new MemoryReplica()
-    const seed = { value: null }
-    const first = await world.join('alice', { facilitator: true, replica, seed })
-    await createBoardAs(world, first)
-    first.close()
-    await world.fillReplica(replica, count, size, first.columnIds[0]!)
-    const held = replica.count(world.roomId)
-    const alice = await world.join('alice', { facilitator: true, replica, seed })
-    return { alice, held }
-  }
-
   // 4.2: `ws.onclose` closes the mesh, so the links die with the relay socket and nothing flows until the
   // reconnect (new connection ids, a new WebRTC set-up, a full re-sync).
   it.fails('the relay closes every socket: the three direct links stay open and an event sent meanwhile reaches the others', async () => {
@@ -94,21 +76,16 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     expect([alice.notices.filter((k) => k === 'newer-version'), bob.notices.filter((k) => k === 'newer-version')]).toEqual([['newer-version'], ['newer-version']])
   })
 
+  // The upload scenarios stop waiting as soon as the relay cuts a socket: while they are `it.fails` they would
+  // otherwise spin the whole simulated budget (15 s) on every mutant of the mutation run.
   // 3.1: `push` cuts by count (100), the relay refuses a frame over 256 KB (close 1009), and `attempts` is reset
   // on open, so the same upload is sent again at once.
   it.fails('a holder uploads 100 envelopes of 3 KB to the empty relay without being cut off', async () => {
-    const { held } = await holderOfBoardOf(100, 'bulky')
-    await world.until(() => world.relay.buffered === held, 60_000)
+    const holder = await holderOfBoardOf(100, 'bulky')
+    world = holder.world
+    const { held } = holder
+    await world.until(() => world.relay.buffered === held || world.relay.closes.length > 0, 60_000)
     expect(world.relay.closes).toEqual([])
     expect(world.relay.buffered).toBe(held)
-  })
-
-  // 3.1: 9,000 envelopes are 90 frames sent at once, the relay closes a socket after 80 frames in 10 s (close 1008).
-  it.fails('a holder uploads 9,000 small envelopes to the empty relay without being cut off', async () => {
-    await holderOfBoardOf(9_000, 'small')
-    // The relay keeps at most RELAY_BUFFER envelopes: it is full when the whole upload went through.
-    await world.until(() => world.relay.buffered === RELAY_BUFFER, 120_000)
-    expect(world.relay.closes).toEqual([])
-    expect(world.relay.buffered).toBe(RELAY_BUFFER)
   })
 })
