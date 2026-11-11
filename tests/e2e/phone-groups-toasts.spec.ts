@@ -24,11 +24,14 @@ test('a group card fills its cell so its vote and count stay on the card on a ph
   await noteByText(page, 'The tests are slow').dragTo(noteByText(page, 'Slow tests in CI'))
   const cluster = page.locator('.cluster').first()
   await expect(cluster).toBeVisible()
+  // dragTo leaves the pointer on the card and .stack:hover scales it by 1.015 (about 4 px at this width, still easing in Firefox): measure the layout, not the hover.
+  await page.mouse.move(0, 0)
+  await expect(cluster.locator('.stack')).not.toHaveCSS('transform', /matrix\(1\.0/)
   await settle(page) // measure the settled layout, not a card still growing into its cell
   const c = (await cluster.boundingBox())!
   const s = (await cluster.locator('.stack').boundingBox())!
   const d = (await cluster.locator('.dock').boundingBox())!
-  // The cluster has a border and a shadow ring: a few pixels, never a card narrower than its cell.
-  expect(Math.abs(s.width - c.width)).toBeLessThanOrEqual(4)
+  // The stack fills the cluster exactly (no border on the cluster, the shadow does not count in a box): 1 px only absorbs sub-pixel rounding.
+  expect(Math.abs(s.width - c.width)).toBeLessThanOrEqual(1)
   expect(d.x + d.width).toBeLessThanOrEqual(s.x + s.width + 2)
 })
