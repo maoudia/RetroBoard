@@ -240,7 +240,7 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 | Accessibility | `@axe-core/playwright` on every page, zero serious violations |
 | Performance | Lighthouse CI budgets, `size-limit` on JS chunks |
 | Security | CodeQL, dependency review, OSV scanner, gitleaks, CSP violation e2e, relay "no storage API" test |
-| Supply chain | SBOM (CycloneDX), license allow-list, pinned actions by SHA, npm provenance for `@retroboard/mcp` |
+| Supply chain | SBOM (SPDX), license allow-list, pinned actions by SHA, npm provenance for `@retroboard/mcp` |
 | Preview | `wrangler versions upload` per PR, preview URL commented on the PR (to verify on the current Wrangler) |
 
 ### 10.2 Release and deploy
