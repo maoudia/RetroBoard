@@ -19,4 +19,7 @@ overrides:
   're2js@<2.9.1': ^2.9.1
   'dompurify@<3.4.17': ^3.4.17
   # node-forge GHSA set (<=1.4.0), via nuxt dev server (listhen) only; 1.4.1 fixes all but GHSA-86w9 (ignored in osv-scanner.toml).
-  'node-forge@<1.4.1': ^1.4.1
+  # 1.4.3 also fixes GHSA-6889-vf6x-f3g5, GHSA-6cv4-p8m7-4r25, GHSA-j8rw-jp99-435v, GHSA-w4xr-hqv8-ch44 (<1.4.3).
+  'node-forge@<1.4.3': ^1.4.3
+  # GHSA-474x-hrwr-fgx4 (quadratic CPU on unterminated stop-node tags), via @allurereport/reader which pins 5.11.2 exactly.
+  'fast-xml-parser@<5.12.0': ^5.12.0
