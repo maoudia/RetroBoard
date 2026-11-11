@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.51.4](https://github.com/maoudia/RetroBoard/compare/v1.51.3...v1.51.4) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** patch node-forge 1.4.3 and fast-xml-parser 5.12.0 (OSV advisories) ([26a347c](https://github.com/maoudia/RetroBoard/commit/26a347c7c9aeaad515c685eea51d3aaae3cae1f2))
+* **web:** join by code commits to the key before the holder's challenge ([34820eb](https://github.com/maoudia/RetroBoard/commit/34820ebb810a132da0efae1180a507634f8ade58))
+* **web:** keep an action shown just before the tab goes away in the local copy ([23002c5](https://github.com/maoudia/RetroBoard/commit/23002c5b0f84c2d9a7e47dfb5cb5e9324d0afb95))
+* **web:** pressed buttons and placeholders readable in every theme, forced colours, no new hex colours ([40be9d4](https://github.com/maoudia/RetroBoard/commit/40be9d4ed38a329fbbfd6a48c888bc5e4cfdbc8d))
+* **web:** refuse join requests that show the same safety number ([96779b9](https://github.com/maoudia/RetroBoard/commit/96779b924e656686df1d13e580ea7b60c732b84c))
+
 ## [1.51.3](https://github.com/maoudia/RetroBoard/compare/v1.51.2...v1.51.3) (2026-11-09)
 
 
