@@ -765,6 +765,7 @@ export const en: Record<keyof typeof fr, string> = {
   'presenter.exit': 'Leave presenter mode',
   'presenter.closeJoin': 'Hide the join card',
   'legal.nav': 'Legal information',
+  'legal.source': 'Source code',
   'legal.beta': 'Beta: these pages describe how the service works today and may change.',
   'legal.updated': 'Last updated: October 24, 2026.',
   'legal.title': 'Legal notice',

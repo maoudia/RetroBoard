@@ -764,6 +764,7 @@ export const fr = {
   'presenter.exit': 'Quitter le mode présentation',
   'presenter.closeJoin': 'Masquer la carte de connexion',
   'legal.nav': 'Informations légales',
+  'legal.source': 'Code source',
   'legal.beta': 'Version bêta : ces pages décrivent le fonctionnement actuel du service et pourront évoluer.',
   'legal.updated': 'Dernière mise à jour : 24 octobre 2026.',
   'legal.title': 'Mentions légales',
