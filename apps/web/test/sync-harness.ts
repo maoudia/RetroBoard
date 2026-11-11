@@ -4,15 +4,16 @@
  * Runs several real `EncryptedRelayTransport` instances (real WebCrypto, real signatures, real
  * fold) against:
  * - FakeRelay: the relay room behaviour (welcome, hist, peers, fresh-only fan-out, sig routing,
- *   presence), memory only, with eviction and per-socket drops;
+ *   presence), memory only, with eviction, deploys (restart: every socket closed, memory gone) and
+ *   per-socket drops. It applies the real budgets (frame size, frame rate, buffer) of the relay;
  * - FakeRtc: WebRTC data channels in memory, where chosen pairs of participants cannot link;
  * - a memory replica store.
  * Time is driven by `World.run(ms)` on vitest fake timers (setTimeout, setInterval, Date).
  */
-import type { ReplicaRecord, ReplicaStorePort } from '@retroboard/application'
-import { deriveContentKey, fromBase64Url, randomKey, toBase64Url } from '@retroboard/crypto'
-import type { Command, Snapshot } from '@retroboard/domain'
-import { parseClientFrame, type Envelope, type RelayFrame } from '@retroboard/protocol'
+import { type EventBody, type ReplicaRecord, type ReplicaStorePort, signEvent } from '@retroboard/application'
+import { deriveContentKey, fromBase64Url, randomKey, seal, toBase64Url, utf8 } from '@retroboard/crypto'
+import { type Command, LIMITS, type Snapshot } from '@retroboard/domain'
+import { type Budgets, checkFrame, type Envelope, EnvelopeBuffer, envelopeAad, PROTOCOL_VERSION, type RelayFrame } from '@retroboard/protocol'
 import { vi } from 'vitest'
 import { createSessionSigner, ed25519Verifier, signerFor } from '../app/adapters/signing'
 import { type EncryptedDeps, EncryptedRelayTransport } from '../app/transport/encrypted'
@@ -25,28 +26,13 @@ const hex = (n: number) => Array.from({ length: n }, () => Math.floor(Math.rando
 
 // ---------------------------------------------------------------- relay
 
-/** Same budget logic as packages/protocol/src/buffer.ts EnvelopeBuffer (fresh ids only, arrival order). */
-class Buffer {
-  private readonly byId = new Map<string, Envelope>()
-  add(envs: readonly Envelope[]): Envelope[] {
-    const fresh: Envelope[] = []
-    for (const e of envs) if (!this.byId.has(e.id)) { this.byId.set(e.id, e); fresh.push(e) }
-    return fresh
-  }
-  pages(size = 100): Envelope[][] {
-    const all = [...this.byId.values()]
-    const out: Envelope[][] = []
-    for (let i = 0; i < all.length; i += size) out.push(all.slice(i, i + size))
-    return out
-  }
-  get size() { return this.byId.size }
-}
-
 export class FakeRelay {
-  private buffer = new Buffer()
+  private buffer = new EnvelopeBuffer()
   readonly sockets = new Map<string, FakeSocket>()
   /** Counters for budget assertions. */
-  stats = { pubFrames: 0, pubEnvs: 0, freshEnvs: 0, fanOut: 0 }
+  stats = { pubFrames: 0, pubEnvs: 0, freshEnvs: 0, fanOut: 0, accepts: 0 }
+  /** Close codes the relay sent, in order: 1008 rate limit, 1009 frame too large, 1001 deploy. */
+  closes: number[] = []
   /** When true, new connections are refused (relay unreachable). */
   down = false
   /**
@@ -61,26 +47,40 @@ export class FakeRelay {
 
   /** The Durable Object was evicted: memory is gone, sockets are closed. */
   evict(): void {
-    this.buffer = new Buffer()
-    for (const s of [...this.sockets.values()]) s.serverClose()
+    this.buffer = new EnvelopeBuffer()
+    for (const s of [...this.sockets.values()]) { this.closes.push(1001); s.serverClose() }
   }
+
+  /**
+   * A deploy: the Durable Object restarts, so memory is gone and every socket is closed, and
+   * connections are refused until `reopen()`.
+   */
+  deploy(): void {
+    this.down = true
+    this.evict()
+  }
+
+  /** The new version answers: clients can connect again (to an empty room). */
+  reopen(): void { this.down = false }
+
+  /** Sends a relay frame to one connection only (an event another version produced, for instance). */
+  deliver(conn: string, frame: RelayFrame): void { this.sockets.get(conn)?.toClient(frame) }
 
   /**
    * Durable Object hibernation: the instance is evicted from memory but the WebSockets stay
    * attached. The buffer is gone, nobody is told.
    */
-  forget(): void { this.buffer = new Buffer() }
+  forget(): void { this.buffer = new EnvelopeBuffer() }
 
   /** A client socket opened. */
   accept(socket: FakeSocket): void {
     if (this.down) { realSetTimeout(() => socket.serverClose(), 0); return }
     const conn = this.connId()
     socket.conn = conn
+    this.stats.accepts++
     this.sockets.set(conn, socket)
     socket.toClient({ t: 'welcome', conn, peers: this.conns() })
-    const pages = this.buffer.pages()
-    if (!pages.length) socket.toClient({ t: 'hist', envs: [], done: true })
-    pages.forEach((envs, i) => socket.toClient({ t: 'hist', envs, done: i === pages.length - 1 }))
+    for (const frame of this.buffer.history()) socket.toClient(frame)
     this.broadcastPeers()
   }
 
@@ -91,7 +91,10 @@ export class FakeRelay {
 
   fromClient(socket: FakeSocket, text: string): void {
     if (text === 'ping') return
-    const frame = parseClientFrame(JSON.parse(text))
+    // Same checks as the Durable Object: a frame that is too large or over the rate budget closes the socket.
+    const checked = checkFrame(socket.budget, text, Date.now(), LIMITS.rateWindowMs)
+    if (checked.verdict === 'close') { this.closes.push(checked.code); socket.serverClose(); return }
+    const frame = checked.verdict === 'ok' ? checked.frame : null
     if (!frame) return
     if (frame.t === 'pub') {
       this.stats.pubFrames++
@@ -121,6 +124,8 @@ export class FakeRelay {
 export class FakeSocket {
   readyState = 0
   conn: string | null = null
+  /** Frame rate window of this socket, as the relay keeps it in the socket attachment. */
+  readonly budget: Budgets = { windowStart: Date.now(), count: 0 }
   onopen: (() => void) | null = null
   onmessage: ((ev: { data: string }) => void) | null = null
   onclose: (() => void) | null = null
@@ -302,6 +307,8 @@ export class Peer {
   cursors: string[] = []
   focus: string[] = []
   links: { p2p: boolean; peers: number } | null = null
+  /** Kinds of the notices the page would show (resets, phase changes, newer version). */
+  notices: string[] = []
   transport!: EncryptedRelayTransport
   readonly net = { online: true }
 
@@ -390,11 +397,54 @@ export class World {
         onCursor: (_c, name) => { peer.cursors.push(String(name)) },
         onFocus: (_f, name) => { peer.focus.push(String(name)) },
         onLinks: (state) => { peer.links = state },
+        onNotice: (n) => { peer.notices.push(n.kind) },
       },
       deps,
     )
     peer.transport.connect({ cid: hex(16), name, showName: true })
     return peer
+  }
+
+  /**
+   * An event another version of the application produced: correctly sealed and signed by a
+   * participant, carrying a command this version does not know. Delivered through the relay to
+   * every connected tab, as the author's own links and the relay would.
+   */
+  async publishFromNewerVersion(): Promise<void> {
+    const key = await deriveContentKey(fromBase64Url(this.roomKey)!, this.roomId)
+    let seed: string | null = null
+    const author = await createSessionSigner({ get: () => seed, set: (v) => { seed = v } })
+    const body = { t: 'cmd', cmd: { t: 'future.command', value: 1 }, name: null, showName: false } as unknown as EventBody
+    const event = await signEvent(author, this.roomId, { id: hex(26), at: Date.now(), body })
+    const head = { v: PROTOCOL_VERSION, room: this.roomId, id: event.id, hlc: event.at } as const
+    const env: Envelope = { ...head, ct: toBase64Url(await seal(key, utf8(JSON.stringify(event)), utf8(envelopeAad(head)))) }
+    for (const conn of this.relay.sockets.keys()) this.relay.deliver(conn, { t: 'env', envs: [env] })
+  }
+
+  /**
+   * Writes `count` events of another participant into a device's replica, as if the board had been
+   * used for a while: `small` envelopes are a chat line, `bulky` ones carry four 450 character notes
+   * (about 3 KB once sealed). Every event is a valid command, signed and sealed.
+   */
+  async fillReplica(replica: MemoryReplica, count: number, size: 'small' | 'bulky', columnId: string): Promise<void> {
+    const key = await deriveContentKey(fromBase64Url(this.roomKey)!, this.roomId)
+    let seed: string | null = null
+    const author = await createSessionSigner({ get: () => seed, set: (v) => { seed = v } })
+    const at = Date.now()
+    const records: { id: string; data: string }[] = []
+    for (let from = 0; from < count; from += 200) {
+      records.push(...await Promise.all(Array.from({ length: Math.min(200, count - from) }, async (_, k) => {
+        const i = from + k
+        const cmd: Command = size === 'small'
+          ? { t: 'chat.post', text: `m${i}` }
+          : { t: 'note.addMany', items: Array.from({ length: 4 }, (_, j) => ({ columnId, text: `${i}-${j}`.padEnd(450, 'x') })) }
+        const event = await signEvent(author, this.roomId, { id: hex(26), at, body: { t: 'cmd', cmd, name: null, showName: false } })
+        const head = { v: PROTOCOL_VERSION, room: this.roomId, id: event.id, hlc: event.at } as const
+        const env: Envelope = { ...head, ct: toBase64Url(await seal(key, utf8(JSON.stringify(event)), utf8(envelopeAad(head)))) }
+        return { id: env.id, data: JSON.stringify(env) }
+      })))
+    }
+    await replica.append(this.roomId, records)
   }
 
   /** Advances simulated time, letting WebCrypto (real threads) finish between steps. */
