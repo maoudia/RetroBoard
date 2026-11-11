@@ -1,10 +1,26 @@
 /** Layout choices kept per screen class on this device (change device-layout-prefs). Pure data helpers. */
 export type ScreenClass = 'phone' | 'tablet' | 'desktop' | 'wall'
 export const SCREEN_CLASSES: readonly ScreenClass[] = ['phone', 'tablet', 'desktop', 'wall']
-export type Density = 'comfortable' | 'compact'
+export type Density = 'comfortable' | 'compact' | 'dense'
+export const DENSITIES: readonly Density[] = ['comfortable', 'compact', 'dense']
+
+/** Note zoom in percent (change postit-visual-system, task 1.3): the notes of a board get wider and their text larger or smaller; the text floor stays. */
+export const ZOOM_STEPS: readonly number[] = [80, 90, 100, 115, 130, 150]
+export const DEFAULT_ZOOM = 100
+
+/** The step after `now` in `dir`, stopping at both ends; a value between steps (a hand-edited store) snaps to the nearest one first. */
+export function stepZoom(now: number, dir: 1 | -1): number {
+  const at = ZOOM_STEPS.reduce((best, z, i) => (Math.abs(z - now) < Math.abs(ZOOM_STEPS[best]! - now) ? i : best), 0)
+  return ZOOM_STEPS[Math.min(ZOOM_STEPS.length - 1, Math.max(0, at + dir))]!
+}
+
+/** The next density, wrapping from the last back to the first. */
+export const nextDensity = (d: Density): Density => DENSITIES[(DENSITIES.indexOf(d) + 1) % DENSITIES.length]!
 
 export interface ClassLayout {
   density?: Density
+  /** Note zoom in percent, one of ZOOM_STEPS; absent = 100. */
+  zoom?: number
   focusStyle?: 'centre' | 'accordion'
   /** Side of the chat drawer and whether the filter bar is open (change device-layout-prefs). */
   chatSide?: 'left' | 'right'

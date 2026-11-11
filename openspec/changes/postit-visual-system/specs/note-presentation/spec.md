@@ -12,11 +12,19 @@ Each theme variant SHALL provide eight note colours modelled on classic sticky n
 - **THEN** eight sticky-note colours are offered with accessible names
 
 ### Requirement: Readability at scale
-The system SHALL keep note text at or above a minimum readable size for the screen class, SHALL truncate longer text with a "read more" affordance instead of shrinking further, and SHALL offer density, zoom and a column focus mode.
+The system SHALL keep note text at or above a minimum readable size for the screen class, SHALL truncate longer text with a "read more" affordance instead of shrinking further, and SHALL offer density and zoom. The column focus mode is specified by `presenter-mode-v2`.
 
 #### Scenario: 60 notes in a column
 - **WHEN** a column holds 60 notes on a laptop
 - **THEN** every visible note text is at least 14 px and the column scrolls
+
+#### Scenario: Long note
+- **WHEN** a note does not fit the lines its density keeps, even at the smallest allowed size
+- **THEN** it is clipped with a "Read more" control that opens the rest and a "Show less" control that folds it back, and a short note shows no control
+
+#### Scenario: Density and zoom keys
+- **WHEN** a participant presses `d`, or `+`, `-` or `0`, outside a field and a dialog
+- **THEN** the note density cycles (comfortable, compact, dense) or the note zoom steps between 80% and 150% (0 returns to 100%), on their screen only and remembered for that kind of screen, and the text stays at or above 14 px
 
 ### Requirement: Search and filter
 The system SHALL let a participant filter visible notes by text, colour, author and "has votes", without changing the board for others.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classOf, copyClass, layoutOf, legacySizes, resetClass, setAllWrite, setColumnWrite, setColumnWriteHeight, setSize, setWrite, withLayout } from '../app/utils/layout'
+import { classOf, copyClass, DENSITIES, layoutOf, legacySizes, nextDensity, resetClass, setAllWrite, setColumnWrite, setColumnWriteHeight, setSize, setWrite, stepZoom, withLayout, ZOOM_STEPS } from '../app/utils/layout'
 
 describe('layout per screen class', () => {
   it('classifies widths', () => {
@@ -75,5 +75,28 @@ describe('writing size per column (change toast-notifications-v2)', () => {
     expect(layoutOf(b, 'desktop').write.r1).toBe('small')
     expect(layoutOf(b, 'desktop').writeCol?.r1).toEqual({})
     expect(layoutOf(b, 'desktop').writeCol?.r2?.c1).toBe('small')
+  })
+})
+
+describe('note zoom and density (change postit-visual-system, task 1.3)', () => {
+  it('steps through the zoom levels and stops at both ends', () => {
+    expect(stepZoom(100, 1)).toBe(115)
+    expect(stepZoom(100, -1)).toBe(90)
+    expect(stepZoom(150, 1)).toBe(150)
+    expect(stepZoom(80, -1)).toBe(80)
+    expect([...ZOOM_STEPS]).toEqual([80, 90, 100, 115, 130, 150])
+  })
+  it('snaps a value between two levels to the nearest one before stepping', () => {
+    expect(stepZoom(104, 1)).toBe(115)
+    expect(stepZoom(112, -1)).toBe(100)
+    expect(stepZoom(1000, -1)).toBe(130)
+  })
+  it('cycles the densities and wraps', () => {
+    expect(DENSITIES.map(nextDensity)).toEqual(['compact', 'dense', 'comfortable'])
+  })
+  it('keeps the zoom per screen class', () => {
+    const b = withLayout({}, 'wall', { zoom: 130 })
+    expect(layoutOf(b, 'wall').zoom).toBe(130)
+    expect(layoutOf(b, 'desktop').zoom).toBeUndefined()
   })
 })

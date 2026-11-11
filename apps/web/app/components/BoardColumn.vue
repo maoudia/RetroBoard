@@ -30,7 +30,8 @@ const turnState = computed(() => { const t = board.snapshot?.turn ?? null; retur
 const display = computed(() => {
   const w = parseFloat(NOTE_W[board.settings?.noteSize ?? 'normal'])
   const f = parseFloat(NOTE_FS[board.settings?.noteText ?? 'normal'])
-  return { '--note-w': `${Math.round(wall.value ? w * WALL : w)}px`, fontSize: `${wall.value ? +(f * WALL).toFixed(2) : f}em` }
+  // The grid turns these into its column width and text size with the personal zoom and density (base.css, change postit-visual-system).
+  return { '--note-w': `${Math.round(wall.value ? w * WALL : w)}px`, '--note-fs': `${wall.value ? +(f * WALL).toFixed(2) : f}` }
 })
 function startResize(e: PointerEvent) {
   const grip = e.currentTarget as HTMLElement
@@ -177,7 +178,10 @@ h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-s
 .count { padding: .1rem .55rem; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); font-size: var(--fs-xs); font-weight: 700; }
 .mini-btn.on { color: var(--accent); background: var(--accent-soft); }
 .notes { position: relative; flex: 1; min-height: 120px; overflow-y: auto; overflow-x: hidden; padding: .6rem .8rem 1rem; scrollbar-width: thin; }
-.grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--note-w), 1fr)); gap: .9rem; align-items: start; }
+/* Masonry (change postit-visual-system, task 1.2): notes of different heights pack into columns without the holes a row grid leaves.
+   Width, text size and spacing come from the facilitator's display, the personal zoom and the density (base.css). */
+.grid { --col-w: max(6.5rem, calc(var(--note-w) * var(--zoom) * var(--dens-w))); position: relative; display: block; column-width: var(--col-w); column-gap: var(--dens-gap); font-size: calc(1em * var(--note-fs, 1) * var(--zoom) * var(--dens-fs)); }
+.grid > :deep(*) { break-inside: avoid; margin-bottom: var(--dens-gap); }
 .empty { text-align: center; padding: 1.5rem .5rem; font-style: italic; }
 .width-seg { margin: .2rem; }
 

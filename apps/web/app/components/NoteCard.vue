@@ -10,6 +10,8 @@ const flights = useFlights()
 const fromHere = computed(() => board.actionsBySource.get(props.note.id)?.length ?? 0)
 
 const el = ref<HTMLElement | null>(null)
+const textEl = ref<HTMLElement | null>(null)
+const { clipped, open: readMore } = useNoteFit(textEl, () => props.note.text)
 const editing = ref(false)
 const draft = ref('')
 const over = ref(false)
@@ -64,7 +66,11 @@ function onDrop() {
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
   >
     <template v-if="!editing">
-      <p class="text" data-testid="note-text">{{ note.text }}</p>
+      <div class="body">
+        <p ref="textEl" class="text" :class="{ open: readMore }" data-testid="note-text">{{ note.text }}</p>
+        <!-- Long text keeps a few lines and a way to the rest (change postit-visual-system, task 1.2); the whole text stays in the page for screen readers. -->
+        <button v-if="clipped" class="more" type="button" :aria-expanded="readMore" :data-testid="`note-more-${note.id}`" @click.stop="readMore = !readMore">{{ readMore ? t('note.readLess') : t('note.readMore') }}</button>
+      </div>
     </template>
     <div v-else class="edit">
       <textarea ref="editor" v-model="draft" :maxlength="board.noteLimit" rows="3" @keydown.enter.exact.prevent="saveEdit" @keydown.esc="editing = false" />
@@ -107,6 +113,9 @@ function onDrop() {
 .note:active { cursor: grabbing; }
 .note.over { outline-color: var(--accent); transform: scale(1.04); }
 .note::after { content: ''; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: .0; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; min-width: 0; }
+.more { justify-self: start; min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: var(--fs-sm); font-weight: 700; text-decoration: underline; cursor: pointer; }
+.more:hover { text-decoration-thickness: 2px; }
 .text { min-width: 0; max-width: 100%; word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; font-weight: 500; line-height: 1.3; }
 /* The footer wraps: author, badges, vote and menu never leave the card, a long list goes to a second line (change hotfix-ux-wave8). */
 footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .2rem .15rem; margin-inline: -.2rem; min-width: 0; }

@@ -4,7 +4,7 @@ import { hasChosen, showNameAfterTyping } from '~/utils/show-name'
 import { THEMES } from '@retroboard/themes'
 import { AVATAR_HUES, DEFAULTS  } from '~/stores/settings'
 import { LOCALES } from '~/i18n'
-import type { ScreenClass } from '~/utils/layout'
+import { DEFAULT_ZOOM, type Density, type ScreenClass, stepZoom, ZOOM_STEPS } from '~/utils/layout'
 import { askNotifyPermission, canNotify } from '~/utils/system-notify'
 import { buildSettingsFile, parseSettingsFile } from '~/utils/settings-file'
 const { t } = useT()
@@ -34,7 +34,8 @@ const set = (patch: Parameters<typeof settings.patch>[0]) => settings.patch(patc
 // Layout is kept per screen class on this device (change device-layout-prefs).
 const layout = useLayoutStore()
 const density = computed(() => layout.density ?? settings.s.density)
-const setDensity = (d: 'comfortable' | 'compact') => { layout.setDensity(d); settings.apply() }
+const setDensity = (d: Density) => { layout.setDensity(d); settings.apply() }
+const setZoom = (z: number) => { layout.setZoom(z); settings.apply() }
 const resetLayout = () => { layout.reset(); settings.apply() }
 const copyLayout = (from: ScreenClass) => { layout.copyFrom(from); settings.apply() }
 /** System notifications: the browser permission is asked here, on opt-in, and nowhere else. */
@@ -127,6 +128,15 @@ async function wipe() {
         <span class="pick-seg">
           <button type="button" :class="{ on: density === 'comfortable' }" @click="setDensity('comfortable')">{{ t('profile.density.comfortable') }}</button>
           <button type="button" :class="{ on: density === 'compact' }" data-testid="density-compact" @click="setDensity('compact')">{{ t('profile.density.compact') }}</button>
+          <button type="button" :class="{ on: density === 'dense' }" data-testid="density-dense" @click="setDensity('dense')">{{ t('profile.density.dense') }}</button>
+        </span>
+      </div>
+      <div v-if="advanced" class="line">
+        <span><strong>{{ t('profile.zoom') }}</strong></span>
+        <span class="pick-seg">
+          <button type="button" :aria-label="t('profile.zoom.out')" :title="t('profile.zoom.out')" :disabled="layout.zoom <= ZOOM_STEPS[0]!" data-testid="zoom-out" @click="setZoom(stepZoom(layout.zoom, -1))"><Icon name="lucide:minus" /></button>
+          <button type="button" class="mono" :aria-label="t('profile.zoom.reset')" :title="t('profile.zoom.reset')" data-testid="zoom-reset" @click="setZoom(DEFAULT_ZOOM)">{{ layout.zoom }}%</button>
+          <button type="button" :aria-label="t('profile.zoom.in')" :title="t('profile.zoom.in')" :disabled="layout.zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1]!" data-testid="zoom-in" @click="setZoom(stepZoom(layout.zoom, 1))"><Icon name="lucide:plus" /></button>
         </span>
       </div>
       <ToggleSwitch v-if="advanced" plain :label="t('profile.shortcuts')" :hint="t('profile.shortcuts.hint')" :model-value="settings.s.shortcuts" data-testid="set-shortcuts" @update:model-value="(on: boolean) => set({ shortcuts: on })" />

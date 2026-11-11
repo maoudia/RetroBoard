@@ -163,7 +163,16 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 }
 
 /* Local settings (profile) */
-:root[data-density="compact"] .col { --note-w: 118px; }
+/* Density and zoom of the notes (change postit-visual-system, tasks 1.2 and 1.3): personal, kept per screen class.
+   They scale the column width, the text size, the gaps and the lines kept before "read more"; the text never goes under --fs-sm (below). */
+:root { --zoom: 1; --dens-w: 1; --dens-fs: 1; --dens-gap: .9rem; --dens-lines: 8; }
+:root[data-density="compact"] { --dens-w: .85; --dens-fs: .94; --dens-gap: .6rem; --dens-lines: 5; }
+:root[data-density="dense"] { --dens-w: .75; --dens-fs: .875; --dens-gap: .4rem; --dens-lines: 3; }
+:root[data-zoom="80"] { --zoom: .8; }
+:root[data-zoom="90"] { --zoom: .9; }
+:root[data-zoom="115"] { --zoom: 1.15; }
+:root[data-zoom="130"] { --zoom: 1.3; }
+:root[data-zoom="150"] { --zoom: 1.5; }
 /* Presentation uses the whole screen: wider notes and a text size that grows with it (change toast-notifications-v2). */
 :root[data-presenter] .col { max-width: none; }
 :root[data-presenter] .note { font-size: clamp(1.25rem, .85rem + .9vw, 2.6rem); border: 2px solid color-mix(in oklab, var(--note-ink, currentColor) 45%, transparent); }
@@ -172,8 +181,8 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
 /* Presenter space (change feedback-wave-5): the focused column gets wide notes, a long idea takes the whole row and wraps
    in a readable measure instead of a narrow strip; the vote chip stays a small chip whatever the note text size. */
 :root[data-presenter] .col { --note-w: clamp(240px, 24vw, 520px); }
-:root[data-focus] .col[data-focused] .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(16rem, 28vw, 32rem)), 1fr)); }
-:root[data-presenter] .grid > .note[data-long] { grid-column: 1 / -1; max-width: min(100%, 64rem); }
+:root[data-focus] .col[data-focused] .grid { column-width: clamp(16rem, 28vw, 32rem); }
+:root[data-presenter] .grid > .note[data-long] { column-span: all; max-width: min(100%, 64rem); }
 :root[data-presenter] .note .text { text-wrap: pretty; overflow-wrap: break-word; hyphens: auto; }
 :root[data-presenter] [data-walk] { outline: 4px solid var(--accent); outline-offset: 4px; box-shadow: 0 0 0 10px var(--accent-soft), var(--shadow-2); z-index: 3; transition: box-shadow .3s; }
 :root[data-presenter] .note .vote { min-height: 0; padding: .15em .6em; font-size: clamp(.95rem, .8rem + .35vw, 1.35rem); font-variant-numeric: tabular-nums; border-width: 1.5px; }
@@ -212,7 +221,18 @@ dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px)
   :root[data-focus="accordion"] .board > .col:not([data-focused]) { flex: 0 0 52px !important; min-width: 0 !important; scroll-snap-align: none; }
 }
 @media (prefers-reduced-motion: reduce) { :root[data-focus] .board > .col, :root[data-focus] .board > .col * { transition: none !important; animation: none !important; } }
-:root[data-density="compact"] .note { min-height: 80px; padding: .5rem .6rem .35rem; font-size: var(--fs-sm); }
+:root[data-density="compact"] .note { min-height: 80px; padding: .5rem .6rem .35rem; }
+:root[data-density="dense"] .note { min-height: 56px; padding: .35rem .5rem .25rem; gap: .25rem; transform: none; }
+:root[data-density="dense"] .note:hover { transform: translateY(-2px); }
+
+/* Text fitting (change postit-visual-system, task 1.2): the text is never smaller than --fs-sm. A long note first steps down to
+   87.5 % of its size (still floored), then keeps a few lines (--dens-lines) and offers "read more"; the NoteCard sets data-fit. */
+.note .text { font-size: max(var(--fs-sm), 1em); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--dens-lines); line-clamp: var(--dens-lines); overflow: hidden; }
+.note .text[data-fit="min"] { font-size: max(var(--fs-sm), .875em); }
+.note .text.open { display: block; -webkit-line-clamp: unset; line-clamp: unset; overflow: visible; }
+/* Presentation shows the whole idea to the room: nothing is clipped and there is nobody to press "read more". */
+:root[data-presenter] .note .text { display: block; -webkit-line-clamp: unset; line-clamp: unset; overflow: visible; }
+:root[data-presenter] .note .more { display: none; }
 :root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 
 /* "Similar idea" link: the existing note blinks once. */

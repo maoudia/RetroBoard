@@ -1,6 +1,6 @@
 import { safeStorage } from '~/utils/storage'
 import {
-  type ClassLayout, type Density, LAYOUT_KEY, type LayoutBook, type ScreenClass, classOf, copyClass, layoutOf, resetClass,
+  DEFAULT_ZOOM, type ClassLayout, type Density, LAYOUT_KEY, type LayoutBook, type ScreenClass, classOf, copyClass, layoutOf, resetClass,
   setAllWrite, setColumnWrite, setColumnWriteHeight, setColumnWriteHidden, setSize, setWidth, setWrite, setWriteHeight, withLayout,
 } from '~/utils/layout'
 
@@ -17,6 +17,8 @@ export const useLayoutStore = defineStore('layout', () => {
     book, cls, current,
     density: computed<Density | null>(() => current.value.density ?? null),
     setDensity: (d: Density) => commit(withLayout(book.value, cls.value, { density: d })),
+    zoom: computed(() => current.value.zoom ?? DEFAULT_ZOOM),
+    setZoom: (z: number) => commit(withLayout(book.value, cls.value, { zoom: z })),
     writingHidden: computed(() => current.value.writingHidden === true),
     // The toolbar switch rules every column: it also clears the per-column folds so open/close always applies to all.
     setWritingHidden: (v: boolean) => commit(withLayout(book.value, cls.value, { writingHidden: v, writeOff: {} })),

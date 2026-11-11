@@ -1,4 +1,5 @@
 import { resolveShortcut, type KeyContext, type ShortcutId } from '@retroboard/application'
+import { DEFAULT_ZOOM, nextDensity, stepZoom } from '~/utils/layout'
 
 const TYPING = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
 const CONTROLS = new Set(['BUTTON', 'A', 'SUMMARY'])
@@ -23,6 +24,9 @@ export function useShortcuts() {
   const drafts = useDraftsStore()
   const settings = useSettingsStore()
   const { publish } = usePublish()
+  const { push } = useToasts()
+  const { t } = useT()
+  const layout = useLayoutStore()
 
   const columns = () => [...document.querySelectorAll<HTMLElement>('section[data-anchor-kind="column"]')]
   const notesOf = (col: HTMLElement) => [...col.querySelectorAll<HTMLElement>('article.note[data-anchor-kind="note"]')]
@@ -61,6 +65,18 @@ export function useShortcuts() {
     const at = note && col ? notesOf(col).indexOf(note) : 0
     focusColumn(Math.min(columns().length - 1, Math.max(0, (ci < 0 ? 0 : ci) + step)), at)
   }
+  /** Note zoom and density are personal and kept per screen class; a toast says where they landed (the keys have no other feedback). */
+  function zoomTo(percent: number) {
+    layout.setZoom(percent)
+    settings.apply()
+    push(t('zoom.level', { n: percent }), 'info', 1600)
+  }
+  function cycleDensity() {
+    const next = nextDensity(layout.density ?? settings.s.density)
+    layout.setDensity(next)
+    settings.apply()
+    push(t('density.level', { name: t(`profile.density.${next}` as never) }), 'info', 1600)
+  }
   const focusedNoteId = () => focusedNote()?.dataset.anchor ?? null
 
   const actions: Record<ShortcutId, (digit?: number) => void> = {
@@ -84,6 +100,10 @@ export function useShortcuts() {
     'note.color': () => { const id = focusedNoteId(); if (id) ui.openPalette(id) },
     'presenter.toggle': () => { ui.presenter = !ui.presenter },
     'writing.toggle': () => { const l = useLayoutStore(); l.setWritingHidden(!l.writingHidden) },
+    'zoom.in': () => zoomTo(stepZoom(layout.zoom, 1)),
+    'zoom.out': () => zoomTo(stepZoom(layout.zoom, -1)),
+    'zoom.reset': () => zoomTo(DEFAULT_ZOOM),
+    'density.cycle': cycleDensity,
     'share.open': () => ui.open('share'),
     'export.open': () => ui.open('export'),
     'help.open': () => ui.open('help'),
