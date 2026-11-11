@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { addDraft, axe, column, columnId as colId, createBoard, settle } from './helpers'
+import { addDraft, axe, column, columnId as colId, createBoard, noteByText, settle } from './helpers'
 
 /**
  * Notes at scale (change postit-visual-system, tasks 1.2 and 1.3): a column of 60 notes of every length packs into a masonry, the text
@@ -102,6 +102,18 @@ test.describe('60 notes in a column', () => {
     await publishAll(page, 0, ['Bref'])
     await expect(page.locator('[data-testid^="note-more-"]')).toHaveCount(0)
     expect(await page.getByTestId('note-text').evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true)
+  })
+
+  test('an expanded cluster takes the whole width of the column, its notes inside', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishAll(page, 0, ['Premiere', 'Deuxieme', 'Troisieme'])
+    await noteByText(page, 'Deuxieme').dragTo(noteByText(page, 'Premiere'))
+    await settle(page)
+    await column(page, 0).locator('[data-testid^="expand-"]').click()
+    const inline = column(page, 0).locator('[data-testid^="cluster-inline-"]')
+    await expect(inline).toBeVisible()
+    const widths = await Promise.all([inline, column(page, 0).locator('.grid')].map((l) => l.evaluate((el) => el.getBoundingClientRect().width)))
+    expect(widths[0]!).toBeGreaterThan(widths[1]! - 2)
   })
 
   test('the page passes axe with clipped notes in light and dark', async ({ page }) => {
