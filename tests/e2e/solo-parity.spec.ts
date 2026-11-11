@@ -105,6 +105,32 @@ test('carry-over reads a previous solo board from this browser without the relay
   expect(sockets).toEqual([])
 })
 
+test('an action added just before the tab goes away is still on the board after the next load', async ({ page }) => {
+  await startSolo(page)
+  const link = page.url()
+  await page.getByTestId('btn-actions').click()
+  await page.getByTestId('action-text').fill('Added at the last moment')
+  // The page shows an action before the browser has sealed and stored it (about 16 ms, far longer while the main thread
+  // is busy painting). Make that gap long and leave the page the instant the action is shown, as closing a tab does.
+  await page.evaluate(() => {
+    const encrypt = SubtleCrypto.prototype.encrypt
+    SubtleCrypto.prototype.encrypt = function (this: SubtleCrypto, ...args: Parameters<SubtleCrypto['encrypt']>) {
+      return new Promise<ArrayBuffer>((resolve, reject) => setTimeout(() => encrypt.apply(this, args).then(resolve, reject), 150))
+    }
+    const watch = new MutationObserver(() => {
+      if (!document.querySelector('[data-testid="actions"]')?.textContent?.includes('Added at the last moment')) return
+      watch.disconnect()
+      location.replace('about:blank')
+    })
+    watch.observe(document.body, { childList: true, subtree: true, characterData: true })
+    ;(document.querySelector('[data-testid="action-add"]') as HTMLButtonElement).click()
+  })
+  await page.waitForURL('about:blank')
+  await page.goto(link)
+  await page.getByTestId('btn-actions').click()
+  await expect(page.getByTestId('actions')).toContainText('Added at the last moment')
+})
+
 test('solo: the participants panel says you are alone and shows no connection mode', async ({ page }) => {
   await startSolo(page)
   await page.getByTestId('btn-participants').click()

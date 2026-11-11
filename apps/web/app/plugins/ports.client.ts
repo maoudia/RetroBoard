@@ -2,6 +2,7 @@ import type { ChannelFactory, ClipboardPort, FilePort, NotifierPort, ReplicaStor
 import { deriveContentKey, fromBase64Url } from '@retroboard/crypto'
 import type { KeyRing } from '@retroboard/domain'
 import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adapters/replica-idb'
+import { withJournal } from '~/adapters/replica-journal'
 import { createSessionReplicaStore, withSessionFallback } from '~/adapters/replica-session'
 import { createIdbVault, createSessionVault, createVault, openVaultDb, type PasscodeVault } from '~/adapters/passcode-vault'
 import { createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
@@ -31,6 +32,8 @@ export default defineNuxtPlugin(() => {
   const settings = useSettingsStore()
   let durable: ReplicaStorePort | null
   try { durable = typeof indexedDB === 'undefined' ? null : createIdbReplicaStore(openReplicaDb()) } catch { durable = null }
+  // An action is shown before IndexedDB commits it: the journal keeps it (synchronously) in case the tab goes away first.
+  if (durable) { try { durable = withJournal(durable, localStorage) } catch { /* no localStorage: the store alone */ } }
   let session: ReplicaStorePort | null = null
   try { session = createSessionReplicaStore(sessionStorage) } catch { /* no storage at all: memory only */ }
   // Private modes without IndexedDB keep the board in this tab (sessionStorage): a reload or back and forward reopens it.
