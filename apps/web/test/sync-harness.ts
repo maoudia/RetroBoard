@@ -352,7 +352,7 @@ export class World {
   roomId = hex(11) + 'AbCdEfGhIjK'.slice(0, 11)
   roomKey = toBase64Url(randomKey(32))
   facilitatorSecret = toBase64Url(randomKey(32))
-  /** Signing room of a board that moved here (ADR-0033). */
+  /** Signing room of a board that moved here (ADR-0034). */
   signRoomId: string | undefined
 
   /** `ring`: the room is the one a board moved to; its keys and signing room are used as they are. */

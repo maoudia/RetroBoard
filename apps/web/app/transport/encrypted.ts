@@ -178,7 +178,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     return true
   }
 
-  // ----- Move to a fresh link (change facilitator-moderation, ADR-0033) -----
+  // ----- Move to a fresh link (change facilitator-moderation, ADR-0034) -----
 
   /** The connections a move addresses, frozen by `beginMove`: someone who connects afterwards is not sent the new link. */
   private moveRoster: Set<string> | null = null
