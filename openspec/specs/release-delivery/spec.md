@@ -48,3 +48,14 @@ Each release SHALL publish a multi-architecture container image to GitHub Contai
 #### Scenario: No board data
 - **WHEN** the container runs
 - **THEN** it keeps no board data on disk or in a database (memory only, as the hosted relay)
+
+### Requirement: The image is run before it is published
+The container image SHALL be started and pass the smoke test (`scripts/smoke.mjs` against the running container) before the release publishes it, and a pull request that changes the image inputs SHALL run the same check.
+
+#### Scenario: Image that does not start
+- **WHEN** the image built for a release does not answer `/healthz` or fails the smoke test
+- **THEN** the release does not push it to the registry
+
+#### Scenario: Pull request touching the image
+- **WHEN** a pull request changes the `Dockerfile`, `deploy/`, `apps/relay/` or `apps/web/`
+- **THEN** the `Container` workflow builds the image, runs it and smoke tests it

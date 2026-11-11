@@ -162,6 +162,9 @@ jobs:
             REVISION=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # The image has to start and pass the smoke test before it is published (a base image change once broke it unseen).
+      - name: Run the image and smoke test it
+        run: scripts/ci/container-smoke.sh retroboard:scan
       - name: Scan the image (Trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
