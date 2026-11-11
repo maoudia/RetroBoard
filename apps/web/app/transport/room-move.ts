@@ -1,5 +1,5 @@
 /**
- * Move to a fresh link (change facilitator-moderation, ADR-0033), the parts that need no I/O.
+ * Move to a fresh link (change facilitator-moderation, ADR-0034), the parts that need no I/O.
  *
  * The facilitator sends each remaining participant one `room.moved` frame in the old room. The frame is encrypted with the
  * old room key like any live frame, so a removed participant (who still holds that key) can open the outside of it; what

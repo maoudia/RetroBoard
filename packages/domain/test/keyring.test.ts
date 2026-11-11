@@ -125,7 +125,7 @@ describe('keys and links, exactly', () => {
 })
 
 
-describe('moved board (ADR-0033)', () => {
+describe('moved board (ADR-0034)', () => {
   const room2 = 'Zz9dEfGhIjKlMnOpQrStUv'
   const key2 = 'm'.repeat(21) + 'B'
   const compactFull: KeyRing = { roomId, roomKey: 'k'.repeat(21) + 'A', facilitatorSecret: 'f'.repeat(21) + 'Q' }

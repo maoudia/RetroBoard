@@ -8,7 +8,7 @@
  *   facilitator: #r=<roomId>&k=<roomKey>&f=<facilitatorSecret>
  *   passcode:    &p=1 is appended when the board needs a passcode (the passcode itself never
  *                travels in a link; it is shared through another channel).
- *   moved board: &d=<signing room id> (ADR-0033): the room id event signatures are bound to, when the
+ *   moved board: &d=<signing room id> (ADR-0034): the room id event signatures are bound to, when the
  *                board moved to a fresh room. Long syntax only.
  * Compact form (ADR-0029), for boards whose secrets are 128 bits (22 characters):
  *   participant: #c=<roomId 22><roomKey 22>
@@ -34,7 +34,7 @@ export interface KeyRing {
   /** True when the content key also depends on a passcode. */
   readonly passcode?: boolean
   /**
-   * The room id that event signatures are bound to (ADR-0033). Absent: `roomId`. A board that moved to a fresh link keeps the
+   * The room id that event signatures are bound to (ADR-0034). Absent: `roomId`. A board that moved to a fresh link keeps the
    * signing domain of its first room, so its events keep their signatures and authors.
    */
   readonly signRoomId?: string
@@ -53,7 +53,7 @@ export const isFacilitatorRing = (ring: KeyRing): boolean => ring.facilitatorSec
 export const participantRing = ({ roomId, roomKey, passcode, signRoomId }: KeyRing): KeyRing => ({ roomId, roomKey, ...(passcode ? { passcode } : {}), ...(signRoomId ? { signRoomId } : {}) })
 
 /**
- * The ring of a board moved to a fresh room (ADR-0033): the new room and key, the facilitator secret and passcode flag of the old
+ * The ring of a board moved to a fresh room (ADR-0034): the new room and key, the facilitator secret and passcode flag of the old
  * ring, and the signing domain of the room it leaves. `roomId` and `roomKey` come from the caller (random, 128 bits each).
  */
 export const movedRing = (from: KeyRing, next: { roomId: string; roomKey: string }): KeyRing => ({
