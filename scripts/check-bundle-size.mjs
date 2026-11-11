@@ -26,8 +26,10 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-11-11: total raised from 337 to 342 kB for the export hub: file preview before saving (table, folded JSON,
 // Markdown renderer, sandboxed frame), the optional Slack webhook and their fr/en strings (about 336 kB before,
 // +3.3 kB for the hub, 340.3 kB measured on top of the composer change). The captain allows up to 400 kB; the entry is unchanged.
+// 2026-11-11: entry raised from 44 to 45 kB and total from 342 to 345 kB for the move to a fresh link (remove dialog, signed
+// and sealed hand-off, removed and closed pages, fr/en strings; entry 44.6 kB measured).
 // Raise it only on purpose.
-const BUDGET = { entryKb: 44, totalKb: 342 }
+const BUDGET = { entryKb: 45, totalKb: 345 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
