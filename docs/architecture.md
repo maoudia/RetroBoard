@@ -127,6 +127,7 @@ Plaintext (encrypted)       = { type, actor (pubkey hash), payload, signature }
 ### 5.4 Resurrection (replication)
 
 - Every browser keeps its encrypted replica in IndexedDB and calls `navigator.storage.persist()` to reduce eviction.
+- An IndexedDB commit is asynchronous and a tab left mid-commit drops it, so an event authored here is sealed and staged in a synchronous write-ahead journal (localStorage, same ciphertext, `withJournal`) before the board shows it; the next page start commits what a closed tab left (change `replica-write-ahead`).
 - When the Durable Object is evicted or hibernates and loses its memory, the next connection gets `need-state`. Any peer answers with its version vector; peers then exchange the missing events directly (P2P) or through the relay.
 - If no peer still has the board, it is gone. That is the privacy promise. The UI says it clearly and offers a **board file** (`.retro`, encrypted, contains the log and the key derivation salt) to restore a board later or carry it to the next retro.
 - Local retention: replicas expire after 30 days by default (configurable in the profile, including "delete when I leave").

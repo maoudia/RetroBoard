@@ -12,14 +12,17 @@ export function createSessionReplicaStore(storage: Storage, now: () => number = 
   const read = (room: string): ReplicaRecord[] => {
     try { const v = JSON.parse(storage.getItem(PREFIX + room) ?? '[]') as unknown; return Array.isArray(v) ? (v as ReplicaRecord[]) : [] } catch { return [] }
   }
+  const write = (roomId: string, records: readonly ReplicaRecord[]) => {
+    const have = new Map(read(roomId).map((r) => [r.id, r]))
+    for (const r of records) if (!have.has(r.id)) have.set(r.id, { id: r.id, data: r.data })
+    storage.setItem(PREFIX + roomId, JSON.stringify([...have.values()]))
+    storage.setItem(USED + roomId, String(now()))
+  }
   return {
     async load(roomId) { return read(roomId) },
-    async append(roomId, records) {
-      const have = new Map(read(roomId).map((r) => [r.id, r]))
-      for (const r of records) if (!have.has(r.id)) have.set(r.id, { id: r.id, data: r.data })
-      storage.setItem(PREFIX + roomId, JSON.stringify([...have.values()]))
-      storage.setItem(USED + roomId, String(now()))
-    },
+    // Already synchronous: staging is the write itself.
+    stage(roomId, records) { try { write(roomId, records) } catch { /* best effort: append reports failures */ } },
+    async append(roomId, records) { write(roomId, records) },
     async purge(before) {
       let n = 0
       for (let i = storage.length - 1; i >= 0; i--) {
@@ -42,6 +45,7 @@ export function withSessionFallback(primary: ReplicaStorePort | null, session: R
   if (!primary) return session
   const ids = (rs: ReplicaRecord[]) => new Set(rs.map((r) => r.id))
   return {
+    stage(roomId, records) { primary.stage?.(roomId, records); session.stage?.(roomId, records) },
     async load(roomId) {
       const [a, b] = await Promise.all([primary.load(roomId).catch(() => [] as ReplicaRecord[]), session.load(roomId).catch(() => [] as ReplicaRecord[])])
       const seen = ids(a)

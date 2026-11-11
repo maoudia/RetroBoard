@@ -248,10 +248,13 @@ export class EncryptedRelayTransport implements BoardTransport {
       return
     }
     const event = await signEvent(signer, this.ring.roomId, draft)
-    this.log.insert(event)
-    this.emit()
+    // Sealed and staged before the board shows it: what the page shows has a synchronous copy on this device, so a tab
+    // left before the replica commits (asynchronous, slower while the page paints) does not lose it.
     const env = await this.sealEvent(event)
     this.sealed.set(env.id, env)
+    if (!this.forgotten) this.deps.replica?.stage?.(this.ring.roomId, [{ id: env.id, data: JSON.stringify(env) }])
+    this.log.insert(event)
+    this.emit()
     this.remember([env], true)
     this.publish([env])
   }
