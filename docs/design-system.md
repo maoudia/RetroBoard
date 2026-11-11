@@ -17,6 +17,8 @@ One page of rules so every screen feels like the same product. Themes change the
 |---|---|---|
 | Colour | `--bg --surface --surface2 --border --text --muted --accent --accent-ink --accent2 --danger --success --note-*` | Never hard-code a hex in a component. Text on `--accent` uses `--accent-ink`. |
 | Type | `--fs-xs .75rem, --fs-sm .875rem, --fs-md 1rem, --fs-lg 1.125rem, --fs-xl 1.25rem, --fs-2xl 1.5rem, --fs-3xl 2rem` | Only these sizes, plus `clamp()` for marketing headlines. `--f-display`, `--f-body`, `--f-mono` come from the theme. |
+| Fluid type | `--fluid-xs` to `--fluid-3xl`, `--type-scale` | Same steps as `--fs-*`, growing with the viewport from 360 to 1600 px and multiplied by `--type-scale` (1 up to laptop, 1.125 wide, 1.5 tv). Written on `<html>` by `applyScreen`, next to `data-screen`. Use for text that must follow the screen; `--fs-*` stays the default. |
+| Screens | `data-screen` = `phone` (360), `tablet` (600), `laptop` (1024), `wide` (1600), `tv` (2400), `--bp-*` | Source: `packages/themes/src/screens.ts`. CSS cannot read a custom property in a media query: write the pixel value and select with `[data-screen="tv"]` where a rule depends on the class. |
 | Radius | `--r-xs 6px, --r-sm 8px, --r-control, --r-card` | `--r-control` and `--r-card` are set by the theme. Pills use `999px`, avatars `50%`. |
 | Space | `--sp-1 .25rem ... --sp-6 2rem` | Prefer these; gaps inside a component are multiples of `--sp-1`. |
 | Motion | `--dur-fast .15s, --dur-base .25s, --dur-slow .4s` | Under 400 ms. Motion answers an action (open, confirm, move). Respect reduced motion. |

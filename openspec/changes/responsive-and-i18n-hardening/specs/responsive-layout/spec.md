@@ -15,6 +15,13 @@ The system SHALL support phone (360-599 px), tablet (600-1023), laptop (1024-159
 - **WHEN** the board is displayed on a 3840 px wide screen
 - **THEN** note text is at least 24 px and all columns are visible
 
+### Requirement: Screen class attribute
+The system SHALL expose the current screen class as `data-screen` on the root element (`phone`, `tablet`, `laptop`, `wide`, `tv`) with the breakpoints and a fluid type scale as CSS custom properties, so layout rules and type follow the class.
+
+#### Scenario: Window resized
+- **WHEN** the window moves from 1100 px to 2500 px wide
+- **THEN** `data-screen` changes from `laptop` to `tv` and the type scale multiplier grows from 1 to 1.5
+
 ### Requirement: Presenter mode
 The system SHALL offer a presenter mode with larger type, the high-contrast variant, a QR code to join and hidden cursors.
 

@@ -190,7 +190,7 @@ A cluster is an idea in its own right: title (defaults to the first idea's text,
 
 ## 7. UX, responsive, themes, i18n
 
-- **Breakpoints**: phone (360-599), tablet (600-1023), laptop (1024-1599), wide (1600-2399), TV/projector (2400+). Container queries for columns; fluid type with `clamp()`. **Presenter mode** for TV/projector: larger type, high contrast variant, QR code to join, cursors hidden.
+- **Breakpoints**: phone (360-599), tablet (600-1023), laptop (1024-1599), wide (1600-2399), TV/projector (2400+). Container queries for columns; fluid type with `clamp()`. The classes, breakpoints and the fluid scale live in `packages/themes/src/screens.ts`; the web app writes them as `--bp-*`, `--type-scale` and `--fluid-xs` to `--fluid-3xl` on `<html>` and sets `data-screen` (`phone`, `tablet`, `laptop`, `wide`, `tv`). **Presenter mode** for TV/projector: larger type, high contrast variant, QR code to join, cursors hidden.
 - **Readable at scale**: masonry layout per column, auto font fitting per note (min size, then truncate with "read more"), density levels, zoom (Ctrl/Cmd +/-, pinch), cluster collapse, search and filter, "focus mode" on one column.
 - **Post-it colours**: a canonical palette close to classic sticky notes (canary yellow, neon pink, aqua blue, lime green, orange, lilac, mint, white). Exact hex values are defined in `packages/themes` and validated for AA contrast in light and dark variants.
 - **Animations**: peel on hover, stick on publish (with a small paper flutter), magnetic snap when clustering, podium rise, ring tick. All honour `prefers-reduced-motion` and the profile setting.
@@ -198,7 +198,7 @@ A cluster is an idea in its own right: title (defaults to the first idea's text,
 - **Themes**: each theme ships light and dark variants. The board theme is imposed; participants switch variant only. The landing, /new and the profile use the landing theme, never a board theme.
 - **Profile**: friendly default avatar (initials on a soft gradient, never "?"); persona avatar sets bundled and self-hosted; Gravatar as an explicit opt-in (it sends an email hash to Gravatar; CSP allows `img-src` for Gravatar only when enabled).
 - **Smart title**: `<Team> - Sprint <N> - <date>` from the local team profile, sprint counter incremented on each retro.
-- **i18n**: fix truncated labels (toolbar, segmented controls) with `min-width: 0`, wrapping and icon-only fallbacks; add a pseudo-locale (+40% length, accented) that CI renders on every page to catch overflow.
+- **i18n**: fix truncated labels (toolbar, segmented controls) with `min-width: 0`, wrapping and icon-only fallbacks; add a pseudo-locale (French +40% length, accented, in brackets; `packages/i18n/src/pseudo.ts`) that CI renders on every page to catch overflow. It is reached only with `?lang=pseudo` (one page load, never stored, absent from every language picker); a key missing from the dictionaries shows bare, without brackets.
 
 ## 8. Exports and integrations (browser only)
 

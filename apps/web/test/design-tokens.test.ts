@@ -22,8 +22,8 @@ const BASELINE: Record<string, number> = {
 }
 
 describe('design tokens', () => {
-  it('font sizes use the type scale, a fluid clamp or inherit', () => {
-    const bad = decl('font-size').filter(({ v }) => !/^(var\(--fs-(xs|sm|md|lg|xl|2xl|3xl)\)|inherit|clamp\(.*\)|calc\(.*\)|[\d.]+em|[\d.]+%|larger|smaller)$/.test(v))
+  it('font sizes use the type scale (fixed --fs-* or fluid --fluid-*), a fluid clamp or inherit', () => {
+    const bad = decl('font-size').filter(({ v }) => !/^(var\(--(fs|fluid)-(xs|sm|md|lg|xl|2xl|3xl)\)|inherit|clamp\(.*\)|calc\(.*\)|[\d.]+em|[\d.]+%|larger|smaller)$/.test(v))
     expect(bad, 'use var(--fs-*) from base.css').toEqual([])
   })
 

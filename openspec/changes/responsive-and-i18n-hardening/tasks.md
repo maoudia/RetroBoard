@@ -2,8 +2,8 @@
 
 ## 1. Foundations
 
-- [ ] 1.1 Define breakpoints, fluid type scale and `data-screen` in UI tokens; verify a unit snapshot of generated CSS variables
-- [ ] 1.2 Add the pseudo-locale generator and `?lang=pseudo` on previews; verify unit test (length +35-45%, markers)
+- [x] 1.1 Define breakpoints, fluid type scale and `data-screen` in UI tokens; verify a unit snapshot of generated CSS variables
+- [x] 1.2 Add the pseudo-locale generator and `?lang=pseudo` on previews; verify unit test (length +35-45%, markers)
 
 ## 2. Layout
 

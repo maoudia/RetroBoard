@@ -8,8 +8,16 @@ User interface labels MUST NOT be cut or overlap in any supported language at an
 - **THEN** no text element overflows its container
 
 ### Requirement: Pseudo-locale
-The system SHALL provide a development-only pseudo-locale that lengthens strings by about 40% and adds accents, to detect hard-coded text and overflow.
+The system SHALL provide a pseudo-locale that lengthens strings by about 40%, adds accents and wraps each string in brackets, to detect hard-coded text and overflow. It SHALL be reachable only with `?lang=pseudo` for that page load, never stored and never offered in a language picker.
 
 #### Scenario: Hard-coded string
 - **WHEN** a page shows a string that is not in the dictionaries
 - **THEN** it appears without pseudo-locale markers and the CI check reports it
+
+#### Scenario: Missing key
+- **WHEN** a key is missing from the dictionaries while the pseudo-locale is on
+- **THEN** the key appears as it is, without brackets, and the CI check reports it
+
+#### Scenario: Not selectable
+- **WHEN** a person opens the language menu or the settings
+- **THEN** the pseudo-locale is not offered, and a page loaded without `?lang=pseudo` is never in it
