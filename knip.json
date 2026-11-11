@@ -6,6 +6,7 @@
         "tests/e2e/**/*.ts",
         "scripts/**/*.mjs",
         "allurerc.mjs",
+        "vitest.mutation.config.ts",
         "tests/docs/**/*.ts",
         "playwright.docs.config.ts"
       ],

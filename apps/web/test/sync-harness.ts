@@ -479,3 +479,20 @@ export async function createBoardAs(world: World, peer: Peer): Promise<void> {
   peer.send({ t: 'board.init', templateId: 'start-stop-continue', themeId: 'studio', locale: 'en', openFacilitation: true })
   await world.until(() => peer.columnIds.length > 0)
 }
+
+/**
+ * A participant whose device holds a board of `count` events (`size` as in `fillReplica`) opens it while the relay
+ * is empty, as after a deploy: the relay can only get the board from this participant.
+ */
+export async function holderOfBoardOf(count: number, size: 'small' | 'bulky'): Promise<{ world: World; alice: Peer; held: number }> {
+  const world = new World()
+  const replica = new MemoryReplica()
+  const seed = { value: null }
+  const first = await world.join('alice', { facilitator: true, replica, seed })
+  await createBoardAs(world, first)
+  first.close()
+  await world.fillReplica(replica, count, size, first.columnIds[0]!)
+  const held = replica.count(world.roomId)
+  const alice = await world.join('alice', { facilitator: true, replica, seed })
+  return { world, alice, held }
+}
