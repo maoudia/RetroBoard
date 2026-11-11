@@ -64,6 +64,8 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 * `attention-and-notifications` ([proposal](../openspec/changes/attention-and-notifications/proposal.md))
 * `team-workspaces` ([proposal](../openspec/changes/team-workspaces/proposal.md))
 * `results-trends` ([proposal](../openspec/changes/results-trends/proposal.md))
+* `visual-regression` ([proposal](../openspec/changes/visual-regression/proposal.md))
+* `agent-maintenance` ([proposal](../openspec/changes/agent-maintenance/proposal.md))
 * `actions-v2-and-carry-over` ([proposal](../openspec/changes/actions-v2-and-carry-over/proposal.md))
 * `profile-avatars-and-team-space` ([proposal](../openspec/changes/profile-avatars-and-team-space/proposal.md))
 * `board-undo-rewind` ([proposal](../openspec/changes/board-undo-rewind/proposal.md))

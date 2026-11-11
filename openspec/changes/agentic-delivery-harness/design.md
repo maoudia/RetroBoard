@@ -41,8 +41,10 @@ Introduce workflows one by one behind `workflow_dispatch`, then make them requir
   data), to be raised toward 70 as reducer tests improve.
 - Secret scanning: GitHub secret scanning and push protection (repository setting) instead of the
   gitleaks action, which needs a paid licence for organisation repositories.
-- Lighthouse budgets (2.3) and the SBOM (3.2) are not done yet; the bundle budget uses
+- Lighthouse budgets (2.3) are not done yet; the bundle budget uses
   `scripts/check-bundle-size.mjs` and accessibility uses axe in the e2e suite.
+- The release SBOM is SPDX (`sbom.spdx.json`, from `anchore/sbom-action`), not CycloneDX: the format is
+  accepted as is (3.2).
 - Agent workflows skip themselves until `CLAUDE_CODE_OAUTH_TOKEN` (Claude) or `ANTHROPIC_API_KEY`
   plus the `OPENCODE_MODEL` variable (OpenCode) exist; live verification on a sandbox issue is
   pending those secrets.

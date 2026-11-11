@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Signed release assets
-Every GitHub Release SHALL carry the static build as an archive, its CycloneDX SBOM, keyless signatures of both and the build provenance, so that anyone can verify what they download.
+Every GitHub Release SHALL carry the static build as an archive, its SPDX SBOM, keyless signatures of both and the build provenance, so that anyone can verify what they download.
 
 #### Scenario: Release assets
 - **WHEN** a release is published
