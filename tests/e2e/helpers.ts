@@ -146,7 +146,17 @@ export function axe(page: Page): AxeBuilder {
     await settle(page)
     await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
     await settle(page)
-    return analyze()
+    // Looping decorative motion (the landing demo notes fade in and out forever) never settles: axe would measure a note
+    // mid-fade, its text blended into the paper (4.4:1 on a frame, 14:1 at rest). The product's reduced-motion mode shows
+    // the resting state, which is the colour a reader gets, so the analysis runs in it and the page is put back after.
+    const wasReduced = await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    try {
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+      return await analyze()
+    } finally {
+      await page.emulateMedia({ reducedMotion: wasReduced ? 'reduce' : 'no-preference' })
+    }
   }
   return builder
 }
