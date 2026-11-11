@@ -74,7 +74,7 @@ export interface BoardChannel {
    */
   beginMove?(removing: string | null): number
   /**
-   * Encrypted boards, facilitator: moves the team to the fresh room `ring` (change facilitator-moderation, ADR-0034). Keeps a copy of
+   * Encrypted boards, facilitator: moves the team to the fresh room `ring` (change facilitator-moderation, ADR-0035). Keeps a copy of
    * the board in it, sends each remaining participant the new link (signed, sealed to them), then closes the old room.
    * Null when this tab cannot do it (not the lead, no local copy store, closed).
    */

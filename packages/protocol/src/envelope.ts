@@ -133,7 +133,7 @@ export const FocusSchema = v.strictObject({
 export type Focus = v.InferOutput<typeof FocusSchema>
 
 /**
- * Plaintext inside an `eph` envelope: the facilitator moved the team to a fresh link (facilitator-moderation, ADR-0034).
+ * Plaintext inside an `eph` envelope: the facilitator moved the team to a fresh link (facilitator-moderation, ADR-0035).
  * `ct` is sealed to one participant's X25519 key and holds the new link and the facilitator's signature over it: the old
  * room key (which a removed participant still holds) opens this envelope, not `ct`. `to` is the recipient's connection.
  */
