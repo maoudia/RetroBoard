@@ -15,7 +15,7 @@
 
 /* TransitionGroup hooks used by every note list */
 .note-enter-active { animation: var(--enter-anim) var(--enter-ms) var(--ease) both; }
-.note-leave-active { position: absolute; width: var(--note-w, 150px); animation: var(--leave-anim) 320ms ease-in both; z-index: 0; pointer-events: none; }
+.note-leave-active { position: absolute; width: var(--col-w, var(--note-w, 150px)); animation: var(--leave-anim) 320ms ease-in both; z-index: 0; pointer-events: none; }
 .note-move { transition: transform var(--move-ms) var(--ease); }
 .note-enter-active.is-flying { animation: none; }
 

@@ -2,6 +2,7 @@ import { type LocalePref, currentLocale, detectLocale } from '~/i18n'
 import { migrate } from '~/utils/settings-migration'
 import { safeStorage } from '~/utils/storage'
 import type { ThemeVariantPref } from '~/utils/settings-migration'
+import { DEFAULT_ZOOM, type Density } from '~/utils/layout'
 
 export interface LocalSettings {
   /** Background atmosphere (snow, bats...) when the theme has one. */
@@ -9,7 +10,7 @@ export interface LocalSettings {
   /** Presentation mode shows the ideas of each group by default (change feedback-wave-7). */
   presentGroups: boolean
   motion: 'auto' | 'reduced'
-  density: 'comfortable' | 'compact'
+  density: Density
   /** Play a short chime when the timer ends. */
   sound: boolean
   /**
@@ -79,7 +80,9 @@ export const useSettingsStore = defineStore('settings', () => {
   function apply() {
     const root = document.documentElement
     root.dataset.motion = s.motion
-    root.dataset.density = useLayoutStore().density ?? s.density
+    const layout = useLayoutStore()
+    root.dataset.density = layout.density ?? s.density
+    root.dataset.zoom = String(layout.zoom ?? DEFAULT_ZOOM)
     root.dataset.notify = s.notifyPos
     currentLocale.value = detectLocale(s.locale, navigator.languages ?? [])
   }

@@ -5,7 +5,7 @@
 export type ShortcutId =
   | 'column.focus' | 'note.new' | 'note.prev' | 'note.next' | 'column.prev' | 'column.next' | 'note.edit' | 'focus.clear'
   | 'drafts.publish' | 'filter.open' | 'vote.add' | 'vote.remove' | 'note.color'
-  | 'presenter.toggle' | 'writing.toggle' | 'share.open' | 'export.open' | 'help.open'
+  | 'presenter.toggle' | 'writing.toggle' | 'zoom.in' | 'zoom.out' | 'zoom.reset' | 'density.cycle' | 'share.open' | 'export.open' | 'help.open'
   | 'timer.toggle' | 'phase.next' | 'phase.prev' | 'ranking.open' | 'floor.give'
 
 export type ShortcutGroup = 'navigate' | 'write' | 'board' | 'facilitate'
@@ -41,6 +41,10 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   { id: 'filter.open', keys: ['/'], group: 'board', label: 'kbd.filter.open', display: '/' },
   { id: 'presenter.toggle', keys: ['P'], group: 'board', label: 'kbd.presenter.toggle', display: 'Shift+p' },
   { id: 'writing.toggle', keys: ['w'], group: 'board', label: 'kbd.writing.toggle', display: 'w' },
+  { id: 'zoom.in', keys: ['+', '='], group: 'board', label: 'kbd.zoom.in', display: '+' },
+  { id: 'zoom.out', keys: ['-'], group: 'board', label: 'kbd.zoom.out', display: '-' },
+  { id: 'zoom.reset', keys: ['0'], group: 'board', label: 'kbd.zoom.reset', display: '0' },
+  { id: 'density.cycle', keys: ['d'], group: 'board', label: 'kbd.density.cycle', display: 'd' },
   { id: 'share.open', keys: ['s'], group: 'board', label: 'kbd.share.open', display: 's' },
   { id: 'export.open', keys: ['e'], group: 'board', label: 'kbd.export.open', display: 'e' },
   { id: 'help.open', keys: ['?'], group: 'board', label: 'kbd.help.open', display: '?' },
