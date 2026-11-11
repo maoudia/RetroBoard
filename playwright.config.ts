@@ -47,6 +47,10 @@ export default defineConfig({
           { name: 'webkit', timeout: 90_000, retries: 2, expect: { timeout: 20_000 }, use: { ...devices['Desktop Safari'], contextOptions: { reducedMotion: 'reduce' } } },
           { name: 'phone', use: { ...devices['Pixel 7'] } },
           { name: 'tv', use: { ...devices['Desktop Chrome'], viewport: { width: 2560, height: 1440 } } },
+          // The remaining widths of the matrix (change agentic-delivery-harness, 2.1): desktop Chromium at a narrow, a tablet and a laptop width, nightly only.
+          { name: 'w360', use: { ...devices['Desktop Chrome'], viewport: { width: 360, height: 740 } } },
+          { name: 'w768', use: { ...devices['Desktop Chrome'], viewport: { width: 768, height: 1024 } } },
+          { name: 'w1440', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
         ]
       : []),
   ],

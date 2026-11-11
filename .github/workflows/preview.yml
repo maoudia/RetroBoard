@@ -44,7 +44,10 @@ jobs:
         run: |
           set -euo pipefail
           pnpm exec wrangler versions upload --preview-alias "pr-$PR" --message "PR $PR $SHA" | tee upload.log
-          url=$(grep -oE 'https://[^ ]+workers\.dev[^ ]*' upload.log | head -1 || true)
+          # Prefer the stable per-PR alias URL, then the per-version URL (wrangler prints both when preview_urls is on).
+          url=$(grep -E 'Version Preview Alias URL' upload.log | grep -oE 'https://[^ ]+' | head -1 || true)
+          [ -n "$url" ] || url=$(grep -E 'Version Preview URL' upload.log | grep -oE 'https://[^ ]+' | head -1 || true)
+          [ -n "$url" ] || echo "::warning::wrangler printed no preview URL; check preview_urls in wrangler.jsonc"
           echo "url=$url" >> "$GITHUB_OUTPUT"
       - name: Comment the preview URL
         if: steps.upload.outputs.url != ''

@@ -4,6 +4,8 @@
   "main": "apps/relay/src/index.ts",
   "compatibility_date": "2025-09-01",
   "workers_dev": true,
+  // Without it a version upload prints no URL and the preview workflow has nothing to comment (change agentic-delivery-harness, 4.1).
+  "preview_urls": true,
   "assets": {
     "directory": "apps/web/.output/public",
     "binding": "ASSETS",
