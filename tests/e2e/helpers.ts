@@ -82,6 +82,17 @@ export async function publishNote(page: Page, colIndex: number, text: string) {
   await settle(page)
 }
 
+/** Envelopes held by this browser's local replica (ciphertext): what a reload or a new page load can still read. */
+export const replicaEnvelopes = (page: Page) => page.evaluate(() => new Promise<number>((resolve) => {
+  const open = indexedDB.open('retroboard-replica')
+  open.onerror = () => resolve(0)
+  open.onsuccess = () => {
+    const count = open.result.transaction('envelopes').objectStore('envelopes').count()
+    count.onsuccess = () => resolve(count.result)
+    count.onerror = () => resolve(0)
+  }
+}))
+
 export const noteByText = (page: Page, text: string) => page.locator('article.note', { hasText: text })
 
 /**

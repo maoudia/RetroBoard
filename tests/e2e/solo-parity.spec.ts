@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { axe, column, createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, column, createBoard, join, noteByText, publishNote, replicaEnvelopes } from './helpers'
 
 /** change solo-parity-and-dedup: a solo board is the same engine as a shared one, so it has the same toolbar and panels. */
 const FEATURES = ['btn-actions', 'btn-export', 'btn-filter', 'btn-presenter', 'btn-options', 'btn-participants', 'btn-profile', 'agenda-ring']
@@ -87,8 +87,12 @@ test('carry-over reads a previous solo board from this browser without the relay
   await startSolo(page)
   await page.getByTestId('btn-actions').click()
   await page.getByTestId('action-text').fill('Solo follow-up')
+  const stored = await replicaEnvelopes(page)
   await page.getByTestId('action-add').click()
   await expect(page.getByTestId('actions')).toContainText('Solo follow-up')
+  // The page shows the action before the browser has committed it to the local copy (about 16 ms, longer when the
+  // page is busy painting, as at the 2560 px of the tv project). The next page load reads that copy, so wait for it.
+  await expect.poll(() => replicaEnvelopes(page)).toBeGreaterThan(stored)
   await page.keyboard.press('Escape')
   const link = page.url()
   const sockets: string[] = []
