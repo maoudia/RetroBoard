@@ -1,5 +1,5 @@
 ---
-status: rejected
+status: superseded by ADR-0034
 date: 2026-11-11
 decision-makers: Moncef Aoudia
 ---
@@ -71,6 +71,7 @@ existing file). It is not the blocker.
 
 ## More Information
 
+* Superseded by [ADR-0034](0034-hashed-assets-bypass-the-worker-asset-layer-404.md), which takes the way forward below.
 * Change `prod-guardrails`, task group 3; the two tasks left (3.3 `_headers`, 3.4 smoke checks) depend on this decision
   and stay open.
 * A way forward, to be proposed as its own change: `not_found_handling: "none"` with the Worker answering the shell for

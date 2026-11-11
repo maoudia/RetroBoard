@@ -67,7 +67,19 @@ export async function runSmoke(base, deps = {}) {
     const plain = await get(base.replace(/^https:/, 'http:') + '/', { redirect: 'manual' })
     check([301, 302, 307, 308].includes(plain.status) && (plain.headers.get('location') ?? '').startsWith('https://'), 'plain HTTP redirects to HTTPS')
   }
-  check((await home.text()).includes('<div id="__nuxt"'), 'Nuxt app shell served')
+  const html = await home.text()
+  check(html.includes('<div id="__nuxt"'), 'Nuxt app shell served')
+
+  // Hashed files are served by the asset layer without the Worker (ADR-0034). A missing one must be a real, uncacheable 404
+  // (never the shell, never a cache header that would pin the error); a present one must still carry its security headers.
+  const gone = await get(`${base}/_nuxt/${randomBytes(8).toString('hex')}.js`)
+  check(gone.status === 404 && !gone.headers.get('cache-control') && !(gone.headers.get('content-type') ?? '').includes('text/html'), 'a missing /_nuxt/ file answers 404 without a cache header')
+  const entry = html.match(/\/_nuxt\/[\w.-]+\.js/)?.[0]
+  const script = entry ? await get(`${base}${entry}`) : null
+  check(
+    script?.status === 200 && /javascript/.test(script.headers.get('content-type') ?? '') && script.headers.get('x-content-type-options') === 'nosniff' && (script.headers.get('strict-transport-security') ?? '') !== '',
+    `the entry script ${entry ?? '(not found in the landing page)'} answers 200 as JavaScript with nosniff and HSTS`,
+  )
 
   const board = await get(`${base}/boards`)
   check(board.ok, 'SPA fallback serves /boards')

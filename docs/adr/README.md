@@ -42,5 +42,6 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0029](0029-compact-board-links-with-128-bit-board-keys.md) | Compact board links with 128-bit board keys | accepted | 2026-11-06 |
 | [0030](0030-ci-cd-protected-main-gated-deploy-signed-and-attested-artifa.md) | CI/CD: protected main, gated deploy, signed and attested artifacts | accepted | 2026-11-07 |
 | [0031](0031-generated-user-documentation-and-optional-voice-over.md) | Generated user documentation and optional voice-over | accepted | 2026-11-08 |
-| [0032](0032-hashed-assets-bypass-the-worker.md) | Hashed assets bypass the Worker | rejected | 2026-11-11 |
+| [0032](0032-hashed-assets-bypass-the-worker.md) | Hashed assets bypass the Worker | superseded by [ADR-0034](0034-hashed-assets-bypass-the-worker-asset-layer-404.md) | 2026-11-11 |
 | [0033](0033-allow-one-slack-webhook-origin-in-connect-src.md) | Allow one Slack webhook origin in connect-src | accepted | 2026-11-11 |
+| [0034](0034-hashed-assets-bypass-the-worker-asset-layer-404.md) | Hashed assets bypass the Worker, asset layer 404 | accepted | 2026-11-11 |

@@ -60,22 +60,23 @@ at 20:1, outgoing messages free, no duration billed while hibernated.
 
 ### Worker requests of a page
 
-With `run_worker_first: true` (`wrangler.jsonc`) every request of a page, hashed files included, invokes the Worker and
-counts against the 100,000 requests a day of the free plan. Measured on 2026-11-11 by
-`node scripts/quality/worker-requests.mjs` (Chromium, empty browser context, `wrangler dev`, the site generated from
-version 1.51.3; the second visit is the same browser opening the same page again):
+With `run_worker_first: ["/*", "!/_nuxt/*"]` (`wrangler.jsonc`, [ADR-0034](adr/0034-hashed-assets-bypass-the-worker-asset-layer-404.md))
+the hashed files under `/_nuxt/` are served by the asset layer, which is free and unlimited, and only the HTML (and any
+other path) invokes the Worker. Measured on 2026-11-11 by `node scripts/quality/worker-requests.mjs` (Chromium, empty
+browser context, `wrangler dev`, the site generated from version 1.51.3; the second visit is the same browser opening the
+same page again). Before, with `run_worker_first: true`, every request counted:
 
 | Page | Cold: requests | Cold: under `/_nuxt/` | Cold: Worker | Revisit: requests | Revisit: Worker |
 | --- | --- | --- | --- | --- | --- |
-| `/` | 36 | 35 | 36 | 36 | 36 |
-| `/new` | 36 | 34 | 36 | 36 | 36 |
-| `/boards` | 42 | 40 | 42 | 42 | 42 |
+| `/` | 36 | 35 | 1 (was 36) | 36 | 1 (was 36) |
+| `/new` | 36 | 34 | 2 (was 36) | 36 | 2 (was 36) |
+| `/boards` | 42 | 40 | 2 (was 42) | 42 | 2 (was 42) |
 
-The hashed files answer `Cache-Control: public, max-age=0, must-revalidate`, so a revisit costs as many Worker requests as
-a cold load. 100,000 / 36 is about **2,700 page loads a day** before the free plan refuses requests, whoever the visitors
-are; a board session adds its WebSocket connections (below). Serving `/_nuxt/` without the Worker would bring a page to 1
-or 2 Worker requests, but a missing chunk would then answer the shell instead of a 404: rejected in
-[ADR-0032](adr/0032-hashed-assets-bypass-the-worker.md), with the way forward it records.
+The hashed files carry no `Cache-Control` (a missing chunk must stay an uncacheable 404, so there is no `immutable`): a
+revisit sends conditional requests that the asset layer answers `304`, at no Worker cost. A page load now costs 1 or 2
+Worker requests, plus 1 for the `/ws2` socket when a board is joined, so 100,000 requests a day allow tens of thousands of
+page loads, about 35 times the 2,700 of before. The binding limits become the WebSocket and Durable Object budgets
+(below). Not measured: the favicon, manifest and icon fetches of a full browser (2 to 4 more Worker requests per cold load).
 
 ### Since the peer-to-peer mesh (owner decision: no paid service, no lock-in)
 

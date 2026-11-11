@@ -16,12 +16,20 @@ After every production deploy and on a schedule, the system SHALL prove that the
 - **THEN** the smoke test exits with a failure
 
 ### Requirement: Request budget
-Static files whose name carries a content hash SHALL NOT count against the Worker request quota, and the capacity document SHALL state the number of Worker requests of a first visit.
+Static files whose name carries a content hash SHALL NOT count against the Worker request quota, and the capacity document SHALL state the number of Worker requests of a first visit. The asset layer SHALL answer a missing file with a 404 that no cache can keep, never with the application shell.
 
 #### Scenario: Hashed asset
-- **WHEN** a browser requests a file under `/_nuxt/`
-- **THEN** the file is served with HSTS and `nosniff` and the Worker is not invoked
+- **WHEN** a browser requests a file under `/_nuxt/` that exists
+- **THEN** the file is served by the asset layer without invoking the Worker, with HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`, `Permissions-Policy` and `X-Robots-Tag`, and without an immutable cache header
 
 #### Scenario: Missing chunk
 - **WHEN** a browser requests a file under `/_nuxt/` that does not exist
-- **THEN** the answer is 404, never the application shell
+- **THEN** the answer is 404 with no `Cache-Control` header and a body that is not HTML, never the application shell
+
+#### Scenario: Unknown path
+- **WHEN** a browser navigates to a path that is neither a file nor an application route, including `/guide/` followed by an unknown name
+- **THEN** the answer is 404 with the branded error page
+
+#### Scenario: Page load cost
+- **WHEN** a browser loads the landing page with an empty cache
+- **THEN** one request invokes the Worker, the files under `/_nuxt/` being served by the asset layer

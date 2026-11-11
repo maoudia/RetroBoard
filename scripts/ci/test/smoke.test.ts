@@ -6,11 +6,11 @@ type Frame = Record<string, unknown>
 type Sock = { onmessage?: (ev: { data: string }) => void; onerror?: () => void; onclose?: () => void; send(data: string): void; close(): void; room: string }
 
 const BASE = 'http://127.0.0.1:8787'
-const HOME = '<html><body><div id="__nuxt"></div></body></html>'
+const HOME = '<html><body><div id="__nuxt"></div><script type="module" src="/_nuxt/abc123.js"></script></body></html>'
 const SECURE = { 'content-security-policy': "default-src 'none'; script-src 'self'", 'x-content-type-options': 'nosniff', 'strict-transport-security': 'max-age=15552000' }
 
 /** A site that answers like production; `relay` decides whether /ws2 exists and what a foreign origin gets. */
-function fakeSite(relay: { present: boolean; foreign: number; crosses: boolean }) {
+function fakeSite(relay: { present: boolean; foreign: number; crosses: boolean }, assets: { missing?: { status: number; headers?: Record<string, string> }; script?: { status: number; headers?: Record<string, string> } } = {}) {
   const rooms = new Map<string, Sock[]>()
   class FakeWebSocket implements Sock {
     onmessage?: (ev: { data: string }) => void
@@ -35,8 +35,15 @@ function fakeSite(relay: { present: boolean; foreign: number; crosses: boolean }
     close() { this.onclose?.() }
   }
   const html = (body: string) => ({ ok: true, status: 200, headers: new Headers(SECURE), text: async () => body })
+  const asset = (status: number, headers: Record<string, string>) => ({ ok: status === 200, status, headers: new Headers(headers), text: async () => '' })
+  const js = { 'content-type': 'text/javascript; charset=utf-8', 'x-content-type-options': 'nosniff', 'strict-transport-security': 'max-age=15552000' }
   return {
-    fetch: async (url: string) => (url.endsWith('/healthz') ? { ok: true, status: 200, headers: new Headers(), text: async () => 'ok' } : html(url.endsWith('/') ? HOME : 'page')),
+    fetch: async (url: string) => {
+      if (url.endsWith('/healthz')) return { ok: true, status: 200, headers: new Headers(), text: async () => 'ok' }
+      if (url.endsWith('/_nuxt/abc123.js')) return asset(assets.script?.status ?? 200, assets.script?.headers ?? js)
+      if (url.includes('/_nuxt/')) return asset(assets.missing?.status ?? 404, assets.missing?.headers ?? {})
+      return html(url.endsWith('/') ? HOME : 'page')
+    },
     WebSocket: FakeWebSocket,
     upgrade: async () => relay.foreign,
     log: () => {},
@@ -63,5 +70,20 @@ describe('the smoke test', () => {
   it('fails when frames do not cross between two connections', async () => {
     const failures = await runSmoke(BASE, fakeSite({ present: true, foreign: 403, crosses: false })) as string[]
     expect(failures).toEqual(['a live frame crosses the relay between two connections'])
+  })
+
+  it('fails when a missing chunk answers the shell, or an error that a cache can keep', async () => {
+    const live = { present: true, foreign: 403, crosses: true }
+    const shell = await runSmoke(BASE, fakeSite(live, { missing: { status: 200, headers: { 'content-type': 'text/html' } } })) as string[]
+    expect(shell).toEqual(['a missing /_nuxt/ file answers 404 without a cache header'])
+    const pinned = await runSmoke(BASE, fakeSite(live, { missing: { status: 404, headers: { 'cache-control': 'public, max-age=31536000, immutable' } } })) as string[]
+    expect(pinned).toEqual(['a missing /_nuxt/ file answers 404 without a cache header'])
+  })
+
+  it('fails when the entry script loses its security headers', async () => {
+    const live = { present: true, foreign: 403, crosses: true }
+    const failures = await runSmoke(BASE, fakeSite(live, { script: { status: 200, headers: { 'content-type': 'text/javascript' } } })) as string[]
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('/_nuxt/abc123.js')
   })
 })
