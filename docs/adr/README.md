@@ -46,4 +46,3 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0033](0033-allow-one-slack-webhook-origin-in-connect-src.md) | Allow one Slack webhook origin in connect-src | accepted | 2026-11-11 |
 | [0034](0034-hashed-assets-bypass-the-worker-asset-layer-404.md) | Hashed assets bypass the Worker, asset layer 404 | accepted | 2026-11-11 |
 | [0035](0035-signing-domain-of-a-moved-room.md) | Signing domain of a moved room | proposed | 2026-11-11 |
-| [0035](0035-signing-domain-of-a-moved-room.md) | Signing domain of a moved room | proposed | 2026-11-11 |
