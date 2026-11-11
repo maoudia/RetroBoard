@@ -115,7 +115,7 @@ Plaintext (encrypted)       = { type, actor (pubkey hash), payload, signature }
 - AES-GCM with AAD = `roomId|eventId|hlc` so the relay cannot replay events into another room or reorder them undetected.
 - Total order = (hlc, eventId). Each peer folds events through `packages/domain` in that order. A late event triggers a re-fold from the last checkpoint (checkpoints every 200 events).
 - Invalid events (bad signature, broken invariant) are ignored deterministically by every peer, so all replicas converge.
-- Snapshots: the facilitator can emit a signed `SnapshotTaken` that lets new peers skip the history.
+- Snapshots (ADR-0037): the browser holding the facilitator link signs the ledger folded up to a cut (ids of the covered events, signed genesis) and sends it to its direct links; a participant with no board yet asks a peer for it (`snapreq`), verifies it (signer = genesis key, signature, fold version, ids) and starts from it, then verifies the events after the cut one by one. Any failure, and any event before the cut that it does not cover, ends with the full event log. Peer to peer only; the relay history stays at most 2,000 envelopes.
 
 ### 5.3 Relay behaviour (Durable Object, memory only)
 

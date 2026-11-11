@@ -47,3 +47,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0034](0034-hashed-assets-bypass-the-worker-asset-layer-404.md) | Hashed assets bypass the Worker, asset layer 404 | accepted | 2026-11-11 |
 | [0035](0035-signing-domain-of-a-moved-room.md) | Signing domain of a moved room | proposed | 2026-11-11 |
 | [0036](0036-cloudflare-is-one-deploy-target-relay-core-runtime-neutral.md) | Cloudflare is one deploy target; the relay core is runtime-neutral | accepted | 2026-11-12 |
+| [0037](0037-signed-snapshots-are-a-verified-shortcut-for-joiners-never-a.md) | Signed snapshots are a verified shortcut for joiners, never a replacement for the event log | accepted | 2026-11-11 |

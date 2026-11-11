@@ -28,8 +28,11 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // +3.3 kB for the hub, 340.3 kB measured on top of the composer change). The captain allows up to 400 kB; the entry is unchanged.
 // 2026-11-11: entry raised from 44 to 45 kB and total from 342 to 346 kB for the move to a fresh link (remove dialog, signed
 // and sealed hand-off, removed and closed pages, fr/en strings; entry 44.6 kB measured).
+// 2026-11-12: entry raised from 45 to 48 kB and total from 346 to 352 kB for signed snapshots (ADR-0037): snapshot schemas, the
+// verifier, the log base and the transport side of the snapshot join (46.7 kB entry and 347.2 kB total measured on top of the move to a fresh link).
+// The captain allows up to 400 kB.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 45, totalKb: 346 }
+const BUDGET = { entryKb: 48, totalKb: 352 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')

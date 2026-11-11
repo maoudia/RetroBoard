@@ -38,6 +38,8 @@ export class FakeRelay {
   closes: number[] = []
   /** When true, new connections are refused (relay unreachable). */
   down = false
+  /** When true, `pub` frames are dropped: the relay holds no board events, as with a complete mesh (ADR-0024). */
+  refusePub = false
   /**
    * Connection ids. Ascending by default (join order), so the order of the mesh, the bridge and the
    * seeder is the same on every run; the real relay uses random ids, set `random` to try those.
@@ -100,6 +102,7 @@ export class FakeRelay {
     const frame = checked.verdict === 'ok' ? checked.frame : null
     if (!frame) return
     if (frame.t === 'pub') {
+      if (this.refusePub) return
       this.stats.pubFrames++
       this.stats.pubEnvs += frame.envs.length
       const fresh = this.buffer.add(frame.envs)
@@ -176,12 +179,15 @@ class FakeChannel {
   onclose: (() => void) | null = null
   onmessage: ((e: { data: string }) => void) | null = null
   peer: FakeChannel | null = null
-  constructor(readonly label: string) {}
+  constructor(readonly label: string, private readonly net: FakeRtcNet, private readonly owner: string) {}
   open(): void { if (this.readyState === 'connecting') { this.readyState = 'open'; this.onopen?.() } }
   send(text: string): void {
     if (this.readyState !== 'open') throw new Error('not open')
     const to = this.peer
-    setTimeout(() => { if (to && to.readyState === 'open') to.onmessage?.({ data: text }) }, 2)
+    // A participant that rewrites what it sends (a malicious peer): the tap returns the frames to send instead.
+    for (const frame of this.net.tap ? this.net.tap(this.owner, text) : [text]) {
+      setTimeout(() => { if (to && to.readyState === 'open') to.onmessage?.({ data: frame }) }, 2)
+    }
   }
   close(): void {
     if (this.readyState === 'closed') return
@@ -196,6 +202,8 @@ export class FakeRtcNet {
   readonly pcs = new Map<string, FakePc>()
   /** Pairs of participant names that cannot open a direct link (NAT, carrier, firewall). */
   readonly blocked = new Set<string>()
+  /** Rewrites the frames a participant sends on its data channels: `[]` swallows one, several replace it. */
+  tap: ((owner: string, text: string) => string[]) | null = null
   static pair(a: string, b: string) { return [a, b].sort().join('|') }
   block(a: string, b: string) { this.blocked.add(FakeRtcNet.pair(a, b)) }
   unblock(a: string, b: string) { this.blocked.delete(FakeRtcNet.pair(a, b)) }
@@ -226,7 +234,7 @@ class FakePc {
   }
   addEventListener(_t: string, _l: Listener) { /* gathering is always complete */ }
   removeEventListener(_t: string, _l: Listener) { /* idem */ }
-  createDataChannel(label: string): FakeChannel { const ch = new FakeChannel(label); this.channels.push(ch); return ch }
+  createDataChannel(label: string): FakeChannel { const ch = new FakeChannel(label, this.net, this.owner); this.channels.push(ch); return ch }
   async createOffer() { this.offered = true; return { type: 'offer', sdp: JSON.stringify({ pc: this.id }) } }
   async createAnswer() { return { type: 'answer', sdp: JSON.stringify({ pc: this.id }) } }
   async setLocalDescription(d: { type: string; sdp: string }) { this.localDescription = d; if (d.type === 'offer') this.signalingState = 'have-local-offer' }
@@ -246,7 +254,7 @@ class FakePc {
     if (this.net.blocked.has(FakeRtcNet.pair(this.owner, remote.owner))) return // never opens: the mesh times out
     // The answerer gets the matching channels, then everything opens.
     const theirs = this.channels.map((c) => {
-      const t = new FakeChannel(c.label)
+      const t = new FakeChannel(c.label, this.net, remote.owner)
       c.peer = t; t.peer = c
       return t
     })
@@ -298,6 +306,8 @@ export interface PeerOptions {
   creator?: boolean
   /** This device's clock is off by this many ms. */
   clockSkewMs?: number
+  /** When the facilitator of this tab signs snapshots (default: the application's). */
+  snapshot?: { every: number; lagMs: number }
 }
 
 export class Peer {
@@ -318,6 +328,8 @@ export class Peer {
   notices: string[] = []
   transport!: EncryptedRelayTransport
   readonly net = { online: true }
+  /** Signature checks this participant ran (events, genesis, snapshots): what a snapshot join saves. */
+  verifies = 0
 
   constructor(readonly name: string, readonly world: World, readonly opts: PeerOptions, readonly replica: MemoryReplica) {}
 
@@ -390,7 +402,7 @@ export class World {
       agreement: peer.agreement = await createSessionAgreement(seedStore),
       contentKeyFor: (next: KeyRing) => deriveContentKey(fromBase64Url(next.roomKey)!, next.roomId),
       facilitator: opts.facilitator ? await signerFor(this.facilitatorSecret) : null,
-      verifier: ed25519Verifier,
+      verifier: { verify: (k, sig, m) => { peer.verifies++; return ed25519Verifier.verify(k, sig, m) } },
       replica,
       WS,
       RTC: this.rtc.rtcFor(name),
@@ -398,6 +410,7 @@ export class World {
       now: () => Date.now() + (opts.clockSkewMs ?? 0),
       iceServers: [],
       creator: opts.creator ?? opts.facilitator === true,
+      ...(opts.snapshot ? { snapshot: opts.snapshot } : {}),
     }))() as Promise<EncryptedDeps>
     peer.transport = new EncryptedRelayTransport(
       `ws://fake/ws2?room=${this.roomId}`,
@@ -460,6 +473,28 @@ export class World {
       })))
     }
     await replica.append(this.roomId, records)
+  }
+
+  /**
+   * Writes `count` chat lines of one participant into a replica, `everyMs` apart from `from` on: a long board whose events
+   * all count for the fold (a rate limit would ignore a burst). Returns the clock of the last one.
+   */
+  async fillChat(replica: MemoryReplica, count: number, from: number, everyMs = 250): Promise<number> {
+    const key = await deriveContentKey(fromBase64Url(this.roomKey)!, this.roomId)
+    let seed: string | null = null
+    const author = await createSessionSigner({ get: () => seed, set: (v) => { seed = v } })
+    for (let start = 0; start < count; start += 200) {
+      const records = await Promise.all(Array.from({ length: Math.min(200, count - start) }, async (_, k) => {
+        const i = start + k
+        const body: EventBody = { t: 'cmd', cmd: { t: 'chat.post', text: `line ${i}` }, name: null, showName: false }
+        const event = await signEvent(author, this.roomId, { id: hex(26), at: from + i * everyMs, body })
+        const head = { v: PROTOCOL_VERSION, room: this.roomId, id: event.id, hlc: event.at } as const
+        const env: Envelope = { ...head, ct: toBase64Url(await seal(key, utf8(JSON.stringify(event)), utf8(envelopeAad(head)))) }
+        return { id: env.id, data: JSON.stringify(env) }
+      }))
+      await replica.append(this.roomId, records)
+    }
+    return from + (count - 1) * everyMs
   }
 
   /** Advances simulated time, letting WebCrypto (real threads) finish between steps. */

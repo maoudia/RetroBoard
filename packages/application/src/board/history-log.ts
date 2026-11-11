@@ -2,7 +2,7 @@
  * History of reversible board actions and rewind (change board-undo-rewind), read from the signed
  * event log. Nothing is stored: the log is the history, a rewind is a batch of ordinary commands.
  */
-import { type Actor, type BoardState, type Command, emptyLedger, foldEvent, reduce, type VerifiedEvent } from '@retroboard/domain'
+import { type Actor, type BoardState, type Command, emptyLedger, foldEvent, type Ledger, reduce, type VerifiedEvent } from '@retroboard/domain'
 import type { UndoLabel } from './history'
 
 export const HISTORY_MAX = 50
@@ -50,8 +50,8 @@ function subjectOf(cmd: ReversibleCommand, before: BoardState, after: BoardState
   return { text: n.text, columnId: n.columnId }
 }
 
-function scan(roomId: string, events: readonly VerifiedEvent[], max: number): { records: Record[]; board: BoardState } {
-  let ledger = emptyLedger(roomId)
+function scan(roomId: string, events: readonly VerifiedEvent[], max: number, from?: Ledger): { records: Record[]; board: BoardState } {
+  let ledger = from ?? emptyLedger(roomId)
   const records: Record[] = []
   for (const e of events) {
     const next = foldEvent(ledger, e)
@@ -67,13 +67,13 @@ function scan(roomId: string, events: readonly VerifiedEvent[], max: number): { 
 }
 
 /** The last reversible actions, newest last. Ignored events (hidden author, refused command) and no-ops leave no entry. */
-export function historyOf(roomId: string, events: readonly VerifiedEvent[], max = HISTORY_MAX): HistoryEntry[] {
-  return scan(roomId, events, max).records.map(({ before: _before, ...entry }) => entry)
+export function historyOf(roomId: string, events: readonly VerifiedEvent[], max = HISTORY_MAX, from?: Ledger): HistoryEntry[] {
+  return scan(roomId, events, max, from).records.map(({ before: _before, ...entry }) => entry)
 }
 
 /** The commands that put the board structure back as it was before the entry, or null when the entry is unknown. */
-export function rewindPlan(roomId: string, events: readonly VerifiedEvent[], entryId: string): RewindPlan | null {
-  const { records, board } = scan(roomId, events, Number.MAX_SAFE_INTEGER)
+export function rewindPlan(roomId: string, events: readonly VerifiedEvent[], entryId: string, from?: Ledger): RewindPlan | null {
+  const { records, board } = scan(roomId, events, Number.MAX_SAFE_INTEGER, from)
   const record = records.find((r) => r.id === entryId)
   return record ? restoreCommands(record.before, board) : null
 }

@@ -61,8 +61,19 @@ The system SHALL display at most 10 remote cursors at a time, choosing the most 
 - **THEN** each participant sees at most 10 remote cursors
 
 ### Requirement: Snapshots
-The system SHALL let the facilitator emit signed snapshots so that new participants do not need the full event history (moved from stateless-relay-and-replication: with the mesh, a joiner syncs from a peer, and a snapshot bounds that sync).
+The system SHALL let the facilitator's browser emit signed snapshots so that a new participant with an empty log does not need the full event history (moved from stateless-relay-and-replication).
 
 #### Scenario: Long retro
 - **WHEN** a board has more than 2,000 events and a snapshot exists
-- **THEN** a new participant loads the board from the snapshot plus later events
+- **THEN** a new participant loads the board from the snapshot plus later events, verifying far fewer signatures than events
+
+### Requirement: Snapshot trust
+A joiner SHALL adopt a snapshot only when it is signed by the facilitator key named by its genesis and is consistent, SHALL verify every event after the cut one by one, and SHALL fall back to the event log when the snapshot is rejected.
+
+#### Scenario: Tampered or wrongly signed snapshot
+- **WHEN** a peer offers a snapshot whose content was altered or that was not signed by the genesis facilitator key
+- **THEN** the joiner rejects it and loads the same board from the event log
+
+#### Scenario: Event before the cut
+- **WHEN** an event that the snapshot does not cover sorts before its cut
+- **THEN** the joiner drops the snapshot and converges on the state of a full-log replica

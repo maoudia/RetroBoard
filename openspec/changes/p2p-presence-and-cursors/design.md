@@ -31,6 +31,19 @@ Requires `stateless-relay-and-replication` (relay carries encrypted signalling e
 
 Security and privacy note: WebRTC exposes participants' IP addresses to each other (ICE candidates). The profile offers "relay-only cursors" to avoid sharing IPs with peers; the privacy page explains it.
 
+## Signed snapshots (task 4.3, ADR-0037)
+
+Decision record: `docs/adr/0037-*.md` (who signs, what a joiner verifies, the threat summary). In short:
+
+- **Who signs**: the Ed25519 facilitator capability key of the genesis, the only key a joiner with an empty log can authenticate (the genesis event, shipped inside the snapshot, names it). Existing primitives only (`sign`/`verify`, AES-GCM envelope).
+- **What it holds**: the ledger folded up to a cut (a checkpoint, a multiple of 200 events), the ids of the covered events, the signed genesis, `fold` (`LEDGER_VERSION`). Sealed like any envelope, so the relay, the replica and the journal never see plaintext.
+- **What a joiner verifies**: envelope opens and header agrees; schema, sizes and fold version; genesis validly signed for this room; signer = genesis key = ledger facilitator key; signature over the canonical bytes; ids unique and contain genesis and cut. Any failure drops the snapshot and the joiner asks for the event log (a second `have` without `snapreq`).
+- **With the event log**: the log of a snapshot-based joiner starts from the snapshot ledger and holds the covered ids as known; events after the cut are verified one by one. An event before the cut that the snapshot does not cover (an offline writer) makes the joiner collect the full log next to the snapshot-based one and swap it in once it holds a genesis. The log stays the source of truth.
+- **With anti-entropy (ADR-0024)**: `snapreq` precedes `have`; a holder with a verified snapshot sends `snap` chunks, then the uncovered events, then `synced`. Peers that do not know `snapreq` ignore it and answer `have` as before. `have` lists include the covered ids.
+- **With the replica write-ahead journal**: the adopted snapshot is appended to the replica as its own record (`snap:<id>`, ciphertext) and is not staged in the journal (which covers events the page already shows; a snapshot is large and can be fetched again); on load the events held fold first, and only a replica without a genesis resumes from its newest stored snapshot, verified again. The facilitator does not store its snapshots.
+- **Malicious peer**: a forged or tampered snapshot fails the signature and the joiner falls back to the log; a stale snapshot is harmless because the tail after its cut is still delivered and verified; a replay into another room fails on the room binding. Inherited and unchanged: first valid genesis wins, a facilitator-signed snapshot that disagrees with the log is not detected by a joiner that never holds the covered events.
+- **Not in scope**: relay carriage (the relay history stays at most 2,000 envelopes), snapshots signed by delegated keys, audit by holders.
+
 ## Risks / Trade-offs
 
 - [IP exposure between peers] -> opt-out setting, documented.

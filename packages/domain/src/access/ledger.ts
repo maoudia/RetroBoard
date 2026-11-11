@@ -18,6 +18,12 @@ import { LIMITS } from '../shared/limits'
 import type { BoardState, ErrorCode } from '../shared/types'
 import { KEY_RE, ROOM_ID_RE } from './keyring'
 
+/**
+ * Version of the fold rules. A signed snapshot carries the ledger a fold produced: a joiner only trusts one made with its own
+ * rules, so bump this whenever a change alters what folding the same events yields (ADR-0037).
+ */
+export const LEDGER_VERSION = 1
+
 export interface GenesisBody { readonly t: 'genesis'; readonly roomId: string; readonly facilitatorKey: string }
 export interface CommandBody { readonly t: 'cmd'; readonly cmd: Command; readonly name: string | null; readonly showName: boolean }
 /**

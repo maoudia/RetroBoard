@@ -50,6 +50,13 @@ export default defineNuxtPlugin(() => {
   const sweepVault = () => { if (settings.s.retentionDays > 0) void vault.purge(Date.now() - settings.s.retentionDays * 86_400_000) }
   setTimeout(() => { sweep(); sweepVault() }, 20_000)
   if (durable) void requestPersistence()
+  /** Test hook: the e2e suite lowers the snapshot threshold (ADR-0037) to cover it without thousands of events. */
+  const snapshotSettings = (): { snapshot?: { every: number; lagMs: number } } => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('retroboard:snapshot') ?? 'null') as { every?: unknown; lagMs?: unknown } | null
+      return typeof raw?.every === 'number' && typeof raw.lagMs === 'number' ? { snapshot: { every: Math.max(200, raw.every), lagMs: Math.max(0, raw.lagMs) } } : {}
+    } catch { return {} }
+  }
   const ports: Ports = {
     encryptedChannelFactory: (ring, passcode, opts) => (roomId, handlers) => new EncryptedRelayTransport(
       buildWs2Url(config.public.wsUrl as string, roomId, window.location), ring, handlers,
@@ -64,6 +71,7 @@ export default defineNuxtPlugin(() => {
         p2p: opts?.solo ? false : settings.s.p2p,
         ...(opts?.solo ? { WS: LocalRelaySocket as unknown as typeof WebSocket } : {}),
         creator: opts?.creator === true,
+        ...snapshotSettings(),
         iceServers: String(config.public.iceServers ?? '').split(',').map((s) => s.trim()).filter(Boolean).map((urls) => ({ urls })),
       }))(),
     ),
