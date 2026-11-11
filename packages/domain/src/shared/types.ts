@@ -273,7 +273,7 @@ export interface Snapshot {
   peers: Peer[]
   votesLeft: number
   /** Encrypted boards: my role and whether I may steer. Absent on legacy boards (everyone steers). */
-  access?: { role: 'facilitator' | 'co-facilitator' | 'participant'; canSteer: boolean; bypassesPhase: boolean; canManageRoles: boolean; /** This tab is the lead facilitator (one-facilitator boards). */ isLead: boolean }
+  access?: { role: 'facilitator' | 'co-facilitator' | 'participant'; canSteer: boolean; bypassesPhase: boolean; canManageRoles: boolean; /** This tab is the lead facilitator (one-facilitator boards). */ isLead: boolean; /** The facilitator removed this session: it leaves the board. */ removed?: boolean }
 }
 
 export interface ServerError {

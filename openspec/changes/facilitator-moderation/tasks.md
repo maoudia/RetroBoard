@@ -7,8 +7,8 @@
 
 ## 2. Fresh link
 
-- [ ] 2.1 Room migration: new key ring, re-seal envelopes, per-participant sealed `room.moved` handoff, removed participants excluded; verify unit tests and e2e with three contexts
-- [ ] 2.2 Removal UI with the "Move the team to a fresh link" option and the closed-room page (fr/en); verify e2e
+- [x] 2.1 Room migration: new key ring, re-seal envelopes, per-participant sealed `room.moved` handoff, removed participants excluded; verify unit tests and e2e with three contexts (each client re-seals its own log under the new room, ADR-0033; no board upload to the relay)
+- [x] 2.2 Removal UI with the "Move the team to a fresh link" option and the closed-room page (fr/en); verify e2e
 
 ## 3. Rename and reveal
 

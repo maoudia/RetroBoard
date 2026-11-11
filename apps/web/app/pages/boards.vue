@@ -32,10 +32,11 @@ const setupOpen = ref(false)
 /** Closed boards: the facilitator destroyed it. Only the (random) room id is remembered, to explain the link next time. */
 const closedKey = (id: string) => `retroboard:closed:${id}`
 const closed = ref(false)
-function closeLocal() {
+/** `silent`: the team is moving to a fresh link, this tab opens the new room next and shows no closed page. */
+function closeLocal(silent = false) {
   const id = roomId.value
   if (!id || closed.value) return
-  closed.value = true
+  closed.value = !silent
   safeStorage.set(closedKey(id), Date.now())
   drafts.clear()
   void recents.remove(id)
@@ -51,7 +52,31 @@ watch(() => board.lastNotice, (n) => {
   const phase = n.phase ? t(`agenda.phase.${n.phase}` as never) : ''
   push(t(`notice.${n.kind}` as never, { name: n.by ?? t('notice.someone'), column: n.column ?? '', phase } as never), 'info', 5000)
 })
-watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal() }, { immediate: true })
+watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal(ui.moving) }, { immediate: true })
+
+/** Removed by the facilitator: this tab leaves the board and its copy is gone (change facilitator-moderation). */
+const removedKey = (id: string) => `retroboard:removed:${id}`
+const removed = ref(false)
+function removeLocal() {
+  const id = roomId.value
+  if (!id || removed.value) return
+  removed.value = true
+  safeStorage.set(removedKey(id), Date.now())
+  drafts.clear()
+  void recents.remove(id)
+  board.disconnect()
+}
+watch(() => board.access.removed, (v) => { if (v) removeLocal() })
+
+/** The facilitator moved the team and sent me the new link (verified by the transport): my drafts and passcode follow, then I open it. */
+watch(() => board.moved, async (m) => {
+  if (!m) return
+  drafts.copyTo(m.ring.roomId)
+  if (passcode.value !== null && m.ring.passcode) await $ports.vault.set(m.ring.roomId, passcode.value)
+  void recents.remove(roomId.value)
+  push(t('board.moved.toast'), 'info', 8000)
+  await navigateTo(`/boards#${m.hash}`)
+})
 
 useHead({ title: computed(() => `${board.settings?.title ?? t('board.defaultTitle')} - RetroBoard`) })
 
@@ -69,7 +94,9 @@ async function enter() {
   const mine = ++entering
   board.disconnect()
   closed.value = false
+  removed.value = false
   if (!validRoom.value) return
+  if (safeStorage.get<number | null>(removedKey(roomId.value), null) !== null) { removed.value = true; return }
   if (safeStorage.get<number | null>(closedKey(roomId.value), null) !== null) { closed.value = true; return }
   identity.load()
   drafts.load(roomId.value)
@@ -363,6 +390,12 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       :lead="t(retiredLink ? 'board.retired.p' : 'board.invalid.p')" :testid="retiredLink ? 'retired-link' : 'invalid-link'"
     >
       <template #actions><NuxtLink class="btn btn-primary" to="/"><Icon name="lucide:arrow-left" /> {{ t('board.invalid.cta') }}</NuxtLink></template>
+    </ServicePage>
+
+    <ServicePage
+      v-else-if="removed" icon="lucide:user-x" :title="t('board.removed.title')" :lead="t('board.removed.lead')" testid="board-removed"
+    >
+      <template #actions><NuxtLink class="btn btn-primary" to="/new" data-testid="removed-new"><Icon name="lucide:plus" /> {{ t('board.closed.new') }}</NuxtLink><NuxtLink class="btn" to="/"><Icon name="lucide:house" /> {{ t('service.home') }}</NuxtLink></template>
     </ServicePage>
 
     <ServicePage

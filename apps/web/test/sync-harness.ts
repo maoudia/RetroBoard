@@ -12,10 +12,11 @@
  */
 import { type EventBody, type ReplicaRecord, type ReplicaStorePort, signEvent } from '@retroboard/application'
 import { deriveContentKey, fromBase64Url, randomKey, seal, toBase64Url, utf8 } from '@retroboard/crypto'
-import { type Command, LIMITS, type Snapshot } from '@retroboard/domain'
+import { type Command, type KeyRing, LIMITS, type Snapshot } from '@retroboard/domain'
 import { type Budgets, checkFrame, type Envelope, EnvelopeBuffer, envelopeAad, PROTOCOL_VERSION, type RelayFrame } from '@retroboard/protocol'
 import { vi } from 'vitest'
-import { createSessionSigner, ed25519Verifier, signerFor } from '../app/adapters/signing'
+import { createSessionAgreement, createSessionSigner, ed25519Verifier, signerFor } from '../app/adapters/signing'
+import type { SessionAgreement } from '../app/transport/room-move'
 import { type EncryptedDeps, EncryptedRelayTransport } from '../app/transport/encrypted'
 import type { ConnectionStatus } from '../app/transport/types'
 
@@ -31,6 +32,8 @@ export class FakeRelay {
   readonly sockets = new Map<string, FakeSocket>()
   /** Counters for budget assertions. */
   stats = { pubFrames: 0, pubEnvs: 0, freshEnvs: 0, fanOut: 0, accepts: 0 }
+  /** Every ephemeral envelope fanned out (presence, hand-offs), for tests that look at what the relay carries. */
+  ephs: Envelope[] = []
   /** Close codes the relay sent, in order: 1008 rate limit, 1009 frame too large, 1001 deploy. */
   closes: number[] = []
   /** When true, new connections are refused (relay unreachable). */
@@ -103,6 +106,7 @@ export class FakeRelay {
       this.stats.freshEnvs += fresh.length
       if (fresh.length) this.fanOut({ t: 'env', envs: fresh }, socket)
     } else if (frame.t === 'eph') {
+      this.ephs.push(frame.env)
       this.fanOut({ t: 'eph', env: frame.env }, socket)
     } else {
       const to = this.sockets.get(frame.to)
@@ -307,6 +311,9 @@ export class Peer {
   cursors: string[] = []
   focus: string[] = []
   links: { p2p: boolean; peers: number } | null = null
+  /** The new link the facilitator sent this participant (change facilitator-moderation). */
+  moved: { hash: string; ring: KeyRing } | null = null
+  agreement!: SessionAgreement
   /** Kinds of the notices the page would show (resets, phase changes, newer version). */
   notices: string[] = []
   transport!: EncryptedRelayTransport
@@ -345,8 +352,12 @@ export class World {
   roomId = hex(11) + 'AbCdEfGhIjK'.slice(0, 11)
   roomKey = toBase64Url(randomKey(32))
   facilitatorSecret = toBase64Url(randomKey(32))
+  /** Signing room of a board that moved here (ADR-0033). */
+  signRoomId: string | undefined
 
-  constructor() {
+  /** `ring`: the room is the one a board moved to; its keys and signing room are used as they are. */
+  constructor(ring?: KeyRing) {
+    if (ring) { this.roomId = ring.roomId; this.roomKey = ring.roomKey; this.signRoomId = ring.signRoomId; if (ring.facilitatorSecret) this.facilitatorSecret = ring.facilitatorSecret }
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'] })
     vi.setSystemTime(new Date('2026-10-25T10:00:00Z'))
   }
@@ -372,9 +383,12 @@ export class World {
         peer.world.sockets.set(peer, list)
       }
     } as unknown as typeof WebSocket
+    const seedStore = { get: () => seed.value, set: (v: string) => { seed.value = v } }
     const deps: Promise<EncryptedDeps> = (async () => ({
       contentKey: await deriveContentKey(fromBase64Url(this.roomKey)!, this.roomId),
-      session: await createSessionSigner({ get: () => seed.value, set: (v) => { seed.value = v } }),
+      session: await createSessionSigner(seedStore),
+      agreement: peer.agreement = await createSessionAgreement(seedStore),
+      contentKeyFor: (next: KeyRing) => deriveContentKey(fromBase64Url(next.roomKey)!, next.roomId),
       facilitator: opts.facilitator ? await signerFor(this.facilitatorSecret) : null,
       verifier: ed25519Verifier,
       replica,
@@ -387,7 +401,7 @@ export class World {
     }))() as Promise<EncryptedDeps>
     peer.transport = new EncryptedRelayTransport(
       `ws://fake/ws2?room=${this.roomId}`,
-      { roomId: this.roomId, roomKey: this.roomKey, ...(opts.facilitator ? { facilitatorSecret: this.facilitatorSecret } : {}) },
+      { roomId: this.roomId, roomKey: this.roomKey, ...(opts.facilitator ? { facilitatorSecret: this.facilitatorSecret } : {}), ...(this.signRoomId ? { signRoomId: this.signRoomId } : {}) },
       {
         onSnapshot: (s) => { peer.snapshot = s },
         onError: (code) => { peer.errors.push(code) },
@@ -398,6 +412,7 @@ export class World {
         onFocus: (_f, name) => { peer.focus.push(String(name)) },
         onLinks: (state) => { peer.links = state },
         onNotice: (n) => { peer.notices.push(n.kind) },
+        onMoved: (m) => { peer.moved = m },
       },
       deps,
     )

@@ -5,7 +5,7 @@ import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adap
 import { withJournal } from '~/adapters/replica-journal'
 import { createSessionReplicaStore, withSessionFallback } from '~/adapters/replica-session'
 import { createIdbVault, createSessionVault, createVault, openVaultDb, type PasscodeVault } from '~/adapters/passcode-vault'
-import { createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
+import { createSessionAgreement, createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
 import { LocalRelaySocket } from '~/transport/local-relay'
 import { buildWs2Url, EncryptedRelayTransport } from '~/transport/encrypted'
 import { download } from '~/utils/export'
@@ -56,6 +56,8 @@ export default defineNuxtPlugin(() => {
       (async () => ({
         contentKey: await deriveContentKey(fromBase64Url(ring.roomKey)!, ring.roomId, ring.passcode ? passcode : undefined),
         session: await createSessionSigner(),
+        agreement: await createSessionAgreement(),
+        contentKeyFor: (next: KeyRing) => deriveContentKey(fromBase64Url(next.roomKey)!, next.roomId, next.passcode ? passcode : undefined),
         facilitator: ring.facilitatorSecret ? await signerFor(ring.facilitatorSecret) : null,
         verifier: ed25519Verifier,
         replica: replicaFor() ?? undefined,

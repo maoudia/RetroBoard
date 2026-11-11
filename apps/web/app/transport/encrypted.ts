@@ -12,14 +12,15 @@
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
  * Every peer runs the same fold, so all replicas converge without a server reducer.
  */
-import { EventLog, type HistoryEntry, historyOf, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
+import { EventLog, type HistoryEntry, historyOf, type MoveResult, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
-import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, type IgnoreReason, isPrivileged, type KeyRing, type Peer, type Role, roleOf, type RoleBody } from '@retroboard/domain'
+import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, formatInvite, type IgnoreReason, isPrivileged, type KeyRing, type Peer, participantRing, type Role, roleOf, type RoleBody, signingRoom } from '@retroboard/domain'
 import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
 import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseSignal, parseSignedEvent, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal } from '@retroboard/protocol'
 import type { BoardTransport, ConnectionStatus, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
+import { moveRecipients, openMoved, sealMoved, type SessionAgreement } from './room-move'
 import { PeerMesh } from './mesh'
 
 /** Retry delay when the board is at its participant cap. */
@@ -45,12 +46,26 @@ export interface EncryptedDeps {
   RTC?: typeof RTCPeerConnection
   /** This tab created the board (setup hand-off): it alone may write the genesis without being asked. */
   creator?: boolean
+  /** X25519 key of this session: announced in presence, it lets the facilitator seal the new link to me when the team moves. */
+  agreement?: SessionAgreement
+  /** Content key of another ring (same passcode): needed to keep a copy of the board in a fresh room. */
+  contentKeyFor?: (ring: KeyRing) => Promise<Uint8Array>
 }
+
+/** The facilitator waits this long after the hand-offs before closing the old room, so the frames arrive first. */
+export const MOVE_SETTLE_MS = 2_500
 
 const toError = (reason: IgnoreReason): ErrorCode =>
   reason === 'rate-limited' ? 'limit-reached'
     : reason === 'hidden' || reason === 'closed' ? 'forbidden'
     : reason === 'not-facilitator' || reason === 'no-genesis' || reason === 'bad-genesis' || reason === 'duplicate-genesis' ? 'forbidden' : reason
+
+/** An event sealed for a room: the same bytes of the event, a header and a key of that room. */
+async function sealEventFor(e: SignedEvent, room: string, contentKey: Uint8Array): Promise<Envelope> {
+  const head = { v: PROTOCOL_VERSION, room, id: e.id, hlc: e.at } as const
+  const ct = await seal(contentKey, utf8(JSON.stringify(e)), utf8(envelopeAad(head)))
+  return { ...head, ct: toBase64Url(ct) }
+}
 
 export function buildWs2Url(base: string, roomId: string, loc: Pick<Location, 'protocol' | 'host'>): string {
   const origin = base || `${loc.protocol === 'https:' ? 'wss' : 'ws'}://${loc.host}`
@@ -104,7 +119,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     private readonly handlers: TransportHandlers,
     private readonly depsReady: Promise<EncryptedDeps>,
   ) {
-    this.log = new EventLog(ring.roomId)
+    this.log = new EventLog(signingRoom(ring))
   }
 
   connect(identity: Identity): void {
@@ -150,17 +165,94 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   history(): HistoryEntry[] {
-    return historyOf(this.ring.roomId, this.log.all())
+    return historyOf(signingRoom(this.ring), this.log.all())
   }
 
   rewindPlan(entryId: string): RewindPlan | null {
-    return rewindPlan(this.ring.roomId, this.log.all(), entryId)
+    return rewindPlan(signingRoom(this.ring), this.log.all(), entryId)
   }
 
   sendRename(key: string, name: string): boolean {
     if (this.closed || !this.known) return false
     this.enqueue(() => this.publishLocal({ t: 'participant.rename', key, name }))
     return true
+  }
+
+  // ----- Move to a fresh link (change facilitator-moderation, ADR-0033) -----
+
+  /** The connections a move addresses, frozen by `beginMove`: someone who connects afterwards is not sent the new link. */
+  private moveRoster: Set<string> | null = null
+  private moving = false
+
+  /** The signer allowed to move the team: the lead facilitator (the facilitator link, or a session key that was handed the lead). */
+  private get moveSigner(): SignerPort | null {
+    const { lead, facilitatorKey } = this.log.ledger
+    const fac = this.deps.facilitator
+    if (fac && (fac.publicKey === lead || fac.publicKey === facilitatorKey)) return fac
+    return this.deps.session.publicKey === lead ? this.deps.session : null
+  }
+
+  private recipientsOf(removing: string | null) {
+    return moveRecipients(this.log.ledger, this.presence, this.moveRoster ?? new Set(this.conns), { conn: this.conn, key: this.deps.session.publicKey }, removing)
+  }
+
+  beginMove(removing: string | null): number {
+    if (this.closed || !this.known || !this.moveSigner) return 0
+    this.moveRoster = new Set(this.conns.filter((c) => c !== this.conn))
+    return this.recipientsOf(removing).length
+  }
+
+  moveToFreshLink(removing: string | null, ring: KeyRing): Promise<MoveResult | null> {
+    return new Promise((resolve) => this.enqueue(async () => {
+      const signer = this.moveSigner
+      if (this.closed || !this.known || !signer || !this.deps.contentKeyFor || this.moving || ring.roomId === this.ring.roomId || ring.signRoomId !== signingRoom(this.ring)) return resolve(null)
+      this.moving = true
+      try {
+        const recipients = this.recipientsOf(removing)
+        this.moveRoster = null
+        // The board is kept in the new room on this device first: it opens from it, whatever happens to the relay.
+        await this.keepCopy(ring)
+        const link = formatInvite(participantRing(ring))
+        let sent = 0
+        for (const to of recipients) {
+          const ct = await sealMoved(signer, this.ring.roomId, ring, to, link)
+          if (ct && this.conn) { await this.sendEph({ t: 'room.moved', conn: this.conn, to: to.conn, ct }); sent++ }
+        }
+        // The frames come first; then the old room is closed for good, for whoever still holds its link.
+        await new Promise((r) => setTimeout(r, MOVE_SETTLE_MS))
+        await this.publishLocal({ t: 'cmd', cmd: { t: 'board.destroy' }, name: this.identity?.name || null, showName: this.identity?.showName ?? false })
+        await this.flush()
+        resolve({ hash: formatInvite(ring, ring.facilitatorSecret ? 'facilitator' : 'participant'), moved: sent })
+      } catch {
+        resolve(null)
+      } finally {
+        this.moving = false
+      }
+    }))
+  }
+
+  /** The events of my log sealed under `ring`, kept in this device's copy of that room. False when there is nowhere to keep them. */
+  private async keepCopy(ring: KeyRing): Promise<boolean> {
+    const { replica, contentKeyFor } = this.deps
+    if (!replica || !contentKeyFor) return false
+    try {
+      const key = await contentKeyFor(ring)
+      const envs = await Promise.all(this.log.all().map((e) => sealEventFor(e, ring.roomId, key)))
+      await replica.append(ring.roomId, envs.map((e) => ({ id: e.id, data: JSON.stringify(e) })))
+      return true
+    } catch { return false }
+  }
+
+  /** A hand-off addressed to my connection: opened, checked against my own ledger, then the page opens the new link. */
+  private async onMoved(ct: string): Promise<void> {
+    const agreement = this.deps.agreement
+    if (this.closed || this.moving || !agreement || !this.known) return
+    const leads = (key: string) => key === this.log.ledger.lead || key === this.log.ledger.facilitatorKey
+    const opened = await openMoved(agreement, this.deps.verifier, this.ring.roomId, signingRoom(this.ring), leads, ct)
+    if (!opened || this.moving) return
+    this.moving = true
+    await this.keepCopy(opened.ring)
+    this.handlers.onMoved?.({ hash: opened.hash, ring: opened.ring })
   }
 
   updateIdentity(identity: Identity): void {
@@ -247,7 +339,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       this.emit()
       return
     }
-    const event = await signEvent(signer, this.ring.roomId, draft)
+    const event = await signEvent(signer, signingRoom(this.ring), draft)
     // Sealed and staged before the board shows it: what the page shows has a synchronous copy on this device, so a tab
     // left before the replica commits (asynchronous, slower while the page paints) does not lose it.
     const env = await this.sealEvent(event)
@@ -259,10 +351,8 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.publish([env])
   }
 
-  private async sealEvent(e: SignedEvent): Promise<Envelope> {
-    const head = { v: PROTOCOL_VERSION, room: this.ring.roomId, id: e.id, hlc: e.at } as const
-    const ct = await seal(this.deps.contentKey, utf8(JSON.stringify(e)), utf8(envelopeAad(head)))
-    return { ...head, ct: toBase64Url(ct) }
+  private sealEvent(e: SignedEvent): Promise<Envelope> {
+    return sealEventFor(e, this.ring.roomId, this.deps.contentKey)
   }
 
   private async openEnvelope(env: Envelope): Promise<unknown> {
@@ -352,7 +442,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       const event = parseSignedEvent(await this.openEnvelope(env))
       // The envelope header must agree with the signed content (no relabelled replays).
       if (!event || event.id !== env.id || event.at !== env.hlc) continue
-      const verified = await verifyEvent(this.deps.verifier, this.ring.roomId, event)
+      const verified = await verifyEvent(this.deps.verifier, signingRoom(this.ring), event)
       if (verified && this.log.insert(event)) {
         this.noticeIfLive(event)
         this.hlc.receive(event.at)
@@ -472,6 +562,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     const p: Presence = {
       t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, ...(this.identity.hue !== undefined ? { hue: this.identity.hue } : {}), key: this.deps.session.publicKey,
       ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}), ...(this.log.size > 0 ? { ready: true } : {}),
+      ...(this.deps.agreement ? { xkey: this.deps.agreement.publicKey } : {}),
     }
     await this.sendEph(p)
   }
@@ -520,6 +611,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   private onLive(live: Live): void {
     if (!this.conns.includes(live.conn) || live.conn === this.conn) return
     if (live.t === 'presence') { this.presence.set(live.conn, live); this.emit(); return }
+    if (live.t === 'room.moved') { if (live.to === this.conn) this.enqueue(() => this.onMoved(live.ct)); return }
     const name = this.liveName(live.conn)
     if (name === undefined) return
     if (live.t === 'cursor') this.handlers.onCursor?.({ conn: live.conn, anchor: live.anchor, x: live.x, y: live.y, drag: live.drag, ...(live.laser ? { laser: true } : {}) }, name)
@@ -620,7 +712,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       case 'eph': {
         if (!this.seenLive.add(frame.env.id)) return
         const live = parseLive(await this.openEnvelope(frame.env))
-        if (!live || live.t === 'presence') return
+        if (!live || live.t === 'presence' || live.t === 'room.moved') return
         // Direct frames must come from their sender; forwarded ones carry a hop count.
         if (frame.hop === 0 && live.conn !== conn) return
         this.onLive(live)
@@ -765,7 +857,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     clearTimeout(this.p2pTimer)
     // Only the tab that created the board (or a facilitator who chose to start a new one) writes a genesis.
     const create = mayCreate && !this.known && !!this.deps.facilitator && (this.deps.creator === true || this.startRequested)
-    if (create) await this.publishLocal({ t: 'genesis', roomId: this.ring.roomId, facilitatorKey: this.deps.facilitator!.publicKey })
+    if (create) await this.publishLocal({ t: 'genesis', roomId: signingRoom(this.ring), facilitatorKey: this.deps.facilitator!.publicKey })
     await this.announce() // "ready" for the seeder rule
     this.setStatus(this.known ? 'open' : 'waiting')
     this.emit()
@@ -832,11 +924,12 @@ export class EncryptedRelayTransport implements BoardTransport {
     if (!this.known) return
     if (this.lastStatus === 'waiting') this.setStatus('open')
     const ledger = this.log.ledger
-    if (ledger.board.settings.destroyed) this.forgetReplica()
+    // Closed for good, or removed by the facilitator: the encrypted copy goes from this device.
+    if (ledger.board.settings.destroyed || ledger.removed.includes(this.deps.session.publicKey)) this.forgetReplica()
     this.delegateSessionToLink()
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
-    const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey }
+    const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey, removed: ledger.removed.includes(this.deps.session.publicKey) }
     this.handlers.onSnapshot({ ...buildSnapshot(ledger.board, { cid: this.actorKey }, this.peers(), this.now(), { ...ledger.selfNames, ...ledger.names }), access })
   }
 
