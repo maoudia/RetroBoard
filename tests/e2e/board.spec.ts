@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, collectProblems, column, createBoard, enterName, join, noteByText, publishNote, settle, voteMenu } from './helpers'
+import { axe, collectProblems, column, createBoard, enterName, join, noteByText, publishNote, saveFile, settle, voteMenu } from './helpers'
 
 test.describe('board lifecycle', () => {
   test('creates a themed board from a template', async ({ page }) => {
@@ -243,7 +243,7 @@ test.describe('themes and options', () => {
     await publishNote(page, 0, 'À exporter')
     const [download] = await Promise.all([page.waitForEvent('download'), (async () => {
       await page.getByTestId('btn-export').click()
-      await page.getByTestId('export-md').click()
+      await saveFile(page, 'export-md')
     })()])
     expect(download.suggestedFilename()).toMatch(/\.md$/)
   })

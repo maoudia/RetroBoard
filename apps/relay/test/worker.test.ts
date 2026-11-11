@@ -60,6 +60,9 @@ describe('security headers', () => {
     expect(csp).toContain("script-src 'self' 'sha256-AAA'")
     expect(csp).toContain("style-src 'self' 'sha256-BBB'")
     expect(csp).toContain("frame-ancestors 'none'")
+    // The only third-party origin: a Slack incoming webhook (export-hub, ADR-0033), for fetch only.
+    expect(csp).toContain("connect-src 'self' https://hooks.slack.com")
+    expect(csp.split(/[\s;]+/).filter((token) => token.startsWith('https://'))).toEqual(['https://hooks.slack.com'])
     expect(csp).toContain("media-src 'self'")
     expect(csp.split('; ').filter((d) => d.startsWith('media-src'))).toEqual(["media-src 'self'"])
     expect(csp).not.toContain('unsafe-')

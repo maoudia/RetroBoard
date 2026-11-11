@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { closeShare, createBoard, join } from './helpers'
+import { closeShare, createBoard, join, saveFile } from './helpers'
 
 const openActions = (page: Page) => page.getByTestId('btn-actions').click()
 async function addAction(page: Page, text: string, owner?: string, due?: string) {
@@ -110,7 +110,7 @@ test.describe('actions v2', () => {
     await page.keyboard.press('Escape')
     await page.getByTestId('btn-export').click()
     await page.getByTestId('export-dest-jira').click()
-    const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-actions').click()])
+    const [download] = await Promise.all([page.waitForEvent('download'), saveFile(page, 'export-actions')])
     const csv = Buffer.concat(await (await download.createReadStream()).toArray()).toString('utf8')
     expect(csv.split('\n')[0]).toBe('"Summary","Assignee","Status","Due Date","Description","Labels"')
     expect(csv).toContain('"Pin versions","Ana","To Do","2026-12-01"')

@@ -102,9 +102,11 @@ export const CHAPTERS: readonly Chapter[] = [
   {
     id: 'export',
     title: t('Exporter et garder une trace', 'Export and keep a record'),
-    intro: t('Le rapport de rétro tient dans un seul fichier HTML autonome.', 'The retro report fits in one self-contained HTML file.'),
+    intro: t('Le rapport de rétro tient dans un seul fichier HTML autonome; chaque fichier se prévisualise avant d\'être enregistré.', 'The retro report fits in one self-contained HTML file; every file is previewed before it is saved.'),
     steps: [
       { id: 'report', caption: t('Le rapport rassemble le podium, les idées par colonne et les actions.', 'The report gathers the podium, the ideas by column and the actions.'), ops: [{ press: 'Escape' }, { click: 'btn-export' }, { click: 'export-report' }], anchors: ['report'] },
+      { id: 'preview', caption: t("Avant d'enregistrer, le fichier s'affiche tel que tu le recevras, avec son nom et sa taille.", 'Before saving, the file is shown as you will receive it, with its name and size.'), ops: [{ press: 'Escape' }, { click: 'btn-export' }, { click: 'export-csv' }], anchors: ['file-preview-table', 'file-preview-save'] },
+      { id: 'slack', caption: t('Le résumé Slack se copie, ou se poste dans un canal avec ton webhook, gardé sur cet appareil.', 'The Slack summary is copied, or posted to a channel with your webhook, kept on this device.'), ops: [{ press: 'Escape' }, { click: 'btn-export' }, { click: 'export-dest-slack' }], anchors: ['slack-webhook', 'slack-post'] },
     ],
   },
   {

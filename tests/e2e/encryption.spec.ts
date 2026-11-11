@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { closeShare, createBoard, enterName, join, noteByText, publishNote } from './helpers'
+import { closeShare, createBoard, enterName, join, noteByText, publishNote, saveFile } from './helpers'
 
 const TEXT = 'Deploy on Fridays'
 const variants = (s: string) => {
@@ -190,7 +190,7 @@ test('board file: export, then restore into the same link after the board is gon
   await publishNote(page, 0, 'Kept in the file')
   const facilitatorLink = page.url()
   await page.getByTestId('btn-export').click()
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-retro').click()])
+  const [download] = await Promise.all([page.waitForEvent('download'), saveFile(page, 'export-retro')])
   const fileText = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'))
   expect(download.suggestedFilename()).toMatch(/\.retro$/)
   expect(fileText).not.toContain('Kept in the file')

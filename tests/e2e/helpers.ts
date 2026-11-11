@@ -130,6 +130,8 @@ export async function collectProblems(page: Page): Promise<string[]> {
     // WebKit prints this for stylesheets it never reports through a securitypolicyviolation
     // event; a real blocked style does fire the event, which is still collected below.
     if (webkit && m.text().startsWith('Refused to apply a stylesheet because its hash')) return
+    // The export previews run in a sandboxed frame without allow-scripts: this guard's own init script is refused there, which is the sandbox working.
+    if (m.text().startsWith("Blocked script execution in 'about:srcdoc'")) return
     problems.push(m.text())
   })
   page.on('pageerror', (e) => problems.push(String(e)))
@@ -193,4 +195,10 @@ export function axe(page: Page): AxeBuilder {
     }
   }
   return builder
+}
+
+/** Presses a file button of the export hub, then "Save" in the file preview (export-hub, task 2.3). */
+export async function saveFile(page: Page, buttonTestId: string): Promise<void> {
+  await page.getByTestId(buttonTestId).click()
+  await page.getByTestId('file-preview-save').click()
 }

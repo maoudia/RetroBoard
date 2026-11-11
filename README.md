@@ -151,10 +151,10 @@ The Worker is named `retroboard` (`wrangler.jsonc`). Why a Worker and not Pages:
 
 ## Security
 
-- Strict CSP, no `unsafe-inline`: inline script hashes are computed after the build (`apps/web/scripts/csp-hashes.mjs`) and read by the Worker. `default-src 'none'`, `frame-ancestors 'none'`, `connect-src 'self'`.
+- Strict CSP, no `unsafe-inline`: inline script hashes are computed after the build (`apps/web/scripts/csp-hashes.mjs`) and read by the Worker. `default-src 'none'`, `frame-ancestors 'none'`, `connect-src 'self' https://hooks.slack.com` (the optional Slack webhook, ADR-0033).
 - WebSocket upgrades only from the site's own origin (plus `ALLOWED_ORIGINS`), room ids validated, message size and rate limits, caps on notes, actions and connections.
 - All commands validated with valibot before reaching the reducer; every event is signed and checked against the board's roles.
-- No cookies, no third-party requests, fonts self-hosted.
+- No cookies, no third-party requests (but the optional Slack post, on a click), fonts self-hosted.
 
 Board links are capability URLs: anyone who has the link can join. Share them accordingly.
 

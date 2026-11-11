@@ -6,10 +6,13 @@
 export const SETTINGS_FILE_FORMAT = 'retroboard-settings'
 export const SETTINGS_FILE_VERSION = 1
 
+/** Secrets of this device: never written to a settings file (it gets shared) and never read from one. */
+const DEVICE_ONLY = ['slackWebhook']
+
 export interface SettingsFile { format: typeof SETTINGS_FILE_FORMAT; version: typeof SETTINGS_FILE_VERSION; exportedAt: string; settings: Record<string, unknown> }
 
 export function buildSettingsFile(settings: Readonly<Record<string, unknown>>, now: Date): string {
-  const file: SettingsFile = { format: SETTINGS_FILE_FORMAT, version: SETTINGS_FILE_VERSION, exportedAt: now.toISOString(), settings: { ...settings } }
+  const file: SettingsFile = { format: SETTINGS_FILE_FORMAT, version: SETTINGS_FILE_VERSION, exportedAt: now.toISOString(), settings: Object.fromEntries(Object.entries(settings).filter(([k]) => !DEVICE_ONLY.includes(k))) }
   return `${JSON.stringify(file, null, 2)}\n`
 }
 
@@ -23,7 +26,7 @@ export function parseSettingsFile(text: string, defaults: Readonly<Record<string
   if (typeof f.settings !== 'object' || f.settings === null || Array.isArray(f.settings)) return null
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(f.settings)) {
-    if (!Object.hasOwn(defaults, k)) continue
+    if (!Object.hasOwn(defaults, k) || DEVICE_ONLY.includes(k)) continue
     const d = defaults[k]
     if (d === null ? v === null || typeof v === 'string' : typeof v === typeof d) out[k] = v
   }

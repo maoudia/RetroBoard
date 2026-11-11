@@ -15,7 +15,7 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 - Board content is **end-to-end encrypted** once `e2e-encrypted-rooms` lands. Never send plaintext board content to the relay or any third party.
 - **Domain is pure**: no I/O, no framework, no `node:`/`vue`/`nuxt`/`cloudflare:` imports in the domain package.
 - **Every user-facing string** goes through i18n with `fr` and `en` keys. No hard-coded text.
-- **Strict CSP**: no inline scripts or styles, no `eval`, no third-party origins. Constant `:style` bindings are fine (static hoisting is off).
+- **Strict CSP**: no inline scripts or styles, no `eval`, no third-party origins (one exception: `connect-src` for `hooks.slack.com`, ADR-0033). Constant `:style` bindings are fine (static hoisting is off).
 - **Board theme is imposed**; only light/dark variant is personal.
 - **UI follows `docs/design-system.md`**: font sizes, radii and spacing come from the shared tokens (`--fs-*`, `--r-*`, `--sp-*`); `apps/web/test/design-tokens.test.ts` enforces it.
 - **One author, no co-author**: commits are authored and committed by `Claude <noreply@anthropic.com>`, with no `Co-Authored-By` trailer (hook and CI refuse it). Humans may commit under their own name; an agent never uses a person's identity (the hook refuses it inside a Claude Code session). Pull requests made only of Claude commits are auto-merged by the Actions bot (`.github/workflows/agent-automerge.yml`), by rebase.

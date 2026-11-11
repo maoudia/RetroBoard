@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
-import { createBoard, join, publishNote, settle } from './helpers'
+import { createBoard, join, publishNote, saveFile, settle } from './helpers'
+import { readPdf } from './pdf-text'
 
 test('the retro report shows the board and downloads as one self-contained HTML file', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Sprint 42' })
@@ -16,7 +17,7 @@ test('the retro report shows the board and downloads as one self-contained HTML 
   await expect(report).toContainText('<b>Long</b> meetings')
   await expect(page.getByTestId('report-agenda')).toBeVisible()
 
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('report-download').click()])
+  const [download] = await Promise.all([page.waitForEvent('download'), saveFile(page, 'report-download')])
   expect(download.suggestedFilename()).toBe('sprint-42-report.html')
   const html = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'))
   expect(html).toContain('<h1>Sprint 42</h1>')
@@ -28,6 +29,33 @@ test('the retro report shows the board and downloads as one self-contained HTML 
   await settle(page) // the report dialog slides in: click it once it stopped moving
   await page.getByTestId('report-print').dispatchEvent('click')
   expect(await page.evaluate(() => (window as unknown as { printed: string }).printed)).toBe('report')
+})
+
+test('the report file prints to an A4 PDF that contains the actions table (export-hub 1.2)', async ({ page, browser, browserName }) => {
+  test.skip(browserName !== 'chromium', 'page.pdf() is Chromium only')
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Sprint 42' })
+  await publishNote(page, 0, 'Slow CI')
+  await page.getByTestId('btn-actions').click()
+  await page.getByTestId('action-text').fill('Cache deps')
+  await page.getByTestId('action-add').click()
+  await page.keyboard.press('Escape')
+  await page.getByTestId('btn-export').click()
+  await page.getByTestId('export-report').click()
+  const [download] = await Promise.all([page.waitForEvent('download'), saveFile(page, 'report-download')])
+  const html = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'))
+
+  // The file itself, as a browser prints it: Playwright renders the print media to a tagged PDF.
+  const printer = await browser.newPage()
+  await printer.setContent(html)
+  const pdf = readPdf(await printer.pdf({ preferCSSPageSize: true, tagged: true }))
+  await printer.close()
+  expect(pdf.pages.length).toBeGreaterThan(0)
+  for (const page of pdf.pages) expect(page).toEqual({ width: 595, height: 842 }) // @page A4
+  expect(pdf.tags).toContain('Table')
+  const text = pdf.text.join('\n')
+  for (const part of ['Sprint 42', 'Slow CI', 'Cache deps']) expect(text).toContain(part)
+  // The table header row and its cells are all there, not only the heading.
+  expect(text).toMatch(/Action[\s\S]*Cache deps/)
 })
 
 test('ROTI: two participants rate the retro, the report shows the distribution without names', async ({ page, browser }) => {
@@ -53,7 +81,7 @@ test('ROTI: two participants rate the retro, the report shows the distribution w
   await expect(roti).toContainText('5 / 5: 1')
   await expect(roti).toContainText('3 / 5: 0')
 
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('report-download').click()])
+  const [download] = await Promise.all([page.waitForEvent('download'), saveFile(page, 'report-download')])
   const html = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'))
   expect(html).toContain('<li>5 / 5: 1</li>')
   expect(html).not.toContain('Bob')
@@ -66,7 +94,7 @@ test('a passphrase encrypts the downloaded report, which unlocks offline from th
   await page.getByTestId('btn-export').click()
   await page.getByTestId('export-report').click()
   await page.getByTestId('report-passphrase').fill('correct horse')
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('report-download').click()])
+  const [download] = await Promise.all([page.waitForEvent('download'), saveFile(page, 'report-download')])
   expect(download.suggestedFilename()).toBe('sprint-44-report-encrypted.html')
   const file = test.info().outputPath('report-encrypted.html')
   await download.saveAs(file)
