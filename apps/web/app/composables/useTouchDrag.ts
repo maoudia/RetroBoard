@@ -69,9 +69,8 @@ export function useTouchDrag(el: Ref<HTMLElement | null>, opts: { enabled: () =>
     grabY = y0 - r.top
     ghost = node.cloneNode(true) as HTMLElement
     // The copy is only a picture: no second note for a test, a screen reader or a tab stop.
-    for (const a of [ghost, ...ghost.querySelectorAll<HTMLElement>('[data-testid], [data-source-id], [data-anchor], [id]')]) for (const n of ['data-testid', 'data-source-id', 'data-anchor', 'data-drop', 'id']) a.removeAttribute(n)
-    ghost.classList.add('touch-ghost')
-    ghost.setAttribute('aria-hidden', 'true')
+    for (const a of [ghost, ...ghost.querySelectorAll('*')]) for (const n of ['data-testid', 'data-source-id', 'data-anchor', 'data-drop', 'id']) a.removeAttribute(n)
+    ghost.className += ' touch-ghost'
     ghost.setAttribute('inert', '')
     ghost.style.width = `${r.width}px`
     ghost.style.height = `${r.height}px`
@@ -79,8 +78,6 @@ export function useTouchDrag(el: Ref<HTMLElement | null>, opts: { enabled: () =>
     node.setAttribute('data-lifted', '')
     // A finger that keeps moving must drag the card, not scroll the page.
     document.addEventListener('touchmove', keepStill, { passive: false })
-    window.getSelection()?.removeAllRanges()
-    navigator.vibrate?.(15)
     frame = requestAnimationFrame(track)
   }
 
@@ -96,10 +93,8 @@ export function useTouchDrag(el: Ref<HTMLElement | null>, opts: { enabled: () =>
     ghost = null
     el.value?.removeAttribute('data-lifted')
     if (wasActive) {
-      const node = el.value
-      const swallow = (e: Event) => { e.preventDefault(); e.stopPropagation() }
-      node?.addEventListener('click', swallow, { capture: true, once: true })
-      setTimeout(() => node?.removeEventListener('click', swallow, { capture: true }), 400)
+      const swallow = (e: Event) => e.stopPropagation()
+      el.value?.addEventListener('click', swallow, { capture: true, once: true })
     }
     pressed = false
     active = false

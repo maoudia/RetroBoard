@@ -21,8 +21,10 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // flow (41.3 and 299.3 kB measured). Splitting the board dialogs into lazy chunks is tracked in quality-gates-v2.
 // 2026-11-09: total raised from 330 to 335 kB for team sharing (encrypted team link, .retroteam file, join dialog,
 // fr/en strings; +4.8 kB measured over 327.3). The entry stays at 43.3 kB: the sharing UI is lazy but every chunk is counted.
+// 2026-11-11: total raised from 335 to 337 kB for touch drag and drop (long press lifts a note or a cluster, +1.1 kB
+// measured over 334.9, 336 kB after). The base was already within 0.1 kB of the old budget.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 44, totalKb: 335 }
+const BUDGET = { entryKb: 44, totalKb: 337 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
