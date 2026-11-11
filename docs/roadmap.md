@@ -52,6 +52,7 @@ Brand identity, landing v2, user manual, short links, report and insights, code 
 * `scorecard-hardening` ([proposal](../openspec/changes/scorecard-hardening/proposal.md))
 * `phase-transition-guidance` ([proposal](../openspec/changes/phase-transition-guidance/proposal.md))
 * `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
+* `join-code-drop-fallback` ([proposal](../openspec/changes/join-code-drop-fallback/proposal.md))
 * `brand-identity` (change to open: `/opsx:propose`)
 * `code-health-for-agents` (change to open: `/opsx:propose`)
 * `public-launch` (change to open: `/opsx:propose`)
@@ -62,6 +63,7 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 
 * `attention-and-notifications` ([proposal](../openspec/changes/attention-and-notifications/proposal.md))
 * `team-workspaces` ([proposal](../openspec/changes/team-workspaces/proposal.md))
+* `results-trends` ([proposal](../openspec/changes/results-trends/proposal.md))
 * `actions-v2-and-carry-over` ([proposal](../openspec/changes/actions-v2-and-carry-over/proposal.md))
 * `profile-avatars-and-team-space` ([proposal](../openspec/changes/profile-avatars-and-team-space/proposal.md))
 * `board-undo-rewind` ([proposal](../openspec/changes/board-undo-rewind/proposal.md))
