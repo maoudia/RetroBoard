@@ -39,3 +39,10 @@ Premium themes and formats SHALL be downloadable only with a valid entitlement t
 #### Scenario: Free user requests a premium pack
 - **WHEN** a request for a premium pack has no valid token
 - **THEN** the service answers 402 with a link to pricing
+
+### Requirement: Source code offer
+The board interface SHALL link to the complete corresponding source code from its footer and its profile menu, as section 13 of the AGPL requires for users of a network service.
+
+#### Scenario: A user looks for the source
+- **WHEN** a user opens the landing footer or the profile menu of a board
+- **THEN** a "Source code" link (fr: "Code source") leads to the public repository

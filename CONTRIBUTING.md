@@ -23,6 +23,11 @@ Conventions:
 - Never log note text, names, client ids or raw room ids.
 - Keep the CSP strict: no inline scripts or styles, no `unsafe-*`.
 
-## License
+## License and CLA
 
-RetroBoard is licensed under the GNU AGPL-3.0 (see LICENSE and NOTICE). External contributions will require signing the CLA once it is set up, so that MAIDAF EURL can also offer a commercial license.
+RetroBoard is licensed under the GNU AGPL-3.0 (see LICENSE and NOTICE). MAIDAF EURL also offers a commercial license, so a pull request from outside the project needs a signed Contributor License Agreement ([docs/CLA.md](docs/CLA.md), currently a draft awaiting the owner's review).
+
+- The `CLA` check comments on your first pull request. Reply with the sentence it asks for, once: the signature (your GitHub login, the date and the pull request) is stored in `signatures/cla.json` on the `cla-signatures` branch, and covers your later pull requests. Comment `recheck` to run the check again.
+- You keep your copyright. The agreement lets MAIDAF EURL ship your contribution under the AGPL and under the commercial license.
+- Members of the project, Dependabot, release-please and Claude commits do not sign: the check only runs on pull requests from a fork.
+- RetroBoard links to its source code from the footer and from the profile menu (AGPL section 13); keep that link when you change them.
