@@ -14,7 +14,7 @@
 
 ## 3. Hashed assets off the request budget
 
-- [ ] 3.1 `scripts/quality/worker-requests.mjs`: count requests of a cold load of `/`, `/new` and `/boards` from the generated site with Playwright; write the figures in `docs/capacity.md` ("Per day"); verify the script output matches the table
-- [ ] 3.2 ADR "Hashed assets bypass the Worker": `run_worker_first: ["/*", "!/_nuxt/*"]`, headers from a generated `_headers`, and the measured answer for a missing `/_nuxt/` file under `not_found_handling: single-page-application`; if a missing chunk returns the shell, record "rejected" and stop the group; verify `pnpm adr:check`
+- [x] 3.1 `scripts/quality/worker-requests.mjs`: count requests of a cold load of `/`, `/new` and `/boards` from the generated site with Playwright; write the figures in `docs/capacity.md` ("Per day"); verify the script output matches the table
+- [x] 3.2 ADR "Hashed assets bypass the Worker": `run_worker_first: ["/*", "!/_nuxt/*"]`, headers from a generated `_headers`, and the measured answer for a missing `/_nuxt/` file under `not_found_handling: single-page-application`; if a missing chunk returns the shell, record "rejected" and stop the group; verify `pnpm adr:check`. Outcome: rejected ([ADR-0032](../../../docs/adr/0032-hashed-assets-bypass-the-worker.md)), a missing chunk returns the shell; 3.3 and 3.4 stay open and the group stops here
 - [ ] 3.3 Generate `_headers` for `/_nuxt/*` (HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, immutable cache) in the step that writes `_csp.json`; set the pattern in both wrangler files; verify an e2e against `pnpm dev:worker`: headers present on an asset, 404 on a missing one, CSP still on HTML
 - [ ] 3.4 Extend `scripts/smoke.mjs` with the two asset checks of 3.3 and update `docs/capacity.md`; verify against a preview deployment before production
