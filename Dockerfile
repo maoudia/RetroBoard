@@ -35,7 +35,9 @@ WORKDIR /app
 COPY --from=build /out/ /app/
 # The base image ships npm with its own dependencies (undici, ip-address...) that the scan reports and the relay never
 # runs: npm is used once to install Wrangler, then removed, and the container starts Wrangler directly.
-RUN apt-get update && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+# ca-certificates: the slim base ships none and workerd aborts at start without a system CA bundle.
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+ && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
  && rm -rf /var/lib/apt/lists/* \
  && echo '{"private":true}' > package.json \
  && npm install --no-audit --no-fund --omit=dev "wrangler@$(cat wrangler.version)" \
