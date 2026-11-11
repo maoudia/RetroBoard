@@ -17,7 +17,8 @@ test('publishing three ideas in a row shows one toast with one Undo for all of t
 })
 
 test('a group card fills its cell so its vote and count stay on the card on a phone (change stabilise-main)', async ({ page }) => {
-  await page.setViewportSize({ width: 360, height: 740 })
+  // 800 px high: the tab bar at the foot takes 56 px, and a column that scrolls folds the menus mid-drag (change responsive-and-i18n-hardening).
+  await page.setViewportSize({ width: 360, height: 800 })
   await createBoard(page, { template: 'start-stop-continue' })
   await publishNote(page, 0, 'Slow tests in CI')
   await publishNote(page, 0, 'The tests are slow and flaky on the shared runner')

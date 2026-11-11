@@ -244,7 +244,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .ghost { padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .2s; }
 .ghost:hover { background: rgb(0 113 227 / .08); }
 
-.hero { display: grid; justify-items: center; gap: 1.4rem; max-width: 1120px; margin: 0 auto; padding: 4.5rem 1.25rem 3rem; text-align: center; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 1.4rem; max-width: 1120px; margin: 0 auto; padding: 4.5rem 1.25rem 3rem; text-align: center; }
 .eyebrow { display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .9rem; border-radius: 999px; background: var(--fill); color: var(--ink2); font-size: var(--fs-sm); font-weight: 600; }
 .hero h1 { font-size: clamp(2.9rem, 8vw, 6rem); line-height: 1.02; letter-spacing: -.045em; background: linear-gradient(180deg, #1d1d1f 30%, #6e6e73); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .sub { max-width: 620px; color: var(--ink2); font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.4; letter-spacing: -.01em; }
@@ -308,6 +308,14 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 
 @media (max-width: 900px) { .links { display: none; } .bento { grid-template-columns: 1fr 1fr; } .card.wide { grid-column: span 2; } .stats { grid-template-columns: 1fr 1fr; row-gap: 2rem; } .steps { grid-template-columns: 1fr; } .privacy { grid-template-columns: 1fr 1fr; } }
 /* Small phones: the header keeps every control inside the screen (Create was cut at 360 px). */
+/* Phones: "Start a retro" is a large centred button in the thumb zone, full width at the bottom of the screen, and joining is as easy to hit (change responsive-and-i18n-hardening). */
+@media (max-width: 480px) {
+  .actions { display: contents; }
+  .actions .cta { position: fixed; z-index: 40; inset: auto var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom)); min-height: 3.25rem; font-size: var(--fs-lg); box-shadow: 0 12px 28px -8px color-mix(in srgb, var(--blue) 65%, transparent); }
+  .lp { padding-bottom: 6rem; }
+  .join .ghost { flex: 1 0 100%; justify-content: center; min-height: 3rem; }
+  .cta.big { align-self: stretch; min-height: 3.25rem; }
+}
 @media (max-width: 420px) { .nav-in { gap: .5rem; padding: 0 .75rem; } .right { gap: .4rem; } .cta.sm { padding: .4rem .75rem; } .brand { gap: .4rem; } }
 @media (max-width: 600px) { .foot > span { flex-basis: 100%; } .bento { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
 @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; } .tilt { transition: none; } }
