@@ -12,11 +12,11 @@
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
  * Every peer runs the same fold, so all replicas converge without a server reducer.
  */
-import { EventLog, type HistoryEntry, historyOf, type MoveResult, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignerPort, signEvent, type VerifierPort, verifyEvent } from '@retroboard/application'
+import { EventLog, type HistoryEntry, historyOf, type LogBase, type MoveResult, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignedSnapshot, type SignerPort, signEvent, signSnapshot, type VerifierPort, verifyEvent, verifySnapshot } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, formatInvite, type IgnoreReason, isPrivileged, type KeyRing, type Peer, participantRing, type Role, roleOf, type RoleBody, signingRoom } from '@retroboard/domain'
 import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
-import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseSignal, parseSignedEvent, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal } from '@retroboard/protocol'
+import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, MAX_SNAPSHOT_CT_CHARS, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseSignal, parseSignedEvent, parseSnapshot, parseSnapshotEnvelope, SNAP_CHUNK_CHARS, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal, type SnapshotEnvelope } from '@retroboard/protocol'
 import type { BoardTransport, ConnectionStatus, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
@@ -29,6 +29,13 @@ export const FULL_RETRY_MS = 15_000
 export const P2P_WAIT_MS = 8_000
 /** Random delay before uploading what the relay lacks, so holders reconnecting together do not all upload. */
 export const RESEED_JITTER_MS = 800
+/** The facilitator signs a snapshot once this many events lie beyond the previous one, cut at least SNAPSHOT_LAG_MS before the newest event (ADR-0037). */
+export const SNAPSHOT_EVERY = 1_000
+export const SNAPSHOT_LAG_MS = 60_000
+/** Quiet time after the last event of a full log being rebuilt before it replaces the snapshot-based one. */
+export const FULL_QUIET_MS = 1_000
+/** Replica record ids of snapshots (events use their own id). */
+const SNAPSHOT_RECORD = 'snap:'
 
 export interface EncryptedDeps {
   contentKey: Uint8Array
@@ -50,6 +57,8 @@ export interface EncryptedDeps {
   agreement?: SessionAgreement
   /** Content key of another ring (same passcode): needed to keep a copy of the board in a fresh room. */
   contentKeyFor?: (ring: KeyRing) => Promise<Uint8Array>
+  /** When the facilitator signs snapshots (default: SNAPSHOT_EVERY, SNAPSHOT_LAG_MS). */
+  snapshot?: { every: number; lagMs: number }
 }
 
 /** The facilitator waits this long after the hand-offs before closing the old room, so the frames arrive first. */
@@ -75,7 +84,24 @@ export function buildWs2Url(base: string, roomId: string, loc: Pick<Location, 'p
 export class EncryptedRelayTransport implements BoardTransport {
   private ws: WebSocket | null = null
   private identity: Identity | null = null
-  private readonly log: EventLog<SignedEvent>
+  private log: EventLog<SignedEvent>
+  /**
+   * Snapshot-based logs only (ADR-0037): the full log being rebuilt after an event before the cut, or a request to export.
+   * It receives every event too and replaces `log` once a peer has sent the genesis and the stream went quiet.
+   */
+  private rebuilt: EventLog<SignedEvent> | null = null
+  private fullTimer: ReturnType<typeof setTimeout> | undefined
+  /** The newest verified snapshot I hold (made by me, adopted, or received): served to joiners with an empty log. */
+  private latest: { snap: SignedSnapshot; env: SnapshotEnvelope } | null = null
+  /** Chunks of a snapshot being received, by link. */
+  private readonly snapParts = new Map<string, { sid: string; hlc: number; n: number; parts: string[]; chars: number }>()
+  /** Links that asked me for a snapshot; links I asked. */
+  private readonly snapWanted = new Set<string>()
+  private readonly snapAsked = new Set<string>()
+  private readonly seenSnap = new SeenSet(64)
+  /** Events covered by the last snapshot I signed. */
+  private snapCount = 0
+  private snapTimer: ReturnType<typeof setTimeout> | undefined
   private conn: string | null = null
   private conns: string[] = []
   private readonly presence = new Map<string, Presence>()
@@ -165,11 +191,11 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   history(): HistoryEntry[] {
-    return historyOf(signingRoom(this.ring), this.log.all())
+    return historyOf(signingRoom(this.ring), this.log.all(), undefined, this.log.base?.ledger)
   }
 
   rewindPlan(entryId: string): RewindPlan | null {
-    return rewindPlan(signingRoom(this.ring), this.log.all(), entryId)
+    return rewindPlan(signingRoom(this.ring), this.log.all(), entryId, this.log.base?.ledger)
   }
 
   sendRename(key: string, name: string): boolean {
@@ -202,7 +228,9 @@ export class EncryptedRelayTransport implements BoardTransport {
     return this.recipientsOf(removing).length
   }
 
-  moveToFreshLink(removing: string | null, ring: KeyRing): Promise<MoveResult | null> {
+  async moveToFreshLink(removing: string | null, ring: KeyRing): Promise<MoveResult | null> {
+    // The new room gets every event of my log: one that starts from a snapshot holds only the tail, so rebuild the full log first.
+    if (this.log.base && !(await this.fillLog())) return null
     return new Promise((resolve) => this.enqueue(async () => {
       const signer = this.moveSigner
       if (this.closed || !this.known || !signer || !this.deps.contentKeyFor || this.moving || ring.roomId === this.ring.roomId || ring.signRoomId !== signingRoom(this.ring)) return resolve(null)
@@ -276,6 +304,8 @@ export class EncryptedRelayTransport implements BoardTransport {
     clearTimeout(this.reconnectTimer)
     clearTimeout(this.p2pTimer)
     clearTimeout(this.reseedTimer)
+    clearTimeout(this.snapTimer)
+    clearTimeout(this.fullTimer)
     clearInterval(this.heartbeat)
     this.mesh?.close()
     this.mesh = null
@@ -286,6 +316,8 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   async exportBoardFile(): Promise<string | null> {
     if (!this.deps || this.log.size === 0) return null
+    // A log that starts from a snapshot does not hold the history a file needs: rebuild the full one first.
+    if (this.log.base && !(await this.fillLog())) return null
     const envs = await Promise.all(this.log.all().map((e) => this.sealEvent(e)))
     const key = await deriveFileKey(this.deps.contentKey, this.ring.roomId)
     const ct = await seal(key, utf8(JSON.stringify(envs)), utf8(boardFileAad(this.ring.roomId)))
@@ -423,27 +455,72 @@ export class EncryptedRelayTransport implements BoardTransport {
     const replica = this.deps.replica
     if (!replica) return
     let envs: Envelope[]
+    const snaps: SnapshotEnvelope[] = []
     try {
+      const json = (data: string): unknown => { try { return JSON.parse(data) as unknown } catch { return null } }
       envs = (await replica.load(this.ring.roomId)).flatMap((r) => {
-        const env = parseEnvelope((() => { try { return JSON.parse(r.data) as unknown } catch { return null } })())
+        if (r.id.startsWith(SNAPSHOT_RECORD)) {
+          const snap = parseSnapshotEnvelope(json(r.data))
+          if (snap) snaps.push(snap)
+          return []
+        }
+        const env = parseEnvelope(json(r.data))
         return env ? [env] : []
       })
     } catch { this.handlers.onLocalCopy?.(null); return }
     this.handlers.onLocalCopy?.(envs.length)
     // Already stored: ingest without re-remembering.
     if ((await this.ingest(envs, false)).length) this.emit()
+    // The events stored here do not make a board (a joiner stored a snapshot and what came after): start from the snapshot.
+    if (!this.known && snaps.length) await this.resumeFromSnapshot(snaps)
+  }
+
+  /** Opens and verifies a snapshot envelope; null for anything that is not a snapshot of this room signed by its genesis key. */
+  private async openSnapshot(env: SnapshotEnvelope): Promise<{ snap: SignedSnapshot; base: LogBase } | null> {
+    const plain = parseSnapshot(await this.openEnvelope(env))
+    if (!plain || plain.id !== env.id) return null
+    const snap = plain as unknown as SignedSnapshot
+    const verdict = await verifySnapshot(this.deps.verifier, signingRoom(this.ring), snap)
+    return verdict.ok ? { snap, base: verdict.base } : null
+  }
+
+  /** The newest stored snapshot that verifies, with the events held folded after it. */
+  private async resumeFromSnapshot(envs: readonly SnapshotEnvelope[]): Promise<void> {
+    for (const env of [...envs].sort((a, b) => b.hlc - a.hlc)) {
+      const opened = await this.openSnapshot(env)
+      if (!opened) continue
+      this.adopt(opened, env)
+      return
+    }
+  }
+
+  /** Starts the log from a verified snapshot: the events held fold after it (the ones it covers are already in it). */
+  private adopt(opened: { snap: SignedSnapshot; base: LogBase }, env: SnapshotEnvelope): void {
+    const held = this.log.all()
+    this.log = new EventLog(signingRoom(this.ring), opened.base)
+    for (const e of held) this.log.insert(e)
+    this.latest = { snap: opened.snap, env }
+    this.hlc.receive(opened.snap.cut.at)
+    if (this.log.horizonMisses.length) this.startFull()
+    this.emit()
   }
 
   /** Decrypts, validates and verifies inbound events. Anything invalid is dropped silently. Returns the new ones. */
   private async ingest(envs: readonly Envelope[], remember = true): Promise<Envelope[]> {
     const added: Envelope[] = []
     for (const env of envs) {
-      if (this.log.has(env.id)) continue
+      if (this.log.has(env.id) && !(this.rebuilt && !this.rebuilt.has(env.id))) continue
       const event = parseSignedEvent(await this.openEnvelope(env))
       // The envelope header must agree with the signed content (no relabelled replays).
       if (!event || event.id !== env.id || event.at !== env.hlc) continue
       const verified = await verifyEvent(this.deps.verifier, signingRoom(this.ring), event)
-      if (verified && this.log.insert(event)) {
+      if (!verified) continue
+      const inserted = this.log.insert(event)
+      // An event before the cut that the snapshot does not cover cannot be folded onto it: it is kept, and the full log is rebuilt.
+      const missed = !inserted && !this.log.has(event.id)
+      const inFull = this.rebuilt?.insert(event) ?? false
+      if (inFull) this.armFull()
+      if (inserted || missed) {
         this.noticeIfLive(event)
         this.hlc.receive(event.at)
         this.sealed.set(env.id, env)
@@ -451,7 +528,40 @@ export class EncryptedRelayTransport implements BoardTransport {
         if (remember) this.remember([env])
       }
     }
+    if (this.log.horizonMisses.length && !this.rebuilt) this.startFull()
     return added
+  }
+
+  /**
+   * A snapshot-based log met an event it cannot fold (before its cut, not covered), or a file needs the history: collect the
+   * full log next to it. The board keeps showing the snapshot-based state until the full log holds the genesis (ADR-0037).
+   */
+  private startFull(): void {
+    if (this.rebuilt || !this.log.base) return
+    const full = new EventLog<SignedEvent>(signingRoom(this.ring))
+    for (const e of [...this.log.all(), ...this.log.horizonMisses]) full.insert(e)
+    this.rebuilt = full
+    for (const c of this.mesh?.linked ?? []) this.sendHave(c)
+    this.armFull()
+  }
+
+  /** Swaps in the full log once it holds a genesis and no event arrived for FULL_QUIET_MS. */
+  private armFull(): void {
+    clearTimeout(this.fullTimer)
+    this.fullTimer = setTimeout(() => this.enqueue(async () => {
+      const full = this.rebuilt
+      if (!full || this.closed || full.ledger.facilitatorKey === null) return
+      this.log = full
+      this.rebuilt = null
+      this.emit()
+    }), FULL_QUIET_MS)
+  }
+
+  /** Asks the peers for the history a snapshot-based log lacks, and waits (bounded) for it. */
+  private async fillLog(): Promise<boolean> {
+    this.enqueue(async () => this.startFull())
+    for (let i = 0; i < 100 && this.log.base; i++) await new Promise((resolve) => setTimeout(resolve, 200))
+    return !this.log.base
   }
 
   private lastAdvance = -1
@@ -625,6 +735,9 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.mesh = null
     this.peerSynced.clear()
     this.peerHave.clear()
+    this.snapParts.clear()
+    this.snapWanted.clear()
+    this.snapAsked.clear()
     clearTimeout(this.p2pTimer)
     const canP2p = this.deps.p2p !== false && typeof (this.deps.RTC ?? globalThis.RTCPeerConnection) === 'function'
     if (!canP2p || !this.conn) { this.reportLinks(); return }
@@ -634,7 +747,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       RTC: this.deps.RTC,
       signal: (to, kind, sdp) => this.enqueue(() => this.sendSignal(to, kind, sdp)),
       onOpen: (c) => this.enqueue(() => this.onPeerOpen(c)),
-      onClose: (c) => { this.peerSynced.delete(c); this.peerHave.delete(c); this.reportLinks() },
+      onClose: (c) => { this.peerSynced.delete(c); this.peerHave.delete(c); this.snapParts.delete(c); this.snapWanted.delete(c); this.snapAsked.delete(c); this.reportLinks() },
       onReliable: (c, data) => this.onPeerData(c, data),
       onLive: (c, data) => this.onPeerData(c, data),
     })
@@ -667,8 +780,17 @@ export class EncryptedRelayTransport implements BoardTransport {
       if (this.lastFocus) void this.sendPeerLive({ t: 'focus', conn: this.conn, ...this.lastFocus }).catch(() => {})
       if (this.lastCursor) void this.sendPeerLive({ t: 'cursor', conn: this.conn, ...this.lastCursor }).catch(() => {})
     }
-    // Initial sync: tell the peer what I hold; it answers with what I lack, then `synced`.
-    const ids = this.log.all().map((e) => e.id)
+    // Without a board (no genesis yet), ask for a snapshot first: a peer that has one sends it and only the events it does not cover.
+    if (!this.known && !this.rebuilt) {
+      this.snapAsked.add(conn)
+      this.mesh?.sendReliable(conn, JSON.stringify({ t: 'snapreq' } satisfies PeerFrame))
+    }
+    this.sendHave(conn)
+  }
+
+  /** Initial sync: tell the peer what I hold (what a snapshot covers included); it answers with what I lack, then `synced`. */
+  private sendHave(conn: string): void {
+    const ids = (this.rebuilt ?? this.log).knownIds()
     const parts = chunks(ids, HAVE_CHUNK)
     if (!parts.length) parts.push([])
     parts.forEach((part, i) => this.mesh?.sendReliable(conn, JSON.stringify({ t: 'have', ids: part, done: i === parts.length - 1 } satisfies PeerFrame)))
@@ -689,7 +811,11 @@ export class EncryptedRelayTransport implements BoardTransport {
         this.peerHave.set(conn, have)
         if (!frame.done) return
         this.peerHave.delete(conn)
-        const missing = (await this.sealedAll()).filter((e) => !have.has(e.id))
+        // A peer without a board that asked for a snapshot gets it, then only the events it does not cover.
+        const offer = this.snapWanted.delete(conn) ? this.latest : null
+        const covered = offer ? new Set(offer.snap.ids) : null
+        const missing = (await this.sealedAll()).filter((e) => !have.has(e.id) && !covered?.has(e.id))
+        if (offer) for (const frame of this.snapFrames(offer.env)) this.mesh?.sendReliable(conn, frame)
         for (const part of chunks(missing, PEER_ENV_CHUNK)) this.mesh?.sendReliable(conn, JSON.stringify({ t: 'env', envs: part } satisfies PeerFrame))
         this.mesh?.sendReliable(conn, JSON.stringify({ t: 'synced' } satisfies PeerFrame))
         return
@@ -707,7 +833,15 @@ export class EncryptedRelayTransport implements BoardTransport {
       }
       case 'synced':
         this.peerSynced.add(conn)
+        // The snapshot this peer was to send did not come whole: the event log it sent instead is all there is.
+        if (this.snapParts.delete(conn) && this.snapAsked.delete(conn)) this.sendHave(conn)
         await this.maybeSynced()
+        return
+      case 'snapreq':
+        this.snapWanted.add(conn)
+        return
+      case 'snap':
+        await this.onSnapChunk(conn, frame)
         return
       case 'eph': {
         if (!this.seenLive.add(frame.env.id)) return
@@ -722,6 +856,92 @@ export class EncryptedRelayTransport implements BoardTransport {
         }
       }
     }
+  }
+
+  private snapFrames(env: SnapshotEnvelope): string[] {
+    const n = Math.max(1, Math.ceil(env.ct.length / SNAP_CHUNK_CHARS))
+    return Array.from({ length: n }, (_, i) => JSON.stringify({ t: 'snap', sid: env.id, hlc: env.hlc, i, n, part: env.ct.slice(i * SNAP_CHUNK_CHARS, (i + 1) * SNAP_CHUNK_CHARS) } satisfies PeerFrame))
+  }
+
+  /** The link did not deliver a usable snapshot: ask it again for the event log (a `have` without `snapreq`). */
+  private snapRefused(conn: string): void {
+    this.snapParts.delete(conn)
+    if (this.snapAsked.delete(conn)) this.sendHave(conn)
+  }
+
+  private async onSnapChunk(conn: string, frame: Extract<PeerFrame, { t: 'snap' }>): Promise<void> {
+    let buf = this.snapParts.get(conn)
+    if (frame.i === 0) buf = { sid: frame.sid, hlc: frame.hlc, n: frame.n, parts: [], chars: 0 }
+    if (!buf || buf.sid !== frame.sid || buf.n !== frame.n || frame.i !== buf.parts.length) { this.snapRefused(conn); return }
+    buf.parts.push(frame.part)
+    buf.chars += frame.part.length
+    if (buf.chars > MAX_SNAPSHOT_CT_CHARS) { this.snapRefused(conn); return }
+    this.snapParts.set(conn, buf)
+    if (buf.parts.length < buf.n) return
+    this.snapParts.delete(conn)
+    await this.onSnapshot(conn, { v: PROTOCOL_VERSION, room: this.ring.roomId, id: buf.sid, hlc: buf.hlc, ct: buf.parts.join('') })
+  }
+
+  /**
+   * A whole snapshot from a link. Verified first (ADR-0037); a joiner with an empty log that asked for it starts from it, anyone
+   * keeps the newest one to serve later joiners. Anything that fails verification is dropped and, for a joiner, the same
+   * peer is asked for the event log.
+   */
+  private async onSnapshot(conn: string, env: SnapshotEnvelope): Promise<void> {
+    const asked = this.snapAsked.delete(conn)
+    const opened = await this.openSnapshot(env)
+    // Whoever already knows the board knows its facilitator key: a snapshot rooted in another genesis is never kept nor passed on.
+    const root = this.log.ledger.facilitatorKey
+    if (!opened || (root !== null && opened.snap.author !== root)) { if (asked) this.sendHave(conn); return }
+    if (asked && !this.known && !this.rebuilt) {
+      this.received += 1
+      this.persistSnapshot(env)
+      this.adopt(opened, env)
+    }
+    if (!this.latest || (opened.snap.cut.at > this.latest.snap.cut.at && opened.snap.ids.length > this.latest.snap.ids.length)) this.latest = { snap: opened.snap, env }
+    // Partial mesh: pass a snapshot on once, like events.
+    if (this.mesh && !isFullMesh(this.conns.length) && this.seenSnap.add(env.id)) {
+      for (const frame of this.snapFrames(env)) this.mesh.broadcastReliable(frame, conn)
+    }
+  }
+
+  /** The adopted snapshot is stored with the replica (ciphertext, like every record), so a reload opens from it. */
+  private persistSnapshot(env: SnapshotEnvelope): void {
+    const replica = this.deps.replica
+    if (!replica || this.forgotten) return
+    const records = [{ id: `${SNAPSHOT_RECORD}${env.id}`, data: JSON.stringify(env) }]
+    this.replicaWrites = this.replicaWrites.then(async () => {
+      try { await replica.append(this.ring.roomId, records) } catch { this.setReplica(true) }
+    })
+  }
+
+  /** The facilitator capability signs a snapshot once enough events lie beyond the previous one (ADR-0037). */
+  private scheduleSnapshot(): void {
+    const cfg = this.deps.snapshot ?? { every: SNAPSHOT_EVERY, lagMs: SNAPSHOT_LAG_MS }
+    if (this.snapTimer || this.closed || !this.deps.facilitator || this.log.base || this.log.size - this.snapCount < cfg.every) return
+    this.snapTimer = setTimeout(() => { this.snapTimer = undefined; this.enqueue(() => this.makeSnapshot(cfg)) }, 2_000)
+  }
+
+  private async makeSnapshot(cfg: { every: number; lagMs: number }): Promise<void> {
+    const fac = this.deps.facilitator
+    if (!fac || this.closed || this.log.base || this.log.ledger.facilitatorKey !== fac.publicKey) return
+    const checkpoint = this.log.checkpointBefore(this.now() - cfg.lagMs, this.snapCount, cfg.every)
+    if (!checkpoint) {
+      // The newest events are too recent to cut at: look again once they are old enough.
+      if (this.log.lastAt > this.now() - cfg.lagMs && !this.snapTimer) this.snapTimer = setTimeout(() => { this.snapTimer = undefined; this.enqueue(() => this.makeSnapshot(cfg)) }, cfg.lagMs + 1_000)
+      return
+    }
+    const genesis = this.log.all().find((e) => e.body.t === 'genesis' && e.author === fac.publicKey)
+    if (!genesis) return
+    const snap = await signSnapshot(fac, signingRoom(this.ring), ulid(), checkpoint, genesis)
+    const head = { v: PROTOCOL_VERSION, room: this.ring.roomId, id: snap.id, hlc: this.now() } as const
+    const ct = toBase64Url(await seal(this.deps.contentKey, utf8(JSON.stringify(snap)), utf8(envelopeAad(head))))
+    if (ct.length > MAX_SNAPSHOT_CT_CHARS || this.closed) return
+    const env: SnapshotEnvelope = { ...head, ct }
+    this.snapCount = checkpoint.ids.length
+    this.latest = { snap, env }
+    this.seenSnap.add(env.id)
+    for (const frame of this.snapFrames(env)) this.mesh?.broadcastReliable(frame)
   }
 
   /** Label of a peer, unless the facilitator hid them. undefined: do not show this peer at all. */
@@ -927,6 +1147,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     // Closed for good, or removed by the facilitator: the encrypted copy goes from this device.
     if (ledger.board.settings.destroyed || ledger.removed.includes(this.deps.session.publicKey)) this.forgetReplica()
     this.delegateSessionToLink()
+    this.scheduleSnapshot()
     const role = this.myRole()
     const lead = ledger.lead === this.deps.session.publicKey || (!!this.deps.facilitator && (ledger.lead === this.deps.facilitator.publicKey || ledger.facilitatorKey === this.deps.facilitator.publicKey))
     const access = { role, canSteer: role !== 'participant' || canSteer(ledger, this.deps.session.publicKey), bypassesPhase: role !== 'participant', canManageRoles: lead, isLead: ledger.lead === this.deps.session.publicKey, removed: ledger.removed.includes(this.deps.session.publicKey) }

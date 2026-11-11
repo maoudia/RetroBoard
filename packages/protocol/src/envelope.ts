@@ -86,6 +86,59 @@ export const SignedEventSchema = v.strictObject({
   sig: v.pipe(v.string(), v.regex(B64URL_RE), v.length(86)),
 })
 
+/**
+ * Plaintext inside a snapshot envelope (ADR-0037): the ledger folded up to a cut, signed by the facilitator key of the genesis.
+ * The ledger is checked for its shape only here; what makes it trustworthy is the signature (application `verifySnapshot`).
+ */
+const LedgerShape = v.looseObject({
+  roomId: v.pipe(v.string(), v.regex(ROOM_ID_RE)),
+  facilitatorKey: v.nullable(Key),
+  lead: v.nullable(Key),
+  facilitators: v.array(Key),
+  hidden: v.array(Key),
+  removed: v.array(Key),
+  names: v.record(Key, v.string()),
+  selfNames: v.record(Key, v.string()),
+  board: v.looseObject({ notes: v.record(v.string(), v.unknown()), columns: v.array(v.unknown()), settings: v.looseObject({}) }),
+  applied: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  recent: v.record(v.string(), v.array(v.number())),
+})
+
+/** Most events a snapshot covers. */
+export const SNAPSHOT_MAX_EVENTS = 20_000
+
+export const SnapshotSchema = v.strictObject({
+  v: v.literal(1),
+  fold: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  room: v.pipe(v.string(), v.regex(ROOM_ID_RE)),
+  id: v.pipe(v.string(), v.regex(EVENT_ID_RE)),
+  cut: v.strictObject({ at: Hlc, id: v.pipe(v.string(), v.regex(EVENT_ID_RE)) }),
+  genesis: SignedEventSchema,
+  ids: v.pipe(v.array(v.pipe(v.string(), v.regex(EVENT_ID_RE))), v.minLength(1), v.maxLength(SNAPSHOT_MAX_EVENTS)),
+  ledger: LedgerShape,
+  author: Key,
+  sig: v.pipe(v.string(), v.regex(B64URL_RE), v.length(86)),
+})
+export type SnapshotMessage = v.InferOutput<typeof SnapshotSchema>
+
+/** Ciphertext of a snapshot: up to 4 MiB, base64url. */
+export const MAX_SNAPSHOT_BYTES = 4 * 1024 * 1024
+export const MAX_SNAPSHOT_CT_CHARS = Math.ceil((MAX_SNAPSHOT_BYTES * 4) / 3)
+/** Characters of ciphertext per `snap` frame on a data channel (well under the 256 KB message limit). */
+export const SNAP_CHUNK_CHARS = 16_000
+
+export const MAX_SNAPSHOT_CHUNKS = Math.ceil(MAX_SNAPSHOT_CT_CHARS / SNAP_CHUNK_CHARS)
+
+/** Envelope of a snapshot: the same header as an event envelope, a larger ciphertext. */
+export const SnapshotEnvelopeSchema = v.strictObject({
+  v: v.literal(PROTOCOL_VERSION),
+  room: v.pipe(v.string(), v.regex(ROOM_ID_RE)),
+  id: v.pipe(v.string(), v.regex(EVENT_ID_RE)),
+  hlc: Hlc,
+  ct: v.pipe(v.string(), v.regex(B64URL_RE), v.maxLength(MAX_SNAPSHOT_CT_CHARS)),
+})
+export type SnapshotEnvelope = v.InferOutput<typeof SnapshotEnvelopeSchema>
+
 /** Plaintext inside an `eph` envelope: who is behind a connection id. */
 export const PresenceSchema = v.strictObject({
   t: v.literal('presence'),
@@ -171,6 +224,17 @@ export const PeerFrameSchema = v.variant('t', [
   v.strictObject({ t: v.literal('have'), ids: v.pipe(v.array(v.pipe(v.string(), v.regex(EVENT_ID_RE))), v.maxLength(HAVE_CHUNK)), done: v.boolean() }),
   v.strictObject({ t: v.literal('env'), envs: v.pipe(Envelopes, v.maxLength(PEER_ENV_CHUNK)) }),
   v.strictObject({ t: v.literal('synced') }),
+  /** A joiner with an empty log asks for a snapshot before its `have`; peers that do not know the frame ignore it (ADR-0037). */
+  v.strictObject({ t: v.literal('snapreq') }),
+  /** One chunk of a sealed snapshot (`i` of `n`): the ciphertext is the concatenation of the parts. */
+  v.strictObject({
+    t: v.literal('snap'),
+    sid: v.pipe(v.string(), v.regex(EVENT_ID_RE)),
+    hlc: Hlc,
+    i: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(MAX_SNAPSHOT_CHUNKS - 1)),
+    n: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(MAX_SNAPSHOT_CHUNKS)),
+    part: v.pipe(v.string(), v.regex(B64URL_RE), v.maxLength(SNAP_CHUNK_CHARS)),
+  }),
   v.strictObject({ t: v.literal('eph'), env: EnvelopeSchema, hop: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(3)) }),
 ])
 export type PeerFrame = v.InferOutput<typeof PeerFrameSchema>
@@ -184,6 +248,8 @@ export const parseEnvelope = parser(EnvelopeSchema)
 export const parseClientFrame = parser(ClientFrameSchema)
 export const parseRelayFrame = parser(RelayFrameSchema)
 export const parseSignedEvent = parser(SignedEventSchema)
+export const parseSnapshot = parser(SnapshotSchema)
+export const parseSnapshotEnvelope = parser(SnapshotEnvelopeSchema)
 export const parsePresence = parser(PresenceSchema)
 export const parseLive = parser(LiveSchema)
 export const parseSignal = parser(SignalSchema)

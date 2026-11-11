@@ -146,6 +146,64 @@ describe('peer-to-peer frames', () => {
     expect(parsePeerFrame({ t: 'eph', env, hop: 4 })).toBeNull()
   })
 
+  it('snapshot frames: a request and bounded chunks (ADR-0037)', async () => {
+    const { MAX_SNAPSHOT_CHUNKS, parsePeerFrame, SNAP_CHUNK_CHARS } = await import('../src')
+    expect(parsePeerFrame({ t: 'snapreq' })).toEqual({ t: 'snapreq' })
+    expect(parsePeerFrame({ t: 'snapreq', extra: 1 })).toBeNull()
+    const chunk = { t: 'snap', sid: env.id, hlc: 5, i: 0, n: 2, part: 'AbC-_9' }
+    expect(parsePeerFrame(chunk)).toEqual(chunk)
+    for (const bad of [
+      { ...chunk, part: 'a'.repeat(SNAP_CHUNK_CHARS + 1) }, { ...chunk, part: 'no base64!' }, { ...chunk, i: -1 }, { ...chunk, n: 0 },
+      { ...chunk, n: MAX_SNAPSHOT_CHUNKS + 1 }, { ...chunk, i: MAX_SNAPSHOT_CHUNKS }, { ...chunk, sid: '../x' },
+    ]) expect(parsePeerFrame(bad)).toBeNull()
+  })
+
+  it('a snapshot envelope may carry a ciphertext far larger than an event envelope', async () => {
+    const { MAX_SNAPSHOT_CT_CHARS, parseSnapshotEnvelope } = await import('../src')
+    const big = { ...env, ct: 'a'.repeat(1_000_000) }
+    expect(parseEnvelope(big)).toBeNull()
+    expect(parseSnapshotEnvelope(big)).toEqual(big)
+    expect(parseSnapshotEnvelope({ ...env, ct: 'a'.repeat(MAX_SNAPSHOT_CT_CHARS + 1) })).toBeNull()
+    expect(parseSnapshotEnvelope({ ...big, extra: 'x' })).toBeNull()
+  })
+
+  it('the size limits of a snapshot are exact', async () => {
+    const { MAX_SNAPSHOT_CHUNKS, MAX_SNAPSHOT_CT_CHARS, parsePeerFrame, parseSnapshotEnvelope, SNAP_CHUNK_CHARS } = await import('../src')
+    expect(MAX_SNAPSHOT_CT_CHARS).toBe(5_592_406)
+    expect(MAX_SNAPSHOT_CHUNKS).toBe(350)
+    expect(SNAP_CHUNK_CHARS).toBe(16_000)
+    expect(parseSnapshotEnvelope({ ...env, ct: 'a'.repeat(MAX_SNAPSHOT_CT_CHARS) })).not.toBeNull()
+    const chunk = { t: 'snap', sid: env.id, hlc: 5, i: 0, n: MAX_SNAPSHOT_CHUNKS, part: 'AbC' }
+    expect(parsePeerFrame(chunk)).not.toBeNull()
+    expect(parsePeerFrame({ ...chunk, i: MAX_SNAPSHOT_CHUNKS - 1 })).not.toBeNull()
+    expect(parsePeerFrame({ ...chunk, part: 'a'.repeat(SNAP_CHUNK_CHARS) })).not.toBeNull()
+  })
+
+  it('a snapshot ledger needs its board, with notes, columns and settings', async () => {
+    const { parseSnapshot } = await import('../src')
+    const sig = 'A'.repeat(86)
+    const genesis = { id: env.id, at: 1, author: key, body: { t: 'genesis', roomId: env.room, facilitatorKey: key }, sig }
+    const board = { notes: {}, columns: [], settings: {} }
+    const ledger = { roomId: env.room, facilitatorKey: key, lead: key, facilitators: [key], hidden: [], removed: [], names: {}, selfNames: {}, board, applied: 1, recent: {} }
+    const snap = { v: 1, fold: 1, room: env.room, id: '01JABCDEFGHJKMNPQRSTVWXYZ1', cut: { at: 1, id: env.id }, genesis, ids: [env.id], ledger, author: key, sig }
+    expect(parseSnapshot(snap)).not.toBeNull()
+    for (const bad of [{}, { columns: [], settings: {} }, { notes: {}, settings: {} }, { notes: {}, columns: [] }]) expect(parseSnapshot({ ...snap, ledger: { ...ledger, board: bad } })).toBeNull()
+  })
+
+  it('a snapshot is strict: fields, sizes and the shape of the ledger', async () => {
+    const { parseSnapshot, SNAPSHOT_MAX_EVENTS } = await import('../src')
+    const sig = 'A'.repeat(86)
+    const genesis = { id: env.id, at: 1, author: key, body: { t: 'genesis', roomId: env.room, facilitatorKey: key }, sig }
+    const ledger = { roomId: env.room, facilitatorKey: key, lead: key, facilitators: [key], hidden: [], removed: [], names: {}, selfNames: {}, board: { notes: {}, columns: [], settings: {} }, applied: 1, recent: {} }
+    const snap = { v: 1, fold: 1, room: env.room, id: '01JABCDEFGHJKMNPQRSTVWXYZ1', cut: { at: 1, id: env.id }, genesis, ids: [env.id], ledger, author: key, sig }
+    expect(parseSnapshot(snap)).not.toBeNull()
+    for (const bad of [
+      { ...snap, extra: 1 }, { ...snap, v: 2 }, { ...snap, ids: [] }, { ...snap, ids: Array(SNAPSHOT_MAX_EVENTS + 1).fill(env.id) },
+      { ...snap, sig: 'short' }, { ...snap, author: 'short' }, { ...snap, ledger: { ...ledger, board: 'x' } }, { ...snap, ledger: { ...ledger, facilitators: ['x'] } },
+      { ...snap, genesis: { ...genesis, extra: 1 } },
+    ]) expect(parseSnapshot(bad)).toBeNull()
+  })
+
   it('presence can say the participant is relay-only', async () => {
     const { parsePresence } = await import('../src')
     expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: null, showName: false, relayOnly: true })?.relayOnly).toBe(true)
