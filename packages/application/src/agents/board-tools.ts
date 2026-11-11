@@ -1,4 +1,4 @@
-import type { Snapshot } from '@retroboard/domain'
+import { countsHidden, type Snapshot } from '@retroboard/domain'
 import type { BoardCommands, BoardResult } from '../board/commands'
 import type { AgentTool, ToolOutput } from '../ports/browser-agent'
 import { buildColumnItems } from '../read-models/column-items'
@@ -49,7 +49,7 @@ export function createBoardAgentTools(deps: BoardToolDeps): AgentTool[] {
       const remainingMs = s.timer.running ? Math.max(0, s.timer.endsAt - deps.now()) : s.timer.remaining
       return ok({
         notice: UNTRUSTED_NOTICE, title: s.settings.title, themeId: s.settings.themeId, locked: s.settings.locked,
-        voteLimit: s.settings.voteLimit, votesLeft: s.votesLeft, countsHidden: s.settings.secretVoting && !s.settings.votingClosed, votingClosed: s.settings.votingClosed,
+        voteLimit: s.settings.voteLimit, votesLeft: s.votesLeft, countsHidden: countsHidden(s.settings), votingClosed: s.settings.votingClosed,
         columns: s.columns.map((c) => ({ id: c.id, title: c.title, subtitle: c.subtitle, ideas: s.notes.filter((n) => n.columnId === c.id).length })),
         participants: s.peers.length, actions: s.actions.length,
         timer: { running: s.timer.running, remainingSeconds: Math.ceil(remainingMs / 1000) },

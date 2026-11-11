@@ -3,6 +3,7 @@ import type { BoardState, Peer, Snapshot, SnapshotGroup, SnapshotNote } from './
 import { isFrozenNote } from './ideation/freeze'
 import { rotiSummary } from './facilitation/roti'
 import { clusterVoters, countOf, votability, votesUsedBy } from './voting/policy'
+import { countsHidden } from './voting/sealed'
 
 export interface Viewer {
   cid: string
@@ -14,7 +15,7 @@ const closing = (a: AgendaState | null): boolean => !!a && (a.current >= a.phase
 /** The only place where server state is turned into what a client may see. */
 export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], now: number, names: Readonly<Record<string, string>> = {}): Snapshot {
   // Hidden counts: only until the facilitator closes voting, then everyone sees them at once.
-  const secret = state.settings.secretVoting && !state.settings.votingClosed
+  const secret = countsHidden(state.settings)
   const all = Object.values(state.notes)
   const notes: SnapshotNote[] = all
     .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))

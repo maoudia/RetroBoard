@@ -8,6 +8,8 @@ import type { LIMITS } from './limits'
 export type Locale = 'fr' | 'en'
 export type TimerMinutes = (typeof LIMITS.timerMinutes)[number]
 export type VotableKind = 'note' | 'cluster'
+/** Votes a facilitator publishes for one item when it reveals a sealed ballot. */
+export interface RevealCount { kind: VotableKind; id: string; votes: number }
 export type PhaseKindName = 'checkin' | 'review' | 'write' | 'group' | 'vote' | 'rank' | 'actions' | 'close'
 export type ActionStatusName = 'todo' | 'doing' | 'done' | 'blocked' | 'dropped'
 /** An action carried over from a previous retro (team profile, board file, JSON or CSV export). */
@@ -36,6 +38,9 @@ export type Command =
   | { t: 'vote.toggle'; id: string }
   | { t: 'vote.add'; kind: VotableKind; id: string }
   | { t: 'vote.remove'; kind: VotableKind; id: string }
+  | { t: 'vote.seal'; sealed: string }
+  | { t: 'vote.unseal'; sealed: string }
+  | { t: 'vote.reveal'; counts: RevealCount[] }
   | { t: 'drafts.reveal'; seconds?: number }
   | { t: 'vote.close' }
   | { t: 'vote.reopen' }
@@ -48,7 +53,7 @@ export type Command =
   | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean; /** Votable flag per template column, in order (overrides the format's defaults). */ votable?: boolean[]; /** A cloned board: its own columns replace the format's (change feedback-wave-7). */ columns?: CloneColumn[] }
   /** `wipe: true` is the older spelling of mode `wipe`; `migrate` keeps notes, clusters and votes (change board-type-migration). */
   | { t: 'template.apply'; templateId: string; wipe?: boolean; mode?: 'wipe' | 'migrate'; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; sealedBallot?: boolean; ballotKey?: string; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
   | { t: 'action.add'; text: string; owner: string; due?: string; sourceNote?: string }
   | { t: 'action.update'; id: string; text?: string; owner?: string; due?: string | null }
   | { t: 'action.status'; id: string; status: ActionStatusName }

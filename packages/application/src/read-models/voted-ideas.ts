@@ -1,4 +1,4 @@
-import type { Snapshot } from '@retroboard/domain'
+import { countsHidden, type Snapshot } from '@retroboard/domain'
 import { buildRanking, type RankedItem } from './ranking'
 
 /**
@@ -23,7 +23,7 @@ type VotingView = Pick<Snapshot, 'settings' | 'agenda' | 'notes' | 'groups'>
  * - without one: voting was closed/revealed by a facilitator.
  */
 export function votingOver(s: Pick<VotingView, 'settings' | 'agenda'>): boolean {
-  if (s.settings.secretVoting && !s.settings.votingClosed) return false
+  if (countsHidden(s.settings)) return false
   if (s.settings.votingClosed) return true
   const a = s.agenda
   if (!a) return false

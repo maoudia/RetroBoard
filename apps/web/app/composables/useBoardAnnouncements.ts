@@ -16,7 +16,7 @@ export function useBoardAnnouncements() {
     seen = new Set(notes.map((n) => n.id))
   }, { immediate: true })
 
-  watch(() => board.votingClosed, (closed, was) => {
-    if (closed && !was && board.snapshot?.settings.secretVoting) announcer.collect({ kind: 'revealed' })
+  watch(() => board.countsHidden, (hidden, was) => {
+    if (was && !hidden) announcer.collect({ kind: 'revealed' })
   })
 }

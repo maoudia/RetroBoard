@@ -1,5 +1,5 @@
 import { buildColumnItems } from '@retroboard/application'
-import type { Snapshot } from '@retroboard/domain'
+import { countsHidden, type Snapshot } from '@retroboard/domain'
 
 /** Label provider, so exporters stay pure and language-agnostic. Keys are the `export.*` i18n keys. */
 export type ExportLabels = (key: 'export.noNote' | 'export.votes' | 'export.actions' | 'export.noAction'
@@ -13,7 +13,7 @@ export const oneLine = (s: string) => s.split('\n').map((l) => l.trim()).filter(
 
 export function toMarkdown(s: Snapshot, meta: ExportMeta): string {
   const t = meta.labels
-  const secret = s.settings.secretVoting && !s.settings.votingClosed
+  const secret = countsHidden(s.settings)
   const lines: string[] = [`# ${s.settings.title}`, '', `_${meta.date.toISOString().slice(0, 10)}_`, '']
   for (const col of s.columns) {
     lines.push(`## ${col.title}`, '')

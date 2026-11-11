@@ -82,13 +82,24 @@ export type FoldResult =
  */
 export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType>([
   'settings.update', 'board.init', 'template.apply', 'board.reset', 'board.destroy', 'column.reset', 'vote.reset', 'timer.start', 'timer.pause', 'timer.reset',
-  'vote.close', 'vote.reopen', 'note.freeze', 'note.unfreeze', 'note.pin', 'note.unpin', 'column.hide', 'column.show', 'action.import', 'drafts.reveal',
+  'vote.close', 'vote.reopen', 'vote.reveal', 'note.freeze', 'note.unfreeze', 'note.pin', 'note.unpin', 'column.hide', 'column.show', 'action.import', 'drafts.reveal',
   'agenda.set', 'agenda.options', 'agenda.clear', 'agenda.start', 'agenda.pause', 'agenda.next', 'agenda.advance', 'agenda.prev', 'agenda.extend', 'agenda.end', 'agenda.restart', 'agenda.voteOpen', 'agenda.toClose',
   'talk.assign', 'talk.end', 'chat.clear', 'turn.set',
 ])
 
 /** Genesis and role changes are always privileged; commands depend on their type. */
 export const isPrivileged = (body: EventBody): boolean => (body.t === 'cmd' ? PRIVILEGED_COMMANDS.has(body.cmd.t) : body.t !== 'participant.self')
+
+/**
+ * Commands of the sealed ballot that need the facilitator capability even on an "Everyone facilitates" board: the reveal
+ * (the tally of the whole room) and the mode with its ballot key (whoever sets the key decides who can read the ballots).
+ */
+const holdsSealedBallot = (cmd: Command): boolean => {
+  if (cmd.t === 'vote.reveal') return true
+  // Stryker disable next-line ConditionalExpression: only settings.update carries these fields, the test narrows the type
+  if (cmd.t !== 'settings.update') return false
+  return cmd.sealedBallot !== undefined || cmd.ballotKey !== undefined
+}
 
 /** Whether a command sets the "Everyone facilitates" switch (the commands that carry `openFacilitation`). */
 const setsOpenFacilitation = (cmd: Command): boolean => (cmd as { openFacilitation?: boolean }).openFacilitation !== undefined
@@ -157,8 +168,8 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
     // A takeover is the facilitator link at work: signed by the capability key, never by a co-facilitator's session key.
     if (body.t === 'role.claim' && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
-  } else if (body.t === 'cmd' && body.cmd.t === 'board.destroy' && !ledger.facilitators.includes(author)) {
-    // Closing the board is never delegated to "everyone": it needs the facilitator capability even on an open board.
+  } else if (body.t === 'cmd' && (body.cmd.t === 'board.destroy' || holdsSealedBallot(body.cmd)) && !ledger.facilitators.includes(author)) {
+    // Closing the board and the sealed ballot are never delegated to "everyone": they need the facilitator capability even on an open board.
     return ignore(ledger, 'not-facilitator')
   } else if (isPrivileged(body) && !ledger.facilitators.includes(author) && !ledger.board.settings.openFacilitation) {
     return ignore(ledger, 'not-facilitator')

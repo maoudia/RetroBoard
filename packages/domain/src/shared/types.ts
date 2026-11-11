@@ -97,6 +97,12 @@ export interface BoardSettings {
   secretVoting: boolean
   /** Voting phase over: no more votes, hidden counts are revealed to everyone at once. */
   votingClosed: boolean
+  /** Sealed ballot (change voting-v2-and-ranking): votes are sealed to `ballotKey` and counted by its holder. Implies hidden counts. */
+  sealedBallot?: boolean
+  /** Public ballot key of the round (X25519, base64url). Present when `sealedBallot` is on. */
+  ballotKey?: string
+  /** The facilitator published the signed tally of the sealed ballots. */
+  sealedRevealed?: boolean
   /** Voting feature on or off for the whole board (chosen at creation); absent means on. */
   votingEnabled?: boolean
   locked: boolean
@@ -140,6 +146,9 @@ export interface ChatMessage {
 
 export interface SnapshotChatMessage { id: string; name: string | null; mine: boolean; at: number; text: string }
 
+/** One sealed vote: who cast it (public, it is what makes the per-person budget checkable) and the ciphertext. */
+export interface SealedBallot { cid: string; sealed: string }
+
 export interface BoardState {
   settings: BoardSettings
   columns: Column[]
@@ -161,6 +170,8 @@ export interface BoardState {
   turn?: string | null
   /** Who started the presentation view, announced to the room (change toast-notifications-v2). */
   presenting?: { cid: string; name: string | null; at: number } | null
+  /** Sealed ballots in log order (change voting-v2-and-ranking). Never part of a snapshot. */
+  sealed?: SealedBallot[]
 }
 
 export interface Actor {
