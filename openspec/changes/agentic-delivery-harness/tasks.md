@@ -21,7 +21,7 @@
 
 ## 4. Preview, release, production
 
-- [ ] 4.1 Upload a Worker preview version per PR and comment its URL; verify on a test PR (Status 2026-11-11: `preview.yml` uploads a version on every PR (green on PR 650), but the "Comment the preview URL" step is skipped and no PR carries the comment; open until the URL is parsed and commented.)
+- [ ] 4.1 Upload a Worker preview version per PR and comment its URL; verify on a test PR (Status 2026-11-11: `preview.yml` uploads a version on every PR (green on PR 650), but the "Comment the preview URL" step is skipped and no PR carries the comment; wrangler prints a preview URL only when the Worker has Preview URLs enabled server side (`previews_enabled`), which `preview_urls: true` in `wrangler.jsonc` sets at the next production deploy; open until a PR carries the comment.)
 - [x] 4.2 Add release-please with Conventional Commits and a changelog; verify a release PR is created after a `feat:` commit
 - [x] 4.3 Add production smoke tests after deploy (health, landing, create and join a board) with rollback instructions in docs/runbooks/deploy.md; verify by running the job manually
 
