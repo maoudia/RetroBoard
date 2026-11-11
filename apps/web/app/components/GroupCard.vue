@@ -126,7 +126,7 @@ const touch = useTouchDrag(stackEl, {
 <style scoped>
 /* start: the card is as tall as its face, so the vote (absolute) never lands below it in a stretched grid row (#272) */
 .cluster { position: relative; min-width: 0; align-self: start; }
-.cluster.expanded { grid-column: 1 / -1; }
+.cluster.expanded { column-span: all; } /* the column is a multi-column masonry (change postit-visual-system): an open cluster takes the whole width */
 .inline { display: grid; gap: .5rem; padding: .5rem; border: 2px dashed color-mix(in oklab, var(--accent) 45%, transparent); border-radius: var(--r-card); }
 .inline.over { border-style: solid; border-color: var(--accent); }
 .ibar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
