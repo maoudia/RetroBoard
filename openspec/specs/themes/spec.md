@@ -82,3 +82,10 @@ The count on the chat button SHALL reach WCAG AA contrast (4.5:1) against its ba
 #### Scenario: New theme
 - **WHEN** a theme sets an ink colour that falls below 4.5:1 on its danger colour
 - **THEN** the theme test fails
+
+### Requirement: Derived states are readable
+Every colour pair the shared stylesheet builds from theme tokens (pressed, selected, placeholder) MUST meet WCAG AA in both variants of every theme.
+
+#### Scenario: Pressed toolbar button
+- **WHEN** the theme test suite runs
+- **THEN** the label of a pressed toolbar button reaches 4.5:1 on its tinted background in all variants
