@@ -13,7 +13,7 @@ The system SHALL support phone (360-599 px), tablet (600-1023), laptop (1024-159
 
 #### Scenario: 4K TV
 - **WHEN** the board is displayed on a 3840 px wide screen
-- **THEN** note text is at least 24 px and all columns are visible
+- **THEN** note text is at least 24 px, whatever text size the facilitator chose, and all columns are visible
 
 ### Requirement: Screen class attribute
 The system SHALL expose the current screen class as `data-screen` on the root element (`phone`, `tablet`, `laptop`, `wide`, `tv`) with the breakpoints and a fluid type scale as CSS custom properties, so layout rules and type follow the class.
@@ -53,6 +53,14 @@ The system SHALL support grouping, moving and voting with touch on phones and ta
 #### Scenario: Group on a tablet
 - **WHEN** a participant long-presses a note and drops it on another note
 - **THEN** the notes are clustered
+
+#### Scenario: Move on a tablet
+- **WHEN** a participant long-presses a note or a cluster and drops it on another column
+- **THEN** it moves to that column
+
+#### Scenario: Swipe is not a drag
+- **WHEN** a participant moves a finger over a note before the press is long enough
+- **THEN** the board scrolls and nothing is grouped or moved
 
 ### Requirement: Thumb-friendly primary actions
 On phones the primary action of a page (open or create a board, publish) SHALL be a large centred button reachable with the thumb, at least 48 px high.

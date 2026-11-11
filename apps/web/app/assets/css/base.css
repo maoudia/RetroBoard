@@ -271,3 +271,11 @@ main:focus { outline: none; }
 @media (max-width: 720px) {
   .tools .icon-btn > span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
+
+/* TV and projector (change responsive-and-i18n-hardening, task 2.3): the note text never goes under 24 px, whatever text size the facilitator chose. */
+:root[data-screen="tv"] .note .text { font-size: clamp(1.5rem, 1em, 4rem); }
+
+/* Touch drag (change responsive-and-i18n-hardening, task 3.2): a long press lifts a note or a cluster, a picture of it follows the finger. */
+[data-lifted] { opacity: .4; }
+.touch-ghost { position: fixed !important; inset: 0 auto auto 0; z-index: 200; margin: 0 !important; pointer-events: none; opacity: .92; box-shadow: var(--shadow-2); transition: none; }
+.note, .stack { -webkit-touch-callout: none; }

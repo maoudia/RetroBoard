@@ -74,7 +74,7 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
 </script>
 
 <template>
-  <section ref="colEl" tabindex="-1" class="col" :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :data-turn="turnState" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey" @click="unfold">
+  <section ref="colEl" tabindex="-1" class="col" data-drop :class="{ over }" :data-focused="ui.presenter && ui.focusColumn === index ? '' : undefined" :data-turn="turnState" :style="{ '--col': `var(--note-${colorIndex})`, ...(customW ? { '--w': `${customW}px` } : {}) }" :data-testid="`column-${column.id}`" :data-anchor="column.id" data-anchor-kind="column" :aria-label="column.title" :data-size="customW ? 'custom' : size" v-bind="bind" @keydown="onSizeKey" @click="unfold">
     <header>
       <span class="badge-ico"><Icon :name="`lucide:${column.icon}`" /></span>
       <div class="titles">
