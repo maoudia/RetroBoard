@@ -21,6 +21,7 @@ function onDrop() {
   if (id && !props.item.notes.some((n) => n.id === id)) board.commands.groupNotes(id, top.value.id)
 }
 function onDragStart(e: DragEvent) {
+  if (touch.touching()) return e.preventDefault()
   ui.dragGroupId = props.item.group.id
   e.dataTransfer?.setData('text/plain', props.item.group.id)
   if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
@@ -58,11 +59,17 @@ function schedulePeek(e: PointerEvent) {
   }, PEEK_DELAY_MS)
 }
 onBeforeUnmount(cancelPeek)
+// A long press with a finger lifts the cluster (change responsive-and-i18n-hardening, task 3.2); a mouse uses the native drag.
+const touch = useTouchDrag(stackEl, {
+  enabled: () => !props.expanded && !board.locked,
+  begin: () => { cancelPeek(); ui.dragGroupId = props.item.group.id },
+  end: () => { ui.dragGroupId = null; over.value = false },
+})
 </script>
 
 <template>
   <div class="cluster" :class="{ expanded }">
-  <section v-if="expanded" class="inline" :class="{ over }" tabindex="-1" :data-source-id="item.group.id" :data-testid="`cluster-inline-${item.group.id}`" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop">
+  <section v-if="expanded" class="inline" :class="{ over }" tabindex="-1" data-drop :data-source-id="item.group.id" :data-testid="`cluster-inline-${item.group.id}`" @dragover.prevent="over = !!(ui.dragNoteId || ui.dragGroupId)" @dragleave="over = false" @drop.prevent.stop="onDrop">
     <div class="ibar">
       <button class="ihead" type="button" :aria-label="t('group.label', { title: item.title, n: item.notes.length })" @click="open">
         <Icon name="lucide:layers" /> <strong>{{ item.title }}</strong> <span class="muted">{{ item.notes.length }}</span>
@@ -76,7 +83,7 @@ onBeforeUnmount(cancelPeek)
   </section>
   <button
     v-else
-    ref="stackEl" type="button" class="stack" :class="{ over, docked: dock }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
+    ref="stackEl" type="button" class="stack" data-drop :class="{ over, docked: dock }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
     :style="{ '--c': `var(--note-${top.color})`, '--c2': `var(--note-${item.notes[1]?.color ?? top.color})` }"
     draggable="true" @dragstart="cancelPeek(); onDragStart($event)" @dragend="ui.dragGroupId = null"
     @pointerenter="schedulePeek" @pointerleave="cancelPeek"

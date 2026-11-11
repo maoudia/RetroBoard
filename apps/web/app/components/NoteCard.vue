@@ -36,7 +36,14 @@ function saveEdit() {
   editing.value = false
 }
 
+// A long press with a finger lifts the note (change responsive-and-i18n-hardening, task 3.2); a mouse uses the native drag below.
+const touch = useTouchDrag(el, {
+  enabled: () => !editing.value && !board.locked && !props.note.frozen,
+  begin: () => { ui.dragNoteId = props.note.id },
+  end: () => { ui.dragNoteId = null; over.value = false },
+})
 function onDragStart(e: DragEvent) {
+  if (touch.touching()) return e.preventDefault()
   ui.dragNoteId = props.note.id
   e.dataTransfer?.setData('text/plain', props.note.id)
   if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
@@ -51,7 +58,7 @@ function onDrop() {
 
 <template>
   <article
-    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen, pinned: !!note.pinned }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note" :data-long="note.text.length > 110 ? '' : undefined"
+    ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen, pinned: !!note.pinned }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note" data-drop :data-long="note.text.length > 110 ? '' : undefined"
     :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked && !note.frozen"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
