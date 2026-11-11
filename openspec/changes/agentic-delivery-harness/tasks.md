@@ -8,9 +8,9 @@
 
 ## 2. End-to-end and quality
 
-- [ ] 2.1 Shard Playwright across Chromium, Firefox, WebKit and four viewports (360, 768, 1440, 2560); verify the matrix runs green on main (Status 2026-11-11: `nightly.yml` shards chromium, firefox, webkit, `phone` (Pixel 7) and `tv` (2560 x 1440), but not the 360, 768 and 1440 widths, and the latest nightly runs are red; open until the matrix is green on main and the viewports are covered.)
+- [ ] 2.1 Shard Playwright across Chromium, Firefox, WebKit and four viewports (360, 768, 1440, 2560); verify the matrix runs green on main (Status 2026-11-11: `nightly.yml` shards chromium, firefox, webkit, `phone` (Pixel 7) and `tv` (2560 x 1440), the `w360`, `w768` and `w1440` projects now join the nightly matrix; open until the whole matrix is green on main, the latest nightly runs being red.)
 - [ ] 2.2 (All visual-regression checks of other changes are tracked here, 2026-10-25.) Add visual regression on 12 key screens x 2 variants x 3 locales (fr, en, pseudo) with a label-driven baseline update workflow; verify a deliberate CSS change produces a diff artifact (Status 2026-11-11: not started, no `toHaveScreenshot` spec or baseline workflow; still the tracking umbrella.)
-- [ ] 2.3 Add axe a11y checks on every page and size-limit budgets (Lighthouse moved to `quality-gates-v2` on 2026-10-29); verify budgets fail when exceeded (Status 2026-11-11: `pnpm size` (`scripts/check-bundle-size.mjs`, in `checks.yml`) exits 1 over budget, verified; axe covers the pages in `tests/e2e/a11y.spec.ts` but not `/check`; open until it does.)
+- [x] 2.3 Add axe a11y checks on every page and size-limit budgets (Lighthouse moved to `quality-gates-v2` on 2026-10-29); verify budgets fail when exceeded (Status 2026-11-11: `pnpm size` (`scripts/check-bundle-size.mjs`, in `checks.yml`) exits 1 over budget, verified; `/check` is now audited by axe in light and dark in `tests/e2e/a11y.spec.ts`, 2026-11-11.)
 - [x] 2.4 Add Stryker mutation testing on `packages/domain` (changed files on PR, full nightly) with a 70% break threshold; verify the report artifact
 
 ## 3. Security and supply chain
@@ -21,7 +21,7 @@
 
 ## 4. Preview, release, production
 
-- [ ] 4.1 Upload a Worker preview version per PR and comment its URL; verify on a test PR (Status 2026-11-11: `preview.yml` uploads a version on every PR (green on PR 650), but the "Comment the preview URL" step is skipped and no PR carries the comment; open until the URL is parsed and commented.)
+- [ ] 4.1 Upload a Worker preview version per PR and comment its URL; verify on a test PR (Status 2026-11-11: `preview.yml` uploads a version on every PR (green on PR 650), but the "Comment the preview URL" step is skipped and no PR carries the comment; wrangler prints a preview URL only when the Worker has Preview URLs enabled server side (`previews_enabled`), which `preview_urls: true` in `wrangler.jsonc` sets at the next production deploy; open until a PR carries the comment.)
 - [x] 4.2 Add release-please with Conventional Commits and a changelog; verify a release PR is created after a `feat:` commit
 - [x] 4.3 Add production smoke tests after deploy (health, landing, create and join a board) with rollback instructions in docs/runbooks/deploy.md; verify by running the job manually
 
