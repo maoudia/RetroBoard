@@ -6,3 +6,5 @@ On a phone, a "Write an idea" button opens the field in a sheet at the bottom of
 A banner lets you undo a publication made by mistake for a few seconds.
 
 A long idea shows its first lines and a "Read more" link that opens the rest (and "Show less" folds it back); the text is never smaller than 14 px. Notes of different heights pack into the column without holes, and the column scrolls. To fit more or fewer notes on your screen, press `d` to change the density (comfortable, compact, dense) and `+`, `-` and `0` to zoom the notes in, out and back to 100%. Both are personal, remembered on this device for each kind of screen, and also in the profile (advanced mode).
+
+Notes move with restraint: the corner of a note peels when the mouse rests on it, your published idea flies to its place and sticks, an idea from someone else flutters in, and a group snaps into place when a note joins it. Each lasts under 0.4 second, none moves a note you are editing, and all of them stop with the "Reduced" motion setting or the system's reduced-motion preference.

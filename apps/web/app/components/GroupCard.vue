@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnItem } from '@retroboard/application'
+import { prefersReducedMotion } from '~/utils/fx'
 const { t } = useT()
 
 const props = defineProps<{ item: Extract<ColumnItem, { kind: 'group' }>; secret: boolean; expanded?: boolean }>()
@@ -9,6 +10,12 @@ const over = ref(false)
 const fromHere = computed(() => board.actionsBySource.get(props.item.group.id)?.length ?? 0)
 const dock = computed(() => !props.expanded && (fromHere.value > 0 || (!!props.item.group.votable && board.votingEnabled)))
 const top = computed(() => props.item.notes[0]!)
+// Snap (change postit-visual-system, task 3.1): a note joining the cluster makes the stack click into place; reduced motion skips the class.
+const snapped = ref(false)
+watch(() => props.item.notes.length, (now, before) => {
+  if (now <= before || prefersReducedMotion()) return
+  snapped.value = true
+})
 
 function onDrop() {
   over.value = false
@@ -83,7 +90,7 @@ const touch = useTouchDrag(stackEl, {
   </section>
   <button
     v-else
-    ref="stackEl" type="button" class="stack" data-drop :class="{ over, docked: dock }" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
+    ref="stackEl" type="button" class="stack" data-drop :class="{ over, docked: dock, snap: snapped }" @animationend="snapped = false" :data-testid="`group-${item.group.id}`" :data-source-id="item.group.id" :aria-label="t('group.label', { title: item.title, n: item.notes.length })"
     :style="{ '--c': `var(--note-${top.color})`, '--c2': `var(--note-${item.notes[1]?.color ?? top.color})` }"
     draggable="true" @dragstart="cancelPeek(); onDragStart($event)" @dragend="ui.dragGroupId = null"
     @pointerenter="schedulePeek" @pointerleave="cancelPeek"

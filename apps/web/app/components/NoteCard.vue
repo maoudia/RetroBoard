@@ -112,7 +112,9 @@ function onDrop() {
 .note:hover { transform: rotate(0) translateY(-3px) scale(1.015); box-shadow: var(--shadow-2); z-index: 2; }
 .note:active { cursor: grabbing; }
 .note.over { outline-color: var(--accent); transform: scale(1.04); }
-.note::after { content: ''; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: .0; }
+/* Peel (change postit-visual-system, task 3.1): resting a mouse on a note lifts its top-right corner. The text does not move; reduced motion shows the corner at once. */
+.note::after { content: ''; position: absolute; top: 0; right: 0; width: 18px; height: 18px; pointer-events: none; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: 0; transform: scale(.3); transform-origin: top right; transition: opacity var(--dur-fast), transform var(--dur-base) var(--ease); }
+@media (hover: hover) { .note:hover:not(:has(.edit))::after { opacity: 1; transform: scale(1); } }
 .body { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; min-width: 0; }
 .more { justify-self: start; min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: var(--fs-sm); font-weight: 700; text-decoration: underline; cursor: pointer; }
 .more:hover { text-decoration-thickness: 2px; }

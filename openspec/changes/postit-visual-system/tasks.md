@@ -13,4 +13,4 @@
 
 ## 3. Motion
 
-- [ ] 3.1 Peel, stick, flutter, snap animations with reduced-motion fallbacks; verify visual regression with reduced motion and a performance check (no long tasks > 50 ms on a 60-note board)
+- [ ] 3.1 Peel, stick, flutter, snap animations with reduced-motion fallbacks; verify visual regression with reduced motion and a performance check (no long tasks > 50 ms on a 60-note board) (done: the four motions, each under 400 ms, with reduced-motion and profile fallbacks, and the 60-note long-task check in `tests/e2e/note-motion.spec.ts`; open: the visual-regression part, no screenshot baseline exists until the future visual-regression change)
