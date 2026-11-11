@@ -44,6 +44,8 @@ jobs:
         with:
           fail-on-severity: high
           deny-licenses: GPL-2.0-only, SSPL-1.0, BUSL-1.1
+          # node-forge is dual-licensed (BSD-3-Clause OR GPL-2.0); BSD-3-Clause is elected.
+          allow-dependencies-licenses: pkg:npm/node-forge
 
   osv:
     name: OSV scanner
