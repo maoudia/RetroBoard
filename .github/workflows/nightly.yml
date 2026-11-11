@@ -71,6 +71,9 @@ jobs:
       - run: pnpm e2e --project=${{ matrix.project }} --shard=${{ matrix.shard }}
         env:
           CI: 'true'
+          # The runner sets HOME=/github/home (owned by pwuser) in the container and Firefox refuses to start unless
+          # $HOME is owned by the user running it. Playwright docs: set HOME=/root when running in the container.
+          HOME: /root
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
