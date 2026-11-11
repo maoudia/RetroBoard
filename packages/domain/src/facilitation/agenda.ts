@@ -150,7 +150,7 @@ const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
   write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
   // note.addMany: drafts auto-published when Write ends land at the start of Group.
   group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move', 'note.edit', 'note.color', 'note.addMany'],
-  vote: ['vote.add', 'vote.remove', 'vote.toggle'],
+  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
   rank: ['action.add'],
   actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
   close: ['roti.set'],
@@ -164,6 +164,6 @@ export function allowedInPhase(a: AgendaState | null, command: CommandType): boo
   if (!agendaRunning(a) || !a.rules) return true
   // Taking and giving back one's own speaking turn is never a phase matter.
   if (command === 'talk.self' || command === 'talk.done' || command === 'chat.post' || command === 'presenter.set') return true
-  if (a.voteOpen && (command === 'vote.add' || command === 'vote.remove' || command === 'vote.toggle')) return true
+  if (a.voteOpen && phaseAllows('vote', command)) return true
   return phaseAllows(a.phases[a.current]!.kind, command)
 }

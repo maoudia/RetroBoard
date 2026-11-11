@@ -1,11 +1,15 @@
 import type { VotableKind } from '../shared/commands'
-import type { BoardState, ErrorCode } from '../shared/types'
+import type { BoardState, ErrorCode, SealedBallot } from '../shared/types'
+
+/** The sealed ballots of the round, in log order (none before the first). */
+export const ballotsOf = (s: BoardState): readonly SealedBallot[] => s.sealed ?? []
 
 /** Votes cast by one person across the board (notes and clusters, repeats included). */
 export function votesUsedBy(s: BoardState, cid: string): number {
   let n = 0
   for (const note of Object.values(s.notes)) for (const v of note.voters) if (v === cid) n++
   for (const g of Object.values(s.groups)) for (const v of g.voters) if (v === cid) n++
+  for (const b of ballotsOf(s)) if (b.cid === cid) n++
   return n
 }
 

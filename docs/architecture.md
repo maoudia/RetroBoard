@@ -174,7 +174,7 @@ Optional, chosen in retro settings: off, ring (discreet), popup (start/end). The
 ### 6.3 Voting
 
 - Settings at creation and in options: votes per person, max votes per item, hide counts during voting, secret ballot, what is votable (notes, clusters).
-- Hidden counts = UI hides totals until reveal. Secret ballot = votes are sealed to the facilitator's X25519 key and revealed as a tally, so even a curious participant cannot read them from the log.
+- Hidden counts = UI hides totals until reveal. Sealed ballot (`settings.sealedBallot`, change `voting-v2-and-ranking`) = each vote is a `vote.seal` event sealed to the round's public ballot key (X25519, `HKDF(signing seed, "rb/ballot/v1")`, so the facilitator link re-derives it on any device), so even a curious participant cannot read the choice from the log. The facilitator device opens the ballots (`sealedReveal`) and publishes a signed `vote.reveal` of counts only; replicas check it against public data (ballots cast, per-voter caps) before applying it. The relay sees nothing new. The full threat summary is in the archived design (`openspec/changes/archive/2026-11-11-voting-v2-and-ranking/design.md`).
 - Accurate visible UI: remaining votes as dots in the toolbar, per-item dot stack for my votes, haptic/visual feedback, undo.
 - After voting closes: **ranking page** with a podium (top 3) and the full ordered list, ties handled, "create action" on each item.
 

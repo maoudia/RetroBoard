@@ -1,6 +1,6 @@
 /** Wire format of RetroBoard v1 (plaintext commands): valibot schemas for every message that crosses the network. */
 import * as v from 'valibot'
-import { CHAT_TEXT_MAX, COLUMN_ICONS, type Command, LIMITS, NOTE_COLOR_EXTENDED, NOTE_TEXT_MIN, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
+import { CHAT_TEXT_MAX, COLUMN_ICONS, type Command, KEY_RE, LIMITS, MAX_REVEAL_ITEMS, NOTE_COLOR_EXTENDED, NOTE_TEXT_MIN, SEALED_RE, TALK_BUDGET_MAX_S, TALK_BUDGET_MIN_S } from '@retroboard/domain'
 
 const Id = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
 const Text = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(LIMITS.noteText))
@@ -15,6 +15,10 @@ const ActionStatus = v.picklist(['todo', 'doing', 'done', 'blocked', 'dropped'])
 /** Calendar date, YYYY-MM-DD, and a real one (no 2026-02-31). */
 // Stryker disable next-line Regex: the calendar check on this line already refuses every string the anchors would (it parses and round-trips the date)
 const DueDate = v.pipe(v.string(), v.regex(/^\d{4}-\d{2}-\d{2}$/), v.check((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) && new Date(`${d}T00:00:00Z`).toISOString().startsWith(d)))
+
+/** A sealed ballot: base64url of ephemeral key, nonce, padded vote and tag (about 135 characters). */
+const Sealed = v.pipe(v.string(), v.regex(SEALED_RE))
+const BallotKey = v.pipe(v.string(), v.regex(KEY_RE))
 
 const NewNote = v.object({ columnId: Id, text: Text, color: v.optional(Color) })
 
@@ -42,6 +46,12 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('vote.toggle'), id: Id }),
   v.object({ t: v.literal('vote.add'), kind: v.picklist(['note', 'cluster']), id: Id }),
   v.object({ t: v.literal('vote.remove'), kind: v.picklist(['note', 'cluster']), id: Id }),
+  v.object({ t: v.literal('vote.seal'), sealed: Sealed }),
+  v.object({ t: v.literal('vote.unseal'), sealed: Sealed }),
+  v.object({
+    t: v.literal('vote.reveal'),
+    counts: v.pipe(v.array(v.object({ kind: v.picklist(['note', 'cluster']), id: Id, votes: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(LIMITS.maxVotes * LIMITS.maxConnections)) })), v.maxLength(MAX_REVEAL_ITEMS)),
+  }),
   v.object({ t: v.literal('drafts.reveal'), seconds: v.optional(v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(30))) }),
   v.object({ t: v.literal('chat.post'), text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(CHAT_TEXT_MAX)) }),
   v.object({ t: v.literal('chat.clear') }),
@@ -75,6 +85,8 @@ export const CommandSchema = v.variant('t', [
     maxVotesPerItem: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(LIMITS.maxVotes))),
     votable: v.optional(v.picklist(['notes', 'clusters', 'both'])),
     secretVoting: v.optional(v.boolean()),
+    sealedBallot: v.optional(v.boolean()),
+    ballotKey: v.optional(BallotKey),
     votingEnabled: v.optional(v.boolean()),
     locked: v.optional(v.boolean()),
     browserAgentsAllowed: v.optional(v.boolean()),

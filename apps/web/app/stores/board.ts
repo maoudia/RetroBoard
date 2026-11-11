@@ -1,5 +1,5 @@
 import { isSolo } from '~/utils/solo'
-import { type ActionItem, allowedInPhase, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, type KeyRing, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
+import { type ActionItem, allowedInPhase, countsHidden as hidesCounts, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, type KeyRing, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
 import { type BoardNotice, buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
@@ -126,8 +126,8 @@ export const useBoardStore = defineStore('board', () => {
   /** The voting feature is on unless the board was created without it. */
   const votingEnabled = computed(() => snapshot.value?.settings.votingEnabled !== false)
   const votingClosed = computed(() => snapshot.value?.settings.votingClosed ?? false)
-  /** Counts are hidden while secret voting is on and voting is still open. */
-  const countsHidden = computed(() => secretVoting.value && !votingClosed.value)
+  /** Counts are hidden while secret voting is on and voting is still open, or until a sealed ballot is revealed. */
+  const countsHidden = computed(() => (snapshot.value ? hidesCounts(snapshot.value.settings) : false))
   const noteCount = computed(() => snapshot.value?.notes.length ?? 0)
   /** Actions created from a note or a group, by source id. */
   const actionsBySource = computed(() => {

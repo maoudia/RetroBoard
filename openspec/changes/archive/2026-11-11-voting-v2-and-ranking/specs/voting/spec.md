@@ -28,6 +28,14 @@ The system SHALL offer a sealed ballot mode in which individual votes are readab
 - **WHEN** a participant inspects their local replica during a sealed ballot
 - **THEN** they cannot determine who voted for what
 
+#### Scenario: Tampered reveal
+- **WHEN** the revealed counts are changed after the facilitator signed them, or are signed by someone else, or claim more votes than the ballots cast allow
+- **THEN** every replica ignores the reveal and the counts stay hidden
+
+#### Scenario: Facilitator leaves before the reveal
+- **WHEN** the facilitator leaves with ballots cast
+- **THEN** the ballots stay in the log and the holder of the facilitator link can reveal the tally from any device, or a new round can be started with a new key
+
 ### Requirement: Visible voting state
 The system SHALL show each participant their remaining votes and the items they voted for at all times during voting, and SHALL allow undoing a vote while voting is open.
 

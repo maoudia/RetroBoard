@@ -4,7 +4,7 @@
 
 - [x] 1.1 Implement `VotePolicy`, votable refs and limits (per person, per item, notes/clusters); verify unit tests
 - [x] 1.2 Implement hidden counts read model and `VotingClosed`/`TallyRevealed`; verify unit tests
-- [ ] 1.3 Implement sealed ballot (seal to facilitator key, facilitator tally, signed reveal); verify unit tests where participants cannot attribute votes
+- [x] 1.3 Implement sealed ballot (seal to facilitator key, facilitator tally, signed reveal); verify unit tests where participants cannot attribute votes
 
 ## 2. UI
 

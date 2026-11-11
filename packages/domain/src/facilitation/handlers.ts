@@ -1,8 +1,9 @@
 import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, phaseClock, withoutOverride } from './agenda'
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
+import { KEY_RE } from '../access/keyring'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
-import { type BoardState, DISPLAY_SCALES } from '../shared/types'
+import { type BoardSettings, type BoardState, DISPLAY_SCALES, type ErrorCode } from '../shared/types'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate, mapColumns } from './board'
 import { emptyTalk } from './talk'
@@ -13,6 +14,29 @@ type FacilitationCommand = 'drafts.reveal' | 'board.init' | 'template.apply' | '
 
 /** The end of the agenda closes voting (results shown): nobody keeps voting on a retro that is over (change feedback-wave-5). */
 const closeVoting = (s: BoardState): Pick<BoardState, 'settings'> => ({ settings: { ...s.settings, votingClosed: true } })
+
+const withoutReveal = ({ sealedRevealed: _revealed, ...settings }: BoardSettings): BoardSettings => settings
+
+/** A new sealed-ballot round: the ballots and their reveal are gone, the mode and the key stay. */
+const freshRound = ({ sealed: _ballots, ...s }: BoardState): BoardState => ({ ...s, settings: withoutReveal(s.settings) })
+
+const hasVotes = (s: BoardState): boolean =>
+  !!s.sealed?.length || Object.values(s.notes).some((n) => n.voters.length > 0) || Object.values(s.groups).some((g) => g.voters.length > 0)
+
+/**
+ * Sealed ballot switch and ballot key (change voting-v2-and-ranking). They change only while no vote exists, so a round
+ * never mixes two modes or two keys; `vote.reset` starts a new round. The mode needs a well-formed public key.
+ */
+function withSealedBallot(s: BoardState, c: { sealedBallot?: boolean; ballotKey?: string }, settings: BoardSettings): BoardSettings | ErrorCode {
+  const on = c.sealedBallot ?? !!s.settings.sealedBallot
+  const key = on ? (c.ballotKey ?? s.settings.ballotKey) : undefined
+  if (on && !(key && KEY_RE.test(key))) return 'invalid'
+  // The key is kept only while the mode is on, so the same key is the same mode: nothing changes.
+  if (key === s.settings.ballotKey) return settings
+  if (hasVotes(s)) return 'not-empty'
+  const { sealedBallot: _mode, ballotKey: _key, sealedRevealed: _revealed, ...rest } = settings
+  return on ? { ...rest, sealedBallot: true, ballotKey: key! } : rest
+}
 
 /** Facilitation context: board setup, settings and the shared timer. */
 export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
@@ -55,12 +79,12 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       }
       return done({ ...s, columns: fresh, notes, groups, settings: { ...s.settings, templateId: tpl.id } }, { ...dirty, meta: true })
     }
-    return done({
+    return done(freshRound({
       ...s,
       columns: columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId),
       notes: {}, groups: {},
       settings: { ...s.settings, templateId: tpl.id },
-    }, { meta: true, wipe: true })
+    }), { meta: true, wipe: true })
   },
 
   'settings.update': (s, c) => {
@@ -89,7 +113,8 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type
       ...(c.noteText !== undefined && DISPLAY_SCALES.includes(c.noteText) ? { noteText: c.noteText } : {}),
     }
-    return done({ ...s, settings }, { meta: true })
+    const next = withSealedBallot(s, c, settings)
+    return typeof next === 'string' ? fail(next) : done({ ...s, settings: next }, { meta: true })
   },
 
   /** Countdown for everyone: at `endsAt` each client publishes its own drafts (clients decide, drafts are local). */
@@ -119,13 +144,13 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     return done({ ...s, agenda, timer: { running: false, endsAt: 0, remaining: length, length } }, { meta: true })
   },
 
-  'board.reset': (s) => done({
+  'board.reset': (s) => done(freshRound({
     ...s, notes: {}, groups: {}, actions: {},
     timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
     // A reset board starts its agenda over.
     agenda: s.agenda ? { ...s.agenda, current: -1, startedAt: 0, pausedAt: null } : null,
     talk: emptyTalk(), reveal: null, roti: {},
-  }, { meta: true, wipe: true }),
+  }), { meta: true, wipe: true }),
 
   /** Empties one column: its notes and clusters. Other columns, votes and actions elsewhere stay. */
   'column.reset': (s, c) => {
@@ -136,20 +161,20 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   },
 
   /** Clears every vote (notes and clusters) and reopens voting. */
-  'vote.reset': (s) => done({
+  'vote.reset': (s) => done(freshRound({
     ...s,
     notes: Object.fromEntries(Object.entries(s.notes).map(([id, n]) => [id, { ...n, voters: [] }])),
     groups: Object.fromEntries(Object.entries(s.groups).map(([id, g]) => [id, { ...g, voters: [] }])),
     settings: { ...s.settings, votingClosed: false },
-  }, { meta: true, wipe: true }),
+  }), { meta: true, wipe: true }),
 
   /** Closes the board for good: content wiped, clock stopped, and the ledger ignores everything after it. */
-  'board.destroy': (s) => done({
+  'board.destroy': (s) => done(freshRound({
     ...s, notes: {}, groups: {}, actions: {},
     timer: { running: false, endsAt: 0, remaining: s.timer.length, length: s.timer.length },
     agenda: null, talk: emptyTalk(),
     settings: { ...s.settings, locked: true, destroyed: true },
-  }, { meta: true, wipe: true }),
+  }), { meta: true, wipe: true }),
 
   // Agenda (time boxes). Phases can be replaced only before the start or after the end.
   'agenda.set': (s, c, _a, ctx) => {

@@ -107,7 +107,7 @@ describe('what a phase is about, exactly', () => {
     review: ['action.status', 'action.update', 'action.toggle'],
     write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
     group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move', 'note.edit', 'note.color', 'note.addMany'],
-    vote: ['vote.add', 'vote.remove', 'vote.toggle'],
+    vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
     rank: ['action.add'],
     actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
     close: ['roti.set'],
