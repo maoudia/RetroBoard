@@ -70,10 +70,13 @@ export async function runSmoke(base, deps = {}) {
   const html = await home.text()
   check(html.includes('<div id="__nuxt"'), 'Nuxt app shell served')
 
-  // Hashed files are served by the asset layer without the Worker (ADR-0034). A missing one must be a real, uncacheable 404
-  // (never the shell, never a cache header that would pin the error); a present one must still carry its security headers.
+  // Hashed files are served by the asset layer without the Worker (ADR-0034). A missing one must be a real 404 that no cache
+  // can keep: never the shell, never a cache header that would pin the error. The asset layer sends no Cache-Control at all;
+  // the self-host image (run_worker_first: true) answers it from the Worker with `no-store`, which no cache keeps either.
+  // A present file must still carry its security headers.
   const gone = await get(`${base}/_nuxt/${randomBytes(8).toString('hex')}.js`)
-  check(gone.status === 404 && !gone.headers.get('cache-control') && !(gone.headers.get('content-type') ?? '').includes('text/html'), 'a missing /_nuxt/ file answers 404 without a cache header')
+  const goneCache = gone.headers.get('cache-control') ?? ''
+  check(gone.status === 404 && (goneCache === '' || /\bno-store\b/.test(goneCache)) && !(gone.headers.get('content-type') ?? '').includes('text/html'), 'a missing /_nuxt/ file answers an uncacheable 404')
   const entry = html.match(/\/_nuxt\/[\w.-]+\.js/)?.[0]
   const script = entry ? await get(`${base}${entry}`) : null
   check(
