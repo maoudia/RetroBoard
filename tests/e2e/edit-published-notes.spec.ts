@@ -23,7 +23,8 @@ test('the facilitator edits a participant note; everyone sees the new text marke
   await publishNote(page, 0, 'From Alice')
   const a = noteByText(bob.page, 'From Alice')
   const aid = (await a.getAttribute('data-testid'))!.replace('note-', '')
-  await a.hover()
+  // WebKit lays a second note out with a 2 px stray fragment in the first column: the centre of its bounding box lies in the gap between the columns and hits the grid, so hover the text, which sits in one column.
+  await a.locator('.text').hover()
   await bob.page.getByTestId(`note-menu-${aid}`).click()
   await expect(bob.page.getByTestId(`edit-${aid}`)).toHaveCount(0)
   await bob.ctx.close()

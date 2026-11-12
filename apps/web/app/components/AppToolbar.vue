@@ -26,8 +26,10 @@ const publishOffTitle = computed(() => (publishClosed.value ? t('gated.publish.c
 // The toolbar can wrap on narrow screens: keep the scroll padding (WCAG 2.4.11) equal to its real height.
 const el = useTemplateRef<HTMLElement>('toolbarEl')
 const toolsEl = useTemplateRef<HTMLElement>('toolsEl')
-/** Room kept for the logo, a few letters of the board title and the shield when the tools sit next to them. */
-const MIN_BRAND_PX = 150
+/** Room kept for the logo, a few letters of the board title, the shield and the board switch when the tools sit next to them. */
+const MIN_BRAND_PX = 170
+/** The toolbar padding (2 x 1rem) and its three column gaps (1rem each). */
+const BAR_SPACING_PX = 32 + 48
 const stacked = typeof window === 'undefined' ? null : window.matchMedia('(max-width: 1100px)')
 /**
  * Labels show while they fit; when they do not, the buttons turn icon-only (`data-compact`) and keep their name as tooltip
@@ -40,7 +42,7 @@ function fit() {
   if (!bar || !tools) return
   bar.removeAttribute('data-compact')
   // At 1100 px and under the tools have their own row; above, they share the row with the brand and the clock.
-  const room = stacked?.matches ? tools.clientWidth : bar.clientWidth - 32 - (bar.querySelector<HTMLElement>('.timer-slot')?.offsetWidth ?? 0) - MIN_BRAND_PX - 32
+  const room = stacked?.matches ? tools.clientWidth : bar.clientWidth - BAR_SPACING_PX - (bar.querySelector<HTMLElement>('.timer-slot')?.offsetWidth ?? 0) - (bar.querySelector<HTMLElement>('.chrome-toggle')?.offsetWidth ?? 0) - MIN_BRAND_PX
   const compact = tools.scrollWidth > room + 1
   bar.toggleAttribute('data-compact', compact)
   for (const b of tools.querySelectorAll<HTMLElement>('.icon-btn')) {
