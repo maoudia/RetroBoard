@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain ESM script without types
-import { chapterPage, css, guideInfo, indexPage, inline, LOCALES, markdown, script, sections } from '../guide.mjs'
+import { chapterPage, css, guideInfo, imageSize, indexPage, inline, LOCALES, markdown, script, sections } from '../guide.mjs'
 // @ts-expect-error TypeScript source shared with the tour
 import { CHAPTERS } from '../../../tests/docs/manifest'
 
@@ -25,6 +26,14 @@ describe('guide Markdown', () => {
     expect(s.lead).toBe('lead text')
     expect([...s.steps.entries()]).toEqual([['form', 'First.'], ['theme', 'Second.']])
     expect(sections('only a lead').steps.size).toBe(0)
+  })
+})
+
+describe('guide pictures', () => {
+  it('carry their intrinsic size, so a lazy picture keeps its box before it loads', () => {
+    expect(imageSize('apps/web/public/guide/img/fr/light/invite-share.webp')).toBe(' width="1280" height="800"')
+    expect(imageSize('apps/web/public/guide/img/fr/light/missing.webp')).toBe('')
+    expect(readFileSync('apps/web/public/guide/fr/invite.html', 'utf8')).toMatch(/<img class="light" src="[^"]+" width="\d+" height="\d+"/)
   })
 })
 

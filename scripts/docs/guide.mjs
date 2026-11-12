@@ -15,6 +15,7 @@ export const LOCALES = ['fr', 'en']
 const OUT = process.env.GUIDE_PAGES ?? 'apps/web/public/guide'
 const SRC = 'docs/user-guide'
 const VIDEO = 'apps/web/public/guide/video'
+const IMG = 'apps/web/public/guide/img'
 
 const UI = {
   fr: { title: 'Guide d’utilisation', home: 'Accueil du guide', open: 'Ouvrir RetroBoard', prev: 'Précédent', next: 'Suivant', chapters: 'Chapitres', variant: 'Thème clair ou sombre', other: 'English', otherCode: 'en', skip: 'Aller au contenu', video: 'Vidéo de démonstration', videoHint: 'Un tour de 1 minute, sous-titré.', videoFallback: 'Ton navigateur ne lit pas cette vidéo.' },
@@ -81,10 +82,25 @@ const header = (locale, file) => `<header class="top">
 
 const toc = (locale, current) => `<nav class="toc" aria-label="${esc(UI[locale].chapters)}"><ol>${CHAPTERS.map((c) => `<li><a href="${c.id}.html"${c.id === current ? ' aria-current="page"' : ''}>${esc(c.title[locale])}</a></li>`).join('')}</ol></nav>`
 
+/**
+ * The width and height attributes of a WebP picture, read from its header: a lazy picture that has not loaded yet keeps its
+ * box (no layout shift, and it counts as visible before its pixels arrive). Empty when the file is not there.
+ */
+export function imageSize(file) {
+  if (!existsSync(file)) return ''
+  const b = readFileSync(file)
+  const kind = b.toString('ascii', 12, 16)
+  let w
+  let h
+  if (kind === 'VP8 ') { w = b.readUInt16LE(26) & 0x3fff; h = b.readUInt16LE(28) & 0x3fff } else if (kind === 'VP8L') { const bits = b.readUInt32LE(21); w = (bits & 0x3fff) + 1; h = ((bits >> 14) & 0x3fff) + 1 } else if (kind === 'VP8X') { w = b.readUIntLE(24, 3) + 1; h = b.readUIntLE(27, 3) + 1 } else return ''
+  return ` width="${w}" height="${h}"`
+}
+
 const picture = (locale, chapter, step) => {
   const file = imageName(chapter, step)
   const alt = esc(step.caption[locale])
-  return `<figure class="shot"><img class="light" src="../img/${locale}/light/${file}" alt="${alt}" loading="lazy"><img class="dark" src="../img/${locale}/dark/${file}" alt="${alt}" loading="lazy"><figcaption>${alt}</figcaption></figure>`
+  const img = (variant) => `<img class="${variant}" src="../img/${locale}/${variant}/${file}"${imageSize(join(IMG, locale, variant, file))} alt="${alt}" loading="lazy">`
+  return `<figure class="shot">${img('light')}${img('dark')}<figcaption>${alt}</figcaption></figure>`
 }
 
 /** One chapter page. */
