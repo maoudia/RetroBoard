@@ -102,6 +102,8 @@ test('? opens the help overlay (axe clean); the profile switch turns shortcuts o
 
 test('key caps show next to toolbar actions on desktop and can be turned off (keyboard-shortcuts-v2)', async ({ page, isMobile }) => {
   test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }) || (page.viewportSize()?.width ?? 0) < 1024, 'hints are for a mouse and keyboard on a laptop screen: below it the toolbar shows icons only')
+  // Labels, hints and the board switch share the row only where they fit (the toolbar turns icon-only below about 1300 px, wider in Firefox): audit it at 1440.
+  await page.setViewportSize({ width: 1440, height: 900 })
   await createBoard(page, { template: 'start-stop-continue' })
   const caps = page.getByTestId('btn-presenter').getByTestId('keycap')
   await expect(caps).toBeVisible()
