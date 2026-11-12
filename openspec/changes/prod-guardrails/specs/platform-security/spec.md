@@ -24,7 +24,11 @@ Static files whose name carries a content hash SHALL NOT count against the Worke
 
 #### Scenario: Missing chunk
 - **WHEN** a browser requests a file under `/_nuxt/` that does not exist
-- **THEN** the answer is 404 with no `Cache-Control` header and a body that is not HTML, never the application shell
+- **THEN** the answer is 404 with a body that is not HTML, never the application shell, and no cache may keep it: no `Cache-Control` header when the asset layer answers (production), `no-store` when the Worker answers it (the self-host image, `run_worker_first: true`)
+
+#### Scenario: Smoke test of the asset layer
+- **WHEN** the smoke test runs against production or against the self-host image (`Container` workflow)
+- **THEN** it fails if a missing `/_nuxt/` file answers the shell or a cacheable error, or if the entry script loses `nosniff` or HSTS
 
 #### Scenario: Unknown path
 - **WHEN** a browser navigates to a path that is neither a file nor an application route, including `/guide/` followed by an unknown name

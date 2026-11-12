@@ -78,6 +78,11 @@ Worker requests, plus 1 for the `/ws2` socket when a board is joined, so 100,000
 page loads, about 35 times the 2,700 of before. The binding limits become the WebSocket and Durable Object budgets
 (below). Not measured: the favicon, manifest and icon fetches of a full browser (2 to 4 more Worker requests per cold load).
 
+The bypass is checked after the fact, not only at build time: `scripts/smoke.mjs` (after every deploy and every 6 hours)
+proves that a missing `/_nuxt/` file is an uncacheable 404 and that the entry script keeps its security headers, and the
+`Container` workflow runs the same checks against the self-host image, where `run_worker_first: true` makes the Worker
+answer the missing file itself with `no-store` (no quota there, `docs/self-hosting.md`).
+
 ### Since the peer-to-peer mesh (owner decision: no paid service, no lock-in)
 
 Board events, cursors and focus travel between browsers (WebRTC). The relay only sees, per

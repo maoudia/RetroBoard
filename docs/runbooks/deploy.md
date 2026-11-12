@@ -24,9 +24,11 @@ version of each pull request and comments its URL. Both are dormant until you do
 
 - Automatic: a failed smoke test after a deploy runs `wrangler rollback` to the previous version and fails the run.
   The smoke test (`scripts/smoke.mjs`) proves: `/healthz`, the landing page and its security headers (strict CSP, nosniff,
-  HSTS), the HTTP to HTTPS redirect, the SPA fallback, that `/ws2` answers 403 to a foreign origin, that a board connection
-  opens (`welcome`, then `hist`) and that a live frame crosses between two connections. Its checks are unit tested
-  (`scripts/ci/test/smoke.test.ts`). What to do during an incident: `docs/runbooks/incident.md`.
+  HSTS), the HTTP to HTTPS redirect, the SPA fallback, that a missing `/_nuxt/` file is an uncacheable 404 and the entry
+  script keeps `nosniff` and HSTS (ADR-0034), that `/ws2` answers 403 to a foreign origin, that a board connection opens
+  (`welcome`, then `hist`) and that a live frame crosses between two connections. Its checks are unit tested
+  (`scripts/ci/test/smoke.test.ts`) and the `Container` workflow runs the script against the self-host image. What to do
+  during an incident: `docs/runbooks/incident.md`.
 - By hand: Cloudflare dashboard > Workers > retroboard > Deployments > previous version > Rollback, or
   `npx wrangler rollback` with an API token. Rolling back the Worker also rolls back the static assets (same deployable).
 - Durable Object migrations (`migrations` in wrangler.jsonc) cannot be rolled back; review them in the pull request and

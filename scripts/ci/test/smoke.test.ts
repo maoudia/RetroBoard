@@ -75,9 +75,15 @@ describe('the smoke test', () => {
   it('fails when a missing chunk answers the shell, or an error that a cache can keep', async () => {
     const live = { present: true, foreign: 403, crosses: true }
     const shell = await runSmoke(BASE, fakeSite(live, { missing: { status: 200, headers: { 'content-type': 'text/html' } } })) as string[]
-    expect(shell).toEqual(['a missing /_nuxt/ file answers 404 without a cache header'])
+    expect(shell).toEqual(['a missing /_nuxt/ file answers an uncacheable 404'])
     const pinned = await runSmoke(BASE, fakeSite(live, { missing: { status: 404, headers: { 'cache-control': 'public, max-age=31536000, immutable' } } })) as string[]
-    expect(pinned).toEqual(['a missing /_nuxt/ file answers 404 without a cache header'])
+    expect(pinned).toEqual(['a missing /_nuxt/ file answers an uncacheable 404'])
+  })
+
+  it('passes when the Worker answers the missing chunk itself with no-store (the self-host image)', async () => {
+    const live = { present: true, foreign: 403, crosses: true }
+    const selfHost = { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } }
+    expect(await runSmoke(BASE, fakeSite(live, { missing: selfHost }))).toEqual([])
   })
 
   it('fails when the entry script loses its security headers', async () => {

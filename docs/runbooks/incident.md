@@ -6,8 +6,10 @@ board content: it stops people from collaborating until it is fixed. Say so to a
 ## How you find out
 
 - `Production smoke` (`.github/workflows/smoke.yml`) runs every 6 hours and after every deploy. It proves the site, the
-  security headers, that `/ws2` refuses a foreign origin (403), that a board connection opens (`welcome`, then `hist`) and
-  that a live frame crosses between two connections. A red run is an incident until proven otherwise.
+  security headers, that a missing `/_nuxt/` file is an uncacheable 404 (never the shell) and that the entry script keeps
+  `nosniff` and HSTS, that `/ws2` refuses a foreign origin (403), that a board connection opens (`welcome`, then `hist`)
+  and that a live frame crosses between two connections. A red run is an incident until proven otherwise. The `Container`
+  workflow runs the same script against the self-host image on pull requests that touch it, without a Cloudflare account.
 - Nothing else pages anyone. **Owner task:** add an external uptime check on `https://retroboard.maoudia.com/healthz` (any
   free monitor, check every minute, alert by e-mail or phone).
 - Workers logs (`wrangler.jsonc` `observability`) carry event names and short room hashes only. Useful events:
