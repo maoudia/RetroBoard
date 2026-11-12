@@ -52,6 +52,13 @@ module.exports = {
       to: { pathNot: '^packages/sync/src' },
     },
     {
+      name: 'relay-core-is-runtime-neutral',
+      comment: 'The relay core talks to a port, never to cloudflare:*, node:* or a browser API (ADR-0036).',
+      severity: 'error',
+      from: { path: '^apps/relay/src/core' },
+      to: { pathNot: ['^apps/relay/src/core', '^packages/(protocol|domain)/src', 'node_modules/.*valibot/'] },
+    },
+    {
       name: 'packages-never-import-apps',
       severity: 'error',
       from: { path: '^packages/' },
