@@ -31,4 +31,4 @@ Chosen option: "Cloudflare Workers with static assets", because Pages cannot hos
 
 ## More Information
 
-Workers limits: <https://developers.cloudflare.com/workers/platform/limits/>. Scope reduced later by ADR-0018 (Cloudflare serves the site and the strict minimum).
+Workers limits: <https://developers.cloudflare.com/workers/platform/limits/>. Scope reduced later by ADR-0018 (Cloudflare serves the site and the strict minimum). ADR-0036 makes Cloudflare one deploy target among others: the relay core is runtime-neutral and the self-host image runs on Node; this decision keeps holding for the hosted service.
