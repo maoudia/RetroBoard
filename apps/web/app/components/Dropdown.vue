@@ -156,7 +156,8 @@ defineExpose({ close })
 .dd-panel[popover] {
   position: fixed; inset: auto; margin: 0; z-index: 60; min-width: 220px; max-width: min(92vw, 360px); max-height: min(var(--dd-max, 70dvh), 520px); overflow: auto;
   padding: .5rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2);
-  display: none;
+  /* Placed after it opens (popover, then sheet or not): the panel jumps to its place, it never eases there (the reduced-motion rule gives every change a tiny transition that a measure could catch mid-way). */
+  transition: none; display: none;
 }
 .dd-panel[popover].tall { max-height: var(--dd-max, calc(100dvh - 110px)); scrollbar-width: thin; } /* everything shows when it fits; a visible scrollbar appears only when it cannot */
 .dd-panel[popover][data-more] { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 1.5rem), transparent); }
