@@ -72,13 +72,16 @@ for (const scheme of ['light', 'dark'] as const) {
     await expect(banner).toHaveCount(1)
 
     await settle(bob.page)
-    const result = await axe(bob.page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
+    // The banner is what is audited here: the board behind it (a remote cursor label, for one) has its own audits in a11y.spec.
+    const result = await axe(bob.page).include('[data-testid="newer-version"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
     expect(result.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([])
 
     // "Reload" reloads the page.
     await bob.page.evaluate(() => { (window as unknown as { stayed: boolean }).stayed = true })
+    const reloaded = bob.page.waitForEvent('load')
     await bob.page.getByTestId('newer-version-reload').click()
-    await expect.poll(() => bob.page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed ?? false)).toBe(false)
+    await reloaded
+    expect(await bob.page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed ?? false)).toBe(false)
     await bob.ctx.close()
   })
 }
