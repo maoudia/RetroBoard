@@ -1,6 +1,6 @@
 name: E2E
 
-# Pull requests. Commits on main run the same matrix in quality.yml, which also publishes the reports.
+# Pull requests. Commits on main run the same matrix in quality.yml, the reports are published by quality-reports.yml.
 on:
   pull_request:
   # By hand, and by release.yml on the release branch: the pull request of the release is opened with the Actions token,
