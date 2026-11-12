@@ -43,6 +43,8 @@ function closeLocal(silent = false) {
   // The transport deletes the encrypted copy itself and stays connected on purpose: a participant who was
   // offline can still learn about the closing from the peers that are here.
 }
+/** Another participant uses a newer version of the application: their events are kept, a reload makes this tab read them. */
+function reloadPage() { window.location.reload() }
 /** A new avatar colour reaches the others at once (the profile is broadcast on connect and whenever it changes). */
 watch(() => identity.identity.hue, (h, old) => { if (old !== undefined && h !== old && board.ready) board.updateIdentity(identity.identity) })
 watch(() => board.lastNotice, (n) => {
@@ -420,6 +422,10 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <div v-if="board.roomFull" class="offline pill" role="status" data-testid="room-full"><Icon name="lucide:users" /> {{ t('board.full', { n: LIMITS.maxConnections }) }}</div>
       <div v-else-if="offline && board.ready" class="offline pill" role="status" data-testid="offline"><Icon name="lucide:wifi-off" /> {{ board.ready ? t('board.reconnecting') : t('board.connecting') }}</div>
       <div v-if="board.replicaFailing" class="offline pill warn" role="alert" data-testid="replica-failing"><Icon name="lucide:hard-drive" /> {{ t('board.replicaFailing') }}</div>
+      <div v-if="board.newerVersion" class="offline pill warn newer" role="status" data-testid="newer-version">
+        <Icon name="lucide:refresh-cw" /> {{ t('board.newerVersion') }}
+        <button type="button" class="btn btn-primary" data-testid="newer-version-reload" @click="reloadPage"><Icon name="lucide:rotate-cw" /> {{ t('board.newerVersion.reload') }}</button>
+      </div>
 
       <HiddenColumns v-if="board.ready && board.hiddenColumns.length" />
       <WaitingForBoard v-if="board.status === 'waiting' && !board.ready" :can-start="canSteer" @retry="enter" />
@@ -485,7 +491,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 
 <style scoped>
 .page { position: relative; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-.page > :not(.ambient, .chat, .bubble, .bubble-box, .talk) { position: relative; z-index: 1; }
+.page > :not(.ambient, .chat, .bubble, .bubble-box, .talk, .newer) { position: relative; z-index: 1; }
 /* Folded menus on phones: only the slim top bar stays (change mobile-board-space). */
 .page :deep(.tools), .page :deep(.stepper), .page :deep(.votebar) { max-height: 220px; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s; }
 .chrome-hidden :deep(.tools), .chrome-hidden :deep(.stepper), .chrome-hidden :deep(.votebar) { max-height: 0; opacity: 0; padding-block: 0; margin-block: 0; overflow: hidden; pointer-events: none; visibility: hidden; transition: max-height .3s var(--ease), opacity .2s, padding .3s, margin .3s, visibility 0s .3s; }
@@ -521,6 +527,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
 .add-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .offline { position: fixed; z-index: 50; top: 76px; left: 50%; translate: -50% 0; box-shadow: var(--shadow-2); background: var(--surface2); }
 .offline.warn { top: 124px; border: 1px solid var(--warn, var(--danger)); }
+.offline.newer { top: 172px; width: max-content; max-width: min(92vw, 40rem); display: flex; align-items: center; gap: var(--sp-2); }
 .opening { position: relative; flex: 1; display: grid; place-items: center; padding: var(--sp-4); overflow: hidden; }
 .opening-cols { position: absolute; inset: var(--sp-4); display: flex; gap: var(--sp-4); opacity: .5; pointer-events: none; }
 .opening-cols .sk { flex: 1; display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }

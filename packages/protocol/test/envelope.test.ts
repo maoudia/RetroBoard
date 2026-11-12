@@ -99,7 +99,7 @@ describe('board file and v2 payload details', () => {
 })
 
 describe('live frames (cursors and focus, never stored)', () => {
-  it('accepts anchored cursors and focus, rejects out-of-range or unknown shapes', async () => {
+  it('accepts anchored cursors and focus, ignores unknown keys, rejects out-of-range or unknown shapes', async () => {
     const { parseLive } = await import('../src')
     const cursor = { t: 'cursor', conn: 'abcd1234', anchor: 'note-1', x: 0, y: 65_535, drag: false }
     expect(parseLive(cursor)).toEqual(cursor)
@@ -108,7 +108,7 @@ describe('live frames (cursors and focus, never stored)', () => {
     expect(parseLive({ ...cursor, y: -1 })).toBeNull()
     expect(parseLive({ ...cursor, x: 0.5 })).toBeNull()
     expect(parseLive({ ...cursor, anchor: '../x' })).toBeNull()
-    expect(parseLive({ ...cursor, extra: 1 })).toBeNull()
+    expect(parseLive({ ...cursor, extra: 1 })).toEqual(cursor)
     const focus = { t: 'focus', conn: 'abcd1234', column: 'col-1', note: null, typing: true }
     expect(parseLive(focus)).toEqual(focus)
     expect(parseLive({ ...focus, typing: 'yes' })).toBeNull()
@@ -207,5 +207,57 @@ describe('peer-to-peer frames', () => {
   it('presence can say the participant is relay-only', async () => {
     const { parsePresence } = await import('../src')
     expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: null, showName: false, relayOnly: true })?.relayOnly).toBe(true)
+  })
+})
+
+describe('versions that differ (deploy-safe-sessions)', () => {
+  const sig = 'A'.repeat(86)
+  const event = (body: unknown) => ({ id: env.id, at: 1, author: key, sig, body })
+  const cmd = (c: unknown, extra: object = {}) => event({ t: 'cmd', cmd: c, name: null, showName: false, ...extra })
+
+  it('live frames ignore the keys they do not know', async () => {
+    const { parseLive, parsePresence } = await import('../src')
+    expect(parsePresence({ t: 'presence', conn: 'abcd1234', name: 'Ana', showName: true, mood: 'happy' })).toEqual({ t: 'presence', conn: 'abcd1234', name: 'Ana', showName: true })
+    expect(parseLive({ t: 'cursor', conn: 'abcd1234', anchor: null, x: 1, y: 2, drag: false, color: 'red' })).toEqual({ t: 'cursor', conn: 'abcd1234', anchor: null, x: 1, y: 2, drag: false })
+    expect(parseLive({ t: 'focus', conn: 'abcd1234', column: null, note: null, typing: false, emoji: 'x' })).toEqual({ t: 'focus', conn: 'abcd1234', column: null, note: null, typing: false })
+    // The fields it does know are still checked.
+    expect(parseLive({ t: 'focus', conn: 'abcd1234', column: null, note: null, typing: 'yes' })).toBeNull()
+    expect(parseLive({ t: 'cursor', conn: 'abcd1234', anchor: null, x: -1, y: 2, drag: false })).toBeNull()
+  })
+
+  it('a known event is known', async () => {
+    const { parseEventOrUnknown } = await import('../src')
+    const known = cmd({ t: 'vote.toggle', id: 'abcd' })
+    expect(parseEventOrUnknown(known)).toEqual({ kind: 'known', event: known })
+    const genesis = event({ t: 'genesis', roomId: env.room, facilitatorKey: key })
+    expect(parseEventOrUnknown(genesis)?.kind).toBe('known')
+  })
+
+  it('an unknown command or body keeps every key, so the signature still checks', async () => {
+    const { parseEventOrUnknown } = await import('../src')
+    const future = cmd({ t: 'future.command', value: 1, nested: { a: [1] } })
+    expect(parseEventOrUnknown(future)).toEqual({ kind: 'unknown', event: future })
+    const body = event({ t: 'role.future', key, extra: true })
+    expect(parseEventOrUnknown(body)).toEqual({ kind: 'unknown', event: body })
+  })
+
+  it.each([
+    ['a known command with a field that does not fit', cmd({ t: 'vote.toggle', id: 5 })],
+    ['a known body with a field that does not fit', event({ t: 'role.delegate', key: 'short' })],
+    ['a known body with an unknown key', event({ t: 'role.delegate', key, extra: 1 })],
+    ['a command without its envelope fields', event({ t: 'cmd', cmd: { t: 'future.command' } })],
+    ['a command that is not an object', cmd('future.command')],
+    ['a command without a tag', cmd({ value: 1 })],
+    ['a command with a tag that is not text', cmd({ t: 5 })],
+    ['a body without a tag', event({ cmd: { t: 'future.command' } })],
+    ['a body that is not an object', event('future')],
+    ['a bad signature shape', { ...cmd({ t: 'future.command' }), sig: 'short' }],
+    ['an unknown key beside the event', { ...cmd({ t: 'future.command' }), extra: 1 }],
+    ['a bad author', { ...cmd({ t: 'future.command' }), author: 'short' }],
+    ['a bad id', { ...cmd({ t: 'future.command' }), id: 'x' }],
+    ['not an object', 'event'],
+  ])('is invalid: %s', async (_name, input) => {
+    const { parseEventOrUnknown } = await import('../src')
+    expect(parseEventOrUnknown(input)).toBeNull()
   })
 })

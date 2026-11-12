@@ -2,13 +2,13 @@
 
 ## 1. Harness scenarios
 
-- [ ] 1.1 `apps/web/test/sync-harness.test.ts`, marked `it.fails`: relay closes all sockets with three linked peers (links must stay open, an event sent meanwhile must arrive); a peer on an older schema receives an unknown command; 100 envelopes of 3 KB uploaded by the seeder; 9,000 small envelopes uploaded; verify each fails for the stated reason
+- [x] 1.1 `apps/web/test/sync-harness.test.ts`, marked `it.fails`: relay closes all sockets with three linked peers (links must stay open, an event sent meanwhile must arrive); a peer on an older schema receives an unknown command; 100 envelopes of 3 KB uploaded by the seeder; 9,000 small envelopes uploaded; verify each fails for the stated reason
 
 ## 2. Versions converge
 
-- [ ] 2.1 `packages/protocol/src/envelope.ts`: tolerant parsing of `Presence`, `Cursor`, `Focus` (unknown keys ignored) and a parser that tells "valid signed event with an unknown body" from "invalid"; verify unit tests and the mutation score of the package
-- [ ] 2.2 `encrypted.ts` `ingest`: store and forward unknown-body events without folding them; `onNotice({ kind: 'newer-version' })` once per session; verify the harness scenario of 1.1 passes
-- [ ] 2.3 Reload banner (fr/en) in the board page with a "Reload" action; verify e2e with a stubbed newer event and axe on the banner
+- [x] 2.1 `packages/protocol/src/envelope.ts`: tolerant parsing of `Presence`, `Cursor`, `Focus` (unknown keys ignored) and a parser that tells "valid signed event with an unknown body" from "invalid"; verify unit tests and the mutation score of the package
+- [x] 2.2 `encrypted.ts` `ingest`: store and forward unknown-body events without folding them; `onNotice({ kind: 'newer-version' })` once per session; verify the harness scenario of 1.1 passes
+- [x] 2.3 Reload banner (fr/en) in the board page with a "Reload" action; verify e2e with a stubbed newer event and axe on the banner
 
 ## 3. Uploads the relay accepts
 

@@ -14,9 +14,9 @@ export interface Identity {
   hue?: number
 }
 
-/** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"). */
+/** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"); or a participant on a newer version of the application. */
 export interface BoardNotice {
-  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next' | 'phase.auto'
+  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next' | 'phase.auto' | 'newer-version'
   /** Name the author chose to show, or null. */
   by: string | null
   /** Column title, for reset.column. */
