@@ -31,16 +31,21 @@ jobs:
           queries: security-extended
       - uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
 
+  # Required check: on a dispatched run (the release branch) it passes with nothing to compare, see checks.yml (mutation).
   dependency-review:
     name: Dependency review
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: No dependency diff outside a pull request
+        if: github.event_name != 'pull_request'
+        run: echo "Not a pull request run, so no dependency diff to review."
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
         with:
           persist-credentials: false
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        if: github.event_name == 'pull_request'
         with:
           fail-on-severity: high
           deny-licenses: GPL-2.0-only, SSPL-1.0, BUSL-1.1

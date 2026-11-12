@@ -51,23 +51,33 @@ jobs:
           path: coverage
           retention-days: 7
 
+  # The two pull-request-only jobs (mutation, spec gate) are required checks, so on a dispatched run (the release branch,
+  # by hand) they run and pass with nothing to do: a job skipped by a job-level `if` is not a result the merge box can
+  # rely on, a step-level `if` is.
   mutation:
     name: Mutants of the changed files
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Nothing to mutate outside a pull request
+        if: github.event_name != 'pull_request'
+        run: echo "Not a pull request run, so no changed files to mutate."
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
         with:
           fetch-depth: 0
           persist-credentials: false
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: github.event_name == 'pull_request'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: github.event_name == 'pull_request'
         with:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        if: github.event_name == 'pull_request'
       - name: Mutation-test the files this pull request changes (any survivor fails)
+        if: github.event_name == 'pull_request'
         env:
           BASE: origin/${{ github.base_ref }}
         run: pnpm mutation:changed --base "$BASE"
@@ -123,23 +133,30 @@ jobs:
 
   spec-gate:
     name: Spec gate
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
     steps:
+      - name: No pull request to judge outside a pull request run
+        if: github.event_name != 'pull_request'
+        run: echo "Not a pull request run, so nothing to gate."
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
         with:
           persist-credentials: false
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: github.event_name == 'pull_request'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: github.event_name == 'pull_request'
         with:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        if: github.event_name == 'pull_request'
       - name: Every feature, fix or performance change names its OpenSpec change
+        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
