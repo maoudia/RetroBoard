@@ -19,4 +19,4 @@
 
 ## 4. Rollout
 
-- [ ] 4.1 (Implemented: tokens in wrangler vars, header served, unit tested, docs/webmcp.md; pending: owner manual test in Chrome.) Origin trial token served as a Worker response header when configured (env var), documented in docs/webmcp.md with a manual test in Chrome; verify unit test of the header and owner sign-off
+- Moved, not done: (Implemented: tokens in wrangler vars, header served, unit tested, docs/webmcp.md; pending: owner manual test in Chrome.) Origin trial token served as a Worker response header when configured (env var), documented in docs/webmcp.md with a manual test in Chrome; verify unit test of the header and owner sign-off Now tracked in `docs/owner-checks.md` (task 4.1).

@@ -8,6 +8,7 @@ reviewed at each release. Plan of 2026-11-04: stabilise first, launch in Decembe
 Priority (owner rule, 2026-10-29): bugs first (`priority:1-urgent`, standalone `bug` issues), then the design value
 users see first (`priority:2-design`), then CI/CD quality (`priority:3-quality`), then the rest (`priority:4-later`).
 Within a release, take the lowest priority number first. At most 3 changes are in progress at once.
+Manual checks only the owner can run live in [owner-checks.md](owner-checks.md) (R1 and R2), not in open changes.
 
 Source of truth: `scripts/github/sync-issues.mjs` (`RELEASES`, `ROADMAP`, `PRIORITY`, `GROUP_OVERRIDES`). Run it with `--apply` after
 adding or re-planning a change; the `Project roadmap` workflow then puts the issues on the project.
@@ -39,7 +40,7 @@ every night from 2026-11-13 is green.
 
 Feature freeze until main is green. Gate: 7 green nights in a row (nightly gate above), at most 3 changes in progress, landing truth fixes.
 
-* `reliable-board-sync` ([proposal](../openspec/changes/reliable-board-sync/proposal.md))
+* `reliable-board-sync` ([proposal](../openspec/changes/archive/2026-11-12-reliable-board-sync/proposal.md))
 * Delivered and archived: `community-feedback`, `quality-gates-v2`, `history-panel-phone-layout`, `solo-board-parity`, `prod-guardrails`, `join-code-committed-sas`, `derived-states-contrast`.
 * Epic #443 `stabilise-main`: roadmap source of truth, WIP limit, landing truth and favicon, phone UX and docs truth pass are delivered; the trademark check is the owner's task. Hotfix waves are archived as soon as they are merged (last: `2026-11-05-hotfix-ux-wave8`).
 
@@ -55,7 +56,7 @@ Anything not on this list slipped to R3.
 * Landing and launch kit: `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md)), then `public-launch` (change to open: `/opsx:propose`).
 * Brand identity: `brand-identity` (change to open: `/opsx:propose`).
 * CLA: task group 1 of `open-source-business` (change to open: `/opsx:propose`); the group sits in R2, the rest of the change in R4.
-* In flight, finish only: `p2p-presence-and-cursors` ([proposal](../openspec/changes/p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/webmcp-browser-agents/proposal.md)) have only a pull request and an owner check left.
+* Archived, owner check left: `p2p-presence-and-cursors` ([proposal](../openspec/changes/archive/2026-11-12-p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/archive/2026-11-12-webmcp-browser-agents/proposal.md)) are delivered; only the owner checks in [owner-checks.md](owner-checks.md) remain.
 * Delivered and archived: `user-manual-and-tutorials`, `short-links-and-join`, `retro-report`, `results-insights`, `voting-v2-and-ranking`, `responsive-and-i18n-hardening`, `activity-rings-timer`, `allure-report-aggregation`, `automated-semver-release`, `edge-security-and-domain`.
 
 Moved to R3 on 2026-11-12: `design-system-components`, `ci-toolchain-speed`, `scorecard-hardening`, `code-health-for-agents` (change to open),

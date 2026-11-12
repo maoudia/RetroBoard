@@ -23,4 +23,4 @@
 
 - [x] 4.1 Playwright: one context without WebRTC, one going offline and online with `context.setOffline`, facilitator reload right after publishing, three contexts converge; keep the no-console-error guard; verify `pnpm e2e` green
 - [x] 4.2 Docs: `docs/PLAN.md` sync section, p2p spec references, free-plan budget figures; verify `pnpm verify`
-- [ ] 4.3 Owner field re-test on real devices (different networks, one phone on mobile data); verify owner sign-off comment on the epic issue
+- Moved, not done: Owner field re-test on real devices (different networks, one phone on mobile data); verify owner sign-off comment on the epic issue Now tracked in `docs/owner-checks.md` (task 4.3).

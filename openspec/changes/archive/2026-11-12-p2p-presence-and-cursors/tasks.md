@@ -20,5 +20,5 @@
 ## 4. Peer-to-peer board (owner decision 2026-10-24)
 
 - [x] 4.1 Relay-only fallback with a bridge peer; verify e2e with one participant forced relay-only
-- [ ] 4.2 Production check of link success rates behind corporate networks (manual, documented in docs/capacity.md)
+- Moved, not done: Production check of link success rates behind corporate networks (manual, documented in docs/capacity.md) Now tracked in `docs/owner-checks.md` (task 4.2).
 - [x] 4.3 Signed snapshots and snapshot-based join (moved from stateless-relay-and-replication 4.2); verify unit test with 3,000 events and e2e late joiner
