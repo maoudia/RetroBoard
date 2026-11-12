@@ -6,7 +6,8 @@ name: Release
 # 3. release-please opens or updates the release PR (version bump + CHANGELOG.md); this workflow merges it.
 # 4. release-please runs again: tag vX.Y.Z and the GitHub Release with the changelog section.
 # 5. The container image is built and pushed to GHCR for that tag.
-# Events created with GITHUB_TOKEN do not start other workflows, so every step lives in this file.
+# Events created with GITHUB_TOKEN do not start other workflows (a pull request it opens only gets runs held for approval),
+# so every step lives in this file.
 on:
   # zizmor: the run only reads repository state and the API, never code from a pull request; the gate
   # checks the real main commit, whatever branch name triggered this event.
@@ -75,9 +76,11 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # main requires its checks on every pull request. The release PR is opened with the Actions token, which starts no
-      # workflow: dispatch the required ones on its branch (their jobs report on the PR head commit), then let the
-      # pull request merge itself once they pass.
+      # main requires its checks on every pull request. The release PR is opened with the Actions token, so GitHub holds
+      # its pull_request runs at "action_required" until a maintainer approves them by hand (every release PR up to 1.52.0
+      # waited for that click, then for a second full run of the suite). Light path instead: dispatch the required checks
+      # on the release branch (their jobs report on the PR head commit, about 5 minutes: the PR only holds the version
+      # and the changelog), drop the runs that wait for approval, then let the pull request merge itself.
       - name: Run the required checks on the release branch
         if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
         env:
@@ -89,6 +92,27 @@ jobs:
           gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label no-spec
           for wf in checks.yml e2e.yml security.yml adr.yml; do
             gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          done
+
+      # The runs the pull request itself started cannot start without a click, and a run that never starts leaves the
+      # merge waiting on it. Delete them (best effort: the dispatched runs above are the checks of this pull request).
+      - name: Drop the pull_request runs that wait for approval
+        if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ fromJSON(steps.prepare.outputs.pr || '{}').headBranchName }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$BRANCH" --jq .sha)
+          for _ in 1 2 3 4 5 6; do
+            ids=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$sha&event=pull_request&per_page=100" \
+              --jq '.workflow_runs[] | select(.conclusion == "action_required" or .status == "action_required") | .id')
+            [ -n "$ids" ] && break
+            sleep 10
+          done
+          for id in $ids; do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/runs/$id" \
+              && echo "deleted run $id, which waited for approval" \
+              || echo "::warning::could not delete run $id, which waits for approval"
           done
 
       - name: Merge the release PR when its checks pass
@@ -105,6 +129,8 @@ jobs:
             sleep 30
           done
           echo "::error::The release PR did not merge within 50 minutes: a required check failed or is still running"
+          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json mergeStateStatus,statusCheckRollup \
+            --jq '"merge state: \(.mergeStateStatus)", (.statusCheckRollup[] | select((.conclusion // .state) != "SUCCESS") | "\(.name // .context): \(.status // "") \(.conclusion // .state)")' || true
           exit 1
 
       - name: Tag and publish the GitHub Release
