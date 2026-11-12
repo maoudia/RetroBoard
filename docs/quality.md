@@ -17,6 +17,15 @@ Every commit on `main` runs `.github/workflows/quality.yml`:
 Artifacts are kept 30 days. The site keeps the last report only; the trends come from the Allure history file
 (`history.jsonl`, the last 20 runs, published at the site root).
 
+## Nightly gate
+
+The nightly run (`nightly.yml`) is the cross-browser gate of releases R1 and R2 (definition and dates: `docs/roadmap.md`, section
+Nightly gate). In short: the nightly retries a failed test twice, WebKit reports but never gates, and a spec listed in
+`tests/e2e/quarantine.json` runs and is reported but does not fail its job. The list only shrinks (`pnpm quarantine`, the ceiling
+in `quality/quarantine-baseline.json`, part of `pnpm verify`). `pnpm nightly:streak -- --target=14` prints how many scheduled
+nights in a row were green by that definition (needs the `gh` CLI). To take a spec out of quarantine: fix it, run it
+nightly, delete its entry and lower the ceiling.
+
 ## Mutation ratchet
 
 The floors in `quality/mutation-baseline.json` are 100 for every package (change `mutation-score-100`): a mutant that

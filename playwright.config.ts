@@ -7,6 +7,10 @@ const port = Number(process.env.E2E_PORT ?? 8787)
 // couple of minutes, not a quarter of an hour. E2E_WORKERS overrides both.
 const workers = Number(process.env.E2E_WORKERS ?? (process.env.CI ? 1 : Math.min(4, Math.max(1, Math.floor(availableParallelism() / 3)))))
 
+// The nightly run (.github/workflows/nightly.yml, workflow name "Nightly") has its own gate (docs/roadmap.md, docs/quality.md):
+// two retries (a test that needs one is reported flaky) and a quarantine list that does not fail the run.
+const nightly = process.env.GITHUB_WORKFLOW === 'Nightly'
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 45_000,
@@ -14,13 +18,14 @@ export default defineConfig({
   fullyParallel: false,
   workers,
   // Parallel workers load the machine and the dev server: a test that fails once and passes again is reported as flaky.
-  retries: process.env.CI || workers > 1 ? 1 : 0,
+  retries: nightly ? 2 : process.env.CI || workers > 1 ? 1 : 0,
   // CI keeps everything for the quality site (GitHub Pages) and the run artifacts.
   reporter: process.env.CI
     ? [
         ['github'], ['html', { open: 'never' }], ['json', { outputFile: 'playwright-report/results.json' }], ['junit', { outputFile: 'playwright-report/junit.xml' }],
         // Raw Allure results, aggregated with the unit results into one report (quality.yml, change allure-report-aggregation).
         ...(process.env.ALLURE_RESULTS_DIR ? [['allure-playwright', { resultsDir: process.env.ALLURE_RESULTS_DIR, detail: false, suiteTitle: false }] as const] : []),
+        ...(nightly ? [['./scripts/quality/quarantine-reporter.mjs'] as const] : []),
       ]
     : 'list',
   use: {
