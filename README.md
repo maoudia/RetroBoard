@@ -137,7 +137,7 @@ pnpm mutation:changed   # Stryker on the files you changed; every package is at 
 pnpm docs:tour && pnpm docs:guide   # regenerate the user guide from the real app
 ```
 
-Everything is verified on your machine first; CI confirms. Workflows (`.github/workflows/`): `checks.yml` (lint, types, architecture, unit with coverage ratchets, build, spec gate, commit check), `e2e.yml` (pull request gate), `quality.yml` (every commit on main: full e2e, mutation in parallel shards, the [Allure report](https://maoudia.github.io/RetroBoard/) on GitHub Pages), `security.yml` (CodeQL, dependency review, OSV), `nightly.yml` (every browser and viewport), `scorecard.yml`, `release.yml` (automatic semantic releases and the signed image), `deploy.yml`, and the agent workflows. `main` is protected: pull requests only, merged by a bot once the required checks pass. See [docs/quality.md](docs/quality.md).
+Everything is verified on your machine first; CI confirms. Workflows (`.github/workflows/`): `checks.yml` (lint, types, architecture, unit with coverage ratchets, build, spec gate, commit check), `e2e.yml` (pull request gate), `quality.yml` (every commit on main: unit tests and the core e2e specs, the gate of releases and deploys), `quality-reports.yml` (after it: the rest of the e2e suite, mutation in parallel shards, the [Allure report](https://maoudia.github.io/RetroBoard/) on GitHub Pages), `security.yml` (CodeQL, dependency review, OSV), `nightly.yml` (every browser and viewport), `scorecard.yml`, `release.yml` (automatic semantic releases and the signed image), `deploy.yml`, and the agent workflows. `main` is protected: pull requests only, merged by a bot once the required checks pass. See [docs/quality.md](docs/quality.md).
 
 ## Deploy
 

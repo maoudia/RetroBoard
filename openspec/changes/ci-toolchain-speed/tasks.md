@@ -13,5 +13,5 @@
 ## 3. Release path (target: a clean release in about 45 min; today main Quality about 25-48 + release job 38 + nightly 27-36)
 
 - [ ] 3.1 Release PR: dispatched required checks only, held `pull_request` runs deleted, required checks never skipped (workflow edits, owner merges); verify on the next release: no click, release job under 10 min
-- [ ] 3.2 Quality on main off the release gate: the release gate needs Checks and the push-gate e2e, not mutation or the rest of the suite (they stay on main, reported, not blocking the release); verify the lead time before and after
+- [ ] 3.2 Quality on main off the release gate: quality.yml keeps unit and the core e2e (the gate), quality-reports.yml runs the rest of the e2e suite, mutation and the Pages report after it, reading the Quality artifacts (workflow edits, owner merges); verify the lead time before and after
 - [ ] 3.3 Cross-browser: more Firefox and WebKit shards on the nightly, a shared build artifact and package caches; verify the nightly duration before and after

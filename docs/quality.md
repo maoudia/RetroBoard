@@ -1,18 +1,19 @@
 # Quality reports
 
-Every commit on `main` runs `.github/workflows/quality.yml`:
+Every commit on `main` runs `.github/workflows/quality.yml` (unit tests and the core e2e specs: the gate of Release and Deploy, about 6 minutes)
+and then `.github/workflows/quality-reports.yml` (the slow tail: the rest of the e2e suite, mutation, the Allure report; it does not gate a release):
 
-| Job | What | Kept as |
+| Job (workflow) | What | Kept as |
 |---|---|---|
-| Unit tests and coverage | Vitest with v8 coverage and the coverage ratchets | Pages `coverage/`, `unit/results.json`; artifact `quality-unit` |
-| Playwright core (chromium, 2 shards) | The push gate: the specs of `tests/e2e/core.json` against `wrangler dev` | The Allure report; artifact `playwright-<project>-<n>` (HTML report, JSON, traces) |
-| Playwright rest of the suite (chromium, 5 shards) | Every spec outside the gate (`pnpm e2e:rest`), so Allure holds the whole suite once. Does not gate the run (`continue-on-error`); the nightly run repeats it on every browser | The Allure report; artifact `playwright-rest-<n>` |
-| Mutation testing | Stryker on the pure packages, one full pass per package in parallel (6 shards), merged and compared with the floors by the ratchet job | Pages `mutation/` (one report per package); artifacts `mutation-shard-<package>`, `quality-mutation` |
+| Unit tests and coverage (quality) | Vitest with v8 coverage and the coverage ratchets | Pages `coverage/`, `unit/results.json`; artifact `quality-unit` |
+| Playwright core (chromium, 2 shards; quality) | The push gate: the specs of `tests/e2e/core.json` against `wrangler dev` | The Allure report; artifact `playwright-<project>-<n>` (HTML report, JSON, traces) |
+| Playwright rest of the suite (chromium, 5 shards; reports) | Every spec outside the gate (`pnpm e2e:rest`), so Allure holds the whole suite once. Does not gate the run (`continue-on-error`); the nightly run repeats it on every browser | The Allure report; artifact `playwright-rest-<n>` |
+| Mutation testing (reports) | Stryker on the pure packages, one full pass per package in parallel (6 shards), merged and compared with the floors by the ratchet job | Pages `mutation/` (one report per package); artifacts `mutation-shard-<package>`, `quality-mutation` |
 | Allure report (unit + every e2e shard + mutation) | `allure-vitest` and `allure-playwright` write raw results when `ALLURE_RESULTS_DIR` is set; `allure generate` aggregates them with a history file kept on Pages; `scripts/quality/mutation-allure.mjs` turns the Stryker report into results (one per package, one failed result per undetected mutant) | Pages `allure/` (report and `history.jsonl`); artifacts `allure-results-*` |
 | Image scan, signature, SBOM | On release: Trivy scan before the push, cosign signature, build provenance attestation, SBOM on the GitHub Release (`release.yml`) | Code scanning; release assets |
 | Scorecard | OpenSSF Scorecard on main and weekly (`scorecard.yml`) | Code scanning; the OpenSSF API |
 | Deploy | Gated production deploy with smoke test and automatic rollback, PR previews (`deploy.yml`, `preview.yml`, dormant until configured, `docs/runbooks/deploy.md`) | GitHub deployments |
-| Publish | Deploys the Allure report as the GitHub Pages front page, with `coverage/` and `mutation/` beside it, even when a test job failed | https://maoudia.github.io/RetroBoard/ |
+| Publish (reports) | Deploys the Allure report as the GitHub Pages front page, with `coverage/` and `mutation/` beside it, even when a test job failed | https://maoudia.github.io/RetroBoard/ |
 
 Artifacts are kept 30 days. The site keeps the last report only; the trends come from the Allure history file
 (`history.jsonl`, the last 20 runs, published at the site root).
@@ -28,7 +29,7 @@ nightly, delete its entry and lower the ceiling.
 
 ## Release path
 
-`release.yml` opens the release PR (version and changelog only) once Checks and Quality are green on main, then merges it
+`release.yml` opens the release PR (version and changelog only) once Checks and Quality are green on main (Quality is the unit tests and the core e2e specs, the slow tail runs in `quality-reports.yml` and does not hold the release), then merges it
 by itself. The PR is opened with the Actions token, so GitHub holds its own `pull_request` runs at `action_required` until
 someone approves them; the workflow therefore dispatches the required checks on the release branch (Checks, E2E, Security,
 ADR: about 5 minutes together) and deletes the held runs. No click, no second full suite. Mutants, Spec gate and
@@ -40,7 +41,7 @@ Measured on 2026-11-13 (GitHub API, `run_started_at` to `updated_at`):
 | Step | Before (releases 1.51.0 to 1.52.0) | Target |
 |---|---|---|
 | Release job (open PR, wait, merge, tag) | 38 min on 1.52.0; the checks it waits for take about 5 min, the rest was the held runs and then their second full run | about 6 min |
-| Quality on main (gate of the release) | 17 to 48 min, median about 25 | see `openspec/changes/ci-toolchain-speed` |
+| Quality on main (gate of the release) | 17 to 48 min, median about 25 (it included mutation, the rest of the e2e suite and the Pages report) | about 6 min once the slow tail moved to `quality-reports.yml` |
 | Nightly | 27 to 36 min when it passes | see the same change |
 
 If the release PR still does not merge, the failed step of the release job prints the merge state and the checks that are
