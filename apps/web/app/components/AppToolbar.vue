@@ -183,10 +183,10 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
 @media (prefers-reduced-motion: no-preference) { .tools { scroll-behavior: smooth; } }
 /* Labels stay in the accessibility tree on phones: visually hidden, not display:none (axe button-name). */
 @media (max-width: 720px) { .icon-btn span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .icon-btn { position: relative; min-width: 44px; } .toolbar { padding-inline: 1rem; row-gap: .15rem; } }
-/* Icon-only when the labels do not fit (measured in fit()): same visually hidden labels, no shortcut hints. */
+/* Icon-only when the labels do not fit (measured in fit()): same visually hidden labels; the shortcut hints stay (they take no room) and tuck into the corner. */
 .toolbar[data-compact] :deep(.icon-btn > span:not(.badge)) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .toolbar[data-compact] :deep(.icon-btn) { min-width: 44px; }
-.toolbar[data-compact] :deep(.keycap) { display: none; }
+.toolbar[data-compact] :deep(.keycap) { top: -2px; right: -2px; min-width: 14px; padding: 0 3px; }
 /* Phone: the board title (not its theme line) and the shield share the first row with the compact clock; the board switcher stays in the profile and on the home page. */
 @media (max-width: 520px) {
   .toolbar { gap: .5rem; }
