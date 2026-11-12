@@ -42,7 +42,7 @@ describe('chunk', () => {
 
 describe('no server-side storage (docs/PLAN.md 5.3)', () => {
   it('the v2 relay never references the storage API', () => {
-    for (const f of ['relay-room.ts']) {
+    for (const f of ['core/room.ts', 'adapters/cloudflare.ts']) {
       const src = readFileSync(fileURLToPath(new URL(`../src/${f}`, import.meta.url).href), 'utf8')
       expect(src.replace(/\/\/.*$|\/\*[\s\S]*?\*\//gm, '')).not.toMatch(/\bstorage\b|\bsetAlarm\b|\bKV\b|\bD1\b|\bR2\b/)
     }

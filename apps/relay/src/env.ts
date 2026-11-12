@@ -1,4 +1,4 @@
-import type { RelayRoom } from './relay-room'
+import type { RelayRoom } from './adapters/cloudflare'
 
 export interface Env {
   ASSETS: Fetcher

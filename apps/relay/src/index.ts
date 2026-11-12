@@ -2,10 +2,10 @@ import type { Env } from './env'
 import { createLimiter, isMaintenance, maintenanceAction, RETRY_AFTER_SECONDS } from './guards'
 import { isUnknownAppPath, pickErrorResponse, wantsHtml } from './errors'
 import { buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
-import { consoleLogger, roomHash } from './logger'
+import { consoleLogger, roomHash } from './core/logger'
 import { admitUpgrade } from './origin'
 
-export { RelayRoom } from './relay-room'
+export { RelayRoom } from './adapters/cloudflare'
 
 async function handleSocket(request: Request, env: Env, url: URL): Promise<Response> {
   const verdict = admitUpgrade(request.headers.get('Upgrade'), request.headers.get('Origin'), url, env.ALLOWED_ORIGINS)
