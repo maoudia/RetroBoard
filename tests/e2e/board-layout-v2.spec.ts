@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard } from './helpers'
+import { column, createBoard, phoneLayout } from './helpers'
 
-test('the writing area folds to a Write handle and comes back, with the W key too (change board-layout-v2)', async ({ page }) => {
+test('the writing area folds to a Write handle and comes back, with the W key too (change board-layout-v2)', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to fold: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue' })
   const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   await expect(page.getByTestId(`draft-${id}`)).toBeVisible()
@@ -19,7 +20,7 @@ test('the writing area folds to a Write handle and comes back, with the W key to
 })
 
 test('a column is widened by dragging its edge, and a preset gives the standard width back', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'mouse drag on desktop; touch uses the same pointer events')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'mouse drag on desktop; touch uses the same pointer events')
   await createBoard(page, { template: 'start-stop-continue' })
   const col = column(page, 0)
   const id = (await col.getAttribute('data-testid'))!.replace('column-', '')
@@ -40,7 +41,7 @@ test('a column is widened by dragging its edge, and a preset gives the standard 
 })
 
 test('the writing field grows by dragging its grip, with the keyboard, and a preset gives the standard height back', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'mouse drag on desktop; touch uses the same pointer events')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'mouse drag on desktop; touch uses the same pointer events')
   await createBoard(page, { template: 'start-stop-continue' })
   const id = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const field = page.getByTestId(`draft-${id}`)
@@ -61,7 +62,8 @@ test('the writing field grows by dragging its grip, with the keyboard, and a pre
   await expect(async () => expect(Math.abs((await field.boundingBox())!.height - h0)).toBeLessThan(4)).toPass()
 })
 
-test('one column can fold its own writing area with a slide, the others keep theirs (change ux-irritants-wave-2)', async ({ page }) => {
+test('one column can fold its own writing area with a slide, the others keep theirs (change ux-irritants-wave-2)', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to fold: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue' })
   const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
@@ -78,7 +80,8 @@ test('one column can fold its own writing area with a slide, the others keep the
   await expect(page.getByTestId(`draft-${a}`)).toBeVisible()
 })
 
-test('the toolbar writing switch folds and unfolds every column, even ones folded on their own (change ux-irritants-wave-3)', async ({ page }) => {
+test('the toolbar writing switch folds and unfolds every column, even ones folded on their own (change ux-irritants-wave-3)', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to fold: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue' })
   const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
@@ -118,7 +121,7 @@ test('chat side and filter bar are remembered per screen class (change device-la
 })
 
 test('the writing size is per column, and the Write chevron sets every column at once (change toast-notifications-v2)', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'the toolbar chevron is a desktop control')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the toolbar chevron is a desktop control')
   await createBoard(page, { template: 'start-stop-continue' })
   const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')

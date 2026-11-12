@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, enterName, join, noteByText, publishNote, voteMenu } from './helpers'
+import { addDraft, createBoard, enterName, join, noteByText, publishNote, voteMenu } from './helpers'
 
 async function shareUrl(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -74,8 +74,7 @@ test.describe('reveal all drafts', () => {
     const bob = await join(browser, await shareUrl(page), 'Bob')
     const draft = async (p: import('@playwright/test').Page, text: string) => {
       const col = p.locator('section[data-testid^="column-"]').first()
-      await col.locator('textarea').fill(text)
-      await col.locator('[data-testid^="compose-add-"]').click()
+      await addDraft(p, 0, text)
       await expect(col.locator('[data-draft-id]').filter({ hasText: text })).toBeVisible()
     }
     await draft(page, 'Alice draft')

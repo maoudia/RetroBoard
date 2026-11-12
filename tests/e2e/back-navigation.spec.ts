@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, noteByText, publishNote } from './helpers'
+import { addDraft, createBoard, noteByText, publishNote } from './helpers'
 
 /** The static host may add a trailing slash to /boards: the fragment is what identifies the board. */
 const sameBoard = (url: string) => new RegExp(`/boards/?#${url.split('#')[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
@@ -70,8 +70,7 @@ test.describe('leaving right after an action does not lose it', () => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     const board = page.url()
     const col = page.locator('section[data-testid^="column-"]').first()
-    await col.locator('textarea').fill('Quick one')
-    await col.locator('[data-testid^="compose-add-"]').click()
+    await addDraft(page, 0, 'Quick one')
     await col.locator('[data-testid^="publish-"]').click()
     await page.goto('/new') // no wait: the replica write may still be pending
     await page.goBack()

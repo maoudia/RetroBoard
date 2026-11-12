@@ -7,11 +7,8 @@ test('mouse: draft actions appear on hover; dismiss deletes, validate publishes'
   test.skip(isMobile, 'touch screens always show the actions (see the touch test)')
   await createBoard(page)
   const col = page.locator('[data-testid^="column-"]').first()
-  const area = col.locator('textarea')
-  await area.fill('à jeter')
-  await col.locator('[data-testid^="compose-add-"]').click()
-  await area.fill('à publier')
-  await col.locator('[data-testid^="compose-add-"]').click()
+  await addDraft(page, 0, 'à jeter')
+  await addDraft(page, 0, 'à publier')
   const drafts = col.locator('[data-draft-id]')
   await expect(drafts).toHaveCount(2)
 

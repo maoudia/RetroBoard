@@ -1,7 +1,7 @@
 import { expect, type Locator, test } from '@playwright/test'
 import jsQR from 'jsqr'
 import { PNG } from 'pngjs'
-import { createBoard, join } from './helpers'
+import { createBoard, join, narrow } from './helpers'
 
 // Clipboard permissions exist in Chromium only (Firefox and WebKit reject them).
 test.beforeEach(async ({ context, browserName }) => {
@@ -63,7 +63,7 @@ test('passcode boards: the code is offered for copy but never put in the message
 })
 
 test('presenter mode: no private drafts, no pointers, a QR card to join; Escape leaves', async ({ page, browser, isMobile }) => {
-  test.skip(isMobile, 'presenting is done from a laptop or a room screen')
+  test.skip(isMobile || narrow({ viewport: page.viewportSize() }), 'presenting is done from a laptop or a room screen')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await page.getByTestId('btn-share').click()
   const link = await page.getByTestId('share-url').inputValue()

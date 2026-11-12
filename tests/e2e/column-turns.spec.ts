@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard, join } from './helpers'
+import { column, createBoard, join, phoneLayout } from './helpers'
 
-test.skip(({ isMobile }) => isMobile, 'facilitator menus are covered on desktop')
+test.skip(phoneLayout, 'facilitator menus are covered on desktop')
 
 test('the facilitator opens one column at a time; the others are masked for everyone (change ux-irritants-wave-3)', async ({ page, browser }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })

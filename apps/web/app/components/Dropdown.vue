@@ -26,10 +26,10 @@ const onScroll = (e: Event) => {
 }
 const toggle = () => { open.value = !open.value }
 
-/** Space taken at the bottom of the viewport by fixed bars (presenter bar, turn bar): they mark themselves data-reserve-bottom. */
-function reservedBottom(vh: number): number {
+/** Space taken at the bottom of the viewport by fixed bars (presenter bar, turn bar): they mark themselves data-reserve-bottom. A sheet covers the column tab bar (`tabs`) but stays above the other bars. */
+function reservedBottom(vh: number, sheet = false): number {
   let r = 0
-  for (const el of document.querySelectorAll<HTMLElement>('[data-reserve-bottom]')) {
+  for (const el of document.querySelectorAll<HTMLElement>(sheet ? '[data-reserve-bottom]:not([data-reserve-bottom="tabs"])' : '[data-reserve-bottom]')) {
     const b = el.getBoundingClientRect()
     if (b.height > 0 && b.top < vh) r = Math.max(r, vh - b.top)
   }
@@ -43,12 +43,14 @@ function place() {
   if (!t || !p) return
   placedAt = { top: t.top, left: t.left }
   if (isSheet()) {
-    // The stylesheet pins the sheet to the bottom edge; only the height depends on the visible area (the phone keyboard).
+    // The stylesheet pins the sheet to the bottom edge; the height depends on the visible area (the phone keyboard) and the sheet rests on the presenter or turn bar when there is one (board-history).
     p.dataset.sheet = ''
     p.style.removeProperty('left')
     p.style.removeProperty('top')
     const vh = window.visualViewport?.height ?? window.innerHeight
-    p.style.setProperty('--dd-max', `${Math.floor(vh * 0.75)}px`)
+    const reserved = Math.ceil(reservedBottom(vh, true))
+    p.style.setProperty('--dd-bottom', `${reserved}px`)
+    p.style.setProperty('--dd-max', `${Math.floor((vh - reserved) * 0.75)}px`)
     edge()
     return
   }
@@ -161,7 +163,7 @@ defineExpose({ close })
 .dd-panel[popover]:popover-open { display: grid; grid-auto-rows: max-content; gap: 2px; animation: dd-in .16s ease-out; }
 /* Phone: a bottom sheet, thumb height rows (the sizes follow the 48 px primary action rule of the responsive-layout spec). */
 .dd-panel[popover][data-sheet] {
-  inset: auto 0 0 0 !important; width: 100% !important; min-width: 0 !important; max-width: none !important; max-height: var(--dd-max, 75dvh);
+  inset: auto 0 var(--dd-bottom, 0px) 0 !important; width: 100% !important; min-width: 0 !important; max-width: none !important; max-height: var(--dd-max, 75dvh);
   padding: var(--sp-2) var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom)); border-inline: 0; border-bottom: 0; border-radius: var(--r-card) var(--r-card) 0 0;
 }
 .dd-panel[popover][data-sheet]:popover-open { animation: sheet-in .2s var(--ease); }

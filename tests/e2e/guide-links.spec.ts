@@ -24,7 +24,8 @@ for (const l of LOCALES) {
 
 // Change a11y-gate-and-derived-contrast: the landing demo notes fade in and out forever, and the nightly caught one mid-fade
 // (text #69696a on #fcdff0, 4.4:1, when the resting colour is #1d1d1f). The audit must measure the resting state.
-test('the axe audit measures the landing demo notes at rest, not frozen mid-fade', async ({ page }) => {
+test('the axe audit measures the landing demo notes at rest, not frozen mid-fade', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'WebKit runs with reduced motion here, so the demo notes do not animate and there is nothing to freeze')
   await page.goto('/')
   await expect(page.getByTestId('landing-guide')).toBeVisible()
   await settle(page)

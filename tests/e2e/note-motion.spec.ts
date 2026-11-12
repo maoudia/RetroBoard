@@ -42,7 +42,8 @@ test.describe('note motion', () => {
     expect(Math.abs(after.x - before.x)).toBeLessThan(8)
   })
 
-  test('stick and flutter: my note flies then sticks, another participant sees it flutter in, each under 400 ms', async ({ page, browser }) => {
+  test('stick and flutter: my note flies then sticks, another participant sees it flutter in, each under 400 ms', async ({ page, browser, browserName }) => {
+    test.skip(browserName === 'webkit', 'WebKit runs with reduced motion here, so the note motions are replaced by their fallbacks')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
     const link = await page.getByTestId('share-url').inputValue()
     await page.keyboard.press('Escape')
@@ -62,7 +63,8 @@ test.describe('note motion', () => {
     await bob.ctx.close()
   })
 
-  test('snap: grouping a note makes the stack click into place', async ({ page }) => {
+  test('snap: grouping a note makes the stack click into place', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'WebKit runs with reduced motion here, so the note motions are replaced by their fallbacks')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await publishNote(page, 0, 'One')
     await publishNote(page, 0, 'Two')

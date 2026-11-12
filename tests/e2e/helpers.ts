@@ -77,6 +77,41 @@ export async function columnId(page: Page, colIndex: number) {
   return (await column(page, colIndex).getAttribute('data-testid'))!.replace('column-', '')
 }
 
+/** Narrower than the tablet class (600 px): the phone layout, with the column pager, bottom sheets and the write button. For `test.skip(narrow, reason)`. */
+export const narrow = ({ viewport }: { viewport: { width: number } | null }) => (viewport?.width ?? 0) < 600
+
+/** A touch phone or a window in the phone class: the layout with the column pager and bottom sheets. For `test.skip(phoneLayout, reason)` or `phoneLayout({ isMobile, viewport: page.viewportSize() })`. */
+export const phoneLayout = ({ isMobile, viewport }: { isMobile: boolean; viewport: { width: number } | null }) => isMobile || narrow({ viewport })
+
+/** On a phone the menus fold away while the board scrolls down: bring them back before using one. */
+export async function showChrome(page: Page) {
+  const show = page.getByTestId('chrome-show')
+  if (await show.isVisible()) await show.click()
+}
+
+/**
+ * The writing field of a column. On a phone the field lives in the bottom sheet: the write button and the chip of the column
+ * open it (close it with `closeCompose`); elsewhere it sits at the top of the column (change publishing-ux-redesign).
+ */
+export async function composeField(page: Page, colIndex: number) {
+  const id = await columnId(page, colIndex)
+  const fab = page.getByTestId('compose-open')
+  if (await fab.isVisible()) {
+    await fab.click()
+    await page.getByTestId(`compose-chip-${id}`).click()
+  }
+  return page.getByTestId(`draft-${id}`)
+}
+
+/** Closes the phone composer sheet when it is open; nothing to do elsewhere. */
+export async function closeCompose(page: Page) {
+  const sheet = page.getByTestId('compose-sheet')
+  if (await sheet.count()) {
+    await page.getByTestId('compose-close').click()
+    await expect(sheet).toHaveCount(0)
+  }
+}
+
 /**
  * Puts a private draft in a column. On a phone the composer is a bottom sheet (write button, chip of the column, field), closed
  * afterwards so the column is reachable again; elsewhere the field sits at the top of the column (change publishing-ux-redesign).

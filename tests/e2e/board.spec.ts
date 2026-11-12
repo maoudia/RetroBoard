@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, collectProblems, column, createBoard, enterName, join, noteByText, publishNote, saveFile, settle, voteMenu } from './helpers'
+import { addDraft, axe, closeCompose, collectProblems, column, composeField, createBoard, enterName, join, noteByText, publishNote, saveFile, settle, voteMenu } from './helpers'
 
 test.describe('board lifecycle', () => {
   test('creates a themed board from a template', async ({ page }) => {
@@ -14,8 +14,7 @@ test.describe('board lifecycle', () => {
     const { page: bob } = await join(browser, page.url(), 'Bob')
     await expect(page.getByTestId('peer-count')).toHaveText('2')
 
-    await column(page, 0).locator('textarea').fill('Plus de pair programming')
-    await column(page, 0).locator('[data-testid^="compose-add-"]').click()
+    await addDraft(page, 0, 'Plus de pair programming')
     await expect(noteByText(bob, 'Plus de pair programming')).toHaveCount(0)
 
     await column(page, 0).locator('[data-testid^="publish-"]').click()
@@ -26,8 +25,7 @@ test.describe('board lifecycle', () => {
   test('survives a reload with the same board and drafts', async ({ page }) => {
     await createBoard(page, { template: 'weather' })
     await publishNote(page, 0, 'Persistant')
-    await column(page, 1).locator('textarea').fill('Brouillon local')
-    await column(page, 1).locator('[data-testid^="compose-add-"]').click()
+    await addDraft(page, 1, 'Brouillon local')
     await page.reload()
     await expect(noteByText(page, 'Persistant')).toBeVisible()
     await expect(page.getByText('Brouillon local')).toBeVisible()
@@ -140,8 +138,8 @@ test.describe('columns', () => {
   test('moving a note between columns (drag and drop, or the note menu on touch screens)', async ({ page }, info) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await publishNote(page, 0, 'Déplaçable')
-    if (info.project.use.hasTouch) {
-      // HTML drag and drop needs a mouse; touch users move notes from the note menu.
+    if (info.project.use.hasTouch || (page.viewportSize()?.width ?? 0) < 1024) {
+      // HTML drag and drop needs a mouse and every column in view; touch users and screens too narrow to show the three columns (a pager on a phone, a sideways scroll on a tablet) move notes from the note menu.
       await noteByText(page, 'Déplaçable').locator('[data-testid^="note-menu-"]').click()
       await page.getByRole('menuitem', { name: 'Continue' }).click()
     } else {
@@ -223,7 +221,8 @@ test.describe('themes and options', () => {
     await page.getByTestId('btn-options').click()
     await page.getByTestId('opt-lock').check()
     await page.keyboard.press('Escape')
-    await expect(column(page, 0).locator('textarea')).toBeDisabled()
+    await expect(await composeField(page, 0)).toBeDisabled()
+    await closeCompose(page)
     await page.getByTestId('btn-options').click()
     await page.getByTestId('opt-lock').uncheck()
     await page.getByTestId('opt-reset').click()

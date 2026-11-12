@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard, join, noteByText, publishNote, settle } from './helpers'
+import { column, createBoard, join, noteByText, phoneLayout, publishNote, settle } from './helpers'
 
 async function shareLink(page: import('@playwright/test').Page) {
   if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
@@ -131,7 +131,7 @@ test.describe('clusters as merged ideas', () => {
     await expect(clusters(page).first()).toContainText('4')
   })
   test('a cluster dragged to another column moves with its notes for everyone (#239)', async ({ page, browser, isMobile }) => {
-    test.skip(isMobile, 'touch moves a cluster from its menu (drag-alternatives.spec)')
+    test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'touch and the phone layout (one column at a time) move a cluster from its menu (drag-alternatives.spec)')
     await createBoard(page, { template: 'start-stop-continue' })
     const bob = await join(browser, await shareLink(page), 'Bob')
     await publishNote(page, 0, 'Drag one')

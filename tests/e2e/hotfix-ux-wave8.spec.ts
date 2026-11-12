@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, noteByText, publishNote } from './helpers'
+import { createBoard, noteByText, phoneLayout, publishNote } from './helpers'
 
 // Change hotfix-ux-wave8: the 14 findings of the owner screenshots of 2026-11-05.
 
@@ -115,7 +115,7 @@ test('the Simple / Advanced switch keeps its place when the mode changes', async
 })
 
 test('the clone entries of the board menu look like menu items', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'the boards menu is hidden on phones')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the boards menu is hidden on phones')
   await createBoard(page, { template: 'start-stop-continue' })
   await page.getByTestId('btn-boards').click()
   const clone = page.getByTestId('boards-clone')

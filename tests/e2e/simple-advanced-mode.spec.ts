@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, enterName, settle } from './helpers'
+import { axe, createBoard, enterName, narrow, settle } from './helpers'
 
 // Change simple-advanced-mode: the product starts simple, the whole suite otherwise runs advanced.
 test.use({ storageState: { cookies: [], origins: [] } })
@@ -15,7 +15,10 @@ test('creation: simple shows title and format only, advanced shows every option,
   await expect(page.getByTestId('setup-passcode')).toBeVisible()
   await expect(page.getByTestId('passcode-generator')).toHaveCount(0)
   await settle(page)
+  // On a phone the create button is stuck to the bottom of the screen and covers what is at the fold; at the end of the page it rests in the flow, which is where the audit looks.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
   expect((await axe(page).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+  await page.evaluate(() => window.scrollTo(0, 0))
 
   await page.getByTestId('mode-advanced').click()
   await expect(page.getByTestId('theme-studio')).toBeVisible()
@@ -45,7 +48,9 @@ test('the create button sits in the right half of the form (change creation-poli
   await page.goto('/new')
   const form = await page.getByTestId('setup-form').boundingBox()
   const btn = await page.getByTestId('setup-submit').boundingBox()
-  expect(btn!.x + btn!.width / 2).toBeGreaterThan(form!.x + form!.width / 2)
+  // On a phone the primary action is a full width button in the thumb zone (responsive-layout).
+  if (narrow({ viewport: page.viewportSize() })) expect(btn!.width).toBeGreaterThanOrEqual(form!.width - 2)
+  else expect(btn!.x + btn!.width / 2).toBeGreaterThan(form!.x + form!.width / 2)
 })
 
 test('board options: simple hides the expert settings, advanced shows them (change options-simple-mode)', async ({ page }) => {

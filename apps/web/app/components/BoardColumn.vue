@@ -31,7 +31,9 @@ const display = computed(() => {
   const w = parseFloat(NOTE_W[board.settings?.noteSize ?? 'normal'])
   const f = parseFloat(NOTE_FS[board.settings?.noteText ?? 'normal'])
   // The grid turns these into its column width and text size with the personal zoom and density (base.css, change postit-visual-system).
-  return { '--note-w': `${Math.round(wall.value ? w * WALL : w)}px`, '--note-fs': `${wall.value ? +(f * WALL).toFixed(2) : f}` }
+  const fs = { '--note-fs': `${wall.value ? +(f * WALL).toFixed(2) : f}` }
+  // In presentation the width comes from the stylesheet (wide notes that grow with the screen): an inline value on the grid would win over it.
+  return ui.presenter ? fs : { '--note-w': `${Math.round(wall.value ? w * WALL : w)}px`, ...fs }
 })
 function startResize(e: PointerEvent) {
   const grip = e.currentTarget as HTMLElement

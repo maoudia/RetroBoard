@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, closeShare, createBoard, noteByText, publishNote } from './helpers'
+import { axe, closeShare, createBoard, noteByText, phoneLayout, publishNote } from './helpers'
 
 for (const scheme of ['light', 'dark'] as const) {
   test(`the home page puts the recent boards up front and reopens one (${scheme})`, async ({ page }) => {
@@ -19,7 +19,7 @@ for (const scheme of ['light', 'dark'] as const) {
 }
 
 test('switch board from the board title: the other recent boards, not the current one', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'desktop menu')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'desktop menu')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Board A' })
   await publishNote(page, 0, 'In A')
   // The name is remembered on this device: the second board opens straight away.
@@ -52,7 +52,7 @@ test('the creation page suggests the next sprint number from the last board (cha
 })
 
 test('the boards menu ends with a New board entry (change boards-menu-new)', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'the boards switcher is hidden on phones, the title opens the options instead')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the boards switcher is hidden on phones, the title opens the options instead')
   await createBoard(page, { title: 'Menu' })
   await page.getByTestId('btn-boards').click()
   await page.getByTestId('boards-new').click()

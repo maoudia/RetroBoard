@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, narrow, noteByText, publishNote } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -25,6 +25,7 @@ test.describe('time-boxed agenda', () => {
   })
 
   test('entering the Write phase unfolds the writing areas that were folded (change toast-notifications-v2)', async ({ page }) => {
+    test.skip(narrow({ viewport: page.viewportSize() }), 'a phone has no folded writing area: it writes in the bottom sheet')
     await createBoard(page, { template: 'start-stop-continue' })
     const id = (await page.locator('section[data-testid^="column-"]').first().getAttribute('data-testid'))!.replace('column-', '')
     await page.getByTestId('btn-writing').click()

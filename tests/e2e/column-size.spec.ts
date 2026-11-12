@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard } from './helpers'
+import { column, createBoard, phoneLayout } from './helpers'
 
-test.skip(({ isMobile }) => isMobile, 'column widths are a desktop control')
+test.skip(phoneLayout, 'column widths are a desktop control')
 
 test('a column can be made wide, with Alt+arrows, and the size survives a reload', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })

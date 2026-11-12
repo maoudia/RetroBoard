@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, noteByText, publishNote } from './helpers'
+import { createBoard, noteByText, phoneLayout, publishNote } from './helpers'
 
-test('size controls are rectangles with a readable selected state', async ({ page }) => {
+test('size controls are rectangles with a readable selected state', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to resize or fold: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const btn = page.locator('[data-testid^="area-large-"]').first()
   await btn.click()
@@ -21,7 +22,8 @@ test('columns use the whole width of the board', async ({ page }) => {
   expect(last && board && last.x + last.width > board.x + board.width - 260).toBe(true)
 })
 
-test('the double chevron folds every column when they are locked together', async ({ page }) => {
+test('the double chevron folds every column when they are locked together', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to resize or fold: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const first = page.locator('[data-testid^="area-all-"]').first()
   await first.click()
@@ -46,7 +48,7 @@ test('a facilitator colours a whole column and removes a single idea after a con
 })
 
 test('a board can be cloned empty and its actions cloned alone', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'the boards menu is hidden on phones')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the boards menu is hidden on phones')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', title: 'Sprint 7' })
   await publishNote(page, 0, 'Secret idea')
   await page.getByTestId('btn-boards').click()

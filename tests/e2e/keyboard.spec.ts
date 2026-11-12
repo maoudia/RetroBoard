@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, createBoard, join, noteByText, phoneLayout, publishNote } from './helpers'
 
 test('write and publish without the mouse; typing a shortcut letter in a note does nothing', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'hardware keyboard flow; on touch the return key adds a line')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'hardware keyboard flow; on touch the return key adds a line')
   await createBoard(page, { template: 'start-stop-continue' })
   await page.locator('body').click({ position: { x: 5, y: 300 } })
   await page.keyboard.press('2')
@@ -101,7 +101,7 @@ test('? opens the help overlay (axe clean); the profile switch turns shortcuts o
 })
 
 test('key caps show next to toolbar actions on desktop and can be turned off (keyboard-shortcuts-v2)', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'hints are for a mouse and keyboard')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }) || (page.viewportSize()?.width ?? 0) < 1024, 'hints are for a mouse and keyboard on a laptop screen: below it the toolbar shows icons only')
   await createBoard(page, { template: 'start-stop-continue' })
   const caps = page.getByTestId('btn-presenter').getByTestId('keycap')
   await expect(caps).toBeVisible()
@@ -119,7 +119,7 @@ test('key caps show next to toolbar actions on desktop and can be turned off (ke
 })
 
 test('AZERTY: the unshifted digit key focuses a column through its physical key', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'hardware keyboard flow')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'hardware keyboard flow')
   await createBoard(page, { template: 'start-stop-continue' })
   await page.locator('body').click({ position: { x: 5, y: 300 } })
   // On AZERTY the top row types "e-acute" (key) from the physical Digit2 (code).

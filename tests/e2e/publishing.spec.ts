@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard, enterName, noteByText, publishNote } from './helpers'
+import { addDraft, column, composeField, createBoard, enterName, noteByText, publishNote } from './helpers'
 
 async function shareUrl(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -26,12 +26,13 @@ test('undo a publication within 10 seconds: gone for everyone, back in my drafts
 
 test('keyboard: Ctrl+Enter publishes, Shift+Enter adds a line, Escape clears', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
-  const box = column(page, 0).locator('textarea')
+  let box = await composeField(page, 0)
   await box.fill('Straight')
   await box.press('Control+Enter')
   await expect(noteByText(page, 'Straight')).toBeVisible()
   await expect(column(page, 0).locator('[data-draft-id]')).toHaveCount(0)
 
+  box = await composeField(page, 0) // a phone closed the sheet when the note went out
   await box.fill('Line one')
   await box.press('Shift+Enter')
   await box.pressSequentially('line two')
@@ -43,8 +44,7 @@ test('keyboard: Ctrl+Enter publishes, Shift+Enter adds a line, Escape clears', a
 test('leaving with unpublished drafts asks first', async ({ page, isMobile }) => {
   test.skip(isMobile, 'mobile browsers do not show the beforeunload prompt')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
-  await column(page, 0).locator('textarea').fill('Not published')
-  await column(page, 0).locator('[data-testid^="compose-add-"]').click()
+  await addDraft(page, 0, 'Not published')
   const dialog = new Promise<string>((resolve) => page.once('dialog', (d) => { resolve(d.type()); void d.dismiss() }))
   // A user gesture is needed before browsers show the leave prompt.
   await page.getByTestId('board').click({ position: { x: 5, y: 5 } })
