@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.52.0](https://github.com/maoudia/RetroBoard/compare/v1.51.4...v1.52.0) (2026-11-12)
+
+
+### Features
+
+* **sync:** keep and pass on events of a newer version, tolerant live frames, reload banner (deploy-safe-sessions 2) ([cd1bdbc](https://github.com/maoudia/RetroBoard/commit/cd1bdbc8fd76f341ae15a3847933dad31cdeefa7))
+* **sync:** signed snapshots and snapshot-based join for late joiners ([aa4508e](https://github.com/maoudia/RetroBoard/commit/aa4508e8d6c3f7bffc3ef0773c76efbf15a424d2))
+
+
+### Bug Fixes
+
+* **smoke:** a missing chunk may answer no-store (the self-host Worker), task 3.4 verifies in the container job ([6ff0836](https://github.com/maoudia/RetroBoard/commit/6ff08367668174a45225313856bdf9f47ff5ca02))
+* **web:** key caps stay on the icon-only toolbar, guide pictures keep their box before they load ([a8eebab](https://github.com/maoudia/RetroBoard/commit/a8eebab3f357a84c45e85b8a10b7d2352dc88410))
+* **web:** menu panels never ease to their place, the history/activity/people width no longer depends on a frame ([413bf1a](https://github.com/maoudia/RetroBoard/commit/413bf1a36845dd81cfa7f69a3719c9d74bca7ba8))
+* **web:** nightly regressions on phone, tablet, wide and WebKit viewports ([25d9da6](https://github.com/maoudia/RetroBoard/commit/25d9da6ab798a1454ffd528c1a2b68a5a2d86be9))
+* **web:** toolbar keeps room for the board switch, nightly specs follow slow runners and WebKit columns ([aeb863e](https://github.com/maoudia/RetroBoard/commit/aeb863e0642a408bacf46d7f3b87630739b705ab))
+
 ## [1.51.4](https://github.com/maoudia/RetroBoard/compare/v1.51.3...v1.51.4) (2026-11-11)
 
 
