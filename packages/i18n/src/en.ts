@@ -504,6 +504,8 @@ export const en: Record<keyof typeof fr, string> = {
   'board.opening': 'Opening the board...',
   'board.reconnecting': 'Connection lost. Your changes are kept and sent as soon as you are back.',
   'board.replicaFailing': 'This device cannot save the board (storage full or blocked). Export a board file to keep your work.',
+  'board.newerVersion': "A participant uses a newer version of RetroBoard. Reload to read everything they send.",
+  'board.newerVersion.reload': 'Reload',
   'board.waiting.retry': 'Try again',
   'board.waiting.profile': 'Set how long boards are kept',
   'board.waiting.local.none': "No copy of this board in this browser: it comes from another device, another browser or another address.",

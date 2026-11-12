@@ -30,8 +30,8 @@ describe('sync harness smoke', { timeout: 60_000 }, () => {
  * Production is deployed several times a day and a retro lasts an hour: a restart of the relay
  * (memory gone, every socket closed) during a board is the normal case.
  *
- * Each scenario fails today for the reason in its comment, so it is marked `it.fails`; the group that
- * fixes it removes the marker (2.2 unknown command, 3.1 uploads, 4.2 links).
+ * Each scenario fails (or failed) for the reason in its comment, so it is marked `it.fails` until the group that
+ * fixes it removes the marker (2.2 unknown command, done; 3.1 uploads, 4.2 links).
  */
 describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
   async function boardWith(...names: string[]) {
@@ -62,8 +62,8 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     world.relay.reopen()
   })
 
-  // 2.2: `ingest` drops an event whose body this version cannot parse, without storing it and without a word.
-  it.fails('an event written by a newer version is kept, and the page is told once to reload', async () => {
+  // An event whose body this version cannot parse is kept and passed on, and the page is told once (2.2).
+  it('an event written by a newer version is kept, and the page is told once to reload', async () => {
     const { alice, others } = await boardWith('bob')
     const bob = others[0]!
     await world.run(1_000)
@@ -74,6 +74,20 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     await world.run(500)
     expect([alice, bob].map((p) => p.replica.count(world.roomId))).toEqual(stored.map((n) => n + 2))
     expect([alice.notices.filter((k) => k === 'newer-version'), bob.notices.filter((k) => k === 'newer-version')]).toEqual([['newer-version'], ['newer-version']])
+  })
+
+  it('a tab that joins later receives the event of the newer version from its peers, and the board is unchanged', async () => {
+    const { alice, others } = await boardWith('bob')
+    const bob = others[0]!
+    await world.run(1_000)
+    const notes = [...alice.notes]
+    await world.publishFromNewerVersion()
+    await world.run(500)
+    const carol = await world.join('carol')
+    expect(await world.until(() => carol.status === 'open' && carol.columnIds.length > 0)).toBe(true)
+    expect(await world.until(() => carol.replica.count(world.roomId) === alice.replica.count(world.roomId))).toBe(true)
+    expect(carol.notices.filter((k) => k === 'newer-version')).toEqual(['newer-version'])
+    expect([alice.notes, bob.notes, carol.notes]).toEqual([notes, notes, notes])
   })
 
   // The upload scenarios stop waiting as soon as the relay cuts a socket: while they are `it.fails` they would

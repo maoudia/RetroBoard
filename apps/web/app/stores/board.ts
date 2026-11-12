@@ -14,6 +14,8 @@ export const useBoardStore = defineStore('board', () => {
   const roomId = ref<string | null>(null)
   /** Last reset or phase step by another participant (the page turns it into a toast for everyone). */
   const lastNotice = ref<(BoardNotice & { at: number }) | null>(null)
+  /** A participant writes with a newer version of the application: this tab keeps their events but cannot read them until it reloads. */
+  const newerVersion = ref(false)
   /** Encrypted board that does not open with the keys we have (wrong passcode). */
   const accessDenied = ref(false)
   /** The facilitator moved the team to a fresh link and sent me the new one: the page opens it. */
@@ -37,6 +39,7 @@ export const useBoardStore = defineStore('board', () => {
     accessDenied.value = false
     moved.value = null
     replicaFailing.value = false
+    newerVersion.value = false
     localCopy.value = undefined
     roomFull.value = false
     links.value = null
@@ -52,7 +55,10 @@ export const useBoardStore = defineStore('board', () => {
       onStatus: (s) => { status.value = s },
       onAccessDenied: () => { accessDenied.value = true },
       onMoved: (m) => { moved.value = m },
-      onNotice: (n) => { lastNotice.value = { ...n, at: Date.now() } },
+      onNotice: (n) => {
+        if (n.kind === 'newer-version') newerVersion.value = true
+        else lastNotice.value = { ...n, at: Date.now() }
+      },
       onCursor: (c, name) => live.setCursor(c, name),
       onFocus: (f, name) => live.setFocus(f, name),
       onPeerLeft: (conn) => live.drop(conn),
@@ -144,7 +150,7 @@ export const useBoardStore = defineStore('board', () => {
   const groupById = (id: string) => snapshot.value?.groups.find((g) => g.id === id)
 
   return {
-    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, moved, replicaFailing, localCopy, roomFull, roomCode, links, myKey,
+    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, moved, replicaFailing, newerVersion, localCopy, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, redoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, beginMove, moveToFreshLink, allowed, availability,
     settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingEnabled, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,

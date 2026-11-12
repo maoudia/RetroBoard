@@ -86,6 +86,44 @@ export const SignedEventSchema = v.strictObject({
   sig: v.pipe(v.string(), v.regex(B64URL_RE), v.length(86)),
 })
 
+/** Tags of the event bodies and of the commands this version understands. */
+const tagsOf = (options: readonly { readonly entries: { readonly t: { readonly type: string; readonly literal?: unknown; readonly options?: readonly unknown[] } } }[]): ReadonlySet<string> =>
+  new Set(options.flatMap((o) => (o.entries.t.type === 'literal' ? [o.entries.t.literal as string] : (o.entries.t.options as readonly string[]))))
+const BODY_TAGS = tagsOf(EventBodySchema.options)
+const COMMAND_TAGS = tagsOf(CommandSchema.options)
+
+const unknownBodyEvent = <B extends v.GenericSchema>(body: B) => v.strictObject({
+  id: v.pipe(v.string(), v.regex(EVENT_ID_RE)),
+  at: Hlc,
+  author: Key,
+  body,
+  sig: v.pipe(v.string(), v.regex(B64URL_RE), v.length(86)),
+})
+/** The outline of a signed event whose body this version may not know: every key of the body is kept so the signature still checks. */
+const UnknownCommandEventSchema = unknownBodyEvent(v.looseObject({ t: v.literal('cmd'), cmd: v.looseObject({ t: v.string() }), name: Name, showName: v.boolean() }))
+const UnknownTagEventSchema = unknownBodyEvent(v.looseObject({ t: v.string() }))
+
+/** A signed event written by a version that has a body or a command this one lacks. The signature covers `body` as received. */
+export type UnknownBodyEvent = v.InferOutput<typeof UnknownTagEventSchema>
+
+export type ParsedEvent =
+  | { readonly kind: 'known'; readonly event: v.InferOutput<typeof SignedEventSchema> }
+  | { readonly kind: 'unknown'; readonly event: UnknownBodyEvent }
+
+/**
+ * Tells a signed event with a body this version cannot read ("unknown": keep it, pass it on, do not fold it) from an invalid one (null: drop it).
+ * A body or command tag this version lacks is unknown; a known tag with fields that do not fit is invalid.
+ * The signature is not checked here.
+ */
+export function parseEventOrUnknown(input: unknown): ParsedEvent | null {
+  const known = v.safeParse(SignedEventSchema, input)
+  if (known.success) return { kind: 'known', event: known.output }
+  const command = v.safeParse(UnknownCommandEventSchema, input)
+  if (command.success) return COMMAND_TAGS.has(command.output.body.cmd.t) ? null : { kind: 'unknown', event: command.output }
+  const other = v.safeParse(UnknownTagEventSchema, input)
+  return other.success && !BODY_TAGS.has(other.output.body.t) ? { kind: 'unknown', event: other.output } : null
+}
+
 /**
  * Plaintext inside a snapshot envelope (ADR-0037): the ledger folded up to a cut, signed by the facilitator key of the genesis.
  * The ledger is checked for its shape only here; what makes it trustworthy is the signature (application `verifySnapshot`).
@@ -139,8 +177,11 @@ export const SnapshotEnvelopeSchema = v.strictObject({
 })
 export type SnapshotEnvelope = v.InferOutput<typeof SnapshotEnvelopeSchema>
 
-/** Plaintext inside an `eph` envelope: who is behind a connection id. */
-export const PresenceSchema = v.strictObject({
+/**
+ * Plaintext inside an `eph` envelope: who is behind a connection id.
+ * Presence, cursor and focus ignore keys they do not know (deploy-safe-sessions): a newer client may add a field without hiding itself from older tabs.
+ */
+export const PresenceSchema = v.object({
   t: v.literal('presence'),
   conn: ConnId,
   name: Name,
@@ -164,7 +205,7 @@ const AnchorId = v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{4,32}$/))
 const Fraction = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(CURSOR_SCALE))
 
 /** Plaintext inside an `eph` envelope: a pointer anchored to a column or note (never stored). */
-export const CursorSchema = v.strictObject({
+export const CursorSchema = v.object({
   t: v.literal('cursor'),
   conn: ConnId,
   anchor: v.nullable(AnchorId),
@@ -176,7 +217,7 @@ export const CursorSchema = v.strictObject({
 export type Cursor = v.InferOutput<typeof CursorSchema>
 
 /** Plaintext inside an `eph` envelope: what a participant is looking at or working on. */
-export const FocusSchema = v.strictObject({
+export const FocusSchema = v.object({
   t: v.literal('focus'),
   conn: ConnId,
   column: v.nullable(AnchorId),

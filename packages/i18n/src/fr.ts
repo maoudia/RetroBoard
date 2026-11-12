@@ -500,6 +500,8 @@ export const fr = {
   'board.connecting': 'Connexion en cours...',
   'board.reconnecting': 'Connexion perdue. Tes modifications sont gardées et envoyées dès que tu es de retour.',
   'board.replicaFailing': 'Cet appareil ne peut pas enregistrer le board (stockage plein ou bloqué). Exporte un fichier de board pour garder ton travail.',
+  'board.newerVersion': "Un participant utilise une version plus récente de RetroBoard. Recharge la page pour lire tout ce qu'il envoie.",
+  'board.newerVersion.reload': 'Recharger',
   'board.waiting.retry': 'Réessayer',
   'board.waiting.profile': 'Regler la conservation des boards',
   'board.waiting.local.none': "Aucune copie de ce board dans ce navigateur : il vient d'un autre appareil, d'un autre navigateur ou d'une autre adresse.",

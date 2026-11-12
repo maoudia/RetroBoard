@@ -16,7 +16,7 @@ import { EventLog, type HistoryEntry, historyOf, type LogBase, type MoveResult, 
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, formatInvite, type IgnoreReason, isPrivileged, type KeyRing, type Peer, participantRing, type Role, roleOf, type RoleBody, signingRoom } from '@retroboard/domain'
 import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
-import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, MAX_SNAPSHOT_CT_CHARS, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseSignal, parseSignedEvent, parseSnapshot, parseSnapshotEnvelope, SNAP_CHUNK_CHARS, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal, type SnapshotEnvelope } from '@retroboard/protocol'
+import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, MAX_SNAPSHOT_CT_CHARS, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseEventOrUnknown, parseSignal, parseSnapshot, parseSnapshotEnvelope, SNAP_CHUNK_CHARS, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal, type SnapshotEnvelope } from '@retroboard/protocol'
 import type { BoardTransport, ConnectionStatus, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
@@ -118,6 +118,9 @@ export class EncryptedRelayTransport implements BoardTransport {
   private replicaFailing = false
   /** Sealed envelopes by event id: served to peers without sealing again. */
   private readonly sealed = new Map<string, Envelope>()
+  /** Events a newer version wrote that this one cannot read: kept and passed on, never folded (deploy-safe-sessions). */
+  private readonly newer = new Set<string>()
+  private newerNoticed = false
   /** Peers that finished the initial sync with me, and the `have` lists being received. */
   private readonly peerSynced = new Set<string>()
   private readonly peerHave = new Map<string, Set<string>>()
@@ -505,16 +508,26 @@ export class EncryptedRelayTransport implements BoardTransport {
     this.emit()
   }
 
-  /** Decrypts, validates and verifies inbound events. Anything invalid is dropped silently. Returns the new ones. */
+  /**
+   * Decrypts, validates and verifies inbound events. Anything invalid is dropped silently. Returns the new ones.
+   * A signed event whose body this version does not know is kept and passed on without being folded; the page is told to reload.
+   */
   private async ingest(envs: readonly Envelope[], remember = true): Promise<Envelope[]> {
     const added: Envelope[] = []
     for (const env of envs) {
+      if (this.newer.has(env.id)) continue
       if (this.log.has(env.id) && !(this.rebuilt && !this.rebuilt.has(env.id))) continue
-      const event = parseSignedEvent(await this.openEnvelope(env))
+      const parsed = parseEventOrUnknown(await this.openEnvelope(env))
       // The envelope header must agree with the signed content (no relabelled replays).
-      if (!event || event.id !== env.id || event.at !== env.hlc) continue
-      const verified = await verifyEvent(this.deps.verifier, signingRoom(this.ring), event)
+      if (!parsed || parsed.event.id !== env.id || parsed.event.at !== env.hlc) continue
+      const verified = await verifyEvent(this.deps.verifier, signingRoom(this.ring), parsed.event as SignedEvent)
       if (!verified) continue
+      if (parsed.kind === 'unknown') {
+        this.keepNewer(env, parsed.event.at, remember)
+        added.push(env)
+        continue
+      }
+      const event = parsed.event
       const inserted = this.log.insert(event)
       // An event before the cut that the snapshot does not cover cannot be folded onto it: it is kept, and the full log is rebuilt.
       const missed = !inserted && !this.log.has(event.id)
@@ -530,6 +543,17 @@ export class EncryptedRelayTransport implements BoardTransport {
     }
     if (this.log.horizonMisses.length && !this.rebuilt) this.startFull()
     return added
+  }
+
+  /** Keeps an event of a newer version in the replica and for the peers; the first one of the session tells the page to offer a reload. */
+  private keepNewer(env: Envelope, at: number, remember: boolean): void {
+    this.newer.add(env.id)
+    this.hlc.receive(at)
+    this.sealed.set(env.id, env)
+    if (remember) this.remember([env])
+    if (this.newerNoticed) return
+    this.newerNoticed = true
+    this.handlers.onNotice?.({ kind: 'newer-version', by: null })
   }
 
   /**
@@ -630,13 +654,14 @@ export class EncryptedRelayTransport implements BoardTransport {
   }
 
   private async sealedAll(): Promise<Envelope[]> {
-    return Promise.all(this.log.all().map(async (e) => {
+    const folded = await Promise.all(this.log.all().map(async (e) => {
       const known = this.sealed.get(e.id)
       if (known) return known
       const env = await this.sealEvent(e)
       this.sealed.set(env.id, env)
       return env
     }))
+    return [...folded, ...[...this.newer].map((id) => this.sealed.get(id)!)]
   }
 
   /**
@@ -790,7 +815,7 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   /** Initial sync: tell the peer what I hold (what a snapshot covers included); it answers with what I lack, then `synced`. */
   private sendHave(conn: string): void {
-    const ids = (this.rebuilt ?? this.log).knownIds()
+    const ids = [...(this.rebuilt ?? this.log).knownIds(), ...this.newer]
     const parts = chunks(ids, HAVE_CHUNK)
     if (!parts.length) parts.push([])
     parts.forEach((part, i) => this.mesh?.sendReliable(conn, JSON.stringify({ t: 'have', ids: part, done: i === parts.length - 1 } satisfies PeerFrame)))
