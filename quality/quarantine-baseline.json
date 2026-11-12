@@ -1,0 +1,5 @@
+{
+  "comment": "Specs of tests/e2e/quarantine.json: they run in the nightly but do not fail it. The ceiling only goes down; never raise it to quarantine another spec. Target: 0.",
+  "ceiling": 11,
+  "target": 0
+}

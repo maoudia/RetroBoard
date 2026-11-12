@@ -1,0 +1,82 @@
+{
+  "comment": "Specs that run in the nightly but do not fail it (scripts/quality/quarantine-reporter.mjs). Only shrinks: see quality/quarantine-baseline.json and docs/quality.md. Source of the failure counts: launch study of 2026-11-12.",
+  "entries": [
+    {
+      "spec": "toolbar-fold.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "15 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "publishing-composer.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "13 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "presenter-focus.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "12 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "solo-parity.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "11 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "touch-drag.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "10 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "phone-groups-toasts.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "9 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "recent-boards.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "8 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "feedback-wave-7.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "8 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "note-motion.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "7 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "keyboard.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "7 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    },
+    {
+      "spec": "history-panel-layout.spec.ts",
+      "projects": [
+        "*"
+      ],
+      "reason": "7 failures after retry in the 10 nightly runs of 2026-11-04 to 2026-11-12 (timing on the 2-core runner, w360 desktop flows on a phone layout). Fix the spec, then remove this entry."
+    }
+  ]
+}
