@@ -3,7 +3,7 @@
 The roadmap lives in GitHub: release milestones in the repository and the organisation project
 [RetroBoard roadmap](https://github.com/orgs/maoudia/projects/7). Each OpenSpec change is one epic issue in one
 release; each task group of a change is one sub-issue (one pull request). Target dates are planning targets,
-reviewed at each release. Plan of 2026-11-04: stabilise first, launch in December, then teams, revenue and agents.
+reviewed at each release. Plan of 2026-11-04: stabilise first, launch in December, then teams, revenue and agents. Re-planned 2026-11-12 (owner decisions): R2 is cut to the launch path, the nightly gate allows retries and a shrinking quarantine and leaves WebKit out, and the Cloudflare-independence changes are placed.
 
 Priority (owner rule, 2026-10-29): bugs first (`priority:1-urgent`, standalone `bug` issues), then the design value
 users see first (`priority:2-design`), then CI/CD quality (`priority:3-quality`), then the rest (`priority:4-later`).
@@ -12,50 +12,55 @@ Within a release, take the lowest priority number first. At most 3 changes are i
 Source of truth: `scripts/github/sync-issues.mjs` (`RELEASES`, `ROADMAP`, `PRIORITY`, `GROUP_OVERRIDES`). Run it with `--apply` after
 adding or re-planning a change; the `Project roadmap` workflow then puts the issues on the project.
 
+## Nightly gate (R1 and R2)
+
+The nightly (`.github/workflows/nightly.yml`, every day at 02:41 UTC) runs the whole e2e suite: 21 jobs on Chromium,
+Firefox, Pixel 7, TV and three desktop widths, and 8 WebKit jobs. A **night is green** when:
+
+1. every job outside WebKit succeeded **after the retries**: the nightly retries a failed test twice (`playwright.config.ts`),
+   and a test that passes on a retry is reported as flaky, not failed;
+2. the only tests that failed after the retries are in the **quarantine** (below): `scripts/quality/quarantine-reporter.mjs`
+   keeps them out of the job result. They still run and are still listed as failed in the report.
+
+**WebKit is excluded from the gate.** It still runs and reports every night, but it never makes a night red (it renders in
+software on the Linux runners and fails differently from run to run).
+
+The **quarantine** is `tests/e2e/quarantine.json`: one entry per spec, with the projects it covers and the reason it is
+quarantined. It only shrinks: `pnpm verify` (`pnpm quarantine`) fails above the ceiling in `quality/quarantine-baseline.json`
+(target 0), and an entry whose spec file is gone is refused. Fix a spec and remove its entry, then lower the ceiling.
+Never delete a test to empty the list.
+
+The **streak** is `pnpm nightly:streak -- --target=7` (or `14`): the number of scheduled nightly runs in a row, newest
+first, that were green by the definition above. The GitHub run list can still show a red run for a night that is green here
+(a WebKit job); the streak is the gate. First possible 7th green night: 2026-11-19; first possible 14th: 2026-11-26, if
+every night from 2026-11-13 is green.
+
 ## R1 Stabilisation (target 2026-11-15)
 
-Feature freeze until main is green. Gate: 7 green nightly runs in a row, at most 3 changes in progress, finish `reliable-board-sync`, `community-feedback` and `quality-gates-v2`, landing truth fixes.
+Feature freeze until main is green. Gate: 7 green nights in a row (nightly gate above), at most 3 changes in progress, landing truth fixes.
 
 * `reliable-board-sync` ([proposal](../openspec/changes/reliable-board-sync/proposal.md))
-* `community-feedback` ([proposal](../openspec/changes/community-feedback/proposal.md))
-* `quality-gates-v2` ([proposal](../openspec/changes/quality-gates-v2/proposal.md))
-* `history-panel-phone-layout` ([proposal](../openspec/changes/history-panel-phone-layout/proposal.md))
-* `solo-board-parity` ([proposal](../openspec/changes/solo-board-parity/proposal.md))
+* Delivered and archived: `community-feedback`, `quality-gates-v2`, `history-panel-phone-layout`, `solo-board-parity`, `prod-guardrails`, `join-code-committed-sas`, `derived-states-contrast`.
 * Epic #443 `stabilise-main`: roadmap source of truth, WIP limit, landing truth and favicon, phone UX and docs truth pass are delivered; the trademark check is the owner's task. Hotfix waves are archived as soon as they are merged (last: `2026-11-05-hotfix-ux-wave8`).
 
 ## R2 Public launch (target 2026-12-13)
 
-Brand identity, landing v2, user manual, short links, report and insights, code health, CLA, launch kit. Gate: 14 green nightly runs, CLA live, Lighthouse mobile above 95. Anything not on the launch path slips to R3.
+Launch path only (owner decision 2026-11-12): what the launch needs, nothing else. The R2 gate is 14 green nights in a row (nightly gate
+above), CLA live, Lighthouse mobile above 95 on the landing, axe without violation on the public pages, the launch kit ready.
+Anything not on this list slipped to R3.
 
-* `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md))
-* `user-manual-and-tutorials` ([proposal](../openspec/changes/user-manual-and-tutorials/proposal.md))
-* `short-links-and-join` ([proposal](../openspec/changes/short-links-and-join/proposal.md))
-* `retro-report` ([proposal](../openspec/changes/retro-report/proposal.md))
-* `results-insights` ([proposal](../openspec/changes/results-insights/proposal.md))
-* `design-system-components` ([proposal](../openspec/changes/design-system-components/proposal.md))
-* `responsive-and-i18n-hardening` ([proposal](../openspec/changes/responsive-and-i18n-hardening/proposal.md))
-* `voting-v2-and-ranking` ([proposal](../openspec/changes/voting-v2-and-ranking/proposal.md))
-* `activity-rings-timer` ([proposal](../openspec/changes/activity-rings-timer/proposal.md))
-* `p2p-presence-and-cursors` ([proposal](../openspec/changes/p2p-presence-and-cursors/proposal.md))
-* `webmcp-browser-agents` ([proposal](../openspec/changes/webmcp-browser-agents/proposal.md))
-* `allure-report-aggregation` ([proposal](../openspec/changes/allure-report-aggregation/proposal.md))
-* `automated-semver-release` ([proposal](../openspec/changes/automated-semver-release/proposal.md))
-* `ci-toolchain-speed` ([proposal](../openspec/changes/ci-toolchain-speed/proposal.md))
-* `edge-security-and-domain` ([proposal](../openspec/changes/edge-security-and-domain/proposal.md))
-* `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md))
-* `note-edit-and-unpublish` ([proposal](../openspec/changes/note-edit-and-unpublish/proposal.md))
-* `note-zoom-on-double-tap` ([proposal](../openspec/changes/note-zoom-on-double-tap/proposal.md))
-* `group-colors-menu-and-scope` ([proposal](../openspec/changes/group-colors-menu-and-scope/proposal.md))
-* `column-defaults-and-collapse` ([proposal](../openspec/changes/column-defaults-and-collapse/proposal.md))
-* `chat-floating-dock` ([proposal](../openspec/changes/chat-floating-dock/proposal.md))
-* `chat-message-controls` ([proposal](../openspec/changes/chat-message-controls/proposal.md))
-* `scorecard-hardening` ([proposal](../openspec/changes/scorecard-hardening/proposal.md))
-* `phase-transition-guidance` ([proposal](../openspec/changes/phase-transition-guidance/proposal.md))
-* `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
-* `join-code-drop-fallback` ([proposal](../openspec/changes/join-code-drop-fallback/proposal.md))
-* `brand-identity` (change to open: `/opsx:propose`)
-* `code-health-for-agents` (change to open: `/opsx:propose`)
-* `public-launch` (change to open: `/opsx:propose`)
+* Nightly health: `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md)), the nightly gate above, the quarantine and the streak.
+* Accessibility gate: `a11y-gate-and-derived-contrast` ([proposal](../openspec/changes/a11y-gate-and-derived-contrast/proposal.md)), axe, contrast and keyboard specs in the push gate; Lighthouse.
+* Safe deploys: `deploy-safe-sessions` ([proposal](../openspec/changes/deploy-safe-sessions/proposal.md)), a deploy during a retro no longer drops peer links or hides events of a newer client.
+* Landing and launch kit: `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md)), then `public-launch` (change to open: `/opsx:propose`).
+* Brand identity: `brand-identity` (change to open: `/opsx:propose`).
+* CLA: task group 1 of `open-source-business` (change to open: `/opsx:propose`); the group sits in R2, the rest of the change in R4.
+* In flight, finish only: `p2p-presence-and-cursors` ([proposal](../openspec/changes/p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/webmcp-browser-agents/proposal.md)) have only a pull request and an owner check left.
+* Delivered and archived: `user-manual-and-tutorials`, `short-links-and-join`, `retro-report`, `results-insights`, `voting-v2-and-ranking`, `responsive-and-i18n-hardening`, `activity-rings-timer`, `allure-report-aggregation`, `automated-semver-release`, `edge-security-and-domain`.
+
+Moved to R3 on 2026-11-12: `design-system-components`, `ci-toolchain-speed`, `scorecard-hardening`, `code-health-for-agents` (change to open),
+`note-edit-and-unpublish`, `note-zoom-on-double-tap`, `group-colors-menu-and-scope`, `column-defaults-and-collapse`, `chat-floating-dock`,
+`chat-message-controls`, `phase-transition-guidance`, `simple-mode-ux-pass` and `join-code-drop-fallback`.
 
 ## R3 Teams and action follow-up (target 2027-01-31)
 
@@ -80,6 +85,21 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 * `talk-time-v2` ([proposal](../openspec/changes/talk-time-v2/proposal.md))
 * `up-down-votes` ([proposal](../openspec/changes/up-down-votes/proposal.md))
 * `calendar-agenda-import` ([proposal](../openspec/changes/calendar-agenda-import/proposal.md))
+* `design-system-components` ([proposal](../openspec/changes/design-system-components/proposal.md))
+* `ci-toolchain-speed` ([proposal](../openspec/changes/ci-toolchain-speed/proposal.md))
+* `scorecard-hardening` ([proposal](../openspec/changes/scorecard-hardening/proposal.md))
+* `code-health-for-agents` (change to open: `/opsx:propose`; its formatting commit conflicts with every open pull request: the week after the launch)
+* `note-edit-and-unpublish` ([proposal](../openspec/changes/note-edit-and-unpublish/proposal.md))
+* `note-zoom-on-double-tap` ([proposal](../openspec/changes/note-zoom-on-double-tap/proposal.md))
+* `group-colors-menu-and-scope` ([proposal](../openspec/changes/group-colors-menu-and-scope/proposal.md))
+* `column-defaults-and-collapse` ([proposal](../openspec/changes/column-defaults-and-collapse/proposal.md))
+* `chat-floating-dock` ([proposal](../openspec/changes/chat-floating-dock/proposal.md))
+* `chat-message-controls` ([proposal](../openspec/changes/chat-message-controls/proposal.md))
+* `phase-transition-guidance` ([proposal](../openspec/changes/phase-transition-guidance/proposal.md))
+* `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
+* `join-code-drop-fallback` ([proposal](../openspec/changes/join-code-drop-fallback/proposal.md))
+* `local-data-durability` ([proposal](../openspec/changes/local-data-durability/proposal.md)), the browser is the only copy of a board: persistence status, sealed drafts
+* `portable-relay-core` ([proposal](../openspec/changes/portable-relay-core/proposal.md)), see Cloudflare independence below
 
 ## R4 Monetisation and growth (target 2027-03-14)
 
@@ -98,3 +118,17 @@ MCP server, agent sessions, local AI companion. Gate: an agent runs a retro end 
 * `funny-local-companion` ([proposal](../openspec/changes/funny-local-companion/proposal.md))
 * `agent-feedback-and-timeboxed-sessions` ([proposal](../openspec/changes/agent-feedback-and-timeboxed-sessions/proposal.md))
 * `agents-first-class` ([proposal](../openspec/changes/agents-first-class/proposal.md))
+
+## Cloudflare independence
+
+RetroBoard must not depend on Cloudflare services: Workers stays the zero-cost hosted target (ADR-0001, ADR-0018), one deploy
+target among others. The work was open without a release; it is placed by what the launch needs.
+
+| Change | Release | Why there |
+|---|---|---|
+| `deploy-safe-sessions` | R2 | Production deploys several times a day and a retro lasts an hour: the launch cannot drop peer links on every deploy |
+| `a11y-gate-and-derived-contrast` | R2 | Launch gate (axe without violation); nightly failed on axe checks |
+| `local-data-durability` | R3 | Protects the one copy of a board in the browser; not a launch blocker |
+| `portable-relay-core` | R3 | Runtime-neutral relay core, thin Durable Object adapter and a Node adapter for the self-host container; not a launch blocker |
+
+The follow-ups named in the `portable-relay-core` proposal (`rtc-config-and-deploy-targets`, `selfhost-container-gate`) are not yet changes of their own.
