@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText, settle } from './helpers'
+import { axe, createBoard, join, noteByText, phoneLayout, settle } from './helpers'
 
 test.describe('phone', () => {
   test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true })
@@ -19,7 +19,8 @@ test.describe('phone', () => {
   })
 })
 
-test('Add keeps a private draft, Publish now publishes at once, typed text survives a reload', async ({ page }) => {
+test('Add keeps a private draft, Publish now publishes at once, typed text survives a reload', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the column composer is desktop; the sheet has its own tests in the phone describes')
   await createBoard(page)
   const col = page.locator('[data-testid^="column-"]').first()
   const area = col.locator('textarea')
@@ -37,7 +38,8 @@ test('Add keeps a private draft, Publish now publishes at once, typed text survi
   await expect(noteByText(page, 'direct')).toBeVisible()
 })
 
-test('the facilitator sets the note length; the counter warns near the limit and blocks at it', async ({ page }) => {
+test('the facilitator sets the note length; the counter warns near the limit and blocks at it', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the column composer is desktop; the sheet has its own tests in the phone describes')
   await createBoard(page)
   await page.getByTestId('btn-options').click()
   for (let i = 0; i < 6; i++) await page.getByTestId('opt-note-max-less').click()
@@ -67,7 +69,8 @@ test('the facilitator sets the note length; the counter warns near the limit and
   await expect(note.getByTestId('note-counter')).toContainText('40 / 40')
 })
 
-test('draft-first: Add is the primary button on the right, Publish now the secondary one before it', async ({ page }) => {
+test('draft-first: Add is the primary button on the right, Publish now the secondary one before it', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the column composer is desktop; the sheet has its own tests in the phone describes')
   await createBoard(page)
   const col = page.locator('[data-testid^="column-"]').first()
   await col.locator('textarea').fill('une idee')
@@ -96,7 +99,8 @@ test.describe('draft-first on a phone', () => {
   })
 })
 
-test('a new board takes notes of 160 characters; the composer has swatches, a short hint and a help popover (#179)', async ({ page, browser }) => {
+test('a new board takes notes of 160 characters; the composer has swatches, a short hint and a help popover (#179)', async ({ page, browser, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'the column composer is desktop; the sheet has its own tests in the phone describes')
   await createBoard(page, { template: 'start-stop-continue' })
   const col = page.locator('[data-testid^="column-"]').first()
   await expect(col.getByTestId('note-counter')).not.toContainText('/')

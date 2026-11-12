@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard } from './helpers'
+import { createBoard, phoneLayout } from './helpers'
 
 /** Change ui-coherence-pass: one button shape, centred labels, centred ring. Measured in the browser. */
 const MEASURE = () => {
@@ -8,8 +8,8 @@ const MEASURE = () => {
     const r = el.getBoundingClientRect()
     const cs = getComputedStyle(el)
     if (r.width < 4 || r.height < 4 || cs.visibility === 'hidden' || cs.display === 'none') continue
-    // Content = the icon and the label (not the key hint caps or badges that sit in a corner).
-    const parts = [...el.childNodes].filter((n) => !(n instanceof HTMLElement && n.matches('kbd, .badge, .kbd, .dot, .sr-only')) && !(n.nodeType === 3 && !n.textContent!.trim()))
+    // Content = the icon and the label (not the key hint caps or badges that sit in a corner, nor a label clipped to 1 px when the toolbar shows icons only, nor the comment a v-if leaves behind).
+    const parts = [...el.childNodes].filter((n) => !(n instanceof HTMLElement && n.matches('kbd, .badge, .kbd, .dot, .sr-only')) && n.nodeType !== 8 && !(n.nodeType === 3 && !n.textContent!.trim()) && !(n instanceof HTMLElement && n.getBoundingClientRect().width <= 2))
     const range = document.createRange()
     if (parts.length) { range.setStartBefore(parts[0]!); range.setEndAfter(parts[parts.length - 1]!) } else range.selectNodeContents(el)
     const c = range.getBoundingClientRect()
@@ -21,14 +21,17 @@ const MEASURE = () => {
 
 test.describe('buttons', () => {
   test('every .btn, .mini-btn and .icon-btn is a pill with its label centred (home, creation, board)', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'measured on desktop; the phone layout has its own e2e')
-    const bad: string[] = []
+    test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'measured on desktop; the phone layout has its own e2e')
+    // The toolbar folds its labels once its width is known: measure until the layout has settled.
     const check = async (where: string) => {
-      await page.waitForTimeout(400)
-      for (const r of await page.evaluate(MEASURE)) {
-        if (!r.pill) bad.push(`${where} ${r.name}: not a pill`)
-        if (Math.abs(r.dx) > 1.5 || Math.abs(r.dy) > 1.5) bad.push(`${where} ${r.name}: off centre ${r.dx.toFixed(1)},${r.dy.toFixed(1)}`)
-      }
+      await expect(async () => {
+        const bad: string[] = []
+        for (const r of await page.evaluate(MEASURE)) {
+          if (!r.pill) bad.push(`${where} ${r.name}: not a pill`)
+          if (Math.abs(r.dx) > 1.5 || Math.abs(r.dy) > 1.5) bad.push(`${where} ${r.name}: off centre ${r.dx.toFixed(1)},${r.dy.toFixed(1)}`)
+        }
+        expect(bad).toEqual([])
+      }).toPass({ timeout: 6000 })
     }
     await page.goto('/')
     await check('home')
@@ -36,7 +39,6 @@ test.describe('buttons', () => {
     await check('new')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await check('board')
-    expect(bad).toEqual([])
   })
 
   test('the ring and the start button are centred in their round container', async ({ page, isMobile }) => {

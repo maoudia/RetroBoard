@@ -7,6 +7,7 @@ import { axe, column, createBoard, noteByText, publishNote, settle } from './hel
  * Playwright has no long-press gesture: the finger is driven through the DevTools touch events (Chromium).
  */
 test.use({ viewport: { width: 768, height: 1024 }, hasTouch: true })
+test.skip(({ browserName }) => browserName !== 'chromium', 'the finger is driven through the DevTools protocol, a Chromium API')
 
 const centre = async (loc: Locator) => {
   const box = (await loc.boundingBox())!

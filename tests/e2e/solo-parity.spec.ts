@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { axe, column, createBoard, join, noteByText, publishNote, replicaEnvelopes } from './helpers'
+import { axe, closeCompose, column, composeField, createBoard, join, noteByText, publishNote, replicaEnvelopes } from './helpers'
 
 /** change solo-parity-and-dedup: a solo board is the same engine as a shared one, so it has the same toolbar and panels. */
 const FEATURES = ['btn-actions', 'btn-export', 'btn-filter', 'btn-presenter', 'btn-options', 'btn-participants', 'btn-profile', 'agenda-ring']
@@ -163,6 +163,13 @@ export function drift(solo: Observation, shared: Observation, declared: Record<s
 
 const text = async (page: Page, id: string) => ((await page.getByTestId(id).textContent()) ?? '').replace(/\s+/g, ' ').trim()
 
+/** Whether the writing field takes notes: in the column, or in the bottom sheet on a phone. */
+async function composerDisabled(page: Page) {
+  const disabled = await (await composeField(page, 0)).isDisabled()
+  await closeCompose(page)
+  return disabled
+}
+
 /** Plays every scenario of the matrix on the board in `page` and records what it observed. */
 async function play(page: Page): Promise<Observation> {
   const seen: Observation = {}
@@ -181,11 +188,11 @@ async function play(page: Page): Promise<Observation> {
   await page.getByTestId('btn-options').click()
   await page.getByTestId('opt-lock').check()
   await page.keyboard.press('Escape')
-  seen['lock.composer'] = (await column(page, 0).locator('textarea').isDisabled()) ? 'disabled' : 'enabled'
+  seen['lock.composer'] = (await composerDisabled(page)) ? 'disabled' : 'enabled'
   await page.getByTestId('btn-options').click()
   await page.getByTestId('opt-lock').uncheck()
   await page.keyboard.press('Escape')
-  seen['unlock.composer'] = (await column(page, 0).locator('textarea').isDisabled()) ? 'disabled' : 'enabled'
+  seen['unlock.composer'] = (await composerDisabled(page)) ? 'disabled' : 'enabled'
   // Timer.
   seen['timer.toggle'] = (await page.getByTestId('timer-toggle').isVisible()) ? 'visible' : 'hidden'
   // Actions.

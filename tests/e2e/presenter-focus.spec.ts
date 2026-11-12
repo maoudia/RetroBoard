@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText, publishNote, settle } from './helpers'
+import { axe, createBoard, join, noteByText, phoneLayout, publishNote, settle } from './helpers'
 
 test.describe('presenter column focus (presenter-mode-v2)', () => {
-  test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
+  test.skip(phoneLayout, 'presenter mode is for large screens')
 
   test('arrow keys focus a column, the style switches and Escape steps back', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
@@ -114,7 +114,7 @@ test.describe('presenter column focus (presenter-mode-v2)', () => {
 })
 
 test.describe('voted ideas walk-through (presenter-mode-v2)', () => {
-  test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
+  test.skip(phoneLayout, 'presenter mode is for large screens')
 
   test('next and previous go through the ranking; Escape ends the walk, then presenter mode', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
@@ -147,7 +147,7 @@ test.describe('voted ideas walk-through (presenter-mode-v2)', () => {
 })
 
 test.describe('note spotlight (presenter-mode-v2)', () => {
-  test.skip(({ isMobile }) => isMobile, 'presenter mode is for large screens')
+  test.skip(phoneLayout, 'presenter mode is for large screens')
 
   test('a note is enlarged over the dimmed board, arrows move inside the column, Escape closes it', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
@@ -209,7 +209,7 @@ test('accordion on a phone keeps the focused column fully visible going forward 
 })
 
 test('in presentation a long word never leaves its note, and notes grow with the screen (change toast-notifications-v2)', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'presenter mode is for large screens: a phone is too narrow for notes to grow')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'presenter mode is for large screens: a phone is too narrow for notes to grow')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   await publishNote(page, 0, 'Supercalifragilisticexpialidocious-and-a-very-long-unbroken-token-that-must-wrap')
   await page.getByTestId('btn-presenter').click()
@@ -223,7 +223,7 @@ test('in presentation a long word never leaves its note, and notes grow with the
 })
 
 test('the laser pointer: the presenter shows a red dot to everybody, even with pointers hidden, and turns it off (change presenter-mode-v2)', async ({ page, browser, isMobile }) => {
-  test.skip(isMobile, 'presenter mode is for large screens')
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'presenter mode is for large screens')
   await page.setViewportSize({ width: 1100, height: 760 })
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
   const link = await page.getByTestId('share-url').inputValue()

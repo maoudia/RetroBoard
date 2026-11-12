@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { closeCompose, composeField, createBoard, join, noteByText, publishNote } from './helpers'
 
 const shareLink = async (page: Page) => {
   if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
@@ -31,8 +31,10 @@ test('phases that do not allow writing grey the composer with the reason; facili
   await expect(hint(bob.page)).toContainText(/Inclusion/)
   await expect(hint(bob.page)).toContainText(/Écriture|Write/)
   await expect(area(bob.page)).toHaveAttribute('aria-describedby', `gated-${colId}`)
-  await expect(area(page)).toBeEnabled()
+  const mine = await composeField(page, 0) // the facilitator's own field: in the sheet on a phone
+  await expect(mine).toBeEnabled()
   await expect(hint(page)).toContainText(/facilitator|animateur/)
+  await closeCompose(page)
 
   // Write phase: open for everyone, no cue.
   await panel(page, 'agenda-next')

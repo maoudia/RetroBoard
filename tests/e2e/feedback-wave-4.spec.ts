@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { closeShare, createBoard, join, noteByText, publishNote } from './helpers'
+import { closeShare, createBoard, join, noteByText, phoneLayout, publishNote } from './helpers'
 
 /** Owner feedback 2026-11-03 (change feedback-wave-4): ten screenshots of UX defects. */
 async function twoPeople(page: import('@playwright/test').Page, browser: import('@playwright/test').Browser, template = 'start-stop-continue') {
@@ -65,7 +65,8 @@ test.describe('feedback wave 4', () => {
     await expect(area).toHaveValue('')
   })
 
-  test('the writing size is set in place: S M L, a link for all columns, and Write only shows or hides', async ({ page }) => {
+  test('the writing size is set in place: S M L, a link for all columns, and Write only shows or hides', async ({ page, isMobile }) => {
+    test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to resize: it writes in the bottom sheet')
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await expect(page.getByTestId('btn-writing-sizes')).toHaveCount(0)
     const ids = await page.locator('section[data-testid^="column-"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')!.replace('column-', '')))

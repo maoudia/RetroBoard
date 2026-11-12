@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote, voteMenu } from './helpers'
+import { createBoard, join, noteByText, publishNote, showChrome, voteMenu } from './helpers'
 
 const shareLink = async (page: Page) => {
   await page.getByTestId('btn-share').click()
@@ -83,6 +83,7 @@ test.describe('voting v2', () => {
     await voteBtn(page, 'Alpha').click()
     await voteBtn(page, 'Beta').click()
     await voteBtn(page, 'Gamma').click()
+    await showChrome(page) // scrolling the column folded the menus on a narrow screen
     await page.getByTestId('close-voting').click()
     await page.getByTestId('open-ranking').click()
 

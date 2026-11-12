@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
-import { addDraft, axe, column, columnId, createBoard, noteByText, publishNote, settle } from './helpers'
+import { addDraft, axe, column, columnId, createBoard, narrow, noteByText, publishNote, settle } from './helpers'
 
 /** Publishing UX (change publishing-ux-redesign, tasks 2.1 and 2.2): the composer at the top of each column, the tray of drafts, the toolbar counter, the phone sheet. */
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 const problems = async (page: import('@playwright/test').Page) => (await axe(page).withTags(WCAG).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
 
 test.describe('wide screen', () => {
+  test.skip(narrow, 'a phone writes in the bottom sheet (the 360 px describe below)')
   test('the composer sits at the top of the column, above the notes, and says who sees what', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await publishNote(page, 0, 'Already there')
@@ -61,6 +62,7 @@ test.describe('wide screen', () => {
 
 test.describe('wide screen in English', () => {
   test.use({ locale: 'en-US' })
+  test.skip(narrow, 'a phone writes in the bottom sheet (the 360 px describe below)')
   test('label, ribbon and toolbar counter are translated', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await addDraft(page, 0, 'First')

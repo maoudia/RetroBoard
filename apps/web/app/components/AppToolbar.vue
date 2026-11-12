@@ -121,7 +121,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
       <button class="icon-btn" type="button" data-testid="btn-writing" :aria-pressed="!layout.writingHidden" @click="layout.setWritingHidden(!layout.writingHidden)"><Icon :name="layout.writingHidden ? 'lucide:pencil' : 'lucide:pencil-off'" class="ico" /><span>{{ t(layout.writingHidden ? 'toolbar.writing.show' : 'toolbar.writing.hide') }}</span><KeyCap k="W" /></button>
       <!-- Publish every draft at once: lives with the writing controls, shown only while there is something to publish. -->
       <button v-if="drafts.count" class="icon-btn publish-all" type="button" :disabled="board.locked || publishClosed" :title="publishOffTitle ?? t('toolbar.publishAllN', { n: drafts.count })" :aria-label="t('toolbar.publishAllN', { n: drafts.count })" data-testid="publish-all" @click="publish()">
-        <Icon name="lucide:send" class="ico" /><span>{{ t('toolbar.publishAll') }}</span><span class="badge" data-testid="draft-count">{{ drafts.count }}</span>
+        <Icon name="lucide:send" class="ico" /><!-- The trailing space keeps the visible text ("Tout publier 3") inside the accessible name (WCAG 2.5.3, axe label-content-name-mismatch): Vue drops the whitespace between the two spans. --><span>{{ t('toolbar.publishAll') + ' ' }}</span><span class="badge" data-testid="draft-count">{{ drafts.count }}</span>
       </button>
       <ExportMenu />
       <ActivityFeed />

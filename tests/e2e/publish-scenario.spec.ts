@@ -7,6 +7,7 @@ import { column, columnId, createBoard, noteByText, settle } from './helpers'
  * The owner's sign-off is a comment on the pull request; this spec only keeps the scenario from rotting.
  */
 test.use({ trace: 'on', viewport: { width: 1280, height: 800 } })
+test.skip(({ isMobile }) => isMobile, 'a hardware keyboard scenario: on touch the return key adds a line')
 
 test('five steps to publish: write at the top, keep a draft, see the counter, publish all, undo a mistake', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, closeCompose, composeField, createBoard, join, noteByText, publishNote } from './helpers'
 
 async function link(page: import('@playwright/test').Page) {
   if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
@@ -37,13 +37,17 @@ test('a typed name is shown on notes by default and the checkbox follows the nam
 
 test('the composer shows the signature and one click switches to anonymous for the next notes only', async ({ page, browser }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await composeField(page, 0) // on a phone the chip is in the sheet
   const chip = page.locator('[data-testid^="signature-"][data-signed]').first()
   await expect(chip).toHaveAttribute('data-signed', 'true')
   await expect(page.locator('[data-testid^="signature-named-"]').first()).toHaveAccessibleName(/Alice/)
+  await closeCompose(page)
   await publishNote(page, 0, 'Before')
+  await composeField(page, 0)
   await page.locator('[data-testid^="signature-anon-"]').first().click()
   await expect(chip).toHaveAttribute('data-signed', 'false')
   await expect(page.locator('[data-testid^="signature-anon-"]').first()).toHaveAttribute('aria-pressed', 'true')
+  await closeCompose(page)
   await publishNote(page, 0, 'After')
   const url = await link(page)
 
@@ -59,6 +63,7 @@ test('the composer shows the signature and one click switches to anonymous for t
 
 test('without a name the chip reads Anonymous and opens the name dialog', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: '' })
+  await composeField(page, 0)
   await expect(page.locator('[data-testid^="signature-anon-"]').first()).toHaveAttribute('aria-pressed', 'true')
   await page.locator('[data-testid^="signature-named-"]').first().click()
   await expect(page.getByTestId('name-input')).toBeVisible()
@@ -66,9 +71,13 @@ test('without a name the chip reads Anonymous and opens the name dialog', async 
 
 test('a saved choice to stay anonymous is kept when the name is edited later', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+  await composeField(page, 0)
   await page.locator('[data-testid^="signature-anon-"]').first().click()
+  await closeCompose(page)
   await page.reload()
+  await composeField(page, 0)
   await expect(page.locator('[data-testid^="signature-"][data-signed]').first()).toHaveAttribute('data-signed', 'false')
+  await closeCompose(page)
   await page.getByTestId('btn-profile').click()
   await page.getByTestId('profile-name').fill('Alicia')
   await page.getByTestId('profile-name').blur()

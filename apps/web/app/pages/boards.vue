@@ -441,7 +441,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
         </button>
       </main>
       <!-- Phones: the columns as a tab bar in the thumb zone, one tab per column; the board scrolls and snaps to the tapped column (change responsive-and-i18n-hardening). -->
-      <nav v-if="board.ready && visibleCols.length > 1" ref="tabsEl" class="col-tabs" :aria-label="t('board.dots')" data-reserve-bottom data-testid="col-tabs">
+      <nav v-if="board.ready && visibleCols.length > 1" ref="tabsEl" class="col-tabs" :aria-label="t('board.dots')" data-reserve-bottom="tabs" data-testid="col-tabs">
         <button
           v-for="(c, i) in visibleCols" :key="c.id" type="button" class="tab" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
           :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-tab-${i}`" @click="goCol(i)"
@@ -514,6 +514,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   .tab-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* The write button floats at the right of the thumb zone, just above the tab bar (or the foot of the screen with a single column). */
   .page > .compose-fab { position: fixed; z-index: 20; right: var(--sp-3); bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 56px; padding: 0 var(--sp-4); border: 0; border-radius: var(--r-pill); background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 700; box-shadow: var(--shadow-2); cursor: pointer; }
+  .page:has([data-testid="group-panel"]) > .compose-fab { display: none; } /* the open group covers the column: its last actions must not sit under the button */
   .page > .compose-fab.above-tabs { bottom: calc(56px + var(--sp-3) + env(safe-area-inset-bottom)); }
 }
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }

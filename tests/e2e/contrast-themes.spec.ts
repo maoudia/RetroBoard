@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { column, createBoard, settle } from './helpers'
+import { composeField, createBoard, settle } from './helpers'
 
 /** Text that stays dark on dark (or light on light) in a state axe does not reach (#225): measured on every theme, both variants. */
 const THEMES = ['studio', 'corporate', 'slate', 'paper', 'minimal', 'halloween', 'noel', 'cyber', 'sakura']
@@ -44,7 +44,7 @@ for (const variant of ['light', 'dark'] as const) {
       await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: variant })
       await page.addInitScript((v) => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ variant: v })) } catch { /* ignore */ } }, variant)
       await createBoard(page, { theme, template: 'start-stop-continue' })
-      await column(page, 0).locator('textarea').fill('x'.repeat(150)) // the counter shows from 80% of the limit
+      await (await composeField(page, 0)).fill('x'.repeat(150)) // the counter shows from 80% of the limit
       await settle(page)
       expect(await lowContrast(page)).toEqual([])
       // The locked board shows the lock pill and the vote bar controls in their disabled and pressed states.

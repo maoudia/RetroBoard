@@ -1,5 +1,5 @@
 import { type Browser, expect, type Page, test } from '@playwright/test'
-import { createBoard, enterName, noteByText, publishNote, settle } from './helpers'
+import { addDraft, createBoard, enterName, noteByText, publishNote, settle } from './helpers'
 
 /**
  * Field scenarios of reliable-board-sync (ADR-0024): peers that cannot open a direct link, a connection
@@ -79,8 +79,7 @@ test('the facilitator reloads right after publishing: the note is still there', 
   await page.getByTestId('btn-share').click()
   await page.keyboard.press('Escape')
   const col = page.locator('section[data-testid^="column-"]').first()
-  await col.locator('textarea').fill('Survives the reload')
-  await col.locator('[data-testid^="compose-add-"]').click()
+  await addDraft(page, 0, 'Survives the reload')
   await col.locator('[data-testid^="publish-"]').click()
   await expect(noteByText(page, 'Survives the reload')).toBeVisible()
   await page.reload()

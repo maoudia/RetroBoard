@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { addDraft, axe, column, columnId as colId, createBoard, noteByText, settle } from './helpers'
+import { addDraft, axe, column, columnId as colId, composeField, createBoard, noteByText, settle } from './helpers'
 
 /**
  * Notes at scale (change postit-visual-system, tasks 1.2 and 1.3): a column of 60 notes of every length packs into a masonry, the text
@@ -107,8 +107,12 @@ test.describe('60 notes in a column', () => {
   test('an expanded cluster takes the whole width of the column, its notes inside', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await publishAll(page, 0, ['Premiere', 'Deuxieme', 'Troisieme'])
-    await noteByText(page, 'Deuxieme').dragTo(noteByText(page, 'Premiere'))
-    await settle(page)
+    // A drop that lands while the column is still reflowing misses: drop again until the cluster is there.
+    await expect(async () => {
+      await noteByText(page, 'Deuxieme').dragTo(noteByText(page, 'Premiere'))
+      await settle(page)
+      await expect(column(page, 0).locator('[data-testid^="expand-"]')).toBeVisible({ timeout: 1500 })
+    }).toPass({ timeout: 10_000 })
     await column(page, 0).locator('[data-testid^="expand-"]').click()
     const inline = column(page, 0).locator('[data-testid^="cluster-inline-"]')
     await expect(inline).toBeVisible()
@@ -201,9 +205,10 @@ test.describe('density and zoom shortcuts', () => {
 
   test('typing + - 0 d in a field does not zoom; the keys are off when shortcuts are off', async ({ page }) => {
     await boardWithNotes(page)
-    await column(page, 0).locator('textarea').fill('')
-    await column(page, 0).locator('textarea').press('+')
-    await column(page, 0).locator('textarea').press('d')
+    const field = await composeField(page, 0)
+    await field.fill('')
+    await field.press('+')
+    await field.press('d')
     expect(await html(page, 'data-zoom')).toBe('100')
     expect(await html(page, 'data-density')).toBe('comfortable')
     await page.keyboard.press('Escape')

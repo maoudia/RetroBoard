@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard } from './helpers'
+import { axe, createBoard, phoneLayout } from './helpers'
 
 test('the chevron slides the menus away and back on any screen, and stays in place (change ux-irritants-wave-2)', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
@@ -82,7 +82,8 @@ test('the chevron is the last item at the right and the vote strip is one icon-l
   await expect(page.getByTestId('votebar-more')).toHaveAccessibleName(/More|Plus/)
 })
 
-test('the writing area shows no explanatory sentence, only icons and a chevron, with names kept (change ux-irritants-wave-3)', async ({ page }) => {
+test('the writing area shows no explanatory sentence, only icons and a chevron, with names kept (change ux-irritants-wave-3)', async ({ page, isMobile }) => {
+  test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area in the column: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const area = page.locator('section.priv').first()
   const visible = await area.evaluate((el) => {
