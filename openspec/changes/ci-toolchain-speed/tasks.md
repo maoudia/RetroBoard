@@ -9,3 +9,9 @@
 
 - [ ] 2.1 E2E: one build artifact for the matrix, Chromium sharding, affected-spec selection on PRs; verify durations before and after
 - [ ] 2.2 Adopt the spike results that save >= 20% per job; verify durations before and after and an unchanged error set
+
+## 3. Release path (target: a clean release in about 45 min; today main Quality about 25-48 + release job 38 + nightly 27-36)
+
+- [ ] 3.1 Release PR: dispatched required checks only, held `pull_request` runs deleted, required checks never skipped (workflow edits, owner merges); verify on the next release: no click, release job under 10 min
+- [ ] 3.2 Quality on main off the release gate: the release gate needs Checks and the push-gate e2e, not mutation or the rest of the suite (they stay on main, reported, not blocking the release); verify the lead time before and after
+- [ ] 3.3 Cross-browser: more Firefox and WebKit shards on the nightly, a shared build artifact and package caches; verify the nightly duration before and after

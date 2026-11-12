@@ -26,6 +26,27 @@ in `quality/quarantine-baseline.json`, part of `pnpm verify`). `pnpm nightly:str
 nights in a row were green by that definition (needs the `gh` CLI). To take a spec out of quarantine: fix it, run it
 nightly, delete its entry and lower the ceiling.
 
+## Release path
+
+`release.yml` opens the release PR (version and changelog only) once Checks and Quality are green on main, then merges it
+by itself. The PR is opened with the Actions token, so GitHub holds its own `pull_request` runs at `action_required` until
+someone approves them; the workflow therefore dispatches the required checks on the release branch (Checks, E2E, Security,
+ADR: about 5 minutes together) and deletes the held runs. No click, no second full suite. Mutants, Spec gate and
+Dependency review always run and pass with nothing to do outside a pull request: a required check that is skipped is not a
+result the merge box accepts.
+
+Measured on 2026-11-13 (GitHub API, `run_started_at` to `updated_at`):
+
+| Step | Before (releases 1.51.0 to 1.52.0) | Target |
+|---|---|---|
+| Release job (open PR, wait, merge, tag) | 38 min on 1.52.0; the checks it waits for take about 5 min, the rest was the held runs and then their second full run | about 6 min |
+| Quality on main (gate of the release) | 17 to 48 min, median about 25 | see `openspec/changes/ci-toolchain-speed` |
+| Nightly | 27 to 36 min when it passes | see the same change |
+
+If the release PR still does not merge, the failed step of the release job prints the merge state and the checks that are
+not green. If it says the held runs could not be deleted, the fallback is a GitHub App token for release-please (a
+secret only the owner can add).
+
 ## Mutation ratchet
 
 The floors in `quality/mutation-baseline.json` are 100 for every package (change `mutation-score-100`): a mutant that
