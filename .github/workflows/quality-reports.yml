@@ -1,0 +1,229 @@
+name: Quality reports
+
+# The slow tail of every commit on main, after the Quality run (quality.yml) finished: the rest of the e2e suite on
+# Chromium, mutation testing with its regression ratchet, and the Allure report (unit and e2e results of the Quality run,
+# plus these) on GitHub Pages, coverage and mutation beside it. Release and Deploy gate on Quality, not on this run:
+# it used to add 20 to 40 minutes to every release. A failure here shows on main and in the report, it does not stop a release.
+on:
+  # zizmor: the jobs only check out and run the main commit the Quality run was for (branches: main), never code from a
+  # pull request, and read the artifacts of that run.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows: [Quality]
+    types: [completed]
+    branches: [main]
+
+# A run in progress is never cancelled (the Pages history is read by the next one); a burst of merges keeps the newest queued.
+concurrency:
+  group: quality-reports
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PAGES_URL: https://maoudia.github.io/RetroBoard
+
+jobs:
+  # Every e2e spec outside the push gate, on Chromium, so the Allure report holds the whole suite. It does not gate the
+  # run (continue-on-error): the core job above is the gate, a failure here shows in the report and in the nightly run.
+  e2e-rest:
+    if: github.event.workflow_run.conclusion != 'cancelled'
+    name: Playwright rest of the suite (chromium ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    # Ready-made browsers: no apt packages to download (the Ubuntu mirrors failed for hours and blocked every run).
+    # Keep the tag equal to @playwright/test in pnpm-lock.yaml and bump the digest with it (same image in e2e.yml,
+    # quality.yml and nightly.yml): docker buildx imagetools inspect mcr.microsoft.com/playwright:v<version>-noble
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+      options: --ipc=host --init
+    timeout-minutes: 30
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - run: pnpm e2e:rest --project=chromium --shard=${{ matrix.shard }}
+        env:
+          ALLURE_RESULTS_DIR: allure-results/e2e-rest-${{ strategy.job-index }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: allure-results-e2e-rest-${{ strategy.job-index }}
+          path: allure-results/e2e-rest-${{ strategy.job-index }}
+          retention-days: 7
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: playwright-rest-${{ strategy.job-index }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+
+  # One full Stryker pass per package, in parallel (the two biggest packages in several shards balanced by file size):
+  # the whole run did not fit in 45 minutes on one runner.
+  mutation:
+    if: github.event.workflow_run.conclusion != 'cancelled'
+    name: Mutation testing (${{ matrix.pkg }} ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { pkg: application, shard: '1/3' }
+          - { pkg: application, shard: '2/3' }
+          - { pkg: application, shard: '3/3' }
+          - { pkg: domain, shard: '1/2' }
+          - { pkg: domain, shard: '2/2' }
+          - { pkg: protocol, shard: '1/1' }
+          - { pkg: crypto, shard: '1/1' }
+          - { pkg: exporters, shard: '1/1' }
+          - { pkg: sync, shard: '1/1' }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Always a full pass (--force): a restored incremental cache kept survivors that new tests already kill, and the floors are 100.
+      # The files come from scripts/quality/mutation-files.mjs, which applies the exclusions of stryker.config.json.
+      - name: Mutation testing of this shard
+        env:
+          PKG: ${{ matrix.pkg }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          files=$(node scripts/quality/mutation-files.mjs "$PKG" "$SHARD")
+          pnpm mutation --force --mutate "$files"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: mutation-shard-${{ matrix.pkg }}-${{ strategy.job-index }}
+          path: |
+            reports/mutation/mutation.json
+            reports/mutation/index.html
+          retention-days: 30
+
+  mutation-ratchet:
+    name: Mutation regression ratchet
+    needs: [mutation]
+    if: always() && github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: mutation-shard-*
+          path: shards
+      - name: Merge the shards
+        # 9 = the shards of the mutation matrix above
+        run: node scripts/quality/mutation-merge.mjs shards reports/mutation 9
+      - name: Mutation results for the Allure report
+        run: node scripts/quality/mutation-allure.mjs reports/mutation/mutation.json allure-results-mutation
+      - name: Compare with the floor and the previous main run
+        run: node scripts/quality/mutation-score.mjs
+        env:
+          PAGES_URL: https://maoudia.github.io/RetroBoard
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && hashFiles('allure-results-mutation/*-result.json') != ''
+        with:
+          name: allure-results-mutation
+          path: allure-results-mutation
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: quality-mutation
+          path: reports/mutation
+          retention-days: 30
+
+  pages:
+    name: Publish reports to GitHub Pages
+    needs: [e2e-rest, mutation-ratchet]
+    # Publish even when a test job failed: the reports are how humans see why.
+    if: always() && github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: artifacts
+      # The unit and core e2e results come from the Quality run this one follows.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: '{quality-unit,allure-results-unit,allure-results-e2e-*}'
+          path: artifacts
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      # One Allure report for the unit tests and every Playwright shard, with the run history kept on Pages.
+      - name: Aggregate the Allure report
+        run: |
+          mkdir -p allure-results reports
+          for d in artifacts/allure-results-*; do [ -d "$d" ] && cp -r "$d" "allure-results/$(basename "$d")"; done
+          # The history sits at the site root; the first run after the move reads it from the old /allure/ path.
+          curl -fsSL "$PAGES_URL/history.jsonl" -o reports/allure-history.jsonl \
+            || curl -fsSL "$PAGES_URL/allure/history.jsonl" -o reports/allure-history.jsonl \
+            || rm -f reports/allure-history.jsonl
+          if ls allure-results/*/*-result.json >/dev/null 2>&1; then
+            pnpm exec allure generate allure-results/* --clean
+            mkdir -p artifacts/allure
+            cp -r reports/allure/. artifacts/allure/
+            cp reports/allure-history.jsonl artifacts/allure/history.jsonl
+          else
+            echo "No Allure results to aggregate"
+          fi
+      - name: Normalise artifact layout
+        run: |
+          mkdir -p artifacts/coverage artifacts/mutation
+          if [ -d artifacts/quality-unit/coverage ]; then cp -r artifacts/quality-unit/coverage/. artifacts/coverage/; fi
+          if [ -d artifacts/quality-mutation ]; then cp -r artifacts/quality-mutation/. artifacts/mutation/; fi
+      - name: Build the site (Allure front page, coverage, mutation)
+        run: node scripts/quality/build-site.mjs artifacts site
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
