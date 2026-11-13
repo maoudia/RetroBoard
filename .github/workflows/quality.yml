@@ -86,6 +86,8 @@ jobs:
       - run: pnpm e2e:core --project=${{ matrix.project }} --shard=${{ matrix.shard }}
         env:
           ALLURE_RESULTS_DIR: allure-results/e2e-${{ matrix.project }}-${{ strategy.job-index }}
+          # The push gate runs on the Node adapter (change portable-relay-core); e2e-workerd below covers `wrangler dev`.
+          E2E_TARGET: node
       - name: Slowest tests
         if: always()
         run: node scripts/quality/slow-tests.mjs
@@ -105,13 +107,73 @@ jobs:
             test-results
           retention-days: 30
 
+  # The smoke test and the relay contract (scripts/relay-contract.mjs) against each runtime of the relay: the Node adapter and
+  # `wrangler dev` (the Worker and the Durable Object). Change portable-relay-core, task 4.2.
+  relay-checks:
+    name: Relay checks (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [node, workerd]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - run: scripts/ci/relay-checks.sh ${{ matrix.target }}
+
+  # The same core specs against `wrangler dev`, the runtime of the hosted service: the required Playwright checks above run on the
+  # Node adapter (E2E_TARGET=node), this job keeps the Worker and the Durable Object covered.
+  e2e-workerd:
+    name: Playwright wrangler (${{ matrix.project }} ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+      options: --ipc=host --init
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium]
+        shard: ['1/2', '2/2']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - run: pnpm e2e:core --project=${{ matrix.project }} --shard=${{ matrix.shard }}
+        env:
+          E2E_TARGET: workerd
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: playwright-workerd-${{ matrix.project }}-${{ strategy.job-index }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 30
+
   # A run dispatched by the Actions token (agent-automerge.yml starts it after a bot merge) starts no workflow_run
   # workflow when it ends: Release, Deploy and Quality reports would never follow, and a maintainer had to start the
   # release by hand (actor id 41898282 is github-actions[bot]). Start them here, on a green gate. A push or a run dispatched by a person is followed by
   # workflow_run as usual, so nothing starts twice.
   follow-up:
     name: Start the release, the deploy and the reports
-    needs: [unit, e2e]
+    needs: [unit, e2e, relay-checks, e2e-workerd]
     if: github.event_name == 'workflow_dispatch' && github.actor_id == '41898282'
     runs-on: ubuntu-latest
     timeout-minutes: 5
