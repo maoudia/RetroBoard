@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Lighthouse (mobile profile, simulated 4G) on 4 pages in light and dark against quality/lighthouse-budgets.json (change quality-gates-v2;
-// the landing has its own, higher minimums: the R2 launch gate, change landing-v2-and-product-video).
+// the landing has its own, higher minimums: the R2 launch gate, change landing-speed-and-accessibility).
 // Needs `pnpm generate` and a running site: `pnpm dev:worker` (http://127.0.0.1:8787). Usage: pnpm lighthouse [baseUrl]
 import { readFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'

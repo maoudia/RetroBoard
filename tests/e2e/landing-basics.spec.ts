@@ -32,7 +32,7 @@ test('the landing footer does not overflow a 360 px phone (change stabilise-main
   }
 })
 
-test('the landing is prerendered: its content is in the HTML, with no inline style the CSP would refuse (change landing-v2-and-product-video)', async ({ request }) => {
+test('the landing is prerendered: its content is in the HTML, with no inline style the CSP would refuse (change landing-speed-and-accessibility)', async ({ request }) => {
   const html = await (await request.get('/')).text()
   // The hero text is served, not drawn by a script: the first paint does not wait for the bundle.
   expect(html).toMatch(/<h1[^>]*data-testid="hero-title"[^>]*>[^<]+/)
