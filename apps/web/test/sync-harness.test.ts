@@ -31,7 +31,7 @@ describe('sync harness smoke', { timeout: 60_000 }, () => {
  * (memory gone, every socket closed) during a board is the normal case.
  *
  * Each scenario fails (or failed) for the reason in its comment, so it is marked `it.fails` until the group that
- * fixes it removes the marker (2.2 unknown command, done; 3.1 uploads, 4.2 links).
+ * fixes it removes the marker (2.2 unknown command and 3.1 uploads, done; 4.2 links).
  */
 describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
   async function boardWith(...names: string[]) {
@@ -90,16 +90,37 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     expect([alice.notes, bob.notes, carol.notes]).toEqual([notes, notes, notes])
   })
 
-  // The upload scenarios stop waiting as soon as the relay cuts a socket: while they are `it.fails` they would
-  // otherwise spin the whole simulated budget (15 s) on every mutant of the mutation run.
-  // 3.1: `push` cuts by count (100), the relay refuses a frame over 256 KB (close 1009), and `attempts` is reset
-  // on open, so the same upload is sent again at once.
-  it.fails('a holder uploads 100 envelopes of 3 KB to the empty relay without being cut off', async () => {
+  // The upload scenarios stop waiting as soon as the relay cuts a socket, so a regression costs 0.2 s, not the
+  // whole simulated budget, on every mutant of the mutation run.
+  // 3.1: `push` used to cut by count (100 envelopes, about 300 KB here) while the relay refuses a frame over 256 KB
+  // (close 1009); it now cuts by bytes.
+  it('a holder uploads 100 envelopes of 3 KB to the empty relay without being cut off', async () => {
     const holder = await holderOfBoardOf(100, 'bulky')
     world = holder.world
     const { held } = holder
     await world.until(() => world.relay.buffered === held || world.relay.closes.length > 0, 60_000)
     expect(world.relay.closes).toEqual([])
     expect(world.relay.buffered).toBe(held)
+    expect(world.relay.stats.pubFrames).toBeGreaterThan(1)
+  })
+
+  // 3.2: a relay that refuses a frame (1009 size, 1008 rate) is not hammered. `attempts` used to be reset on open,
+  // so a refused upload reconnected at once and uploaded again, about 100 times a minute. Now a refusal never
+  // resets the backoff, and the next socket waits REFUSED_RETRY_MS: at most two in the minute that follows.
+  it.each([
+    ['a frame too large (1009)', { frameBytes: 64 * 1024 }, 1009],
+    ['too many frames (1008)', { frames: 1 }, 1008],
+  ])('a holder refused by a tighter relay version reconnects at most twice a minute: %s', async (_name, tighter, code) => {
+    const holder = await holderOfBoardOf(100, 'bulky')
+    world = holder.world
+    world.relay.tighter = { ...world.relay.tighter, ...tighter }
+    expect(await world.until(() => world.relay.closes.length > 0, 60_000)).toBe(true)
+    const accepted = world.relay.stats.accepts
+    await world.run(60_000)
+    expect(world.relay.closes.every((c) => c === code)).toBe(true)
+    expect(world.relay.stats.accepts - accepted).toBeLessThanOrEqual(2)
+    expect(world.relay.stats.accepts - accepted).toBeGreaterThan(0)
+    // Rate: the second socket uploads only what the relay history lacked, one frame, and the board is complete.
+    if (code === 1008) expect([world.relay.closes, world.relay.buffered]).toEqual([[1008], holder.held])
   })
 })

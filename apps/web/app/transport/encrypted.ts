@@ -16,7 +16,7 @@ import { EventLog, type HistoryEntry, historyOf, type LogBase, type MoveResult, 
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, formatInvite, type IgnoreReason, isPrivileged, type KeyRing, type Peer, participantRing, type Role, roleOf, type RoleBody, signingRoom } from '@retroboard/domain'
 import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
-import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, type Envelope, envelopeAad, HAVE_CHUNK, MAX_SNAPSHOT_CT_CHARS, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseEventOrUnknown, parseSignal, parseSnapshot, parseSnapshotEnvelope, SNAP_CHUNK_CHARS, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal, type SnapshotEnvelope } from '@retroboard/protocol'
+import { BOARD_FILE_FORMAT, type BoardFile, boardFileAad, chunk, type Envelope, envelopeAad, FramePacer, HAVE_CHUNK, isRefusalCode, MAX_SNAPSHOT_CT_CHARS, PEER_ENV_CHUNK, PROTOCOL_VERSION, parseBoardFile, parseEnvelope, parseEnvelopes, parseLive, parsePeerFrame, parseRelayFrame, parseEventOrUnknown, parseSignal, parseSnapshot, parseSnapshotEnvelope, SNAP_CHUNK_CHARS, type Live, type PeerFrame, type Presence, type RelayFrame, type Signal, type SnapshotEnvelope } from '@retroboard/protocol'
 import type { BoardTransport, ConnectionStatus, Identity, TransportHandlers } from './types'
 import { ulid } from './ulid'
 import { backoffDelay } from './backoff'
@@ -29,6 +29,10 @@ export const FULL_RETRY_MS = 15_000
 export const P2P_WAIT_MS = 8_000
 /** Random delay before uploading what the relay lacks, so holders reconnecting together do not all upload. */
 export const RESEED_JITTER_MS = 800
+/** A connection held this long past the relay history without closing: the reconnect backoff starts over (deploy-safe-sessions). */
+export const STABLE_MS = 30_000
+/** Quiet time before the next socket when the relay refused a frame (close 1008 rate, 1009 size): a new socket changes nothing about what I send. */
+export const REFUSED_RETRY_MS = 30_000
 /** The facilitator signs a snapshot once this many events lie beyond the previous one, cut at least SNAPSHOT_LAG_MS before the newest event (ADR-0037). */
 export const SNAPSHOT_EVERY = 1_000
 export const SNAPSHOT_LAG_MS = 60_000
@@ -112,6 +116,12 @@ export class EncryptedRelayTransport implements BoardTransport {
   /** Ids the relay is known to hold (history, fan-out, what I pushed): the rest is uploaded at the next welcome. */
   private readonly relayHas = new Set<string>()
   private reseedTimer: ReturnType<typeof setTimeout> | undefined
+  /** Envelopes waiting for the relay, by id: sent in pages cut by bytes, at most PUB_PACE_MAX frames per window. */
+  private readonly pushQueue = new Map<string, Envelope>()
+  private pushTimer: ReturnType<typeof setTimeout> | undefined
+  private pace = new FramePacer()
+  /** Armed when the relay history is in; when it fires the connection held, and the backoff starts over. */
+  private stableTimer: ReturnType<typeof setTimeout> | undefined
   /** The facilitator chose to start a new board in a room nobody holds. */
   private startRequested = false
   private lastStatus: ConnectionStatus | null = null
@@ -307,6 +317,8 @@ export class EncryptedRelayTransport implements BoardTransport {
     clearTimeout(this.reconnectTimer)
     clearTimeout(this.p2pTimer)
     clearTimeout(this.reseedTimer)
+    clearTimeout(this.stableTimer)
+    this.resetPush()
     clearTimeout(this.snapTimer)
     clearTimeout(this.fullTimer)
     clearInterval(this.heartbeat)
@@ -618,13 +630,48 @@ export class EncryptedRelayTransport implements BoardTransport {
     else if (c.t === 'column.reset') this.handlers.onNotice({ kind: 'reset.column', by, column: c.id ? (board.columns.find((x) => x.id === c.id)?.title) : undefined })
   }
 
-  /** Relay `pub`, in frames of at most 100 envelopes. */
+  /**
+   * Relay `pub`: pages cut by bytes under the frame limit (`chunk`), at most PUB_PACE_MAX frames per rate window,
+   * half of what the relay closes a socket for. What the window does not take waits in the queue and is cut
+   * again with whatever arrives meanwhile. Ids count as held by the relay from here on, so a reseed does not
+   * queue them twice; a close empties the queue and the next welcome recomputes what the relay lacks.
+   */
   private push(envs: readonly Envelope[]): void {
     if (this.ws?.readyState !== 1) return
-    for (const part of chunks(envs, 100)) {
-      for (const e of part) this.relayHas.add(e.id)
-      this.ws.send(JSON.stringify({ t: 'pub', envs: part }))
+    for (const e of envs) { this.relayHas.add(e.id); this.pushQueue.set(e.id, e) }
+    this.drainPush()
+  }
+
+  private drainPush(): void {
+    clearTimeout(this.pushTimer)
+    this.pushTimer = undefined
+    if (this.ws?.readyState !== 1 || this.pushQueue.size === 0) return
+    for (const page of chunk([...this.pushQueue.values()])) {
+      const wait = this.pace.wait(this.now())
+      if (wait > 0) { this.pushTimer = setTimeout(() => this.drainPush(), wait); return }
+      this.pace.record(this.now())
+      for (const e of page) this.pushQueue.delete(e.id)
+      this.ws.send(JSON.stringify({ t: 'pub', envs: page }))
     }
+  }
+
+  /** The socket is gone: what waited for it is forgotten (the next welcome recomputes it) and a new socket has a fresh budget. */
+  private resetPush(): void {
+    clearTimeout(this.pushTimer)
+    this.pushTimer = undefined
+    this.pushQueue.clear()
+    this.pace = new FramePacer()
+  }
+
+  /**
+   * Delay before the next socket. Full room: no point hammering it, a seat frees up when someone leaves. Refused
+   * (close 1008 rate, 1009 size): a new socket changes nothing about what I send, so the relay is left alone for
+   * REFUSED_RETRY_MS at least; `attempts` keeps growing, such a close never resets it.
+   */
+  private retryDelay(code: number | undefined): number {
+    if (this.full) return FULL_RETRY_MS
+    const delay = backoffDelay(this.attempts)
+    return code !== undefined && isRefusalCode(code) ? Math.max(delay, REFUSED_RETRY_MS) : delay
   }
 
   /** Participants of the room other than me. */
@@ -1009,6 +1056,10 @@ export class EncryptedRelayTransport implements BoardTransport {
         await this.ingest(frame.envs)
         if (frame.done) {
           this.histDone = true
+          // The backoff starts over once this connection held STABLE_MS past the history, not on open: a relay that
+          // closes right after accepting (restart loop, refused upload) is not hammered.
+          clearTimeout(this.stableTimer)
+          this.stableTimer = setTimeout(() => { this.attempts = 0 }, STABLE_MS)
           // Upload what the relay history lacked: my events written offline, or a board it forgot.
           this.scheduleReseed(false)
           await this.maybeSynced()
@@ -1184,7 +1235,6 @@ export class EncryptedRelayTransport implements BoardTransport {
     const ws = new this.WS(this.url)
     this.ws = ws
     ws.onopen = () => {
-      this.attempts = 0
       clearInterval(this.heartbeat)
       this.heartbeat = setInterval(() => { if (ws.readyState === 1) ws.send('ping') }, 25_000)
     }
@@ -1195,9 +1245,10 @@ export class EncryptedRelayTransport implements BoardTransport {
       const frame = parseRelayFrame(raw)
       if (frame) this.enqueue(() => this.onFrame(frame))
     }
-    ws.onclose = () => {
+    ws.onclose = (ev?: { code: number }) => {
       clearInterval(this.heartbeat)
       if (this.closed || this.ws !== ws) return
+      clearTimeout(this.stableTimer)
       // New connection id on reconnect: the mesh is rebuilt from the next welcome.
       this.mesh?.close()
       this.mesh = null
@@ -1205,11 +1256,11 @@ export class EncryptedRelayTransport implements BoardTransport {
       this.synced = false
       this.histDone = false
       this.relayHas.clear()
+      this.resetPush()
       clearTimeout(this.reseedTimer)
       this.reportLinks()
       this.setStatus('reconnecting')
-      // Full room: no point hammering it, a seat frees up when someone leaves.
-      this.reconnectTimer = setTimeout(() => { this.attempts++; this.open() }, this.full ? FULL_RETRY_MS : backoffDelay(this.attempts))
+      this.reconnectTimer = setTimeout(() => { this.attempts++; this.open() }, this.retryDelay(ev?.code))
     }
     ws.onerror = () => { /* onclose follows */ }
   }

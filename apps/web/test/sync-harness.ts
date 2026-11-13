@@ -13,7 +13,7 @@
 import { type EventBody, type ReplicaRecord, type ReplicaStorePort, signEvent } from '@retroboard/application'
 import { deriveContentKey, fromBase64Url, randomKey, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { type Command, type KeyRing, LIMITS, type Snapshot } from '@retroboard/domain'
-import { type Budgets, checkFrame, type Envelope, EnvelopeBuffer, envelopeAad, PROTOCOL_VERSION, type RelayFrame } from '@retroboard/protocol'
+import { type Budgets, CLOSE_RATE_LIMIT, CLOSE_TOO_LARGE, checkFrame, type Envelope, EnvelopeBuffer, envelopeAad, PROTOCOL_VERSION, type RelayFrame } from '@retroboard/protocol'
 import { vi } from 'vitest'
 import { createSessionAgreement, createSessionSigner, ed25519Verifier, signerFor } from '../app/adapters/signing'
 import type { SessionAgreement } from '../app/transport/room-move'
@@ -40,6 +40,8 @@ export class FakeRelay {
   down = false
   /** When true, `pub` frames are dropped: the relay holds no board events, as with a complete mesh (ADR-0024). */
   refusePub = false
+  /** Budgets of another relay version, tighter than this client's: a frame over them is refused (1009 size, 1008 rate on `pub`). */
+  tighter = { frameBytes: Infinity, frames: Infinity }
   /**
    * Connection ids. Ascending by default (join order), so the order of the mesh, the bridge and the
    * seeder is the same on every run; the real relay uses random ids, set `random` to try those.
@@ -53,7 +55,7 @@ export class FakeRelay {
   /** The Durable Object was evicted: memory is gone, sockets are closed. */
   evict(): void {
     this.buffer = new EnvelopeBuffer()
-    for (const s of [...this.sockets.values()]) { this.closes.push(1001); s.serverClose() }
+    for (const s of [...this.sockets.values()]) { this.closes.push(1001); s.serverClose(1001) }
   }
 
   /**
@@ -98,9 +100,11 @@ export class FakeRelay {
     if (text === 'ping') return
     // Same checks as the Durable Object: a frame that is too large or over the rate budget closes the socket.
     const checked = checkFrame(socket.budget, text, Date.now(), LIMITS.rateWindowMs)
-    if (checked.verdict === 'close') { this.closes.push(checked.code); socket.serverClose(); return }
+    if (checked.verdict === 'close') { this.closes.push(checked.code); socket.serverClose(checked.code); return }
     const frame = checked.verdict === 'ok' ? checked.frame : null
     if (!frame) return
+    const refusal = this.refusalOf(socket, text, frame.t === 'pub')
+    if (refusal) { this.closes.push(refusal.code); socket.serverClose(refusal.code); return }
     if (frame.t === 'pub') {
       if (this.refusePub) return
       this.stats.pubFrames++
@@ -115,6 +119,12 @@ export class FakeRelay {
       const to = this.sockets.get(frame.to)
       if (to && socket.conn) to.toClient({ t: 'sig', from: socket.conn, env: frame.env })
     }
+  }
+
+  /** What the tighter budgets of another relay version refuse: a frame over their size, a `pub` over their rate. */
+  private refusalOf(socket: FakeSocket, text: string, pub: boolean): { code: number } | null {
+    if (text.length > this.tighter.frameBytes) return CLOSE_TOO_LARGE
+    return pub && socket.budget.count > this.tighter.frames ? CLOSE_RATE_LIMIT : null
   }
 
   private conns(): string[] { return [...this.sockets.keys()].sort() }
@@ -135,11 +145,11 @@ export class FakeSocket {
   readonly budget: Budgets = { windowStart: Date.now(), count: 0 }
   onopen: (() => void) | null = null
   onmessage: ((ev: { data: string }) => void) | null = null
-  onclose: (() => void) | null = null
+  onclose: ((ev: { code: number }) => void) | null = null
   onerror: (() => void) | null = null
   constructor(readonly relay: FakeRelay, private readonly net: { online: boolean }) {
     setTimeout(() => {
-      if (!this.net.online || this.relay.down) { this.readyState = 3; this.onclose?.(); return }
+      if (!this.net.online || this.relay.down) { this.readyState = 3; this.onclose?.({ code: 1006 }); return }
       this.readyState = 1
       this.onopen?.()
       this.relay.accept(this)
@@ -159,12 +169,12 @@ export class FakeSocket {
     this.readyState = 3
     this.relay.closed(this)
   }
-  /** Server or network closes. */
-  serverClose(): void {
+  /** Server or network closes: `code` as the browser reports it (1006 for a dropped connection). */
+  serverClose(code = 1006): void {
     if (this.readyState === 3) return
     this.readyState = 3
     this.relay.closed(this)
-    setTimeout(() => this.onclose?.(), 0)
+    setTimeout(() => this.onclose?.({ code }), 0)
   }
 }
 
