@@ -119,7 +119,7 @@ Plaintext (encrypted)       = { type, actor (pubkey hash), payload, signature }
 
 ### 5.3 Relay behaviour (Durable Object, memory only)
 
-- Admission: origin (`apps/relay/src/origin.ts`), room id format, at most 30 connections per room, frame size (256 KB, ciphertext of one message 16 KB), frame rate per connection (`packages/protocol/src/budgets.ts`). Planned and not built: entitlement token (change `licensing-and-monetization`) and a room lifetime cap. No Turnstile: ADR-0019 chose edge protection instead.
+- Admission: origin (`apps/relay/src/core/origin.ts`), room id format, at most 30 connections per room, frame size (256 KB, ciphertext of one message 16 KB), frame rate per connection (`packages/protocol/src/budgets.ts`). Planned and not built: entitlement token (change `licensing-and-monetization`) and a room lifetime cap. No Turnstile: ADR-0019 chose edge protection instead.
 - Fan-out of envelopes to the other sockets of the room.
 - Bounded ring buffer of the last N envelopes in memory (e.g. 2,000 or 4 MB) for fast catch-up.
 - WebRTC signalling: forwards SDP offers/answers and ICE candidates between peers (encrypted too).

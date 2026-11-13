@@ -21,6 +21,8 @@
     // TLS ends at the reverse proxy in front of the container.
     "SELF_HOSTED": "1",
     // All clients share one address behind the proxy: the per-address page limit would block everyone.
-    "RATE_LIMIT_PER_MIN": "0"
+    "RATE_LIMIT_PER_MIN": "0",
+    // Same header as production (the limiter is off here, so the value is never a key).
+    "CLIENT_IP_HEADER": "CF-Connecting-IP"
   }
 }

@@ -1,6 +1,6 @@
 // Post-generate step: writes `_headers` so the asset layer sends the security headers of the hashed files under /_nuxt/,
 // which no longer pass through the Worker (wrangler.jsonc `run_worker_first`, ADR-0034).
-// These values are a copy of `withSecurityHeaders` in apps/relay/src/headers.ts (this script cannot import the relay package);
+// These values are a copy of `withSecurityHeaders` in apps/relay/src/core/headers.ts (this script cannot import the relay package);
 // scripts/ci/test/asset-headers.test.ts fails when the two drift.
 // No Cache-Control on purpose: `_headers` also decorates the 404 of a missing file, and an immutable 404 would stay in the
 // browser cache for a year. Without it the platform default (`max-age=0, must-revalidate`) applies and a revisit costs a free 304.

@@ -1,3 +1,8 @@
+/** The static files of the site, whatever serves them (the Cloudflare asset layer, a file reader on Node). */
+export interface AssetsPort {
+  fetch(request: Request | string): Promise<Response>
+}
+
 export interface CspHashes {
   scripts: string[]
   styles: string[]
@@ -7,7 +12,7 @@ const EMPTY: CspHashes = { scripts: [], styles: [] }
 
 /** Hashes of the inline scripts and styles Nuxt emits, written by scripts/csp-hashes.mjs at build time. */
 let cache: Promise<CspHashes> | null = null
-export function loadCspHashes(assets: Fetcher): Promise<CspHashes> {
+export function loadCspHashes(assets: AssetsPort): Promise<CspHashes> {
   cache ??= assets
     .fetch('https://assets.invalid/_csp.json')
     .then((r) => (r.ok ? (r.json() as Promise<CspHashes>) : EMPTY))

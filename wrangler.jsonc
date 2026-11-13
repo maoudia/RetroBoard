@@ -48,6 +48,8 @@
   "vars": {
     // Comma separated extra origins allowed to open the WebSocket. Used by `nuxt dev` on :3000.
     "ALLOWED_ORIGINS": "",
+    // The header the page limiter reads the client address from (the only forwarding header trusted, portable-relay-core 2.2).
+    "CLIENT_IP_HEADER": "CF-Connecting-IP",
     // Chrome origin trial tokens for WebMCP, one per origin (public values). Expire 2027-03-30.
     // Registered at https://developer.chrome.com/origintrials; see docs/webmcp.md.
     "ORIGIN_TRIAL_TOKENS": {
