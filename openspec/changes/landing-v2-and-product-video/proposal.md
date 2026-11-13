@@ -11,7 +11,6 @@ The landing must explain the product in seconds (a product video), say clearly t
 - Section "Open source, fair business": AGPL-3.0 license, link to the repository and its source (AGPL section 13), self-hosting allowed, commercial license available, no tracking.
 - Pricing section (Free, Pro, Team, packs) from `licensing-and-monetization`.
 - Updated feature sections (agenda ring, podium, cursors, E2E, agents, exports).
-- Prerendered landing (hybrid rendering, ADR-0038): the hero and the sections are served in the HTML, Lighthouse mobile above 95 and accessibility 100 (R2 launch gate).
 
 Out of scope: blog, docs site.
 

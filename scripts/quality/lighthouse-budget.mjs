@@ -4,7 +4,7 @@ export function categories(budgets) {
   return Object.keys(budgets).filter((k) => k !== 'pages')
 }
 
-/** Minimums for one page: the global ones, raised by the page's own entry (`pages`, change landing-v2-and-product-video). */
+/** Minimums for one page: the global ones, raised by the page's own entry (`pages`, change landing-speed-and-accessibility). */
 export function budgetFor(budgets, page) {
   const { pages = {}, ...global } = budgets
   return { ...global, ...(pages[page] ?? {}) }

@@ -12,7 +12,7 @@ Every route was a client-rendered shell (`ssr: false`): the HTML of the landing 
 and its largest contentful paint (the hero subtitle) waited for the whole entry bundle (about 190 KiB of modulepreloaded
 scripts), then the page chunk, then its stylesheet. On the mobile profile Lighthouse scored 90 locally (LCP 3.6 s) and
 91 in the launch study; the R2 gate asks for more than 95 on the landing (`docs/roadmap.md`, change
-`landing-v2-and-product-video`, task group 3). How does the landing paint before any script, within the constraints of
+`landing-speed-and-accessibility`). How does the landing paint before any script, within the constraints of
 a static site under a strict CSP?
 
 ## Decision Drivers
