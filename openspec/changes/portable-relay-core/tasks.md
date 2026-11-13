@@ -14,9 +14,9 @@
 
 ## 3. Node adapter
 
-- [ ] 3.1 `apps/relay/src/adapters/node.ts` with `ws` (license checked, `pnpm licenses:check`): static reader with the asset-layer rules (exact, `.html`, `/index.html`, SPA shell, hashed-asset 404, `ETag` and 304, `HEAD`, traversal-safe), `/ws2` through `admitUpgrade`, in-process room registry with the core, `ping` to `pong`; esbuild bundle script to `apps/relay/dist/node.mjs`; verify `node apps/relay/dist/node.mjs` serves the generated site and `node scripts/smoke.mjs http://localhost:PORT` passes 10/10
-- [ ] 3.2 Hardening: `maxPayload = MAX_FRAME_BYTES`, ping and idle timeout, `bufferedAmount` guard, per-address connection cap and connect rate, `SIGTERM` drain with close 1001; verify unit tests of the pure pieces (address book, idle policy) and a script test that an oversized frame closes with 1009 and a `SIGTERM` closes the sockets with 1001
-- [ ] 3.3 Node logs never carry a URL: a test greps the adapter's log output of a full smoke run for the room id and the path; verify the test passes and `knip`, `lint`, `typecheck` stay green with the new entry point
+- [x] 3.1 `apps/relay/src/adapters/node.ts` with `ws` (license checked, `pnpm licenses:check`): static reader with the asset-layer rules (exact, `.html`, `/index.html`, SPA shell, hashed-asset 404, `ETag` and 304, `HEAD`, traversal-safe), `/ws2` through `admitUpgrade`, in-process room registry with the core, `ping` to `pong`; esbuild bundle script to `apps/relay/dist/node.mjs`; verify `node apps/relay/dist/node.mjs` serves the generated site and `node scripts/smoke.mjs http://localhost:PORT` passes 10/10
+- [x] 3.2 Hardening: `maxPayload = MAX_FRAME_BYTES`, ping and idle timeout, `bufferedAmount` guard, per-address connection cap and connect rate, `SIGTERM` drain with close 1001; verify unit tests of the pure pieces (address book, idle policy) and a script test that an oversized frame closes with 1009 and a `SIGTERM` closes the sockets with 1001
+- [x] 3.3 Node logs never carry a URL: a test greps the adapter's log output of a full smoke run for the room id and the path; verify the test passes and `knip`, `lint`, `typecheck` stay green with the new entry point
 
 ## 4. Adapter contract suite and CI targets
 

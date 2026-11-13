@@ -36,6 +36,8 @@
     "apps/relay": {
       "entry": [
         "src/index.ts",
+        "src/adapters/node.ts",
+        "scripts/*.mjs",
         "test/**/*.ts"
       ],
       "ignoreDependencies": [

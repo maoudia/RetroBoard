@@ -6,10 +6,16 @@
   "license": "AGPL-3.0-only",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json",
-    "types": "wrangler types --path worker-configuration.d.ts --config ../../wrangler.jsonc"
+    "types": "wrangler types --path worker-configuration.d.ts --config ../../wrangler.jsonc",
+    "build:node": "node scripts/build-node.mjs"
   },
   "dependencies": {
     "@retroboard/domain": "workspace:*",
-    "@retroboard/protocol": "workspace:*"
+    "@retroboard/protocol": "workspace:*",
+    "ws": "8.22.0"
+  },
+  "devDependencies": {
+    "@types/ws": "8.18.2",
+    "esbuild": "0.28.2"
   }
 }
