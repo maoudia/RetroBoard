@@ -6,7 +6,7 @@ and then `.github/workflows/quality-reports.yml` (the slow tail: the rest of the
 | Job (workflow) | What | Kept as |
 |---|---|---|
 | Unit tests and coverage (quality) | Vitest with v8 coverage and the coverage ratchets | Pages `coverage/`, `unit/results.json`; artifact `quality-unit` |
-| Playwright core (chromium, 2 shards; quality) | The push gate: the specs of `tests/e2e/core.json` against `wrangler dev` | The Allure report; artifact `playwright-<project>-<n>` (HTML report, JSON, traces) |
+| Playwright core (chromium, 2 shards; quality) | The push gate: the specs of `tests/e2e/core.json` against the Node adapter (`E2E_TARGET=node`), then against `wrangler dev` in the job "Playwright wrangler" | The Allure report; artifact `playwright-<project>-<n>` (HTML report, JSON, traces) |
 | Playwright rest of the suite (chromium, 5 shards; reports) | Every spec outside the gate (`pnpm e2e:rest`), so Allure holds the whole suite once. Does not gate the run (`continue-on-error`); the nightly run repeats it on every browser | The Allure report; artifact `playwright-rest-<n>` |
 | Mutation testing (reports) | Stryker on the pure packages, one full pass per package in parallel (6 shards), merged and compared with the floors by the ratchet job | Pages `mutation/` (one report per package); artifacts `mutation-shard-<package>`, `quality-mutation` |
 | Allure report (unit + every e2e shard + mutation) | `allure-vitest` and `allure-playwright` write raw results when `ALLURE_RESULTS_DIR` is set; `allure generate` aggregates them with a history file kept on Pages; `scripts/quality/mutation-allure.mjs` turns the Stryker report into results (one per package, one failed result per undetected mutant) | Pages `allure/` (report and `history.jsonl`); artifacts `allure-results-*` |
@@ -31,6 +31,17 @@ E2E_TARGET=node pnpm e2e:core                           # the push gate against 
 `E2E_TARGET` is read by `playwright.config.ts` (so `pnpm e2e` and `pnpm e2e:core` both honour it): `node` bundles the adapter, starts it on the
 generated site with its per-address caps off (every test comes from 127.0.0.1) and the specs run unchanged. The contract script takes any base URL;
 `apps/relay/test/node.test.ts` also runs it against an in-process adapter, and fails when the limits the script mirrors drift from `LIMITS`.
+
+In CI (`e2e.yml` on pull requests, `quality.yml` on main, `nightly.yml`):
+
+| Job | Runs |
+|---|---|
+| `Playwright (chromium 1/2)`, `(2/2)` (the required checks) | `pnpm e2e:core` with `E2E_TARGET=node` |
+| `Playwright wrangler (chromium 1/2)`, `(2/2)` | `pnpm e2e:core` against `wrangler dev` (pull requests and main) |
+| `Relay checks (node)`, `Relay checks (workerd)` | `scripts/ci/relay-checks.sh <target>`: starts the target on the generated site, runs the smoke test and the contract |
+| Nightly `Playwright (...)` | the full suite with `E2E_TARGET=workerd`, plus the two `Relay checks` jobs |
+
+The deploy and release gates wait for the whole Quality run, so a regression on either runtime blocks them.
 
 ## Nightly gate
 

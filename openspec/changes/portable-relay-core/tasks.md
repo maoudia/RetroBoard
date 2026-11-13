@@ -21,7 +21,7 @@
 ## 4. Adapter contract suite and CI targets
 
 - [x] 4.1 Relay protocol script (`scripts/relay-contract.mjs`): two sockets on one room, asserts the frame sequences of the `relay-core` spec against any base URL; verify it passes against `wrangler dev` and the Node adapter
-- [ ] 4.2 CI: push gate runs smoke, the contract script and `pnpm e2e:core` against the Node adapter; a second job and the nightly run them against `wrangler dev`; `scripts/e2e-core.mjs` and `playwright.config.ts` take the target from an environment variable; verify both jobs green on the pull request including the WebRTC specs in CI (workflow edits need the maintainer's request in the issue; otherwise document the change and leave it as a follow-up)
+- [x] 4.2 CI: push gate runs smoke, the contract script and `pnpm e2e:core` against the Node adapter; a second job and the nightly run them against `wrangler dev`; `scripts/e2e-core.mjs` and `playwright.config.ts` take the target from an environment variable; verify both jobs green on the pull request including the WebRTC specs in CI (workflow edits need the maintainer's request in the issue; otherwise document the change and leave it as a follow-up)
 
 ## 5. Container on the Node adapter
 
