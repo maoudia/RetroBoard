@@ -4,10 +4,12 @@ import { join } from 'node:path'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import WebSocket from 'ws'
 import { LIMITS } from '@retroboard/domain'
-import { MAX_FRAME_BYTES } from '@retroboard/protocol'
+import { EPH_MAX, FRAME_MAX, MAX_FRAME_BYTES } from '@retroboard/protocol'
 import { type NodeServer, type NodeOptions, settingsFromEnv, startServer } from '../src/adapters/node'
 // @ts-expect-error plain ESM script without types
 import { runSmoke } from '../../../scripts/smoke.mjs'
+// @ts-expect-error plain ESM script without types
+import { LIMITS as contractLimits, runContract } from '../../../scripts/relay-contract.mjs'
 
 const ROOM = 'Ab3dEfGhIjKlMnOpQrStUv'
 let publicDir = ''
@@ -244,4 +246,12 @@ describe('Node adapter: logs never carry a URL', () => {
     }
     expect(adapter.some((l) => l.includes('"ws.open"'))).toBe(true)
   })
+})
+
+describe('Node adapter: relay contract', () => {
+  it('passes the relay contract script, over the limits the script mirrors', async () => {
+    expect(contractLimits).toEqual({ maxConnections: LIMITS.maxConnections, boardFrames: FRAME_MAX, liveFrames: EPH_MAX, maxFrameBytes: MAX_FRAME_BYTES })
+    const { base } = await serve({ maxConnectionsPerAddress: 0, maxConnectsPerMinute: 0 })
+    expect(await runContract(base, { log: () => { /* quiet */ } })).toEqual([])
+  }, 30_000)
 })

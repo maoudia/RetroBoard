@@ -2,6 +2,19 @@ import { availableParallelism } from 'node:os'
 import { defineConfig, devices } from '@playwright/test'
 
 const port = Number(process.env.E2E_PORT ?? 8787)
+
+// The relay under test (change portable-relay-core): `workerd` is `wrangler dev` (the Worker and the Durable Object, the default),
+// `node` is the Node adapter serving the same generated site. The specs are the same on both; only the server differs.
+const target = process.env.E2E_TARGET ?? 'workerd'
+if (target !== 'workerd' && target !== 'node') throw new Error(`E2E_TARGET must be workerd or node, got "${target}"`)
+// The Node target bundles the adapter first. Its per-address caps are off: every test of a worker comes from 127.0.0.1.
+const servers = {
+  workerd: { command: `npx wrangler dev --port ${port} --ip 127.0.0.1`, env: {} },
+  node: {
+    command: 'pnpm --filter @retroboard/relay build:node && node apps/relay/dist/node.mjs',
+    env: { PORT: String(port), HOST: '127.0.0.1', PUBLIC_DIR: 'apps/web/.output/public', RATE_LIMIT_PER_MIN: '0', MAX_CONNECTIONS_PER_ADDRESS: '0', MAX_CONNECTS_PER_MINUTE: '0' },
+  },
+}
 // CI runners have 2 cores: Chromium is CPU bound there, a second worker gained 12% and made tests flaky, so CI keeps one.
 // Every test uses its own room, so a developer machine runs a third of its cores (at most 4): the core gate takes a
 // couple of minutes, not a quarter of an hour. E2E_WORKERS overrides both.
@@ -59,9 +72,9 @@ export default defineConfig({
         ]
       : []),
   ],
-  // Serves the generated site and the Durable Object exactly like production.
+  // Serves the generated site and the relay: the Worker and the Durable Object exactly like production, or the Node adapter.
   webServer: {
-    command: `npx wrangler dev --port ${port} --ip 127.0.0.1`,
+    ...servers[target],
     url: `http://127.0.0.1:${port}/healthz`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
