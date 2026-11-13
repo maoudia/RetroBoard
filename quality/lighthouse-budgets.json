@@ -1,5 +1,8 @@
 {
   "performance": 0.8,
   "accessibility": 0.95,
-  "best-practices": 0.9
+  "best-practices": 0.9,
+  "pages": {
+    "landing": { "performance": 0.95, "accessibility": 1 }
+  }
 }
