@@ -5,6 +5,6 @@ import { createJoiner, type JoinerState } from '~/utils/join-flow'
 export function useJoinByCode() {
   const config = useRuntimeConfig()
   const ui = reactive<JoinerState>({ state: 'idle', number: '' })
-  const joiner = createJoiner({ openChannel: (code, handlers) => openJoinChannel(code, String(config.public.wsUrl ?? ''), handlers), origin: window.location.origin }, ui)
+  const joiner = createJoiner({ openChannel: (code, handlers) => openJoinChannel(code, String(config.public.wsUrl ?? ''), handlers), origin: import.meta.client ? window.location.origin : '' }, ui)
   return { ...toRefs(ui), join: joiner.join, cancel: joiner.cancel }
 }

@@ -21,7 +21,7 @@ Split out of the former master plan on 2026-11-05 (change stabilise-main, docs t
         |                                              |
 +-------+----------------------------+   WebRTC   +----+-------------------------------+
 | Browser A (facilitator)            |<---------->| Browser B (participant)            |
-|  apps/web (Nuxt SPA, PWA)          |  cursors,  |  same code                         |
+|  apps/web (Nuxt 4, PWA)            |  cursors,  |  same code                         |
 |  application (use cases)           |  presence  |                                    |
 |  domain (pure)                     |            |                                    |
 |  sync: event log + HLC + replica   |            |  replica in IndexedDB (encrypted)  |
@@ -36,7 +36,7 @@ Split out of the former master plan on 2026-11-05 (change stabilise-main, docs t
 
 ```
 apps/
-  web/            Nuxt 4 SPA (presentation + composition root). No domain logic.
+  web/            Nuxt 4 app, generated static: the landing is prerendered (ADR-0038), every other route is a client-rendered shell (presentation + composition root). No domain logic.
   relay/          Cloudflare Worker + Durable Object (adapter of RelayPort, server side).
   mcp/            @retroboard/mcp, Node stdio MCP server (adapter of RelayPort + tools).
 packages/

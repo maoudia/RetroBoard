@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import type { ThemeDefinition } from '@retroboard/themes'
+import { THEMES, type ThemeDefinition } from '@retroboard/themes'
 
 defineProps<{ theme: ThemeDefinition }>()
+
+/** One rule per theme, from the theme data: the landing is prerendered under a strict CSP, so colours are never style attributes. */
+const swatchCss = THEMES.map(({ id, tokens: k, noteColors }) =>
+  `.lp-swatch[data-theme="${id}"]{--bg:${k.bg};--bg2:${k.bg2};--sf:${k.surface};--bd:${k.border};--tx:${k.text};--mu:${k.muted};--ac:${k.accent};${noteColors.map((c, i) => `--n${i}:${c}`).join(';')}}`).join('')
+useHead({ style: [{ key: 'landing-swatches', innerHTML: swatchCss }] })
 </script>
 
 <template>
-  <figure class="tc" :style="{ '--bg': theme.tokens.bg, '--bg2': theme.tokens.bg2, '--sf': theme.tokens.surface, '--bd': theme.tokens.border, '--tx': theme.tokens.text, '--mu': theme.tokens.muted, '--ac': theme.tokens.accent }">
+  <figure class="tc lp-swatch" :data-theme="theme.id">
     <div class="screen">
       <div class="top"><i class="logo" /><span class="t" /><span class="pillx" /></div>
       <div class="cols">
         <div v-for="c in 3" :key="c" class="c">
           <span class="h" />
-          <i v-for="k in (c === 2 ? 2 : 3)" :key="k" class="n" :style="{ background: theme.noteColors[(c * 2 + k) % 8], '--r': `${((c + k) % 3 - 1) * 1.6}deg` }" />
+          <i v-for="k in (c === 2 ? 2 : 3)" :key="k" class="n" />
         </div>
       </div>
     </div>
@@ -32,5 +37,9 @@ defineProps<{ theme: ThemeDefinition }>()
 .c { display: grid; gap: 6px; align-content: start; padding: 7px; border-radius: var(--r-sm); background: var(--sf); border: 1px solid var(--bd); }
 .h { width: 55%; height: 5px; border-radius: 3px; background: var(--mu); opacity: .8; }
 .n { display: block; height: 18px; border-radius: 3px; rotate: var(--r); box-shadow: 0 3px 6px -3px rgb(0 0 0 / .4); }
+/* The sticky notes: the theme's note colours around the loop, each leaning its own way. */
+.c:nth-child(1) .n:nth-of-type(1) { background: var(--n3); --r: 1.6deg; } .c:nth-child(1) .n:nth-of-type(2) { background: var(--n4); --r: -1.6deg; } .c:nth-child(1) .n:nth-of-type(3) { background: var(--n5); --r: 0deg; }
+.c:nth-child(2) .n:nth-of-type(1) { background: var(--n5); --r: -1.6deg; } .c:nth-child(2) .n:nth-of-type(2) { background: var(--n6); --r: 0deg; }
+.c:nth-child(3) .n:nth-of-type(1) { background: var(--n7); --r: 0deg; } .c:nth-child(3) .n:nth-of-type(2) { background: var(--n0); --r: 1.6deg; } .c:nth-child(3) .n:nth-of-type(3) { background: var(--n1); --r: -1.6deg; }
 figcaption { display: grid; gap: 2px; text-align: left; } figcaption strong { color: #1d1d1f; font-size: var(--fs-md); } figcaption small { color: #6e6e73; }
 </style>

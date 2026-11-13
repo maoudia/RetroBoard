@@ -87,7 +87,7 @@ Private drafts, votes, groups, a shared agenda with timer, presenter mode, chat,
 ## Architecture
 
 ```
-Browser (Nuxt SPA, generated)                 Cloudflare
+Browser (Nuxt, prerendered landing)           Cloudflare
 +-----------------------------+              +--------------------------------+
 | pages / components          |  WebSocket   | Worker (apps/relay)            |
 | Pinia stores                | <==========> |  - serves .output/public       |
@@ -176,7 +176,7 @@ Add `packages/i18n/src/<code>.ts` typed as `Record<keyof typeof fr, string>` (th
 ## Project layout
 
 ```
-apps/web/          Nuxt 4 SPA: pages, components, Pinia view models, adapters, composition root; the generated user guide (public/guide)
+apps/web/          Nuxt 4 app (static, landing prerendered): pages, components, Pinia view models, adapters, composition root; the generated user guide (public/guide)
 apps/relay/        Cloudflare Worker + Durable Object relay, security headers, logger
 packages/domain/   Pure domain by bounded context: ideation, voting, action-tracking, facilitation, access, presence, catalogue
 packages/application/  Use cases, ports, read models

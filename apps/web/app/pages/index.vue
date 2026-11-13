@@ -17,6 +17,8 @@ const tab = ref<'pro' | 'fun'>('pro')
 const themes = computed(() => THEMES.filter((t) => t.group === tab.value))
 const scrolled = ref(false)
 const tilt = reactive({ x: 0, y: 0 })
+/** Bound only while the pointer tilts the stage: the page is prerendered under a strict CSP, so the markup carries no style attribute. */
+const tiltStyle = computed(() => (tilt.x || tilt.y ? { style: { transform: `perspective(1400px) rotateX(${-tilt.y * 2.5}deg) rotateY(${tilt.x * 3.5}deg)` } } : {}))
 
 /** Join by pasting the board link (change join-by-link): only the part after the # is used, and it never leaves the browser. */
 const joinText = ref('')
@@ -59,17 +61,17 @@ onMounted(() => {
   const onScroll = () => { scrolled.value = window.scrollY > 12 }
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
-  const els = document.querySelectorAll<HTMLElement>('.lp [data-reveal]')
-  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    els.forEach((e) => e.classList.add('in'))
-  } else {
-    const io = new IntersectionObserver((entries) => {
-      for (const en of entries) if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target) }
-    }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' })
-    els.forEach((e) => io.observe(e))
-    onBeforeUnmount(() => io.disconnect())
-  }
   onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
+  // What is on screen plays its entrance from the stylesheet (the prerendered hero needs no script for it); the
+  // blocks below the fold wait for the scroll.
+  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const fold = window.innerHeight
+  const below = [...document.querySelectorAll<HTMLElement>('.lp [data-reveal]')].filter((e) => e.getBoundingClientRect().top >= fold)
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target) }
+  }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' })
+  for (const e of below) { e.classList.add('wait'); io.observe(e) }
+  onBeforeUnmount(() => io.disconnect())
 })
 </script>
 
@@ -90,17 +92,17 @@ onMounted(() => {
     </header>
 
     <LazyTeamJoin v-if="joiningTeam" />
-    <main>
+    <main id="main">
       <section class="hero">
         <span class="eyebrow" data-reveal><Icon name="lucide:sparkles" /> {{ t('landing.eyebrow') }}</span>
-        <h1 data-reveal :style="{ '--d': '80ms' }" data-testid="hero-title">{{ t('landing.hero.a') }}<br />{{ t('landing.hero.b') }}</h1>
-        <p class="sub" data-reveal :style="{ '--d': '160ms' }">{{ t('landing.sub') }}</p>
-        <div class="actions" data-reveal :style="{ '--d': '240ms' }">
+        <h1 data-reveal data-d="1" data-testid="hero-title">{{ t('landing.hero.a') }}<br />{{ t('landing.hero.b') }}</h1>
+        <p class="sub" data-reveal data-d="2">{{ t('landing.sub') }}</p>
+        <div class="actions" data-reveal data-d="3">
           <NuxtLink to="/new" class="cta" data-testid="hero-create">{{ t('landing.create') }} <Icon name="lucide:arrow-right" /></NuxtLink>
           <button class="ghost" type="button" data-testid="solo" @click="solo">{{ t('landing.trySolo') }}</button>
         </div>
-        <a class="guide-pill" :href="guideHref" data-reveal :style="{ '--d': '260ms' }" data-testid="landing-guide"><Icon name="lucide:book-open" /> {{ t('landing.guide') }} <Icon name="lucide:arrow-right" /></a>
-        <form class="join" data-reveal :style="{ '--d': '280ms' }" data-testid="join-form" @submit.prevent="join">
+        <a class="guide-pill" :href="guideHref" data-reveal data-d="3" data-testid="landing-guide"><Icon name="lucide:book-open" /> {{ t('landing.guide') }} <Icon name="lucide:arrow-right" /></a>
+        <form class="join" data-reveal data-d="4" data-testid="join-form" @submit.prevent="join">
           <label class="sr" for="join-input">{{ t('landing.join.label') }}</label>
           <input id="join-input" v-model="joinText" type="text" inputmode="url" autocomplete="off" spellcheck="false" :placeholder="t('landing.join.placeholder')" :aria-invalid="joinError" :aria-describedby="joinError ? 'join-error' : undefined" data-testid="join-input" @input="joinError = false" />
           <button type="submit" class="ghost" data-testid="join-go"><Icon name="lucide:log-in" /> {{ t('landing.join.go') }}</button>
@@ -111,14 +113,14 @@ onMounted(() => {
           </p>
           <p v-if="joinError" id="join-error" class="join-error" role="alert" data-testid="join-error">{{ t('landing.join.invalid') }}</p>
         </form>
-        <section v-if="recents.items.length" class="mine card" data-reveal :style="{ '--d': '300ms' }" data-testid="landing-recents" :aria-label="t('landing.recents')">
+        <section v-if="recents.items.length" class="mine card" data-reveal data-d="4" data-testid="landing-recents" :aria-label="t('landing.recents')">
           <h2>{{ t('landing.recents') }} <span class="muted n">{{ t('profile.recents.where') }}</span></h2>
           <TeamSwitcher />
           <RecentBoards :limit="4" testid="landing-recents-list" />
         </section>
 
-        <div class="stage" data-reveal :style="{ '--d': '340ms' }" @pointermove="onMove" @pointerleave="onLeave">
-          <div class="tilt" :style="{ transform: `perspective(1400px) rotateX(${-tilt.y * 2.5}deg) rotateY(${tilt.x * 3.5}deg)` }"><LandingHeroMock /></div>
+        <div class="stage" data-reveal data-d="4" @pointermove="onMove" @pointerleave="onLeave">
+          <div class="tilt" v-bind="tiltStyle"><LandingHeroMock /></div>
         </div>
       </section>
 
@@ -133,14 +135,14 @@ onMounted(() => {
         <h2 data-reveal>{{ t('landing.features.h') }} <span class="dim">{{ t('landing.features.dim') }}</span></h2>
         <div class="bento">
           <article class="card wide" data-reveal>
-            <div class="vis v-live" aria-hidden="true"><b :style="{ '--h': '210' }">A</b><b :style="{ '--h': '140' }">B</b><b :style="{ '--h': '320' }">C</b><b :style="{ '--h': '40' }">D</b><i class="ping" /></div>
+            <div class="vis v-live" aria-hidden="true"><b>A</b><b>B</b><b>C</b><b>D</b><i class="ping" /></div>
             <h3>{{ t('landing.f.live.h') }}</h3><p>{{ t('landing.f.live.p') }}</p>
           </article>
-          <article class="card" data-reveal :style="{ '--d': '80ms' }">
+          <article class="card" data-reveal data-d="1">
             <div class="vis v-private" aria-hidden="true"><i class="draft" /><i class="shared" /></div>
             <h3>{{ t('landing.f.private.h') }}</h3><p>{{ t('landing.f.private.p') }}</p>
           </article>
-          <article class="card" data-reveal :style="{ '--d': '160ms' }">
+          <article class="card" data-reveal data-d="2">
             <div class="vis v-group" aria-hidden="true"><i /><i /><i /></div>
             <h3>{{ t('landing.f.group.h') }}</h3><p>{{ t('landing.f.group.p') }}</p>
           </article>
@@ -148,7 +150,7 @@ onMounted(() => {
             <div class="vis v-timer" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" class="bg" /><circle cx="40" cy="40" r="32" class="fg" /></svg><span>05:00</span></div>
             <h3>{{ t('landing.f.timer.h') }}</h3><p>{{ t('landing.f.timer.p') }}</p>
           </article>
-          <article class="card" data-reveal :style="{ '--d': '80ms' }">
+          <article class="card" data-reveal data-d="1">
             <div class="vis v-suggest" aria-hidden="true"><span>Mad / Sad / Glad</span><span>4 Ls</span><span>Voilier</span></div>
             <h3>{{ t('landing.f.suggest.h') }}</h3><p>{{ t('landing.f.suggest.p') }}</p>
           </article>
@@ -157,8 +159,8 @@ onMounted(() => {
 
       <section id="themes" class="sec alt">
         <h2 data-reveal>{{ t('landing.themes.h') }}</h2>
-        <p class="lead" data-reveal :style="{ '--d': '80ms' }">{{ t('landing.themes.lead') }}</p>
-        <div class="tabs" data-reveal :style="{ '--d': '120ms' }" role="tablist">
+        <p class="lead" data-reveal data-d="1">{{ t('landing.themes.lead') }}</p>
+        <div class="tabs" data-reveal data-d="2" role="tablist">
           <button type="button" role="tab" :aria-selected="tab === 'pro'" data-testid="lp-tab-pro" @click="tab = 'pro'">{{ t('landing.themes.pro') }}</button>
           <button type="button" role="tab" :aria-selected="tab === 'fun'" data-testid="lp-tab-fun" @click="tab = 'fun'">{{ t('landing.themes.fun') }}</button>
         </div>
@@ -171,8 +173,8 @@ onMounted(() => {
         <h2 data-reveal>{{ t('landing.how.h') }}</h2>
         <ol class="steps">
           <li data-reveal><span class="n">1</span><h3>{{ t('landing.how.1.h') }}</h3><p>{{ t('landing.how.1.p') }}</p></li>
-          <li data-reveal :style="{ '--d': '100ms' }"><span class="n">2</span><h3>{{ t('landing.how.2.h') }}</h3><p>{{ t('landing.how.2.p') }}</p></li>
-          <li data-reveal :style="{ '--d': '200ms' }"><span class="n">3</span><h3>{{ t('landing.how.3.h') }}</h3><p>{{ t('landing.how.3.p') }}</p></li>
+          <li data-reveal data-d="1"><span class="n">2</span><h3>{{ t('landing.how.2.h') }}</h3><p>{{ t('landing.how.2.p') }}</p></li>
+          <li data-reveal data-d="2"><span class="n">3</span><h3>{{ t('landing.how.3.h') }}</h3><p>{{ t('landing.how.3.p') }}</p></li>
         </ol>
       </section>
 
@@ -180,9 +182,9 @@ onMounted(() => {
         <h2 data-reveal>{{ t('landing.privacy.h') }}</h2>
         <ul class="privacy">
           <li data-reveal><Icon name="lucide:user-round" /><strong>{{ t('landing.p.noaccount.h') }}</strong><span>{{ t('landing.p.noaccount.p') }}</span></li>
-          <li data-reveal :style="{ '--d': '80ms' }"><Icon name="lucide:timer" /><strong>{{ t('landing.p.ephemeral.h') }}</strong><span>{{ t('landing.p.ephemeral.p') }}</span></li>
-          <li data-reveal :style="{ '--d': '160ms' }"><Icon name="lucide:lock" /><strong>{{ t('landing.p.notrack.h') }}</strong><span>{{ t('landing.p.notrack.p') }}</span></li>
-          <li data-reveal :style="{ '--d': '240ms' }"><Icon name="lucide:eye-off" /><strong>{{ t('landing.p.local.h') }}</strong><span>{{ t('landing.p.local.p') }}</span></li>
+          <li data-reveal data-d="1"><Icon name="lucide:timer" /><strong>{{ t('landing.p.ephemeral.h') }}</strong><span>{{ t('landing.p.ephemeral.p') }}</span></li>
+          <li data-reveal data-d="2"><Icon name="lucide:lock" /><strong>{{ t('landing.p.notrack.h') }}</strong><span>{{ t('landing.p.notrack.p') }}</span></li>
+          <li data-reveal data-d="3"><Icon name="lucide:eye-off" /><strong>{{ t('landing.p.local.h') }}</strong><span>{{ t('landing.p.local.p') }}</span></li>
         </ul>
       </section>
 
@@ -219,8 +221,12 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .community :deep(.btn) { background: var(--fill); color: var(--ink); border-color: var(--line); }
 .community :deep(a:not(.btn)) { color: var(--blue); }
 .lp h1, .lp h2, .lp h3 { font-family: inherit; font-weight: 700; }
-[data-reveal] { opacity: 0; transform: translateY(26px) scale(.985); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), filter .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms); }
-[data-reveal].in { opacity: 1; transform: none; filter: none; }
+/* Entrance. Nothing above the fold fades in: the prerendered hero is painted, and counts as the largest contentful paint, the moment the stylesheet arrives (a text first painted at opacity 0 is never an LCP candidate), so it only rises into place. Once mounted, the blocks below the fold wait (.wait) and fade in when scrolled into view (.in). The stagger comes from data-d (no style attribute: strict CSP). */
+[data-reveal] { animation: rise .7s cubic-bezier(.16,1,.3,1) var(--d, 0ms) both; }
+[data-reveal].wait { animation: none; opacity: 0; transform: translateY(26px) scale(.985); filter: blur(6px); }
+[data-reveal].wait.in { opacity: 1; transform: none; filter: none; transition: opacity .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms), filter .9s cubic-bezier(.16,1,.3,1) var(--d, 0ms); }
+@keyframes rise { from { transform: translateY(18px); } }
+[data-d="1"] { --d: 80ms; } [data-d="2"] { --d: 160ms; } [data-d="3"] { --d: 240ms; } [data-d="4"] { --d: 320ms; }
 
 /* Always backed: links keep AA contrast whatever section scrolls under the sticky nav. */
 .nav { position: sticky; top: 0; z-index: 50; background: rgb(251 251 253 / .94); transition: background .3s, box-shadow .3s; }
@@ -270,7 +276,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .vis { display: flex; align-items: center; justify-content: center; gap: .5rem; height: 130px; margin-bottom: .6rem; border-radius: 18px; background: #fff; position: relative; overflow: hidden; }
 
 .v-live b { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -10px; border: 3px solid #fff; border-radius: 50%; background: hsl(var(--h) 75% 78%); font-size: var(--fs-md); animation: bob 3s ease-in-out infinite; }
-.v-live b:nth-child(2) { animation-delay: .4s; } .v-live b:nth-child(3) { animation-delay: .8s; } .v-live b:nth-child(4) { animation-delay: 1.2s; }
+.v-live b:nth-child(1) { --h: 210; } .v-live b:nth-child(2) { --h: 140; animation-delay: .4s; } .v-live b:nth-child(3) { --h: 320; animation-delay: .8s; } .v-live b:nth-child(4) { --h: 40; animation-delay: 1.2s; }
 .ping { position: absolute; right: 22%; top: 28%; width: 12px; height: 12px; border-radius: 50%; background: #34c759; animation: ping 1.8s ease-out infinite; }
 @keyframes bob { 50% { transform: translateY(-8px); } } @keyframes ping { 0% { box-shadow: 0 0 0 0 rgb(52 199 89 / .6); } 100% { box-shadow: 0 0 0 20px rgb(52 199 89 / 0); } }
 .v-private .draft { position: absolute; left: 14%; width: 70px; height: 56px; border: 2px dashed #86868b; border-radius: var(--r-sm); animation: fly 4s cubic-bezier(.6,0,.2,1) infinite; }
@@ -318,5 +324,5 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 }
 @media (max-width: 420px) { .nav-in { gap: .5rem; padding: 0 .75rem; } .right { gap: .4rem; } .cta.sm { padding: .4rem .75rem; } .brand { gap: .4rem; } }
 @media (max-width: 600px) { .foot > span { flex-basis: 100%; } .bento { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
-@media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; filter: none; transition: none; } .tilt { transition: none; } }
+@media (prefers-reduced-motion: reduce) { [data-reveal], [data-reveal].wait { animation: none; opacity: 1; transform: none; filter: none; transition: none; } .tilt { transition: none; } }
 </style>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { browserName, bugReportUrl, discussionsUrl, FOLLOW_LINKS, HOME_URL, ideaUrl, screenClass } from '~/utils/feedback'
+import { browserName, type BugContext, bugReportUrl, discussionsUrl, FOLLOW_LINKS, HOME_URL, ideaUrl, screenClass } from '~/utils/feedback'
 defineProps<{ compact?: boolean }>()
 const { t, locale } = useT()
 const config = useRuntimeConfig()
 // Only the environment line: no board id, key, passcode or content ever reaches this URL.
-const bug = computed(() => import.meta.client
-  ? bugReportUrl({ version: String(config.public.appVersion), browser: browserName(navigator.userAgent), screen: screenClass(window.innerWidth), locale: String(locale.value) })
-  : bugReportUrl({ version: String(config.public.appVersion), browser: 'unknown', screen: 'desktop', locale: String(locale.value) }))
+// Read once mounted: the landing is prerendered, so the first render must not depend on the browser.
+const env = ref<Pick<BugContext, 'browser' | 'screen'>>({ browser: 'unknown', screen: 'desktop' })
+onMounted(() => { env.value = { browser: browserName(navigator.userAgent), screen: screenClass(window.innerWidth) } })
+const bug = computed(() => bugReportUrl({ version: String(config.public.appVersion), ...env.value, locale: String(locale.value) }))
 </script>
 
 <template>

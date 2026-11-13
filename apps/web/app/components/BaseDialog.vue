@@ -25,6 +25,10 @@ function onClose() {
 }
 watch(() => props.open, sync, { flush: 'post' })
 onMounted(sync)
+// The width is bound once mounted: a closed dialog is part of the prerendered markup, which carries no style attribute (strict CSP).
+const mounted = ref(false)
+onMounted(() => { mounted.value = true })
+const widthStyle = computed(() => (mounted.value ? { style: { '--dlg-w': props.width } } : {}))
 
 function onBackdrop(e: MouseEvent) {
   if (props.closable && e.target === el.value) el.value?.close()
@@ -33,7 +37,7 @@ function onBackdrop(e: MouseEvent) {
 
 <template>
   <dialog
-    ref="el" class="dlg" :style="{ '--dlg-w': width }" :aria-label="title"
+    ref="el" class="dlg" v-bind="widthStyle" :aria-label="title"
     @close="onClose" @cancel="(e) => { if (!closable) e.preventDefault() }" @click="onBackdrop"
   >
     <template v-if="open">

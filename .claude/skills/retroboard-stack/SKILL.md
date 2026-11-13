@@ -1,6 +1,6 @@
 ---
 name: retroboard-stack
-description: Add or change a feature in RetroBoard (Nuxt 4 static SPA, Cloudflare Worker + memory-only Durable Object relay, DDD/clean architecture, OpenSpec, E2E encryption, i18n fr/en, themes). Use for any feature, fix or refactor in this repository.
+description: Add or change a feature in RetroBoard (Nuxt 4 static site with a prerendered landing, Cloudflare Worker + memory-only Durable Object relay, DDD/clean architecture, OpenSpec, E2E encryption, i18n fr/en, themes). Use for any feature, fix or refactor in this repository.
 ---
 
 # RetroBoard stack skill
