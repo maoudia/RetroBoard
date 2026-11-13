@@ -42,6 +42,29 @@ export function admit(b: Budgets, kind: FrameKind, now: number, windowMs: number
 /** WebSocket close codes and reasons the relay answers with. */
 export const CLOSE_TOO_LARGE = { code: 1009, reason: 'Message too large' } as const
 export const CLOSE_RATE_LIMIT = { code: 1008, reason: 'Rate limit' } as const
+/** A close the relay sent because of what the client sent (size, rate), as opposed to a restart or a network drop. */
+export const isRefusalCode = (code: number): boolean => code === CLOSE_TOO_LARGE.code || code === CLOSE_RATE_LIMIT.code
+
+/**
+ * What a client sends: at most this many `pub` frames per window, half of FRAME_MAX, so an upload paced by the
+ * client never costs the socket even when the network bunches frames at the relay (change deploy-safe-sessions).
+ */
+export const PUB_PACE_MAX = LIMITS.rateMax
+
+/** Client side of the frame budget: a sliding window of the moments the last frames went out. */
+export class FramePacer {
+  private readonly sent: number[] = []
+  constructor(private readonly max: number = PUB_PACE_MAX, private readonly windowMs: number = LIMITS.rateWindowMs) {}
+
+  /** Milliseconds to wait before the next frame may go (0: now). Mirrors `allow`: a window is `windowMs` long inclusive. */
+  wait(now: number): number {
+    while (this.sent.length && now - this.sent[0]! > this.windowMs) this.sent.shift()
+    return this.sent.length < this.max ? 0 : this.sent[0]! + this.windowMs + 1 - now
+  }
+
+  /** Records a frame sent at `now`. */
+  record(now: number): void { this.sent.push(now) }
+}
 
 export type FrameCheck =
   | { verdict: 'ok'; frame: ClientFrame | null }

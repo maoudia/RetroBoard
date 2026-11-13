@@ -1,4 +1,4 @@
-import { RELAY_BUFFER } from '@retroboard/protocol'
+import { MAX_ENVELOPES_PER_MESSAGE, PUB_PACE_MAX, RELAY_BUFFER } from '@retroboard/protocol'
 import { afterEach, describe, expect, it } from 'vitest'
 import { holderOfBoardOf, type World } from './sync-harness'
 
@@ -11,12 +11,21 @@ afterEach(() => world?.dispose())
  * mutant); the unit tests and the coverage run still run it.
  */
 describe('a relay deploy during a live board, capacity', { timeout: 180_000 }, () => {
-  // 3.1: 9,000 envelopes are 90 frames sent at once, the relay closes a socket after 80 frames in 10 s (close 1008).
-  it.fails('a holder uploads 9,000 small envelopes to the empty relay without being cut off', async () => {
-    world = (await holderOfBoardOf(9_000, 'small')).world
-    // The relay keeps at most RELAY_BUFFER envelopes: it is full when the whole upload went through.
-    await world.until(() => world.relay.buffered === RELAY_BUFFER || world.relay.closes.length > 0, 120_000)
+  // 3.1: 9,002 envelopes are 46 frames of 200. Sent at once they went over the 80 frames in 10 s the relay closes a
+  // socket for (close 1008); `push` now sends at most PUB_PACE_MAX per window and the rest when the window passed.
+  it('a holder uploads 9,000 small envelopes to the empty relay without being cut off, paced under the frame budget', async () => {
+    const holder = await holderOfBoardOf(9_000, 'small')
+    world = holder.world
+    const { held } = holder
+    expect(await world.until(() => world.relay.stats.pubFrames >= PUB_PACE_MAX || world.relay.closes.length > 0, 120_000)).toBe(true)
+    const firstWindow = Date.now()
+    expect([world.relay.closes, world.relay.stats.pubFrames]).toEqual([[], PUB_PACE_MAX])
+    expect(await world.until(() => world.relay.stats.pubEnvs >= held || world.relay.closes.length > 0, 120_000)).toBe(true)
     expect(world.relay.closes).toEqual([])
+    // The frames past the budget waited for the window to pass.
+    expect(Date.now() - firstWindow).toBeGreaterThanOrEqual(9_000)
+    expect([world.relay.stats.pubEnvs, world.relay.stats.pubFrames]).toEqual([held, Math.ceil(held / MAX_ENVELOPES_PER_MESSAGE)])
+    // The relay keeps at most RELAY_BUFFER envelopes.
     expect(world.relay.buffered).toBe(RELAY_BUFFER)
   })
 })

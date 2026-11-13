@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { admit, allow, CLOSE_RATE_LIMIT, CLOSE_TOO_LARGE, checkFrame, EPH_MAX, FRAME_MAX, MAX_FRAME_BYTES, SIG_MAX } from '../src'
+import { admit, allow, CLOSE_RATE_LIMIT, CLOSE_TOO_LARGE, checkFrame, EPH_MAX, FRAME_MAX, FramePacer, isRefusalCode, MAX_FRAME_BYTES, PUB_PACE_MAX, SIG_MAX } from '../src'
 
 const ROOM = 'Ab3dEfGhIjKlMnOpQrStUv'
 const env = (i: number) => ({ v: 2, room: ROOM, id: `01J${String(i).padStart(23, '0')}`, hlc: i, ct: 'AAAA' })
@@ -79,4 +79,39 @@ describe('checkFrame', () => {
     for (let i = 0; i < FRAME_MAX; i++) expect(checkFrame(b, i % 2 ? 'junk' : pub(i), 1_000, 10_000).verdict).toBe('ok')
     expect(checkFrame(b, pub(), 1_000, 10_000)).toEqual({ verdict: 'close', code: 1008, reason: 'Rate limit' })
   })
+})
+
+describe('FramePacer (what a client sends)', () => {
+  it('paces at half the relay budget', () => {
+    expect(PUB_PACE_MAX).toBe(40)
+    expect(FRAME_MAX).toBe(PUB_PACE_MAX * 2)
+  })
+
+  it('lets PUB_PACE_MAX frames go at once, then waits for the oldest to leave the window', () => {
+    const p = new FramePacer()
+    for (let i = 0; i < PUB_PACE_MAX; i++) { expect(p.wait(1_000 + i)).toBe(0); p.record(1_000 + i) }
+    // The window is inclusive, as in `allow`: exactly one window after the first frame is still the same window.
+    expect(p.wait(1_000 + PUB_PACE_MAX)).toBe(10_001 - PUB_PACE_MAX)
+    expect(p.wait(11_000)).toBe(1)
+    expect(p.wait(11_001)).toBe(0)
+    p.record(11_001)
+    // The second oldest still holds the next slot.
+    expect(p.wait(11_001)).toBe(1)
+  })
+
+  it('a custom budget and window', () => {
+    const p = new FramePacer(2, 100)
+    expect(p.wait(0)).toBe(0)
+    p.record(0)
+    p.record(50)
+    expect(p.wait(60)).toBe(41)
+    expect(p.wait(101)).toBe(0)
+    p.record(101)
+    expect(p.wait(101)).toBe(50)
+    expect(p.wait(151)).toBe(0)
+  })
+})
+
+it('a refusal is a close for size or rate, not a restart or a network drop', () => {
+  expect([1008, 1009, 1000, 1001, 1006, 4008].map(isRefusalCode)).toEqual([true, true, false, false, false, false])
 })

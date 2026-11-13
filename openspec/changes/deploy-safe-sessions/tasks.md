@@ -12,8 +12,8 @@
 
 ## 3. Uploads the relay accepts
 
-- [ ] 3.1 `push` cuts by bytes with `chunk()` from `packages/protocol/src/buffer.ts` and sends at most 40 `pub` frames per `LIMITS.rateWindowMs`; verify the two upload scenarios of 1.1 pass
-- [ ] 3.2 Backoff: `attempts` resets only after `hist` done and 30 s without a close; closes with code 1008 or 1009 never reset it; verify a harness test counting at most 2 reconnects in 60 s
+- [x] 3.1 `push` cuts by bytes with `chunk()` from `packages/protocol/src/buffer.ts` and sends at most 40 `pub` frames per `LIMITS.rateWindowMs`; verify the two upload scenarios of 1.1 pass
+- [x] 3.2 Backoff: `attempts` resets only after `hist` done and 30 s without a close; closes with code 1008 or 1009 never reset it; verify a harness test counting at most 2 reconnects in 60 s
 
 ## 4. Links survive the relay
 
