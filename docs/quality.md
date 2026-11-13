@@ -18,6 +18,20 @@ and then `.github/workflows/quality-reports.yml` (the slow tail: the rest of the
 Artifacts are kept 30 days. The site keeps the last report only; the trends come from the Allure history file
 (`history.jsonl`, the last 20 runs, published at the site root).
 
+## Relay targets
+
+The relay has two runtimes (ADR-0036): the Worker with its Durable Object (`wrangler dev`) and the Node adapter (`apps/relay/dist/node.mjs`). The same checks run against either:
+
+```bash
+node scripts/smoke.mjs http://127.0.0.1:8787            # site, headers, one live frame across the relay
+node scripts/relay-contract.mjs http://127.0.0.1:8787   # the frame sequences and close codes of the relay-core spec
+E2E_TARGET=node pnpm e2e:core                           # the push gate against the Node adapter (E2E_TARGET=workerd, the default, is wrangler dev)
+```
+
+`E2E_TARGET` is read by `playwright.config.ts` (so `pnpm e2e` and `pnpm e2e:core` both honour it): `node` bundles the adapter, starts it on the
+generated site with its per-address caps off (every test comes from 127.0.0.1) and the specs run unchanged. The contract script takes any base URL;
+`apps/relay/test/node.test.ts` also runs it against an in-process adapter, and fails when the limits the script mirrors drift from `LIMITS`.
+
 ## Nightly gate
 
 The nightly run (`nightly.yml`) is the cross-browser gate of releases R1 and R2 (definition and dates: `docs/roadmap.md`, section
