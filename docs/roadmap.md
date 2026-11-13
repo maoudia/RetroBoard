@@ -53,9 +53,9 @@ Anything not on this list slipped to R3.
 * Nightly health: `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md)), the nightly gate above, the quarantine and the streak.
 * Accessibility gate: `a11y-gate-and-derived-contrast` ([proposal](../openspec/changes/a11y-gate-and-derived-contrast/proposal.md)), axe, contrast and keyboard specs in the push gate; Lighthouse.
 * Safe deploys: `deploy-safe-sessions` ([proposal](../openspec/changes/deploy-safe-sessions/proposal.md)), a deploy during a retro no longer drops peer links or hides events of a newer client.
-* Landing and launch kit: `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md)), then `public-launch` (change to open: `/opsx:propose`).
-* Brand identity: `brand-identity` (change to open: `/opsx:propose`).
-* CLA: task group 1 of `open-source-business` (change to open: `/opsx:propose`); the group sits in R2, the rest of the change in R4.
+* Landing and launch kit: `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md)), then `public-launch` ([proposal](../openspec/changes/public-launch/proposal.md)): indexing of the public pages, one page per retro format, the launch kit and `pnpm launch:check`, the readiness check of the gate above.
+* Brand identity: `brand-identity` ([proposal](../openspec/changes/brand-identity/proposal.md)): charter, logo, icon kit, share images and press kit; the mark and the signature wait for the owner's approval.
+* CLA: task group 1 of `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)); the group sits in R2, the rest of the change in R4. It takes over task 1.2 of `licensing-and-monetization`; the text review, the required check and a test pull request from a fork are the owner's.
 * Archived, owner check left: `p2p-presence-and-cursors` ([proposal](../openspec/changes/archive/2026-11-12-p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/archive/2026-11-12-webmcp-browser-agents/proposal.md)) are delivered; only the owner checks in [owner-checks.md](owner-checks.md) remain.
 * Delivered and archived: `user-manual-and-tutorials`, `short-links-and-join`, `retro-report`, `results-insights`, `voting-v2-and-ranking`, `responsive-and-i18n-hardening`, `activity-rings-timer`, `allure-report-aggregation`, `automated-semver-release`, `edge-security-and-domain`.
 
@@ -108,7 +108,7 @@ Licensing, offers, sponsors, marketplace, services, premium themes. Gate: first 
 
 * `licensing-and-monetization` ([proposal](../openspec/changes/licensing-and-monetization/proposal.md))
 * `themes-pop-culture` ([proposal](../openspec/changes/themes-pop-culture/proposal.md))
-* `open-source-business` (change to open: `/opsx:propose`)
+* `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)): sponsors and sponsorware, offers page, enterprise self-host, community marketplace, services page; prices are an open owner decision
 
 ## R5 Agents (target 2027-05-02)
 
