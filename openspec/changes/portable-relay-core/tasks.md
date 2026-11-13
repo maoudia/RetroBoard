@@ -9,8 +9,8 @@
 
 ## 2. Runtime-neutral HTTP handler and client address
 
-- [ ] 2.1 `apps/relay/src/core/http.ts`: `handleHttp(request, deps)` over an assets port and a relay callback, `headers.ts`, `errors.ts`, `guards.ts`, `origin.ts` moved under `core/`; `index.ts` becomes the Cloudflare wiring only; verify `apps/relay/test/*` green, `pnpm arch`, smoke and `pnpm e2e:core` against `wrangler dev` unchanged
-- [ ] 2.2 `clientIp(request, settings, socketAddress)` with `CLIENT_IP_HEADER` and `TRUSTED_PROXIES` settings, `CF-Connecting-IP` set in `wrangler.jsonc` and `deploy/selfhost`; verify unit tests: configured header used, unconfigured `X-Forwarded-For` ignored, trusted proxy count honoured, socket address fallback
+- [x] 2.1 `apps/relay/src/core/http.ts`: `handleHttp(request, deps)` over an assets port and a relay callback, `headers.ts`, `errors.ts`, `guards.ts`, `origin.ts` moved under `core/`; `index.ts` becomes the Cloudflare wiring only; verify `apps/relay/test/*` green, `pnpm arch`, smoke and `pnpm e2e:core` against `wrangler dev` unchanged
+- [x] 2.2 `clientIp(request, settings, socketAddress)` with `CLIENT_IP_HEADER` and `TRUSTED_PROXIES` settings, `CF-Connecting-IP` set in `wrangler.jsonc` and `deploy/selfhost`; verify unit tests: configured header used, unconfigured `X-Forwarded-For` ignored, trusted proxy count honoured, socket address fallback
 
 ## 3. Node adapter
 

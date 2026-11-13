@@ -1,6 +1,6 @@
 # Maintenance mode and rate limiting
 
-Source: change `service-pages` (apps/relay/src/guards.ts).
+Source: change `service-pages` (apps/relay/src/core/guards.ts).
 
 ## Switch the site to maintenance
 
@@ -15,7 +15,7 @@ Boards in progress are not lost: the content lives in the participants' browsers
 
 ## Too many requests
 
-- The Worker counts HTML page loads per client IP (`CF-Connecting-IP`) in isolate memory (no storage).
+- The Worker counts HTML page loads per client IP (the header named by `CLIENT_IP_HEADER`, `CF-Connecting-IP` on the hosted Worker) in isolate memory (no storage).
   Above `RATE_LIMIT_PER_MIN` (default `300`, `0` disables) it answers `429`, `Retry-After: 30` and `/busy`
   with a countdown that reloads the page.
 - This is approximate by design (one counter per isolate). The strong layer is a Cloudflare rate limiting

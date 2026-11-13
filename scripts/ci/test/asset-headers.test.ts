@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain ESM build script without type declarations
 import { ASSET_HEADERS, renderHeaders } from '../../../apps/web/scripts/asset-headers.mjs'
-import { withSecurityHeaders } from '../../../apps/relay/src/headers'
+import { withSecurityHeaders } from '../../../apps/relay/src/core/headers'
 
 describe('_headers for /_nuxt/*', () => {
   it('carries the security headers the Worker adds to a script, so the two copies cannot drift', () => {

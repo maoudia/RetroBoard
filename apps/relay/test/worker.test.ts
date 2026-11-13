@@ -2,11 +2,11 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { ROOM_ID_RE } from '@retroboard/protocol'
-import { buildCsp, HSTS, httpsRedirect, originTrialToken, withSecurityHeaders } from '../src/headers'
+import { buildCsp, HSTS, httpsRedirect, originTrialToken, withSecurityHeaders } from '../src/core/headers'
 import { roomHash } from '../src/core/logger'
-import { isUnknownAppPath, pickErrorResponse } from '../src/errors'
-import { createLimiter, isMaintenance, maintenanceAction } from '../src/guards'
-import { admitUpgrade, isAllowedOrigin } from '../src/origin'
+import { isUnknownAppPath, pickErrorResponse } from '../src/core/errors'
+import { createLimiter, isMaintenance, maintenanceAction } from '../src/core/guards'
+import { admitUpgrade, isAllowedOrigin } from '../src/core/origin'
 
 describe('isAllowedOrigin', () => {
   const url = new URL('https://retroboard.example.workers.dev/ws?room=x')
