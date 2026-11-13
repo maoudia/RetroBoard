@@ -14,4 +14,5 @@
 
 - [ ] 3.1 Release PR: dispatched required checks only, held `pull_request` runs deleted, required checks never skipped (workflow edits, owner merges); verify on the next release: no click, release job under 10 min
 - [ ] 3.2 Quality on main off the release gate: quality.yml keeps unit and the core e2e (the gate), quality-reports.yml runs the rest of the e2e suite, mutation and the Pages report after it, reading the Quality artifacts (workflow edits, owner merges); verify the lead time before and after
-- [ ] 3.3 Cross-browser: more Firefox and WebKit shards on the nightly, a shared build artifact and package caches; verify the nightly duration before and after
+- [ ] 3.3 Cross-browser nightly: measured, more shards and caching do not pay on a 20-job plan (docs/quality.md, Nightly timing); the matrix starts the longest jobs first; verify the first scheduled nightly against 30.4 min
+- [ ] 3.4 Release automation: a Quality run dispatched by the Actions bot starts Release, Deploy and Quality reports (workflow_run does not fire for it); verify on the next bot-merged pull request

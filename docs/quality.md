@@ -48,6 +48,23 @@ If the release PR still does not merge, the failed step of the release job print
 not green. If it says the held runs could not be deleted, the fallback is a GitHub App token for release-please (a
 secret only the owner can add).
 
+### Nightly timing (measured 2026-11-12 and 2026-11-13)
+
+The nightly is 29 jobs of 9 to 19 minutes each (about 400 job-minutes in total) on a plan that runs 20 jobs at a time, so
+a run takes the longest of: total work divided by 20 (about 20 minutes), and the slowest job plus the wait of the jobs
+that started in a second wave. Last green nightly (run 43310995127): 30.4 minutes, of which the last 9 jobs waited up to
+13.5 minutes in the queue. What was tried:
+
+| Idea | Result | Decision |
+|---|---|---|
+| More shards | Each extra job adds about 35 s of checkout, install and build to the same test time, and the plan has no free slot for it: the queue grows | not adopted |
+| Caching | Checkout, pnpm, Node setup (with the pnpm cache), install and `pnpm generate` take 35 to 40 s of an 850 s job (under 5%, the rule is 20%): the e2e step is over 90% of every job | not adopted |
+| Two Playwright workers per job (`E2E_WORKERS=2`), 20 jobs in one wave | Total work 319 job-minutes instead of 400, but the wall time was 27.3 minutes (WebKit shards of 6 ran 20 to 27 minutes), and two parallel workers load the runner and the dev server | not adopted, flakiness risk for the nightly gate |
+| Longest jobs first in the matrix (WebKit, then Firefox) | A matrix starts its jobs in the order listed: slow jobs last made the second wave wait for them. Free, no loss of checks. The one run on a branch was queued behind another nightly (41 minutes, 24 minutes of it queue), so the saving is not measured; the estimate is 30 to about 22 minutes | adopted, to be measured on the first scheduled nightly |
+
+Further gains need less total work (fewer duplicated viewports on the same specs) or more concurrent runners, both
+decisions for the owner.
+
 ## Mutation ratchet
 
 The floors in `quality/mutation-baseline.json` are 100 for every package (change `mutation-score-100`): a mutant that
