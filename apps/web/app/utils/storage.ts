@@ -1,6 +1,7 @@
 /** localStorage that never throws (private windows, blocked storage, quota). */
 export const safeStorage = {
   get<T>(key: string, fallback: T): T {
+    if (import.meta.server) return fallback // prerendering: nothing is stored at build time
     try {
       const raw = localStorage.getItem(key)
       return raw === null ? fallback : (JSON.parse(raw) as T)

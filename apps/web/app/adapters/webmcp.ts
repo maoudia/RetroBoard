@@ -20,6 +20,8 @@ interface ModelContext {
 }
 
 export function findModelContext(): ModelContext | null {
+  // Prerendering runs without a document (the landing is rendered at build time): no model context there.
+  if (typeof document === 'undefined') return null
   const fromDocument = (document as unknown as { modelContext?: ModelContext }).modelContext
   const fromNavigator = (navigator as unknown as { modelContext?: ModelContext }).modelContext
   return fromDocument ?? fromNavigator ?? null

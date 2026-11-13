@@ -1,7 +1,12 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { COLUMN_ICONS } from '@retroboard/domain'
 
 const appVersion = (JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string }).version
+
+/** Every page is a prerendered file (ADR-0034): the Worker never has to serve a shell for an app route. */
+const pageRoutes = () => readdirSync(new URL('./app/pages', import.meta.url), { recursive: true, encoding: 'utf8' })
+  .filter((f) => f.endsWith('.vue'))
+  .map((f) => `/${f.replace(/\.vue$/, '').replace(/(^|\/)index$/, '')}`)
 
 // Icons that are picked at runtime (columns, templates) cannot be found by the static scan.
 const dynamicIcons = [
@@ -16,8 +21,11 @@ const dynamicIcons = [
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-09-01',
-  // Static SPA: `nuxt generate` emits plain files in .output/public, served by the Worker.
-  ssr: false,
+  // Static site: `nuxt generate` emits plain files in .output/public, served by the Worker. The landing is
+  // prerendered with its content (ADR-0038) so the first paint comes from the HTML, before any script; every
+  // other route stays a client-rendered shell (a board needs the browser: crypto, storage, sockets).
+  ssr: true,
+  routeRules: { '/**': { ssr: false }, '/': { ssr: true } },
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', '@nuxt/icon', '@nuxt/eslint'],
   css: ['~/assets/css/base.css', '~/assets/css/motion.css'],
@@ -68,8 +76,14 @@ export default defineNuxtConfig({
   vue: { compilerOptions: { hoistStatic: false } },
   // Pure static output. Without this, Nitro detects Cloudflare Workers Builds and emits its own
   // worker config (.wrangler/deploy/config.json) that overrides ours and breaks `wrangler deploy`.
-  nitro: { preset: 'static' },
+  // App routes are files (`new.html`, not `new/index.html`): the asset layer serves `/new` directly instead of a 307
+  // to `/new/` on every direct load and every invite link (the guide keeps its folders and trailing slashes).
+  nitro: { preset: 'static', prerender: { crawlLinks: false, routes: pageRoutes(), autoSubfolderIndex: false } },
   features: { inlineStyles: false },
+  // No _payload.json next to the prerendered landing: its payload is hydrated from the page itself and a client-side
+  // navigation renders the route in the browser; the extracted file would only add a request (and under the
+  // client-shell route rule it came out as HTML).
+  experimental: { payloadExtraction: false },
   typescript: { strict: true },
   vite: { build: { sourcemap: false } },
 })

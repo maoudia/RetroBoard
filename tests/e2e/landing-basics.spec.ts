@@ -31,3 +31,13 @@ test('the landing footer does not overflow a 360 px phone (change stabilise-main
     expect(overlap, `footer items ${i} and ${j} overlap`).toBe(false)
   }
 })
+
+test('the landing is prerendered: its content is in the HTML, with no inline style the CSP would refuse (change landing-v2-and-product-video)', async ({ request }) => {
+  const html = await (await request.get('/')).text()
+  // The hero text is served, not drawn by a script: the first paint does not wait for the bundle.
+  expect(html).toMatch(/<h1[^>]*data-testid="hero-title"[^>]*>[^<]+/)
+  expect(html).toMatch(/<p[^>]*class="sub"[^>]*>[^<]{20,}/)
+  expect(html).toContain('id="main"') // the skip link has a target without a script
+  expect(html).not.toMatch(/ style="/)
+  expect(html).not.toContain('"pinia"') // no store snapshot: settings, recents and identity stay the visitor's own
+})

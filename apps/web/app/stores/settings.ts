@@ -84,6 +84,10 @@ export const useSettingsStore = defineStore('settings', () => {
     root.dataset.density = layout.density ?? s.density
     root.dataset.zoom = String(layout.zoom ?? DEFAULT_ZOOM)
     root.dataset.notify = s.notifyPos
+    applyLocale()
+  }
+  /** The UI language: the setting, else the browser's. On its own because a prerendered page applies it after hydration (plugins/theme.client.ts). */
+  function applyLocale() {
     currentLocale.value = detectLocale(s.locale, navigator.languages ?? [])
   }
   function patch(next: Partial<LocalSettings>) {
@@ -91,5 +95,5 @@ export const useSettingsStore = defineStore('settings', () => {
     safeStorage.set(KEY, { ...s })
     apply()
   }
-  return { s, apply, patch }
+  return { s, apply, applyLocale, patch }
 })
