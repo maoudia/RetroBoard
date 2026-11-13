@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.53.0](https://github.com/maoudia/RetroBoard/compare/v1.52.0...v1.53.0) (2026-11-13)
+
+
+### Features
+
+* **relay:** Node adapter with ws, static reader and hardening (portable-relay-core 3) ([61e77b8](https://github.com/maoudia/RetroBoard/commit/61e77b8ad5dd00ec33bad6f925bad1bd0214e598))
+
+
+### Refactoring
+
+* **relay:** runtime-neutral HTTP handler and configured client address (portable-relay-core 2) ([39bf6e9](https://github.com/maoudia/RetroBoard/commit/39bf6e975be4f4aef3bb184b29a52856498a3ec1))
+* **relay:** runtime-neutral RoomCore behind the Durable Object, RelayRoom is a thin adapter (portable-relay-core 1) ([92f13ec](https://github.com/maoudia/RetroBoard/commit/92f13ec570997b646cfe6ebb2a36e5bca87d66be))
+
 ## [1.52.0](https://github.com/maoudia/RetroBoard/compare/v1.51.4...v1.52.0) (2026-11-12)
 
 
