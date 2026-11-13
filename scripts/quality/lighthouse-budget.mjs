@@ -1,9 +1,20 @@
 // Lighthouse budgets (change quality-gates-v2). Pure evaluator: scores in [0,1] against minimums.
+/** The score categories of a budget file: every key but the per-page overrides. */
+export function categories(budgets) {
+  return Object.keys(budgets).filter((k) => k !== 'pages')
+}
+
+/** Minimums for one page: the global ones, raised by the page's own entry (`pages`, change landing-v2-and-product-video). */
+export function budgetFor(budgets, page) {
+  const { pages = {}, ...global } = budgets
+  return { ...global, ...(pages[page] ?? {}) }
+}
+
 /** results: [{ page, variant, scores: { performance, accessibility, 'best-practices' } }] */
 export function evaluate(results, budgets) {
   const failures = []
   for (const r of results) {
-    for (const [category, min] of Object.entries(budgets)) {
+    for (const [category, min] of Object.entries(budgetFor(budgets, r.page))) {
       const score = r.scores[category]
       if (typeof score !== 'number' || score < min) failures.push({ page: r.page, variant: r.variant, category, score: score ?? null, min })
     }
