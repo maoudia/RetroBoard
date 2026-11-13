@@ -30,9 +30,12 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // and sealed hand-off, removed and closed pages, fr/en strings; entry 44.6 kB measured).
 // 2026-11-12: entry raised from 45 to 48 kB and total from 346 to 352 kB for signed snapshots (ADR-0037): snapshot schemas, the
 // verifier, the log base and the transport side of the snapshot join (46.7 kB entry and 347.2 kB total measured on top of the move to a fresh link).
+// 2026-11-13: entry raised from 48 to 50 kB for the prerendered landing (ADR-0038): the hydration of the server-rendered hero and the
+// post-hydration language and theme settings joined the entry (47.5 to 49.7 kB measured, total 348.6 to 350.9 kB). The first and the
+// largest contentful paint no longer wait for it: Lighthouse mobile on the landing went from 90 to 100, LCP from 3.6 s to 1.1 s.
 // The captain allows up to 400 kB.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 48, totalKb: 352 }
+const BUDGET = { entryKb: 50, totalKb: 352 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
