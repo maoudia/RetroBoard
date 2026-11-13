@@ -104,3 +104,29 @@ jobs:
             playwright-report
             test-results
           retention-days: 30
+
+  # A run dispatched by the Actions token (agent-automerge.yml starts it after a bot merge) starts no workflow_run
+  # workflow when it ends: Release, Deploy and Quality reports would never follow, and a maintainer had to start the
+  # release by hand (actor id 41898282 is github-actions[bot]). Start them here, on a green gate. A push or a run dispatched by a person is followed by
+  # workflow_run as usual, so nothing starts twice.
+  follow-up:
+    name: Start the release, the deploy and the reports
+    needs: [unit, e2e]
+    if: github.event_name == 'workflow_dispatch' && github.actor_id == '41898282'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Dispatch the follow-up workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          for wf in release.yml deploy.yml; do
+            gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref main
+          done
+          gh workflow run quality-reports.yml --repo "$GITHUB_REPOSITORY" --ref main -f quality_run="$RUN_ID" -f sha="$GITHUB_SHA"
+
