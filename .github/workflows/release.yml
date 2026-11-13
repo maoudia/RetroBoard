@@ -26,6 +26,8 @@ permissions:
 
 env:
   IMAGE: ghcr.io/maoudia/retroboard
+  # The workflows that hold the required checks of main: dispatched on the release branch, then read back.
+  DISPATCHED: checks.yml e2e.yml security.yml adr.yml
 
 jobs:
   release:
@@ -37,6 +39,8 @@ jobs:
       contents: write
       pull-requests: write
       actions: write
+      checks: read
+      statuses: write
     outputs:
       created: ${{ steps.publish.outputs.release_created || steps.prepare.outputs.release_created }}
       tag: ${{ steps.publish.outputs.tag_name || steps.prepare.outputs.tag_name }}
@@ -80,8 +84,10 @@ jobs:
       # its pull_request runs at "action_required" until a maintainer approves them by hand (every release PR up to 1.52.0
       # waited for that click, then for a second full run of the suite). Light path instead: dispatch the required checks
       # on the release branch (their jobs report on the PR head commit, about 5 minutes: the PR only holds the version
-      # and the changelog), drop the runs that wait for approval, then let the pull request merge itself.
+      # and the changelog), drop the runs that wait for approval, copy the results onto the pull request (a dispatched run's
+      # check runs are not counted by the pull request, see the step below), then let the pull request merge itself.
       - name: Run the required checks on the release branch
+        id: dispatch
         if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
         env:
           GH_TOKEN: ${{ github.token }}
@@ -90,7 +96,10 @@ jobs:
         run: |
           # The spec gate wants a change or the no-spec label: a release is neither a feature nor an OpenSpec change.
           gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label no-spec
-          for wf in checks.yml e2e.yml security.yml adr.yml; do
+          # Runs of this commit from an earlier attempt are older than this (30 s of margin for the clock of the runner).
+          echo "since=$(date -u -d '30 seconds ago' +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          read -ra workflows <<< "$DISPATCHED"
+          for wf in "${workflows[@]}"; do
             gh workflow run "$wf" --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
           done
 
@@ -115,22 +124,97 @@ jobs:
               || echo "::warning::could not delete run $id, which waits for approval"
           done
 
-      - name: Merge the release PR when its checks pass
+      # Enabled while the checks run, so that GitHub merges the pull request the moment the last one is reported.
+      - name: Enable auto-merge of the release PR
         if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ fromJSON(steps.prepare.outputs.pr || '{}').number }}
         run: |
-          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --auto
-          for _ in $(seq 1 100); do
+          # Auto-merge cannot be enabled on a pull request that is already mergeable (a re-run after its checks were
+          # reported): merge it then.
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --auto \
+            || gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+
+      # The pull request does not count the check runs of a dispatched run, whatever their result: on release PR 1.52.1
+      # all 12 required contexts were green on the head commit, `gh pr checks --required` listed CodeQL only and the
+      # merge stayed BLOCKED. A commit status belongs to the commit, so it is counted. Once the dispatched runs finish,
+      # each required context that the pull request does not report as a check run is copied from the dispatched check
+      # run of the same name onto the head commit as a status of that name: the real result (success only when the check
+      # succeeded), a required context nobody reports stays missing, and the contexts come from the ruleset of main, so
+      # no check is dropped or added here by hand.
+      - name: Report the dispatched checks on the release PR
+        if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ fromJSON(steps.prepare.outputs.pr || '{}').headBranchName }}
+          PR: ${{ fromJSON(steps.prepare.outputs.pr || '{}').number }}
+          SINCE: ${{ steps.dispatch.outputs.since }}
+        run: |
+          set -euo pipefail
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$BRANCH" --jq .sha)
+          read -ra workflows <<< "$DISPATCHED"
+          paths=$(printf '.github/workflows/%s\n' "${workflows[@]}" | jq -R . | jq -sc .)
+          # The newest dispatched run of each workflow from this attempt, once all of them have finished (30 min at most).
+          runs='[]'
+          for _ in $(seq 1 60); do
+            runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$sha&event=workflow_dispatch&per_page=100" \
+              | jq -c --arg since "$SINCE" --argjson paths "$paths" \
+                '[.workflow_runs[] | select(.created_at >= $since and (.path | IN($paths[])))] | group_by(.path) | map(max_by(.created_at))') || runs='[]'
+            jq -e --argjson n "${#workflows[@]}" 'length == $n and all(.[]; .status == "completed")' <<< "$runs" > /dev/null && break
+            sleep 30
+          done
+          jq -e --argjson n "${#workflows[@]}" 'length == $n and all(.[]; .status == "completed")' <<< "$runs" > /dev/null \
+            || { echo "::error::The dispatched checks did not all finish within 30 minutes"; exit 1; }
+          suites=$(jq -c '[.[].check_suite_id]' <<< "$runs")
+          checks=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/check-runs?per_page=100" --paginate --jq '.check_runs[]' \
+            | jq -sc --argjson suites "$suites" '[.[] | select(.check_suite.id | IN($suites[]))]')
+          reported=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json statusCheckRollup \
+            --jq '[.statusCheckRollup[] | select(.__typename == "CheckRun") | .name]')
+          required=$(gh api "repos/$GITHUB_REPOSITORY/rules/branches/main" \
+            --jq '[.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context] | unique | .[]')
+          [ -n "$required" ] || { echo "::error::main has no required status check to report"; exit 1; }
+          problems=0
+          while IFS= read -r context; do
+            if jq -e --arg c "$context" 'index($c) != null' <<< "$reported" > /dev/null; then
+              echo "$context: the pull request reports it"
+              continue
+            fi
+            check=$(jq -c --arg c "$context" '[.[] | select(.name == $c)] | sort_by(.completed_at) | last // empty' <<< "$checks")
+            if [ -z "$check" ]; then
+              echo "::error::$context is required by main and no dispatched run reports it (add its workflow to DISPATCHED)"
+              problems=$((problems + 1))
+              continue
+            fi
+            conclusion=$(jq -r '.conclusion // "none"' <<< "$check")
+            url=$(jq -r .html_url <<< "$check")
+            state=failure
+            [ "$conclusion" = success ] && state=success
+            gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$sha" -f state="$state" -f context="$context" -f target_url="$url" \
+              -f description="Result of the run dispatched on the release branch (the pull request's own runs are held)" < /dev/null > /dev/null
+            echo "$context: $conclusion, reported on the pull request as $state"
+            if [ "$state" != success ]; then
+              echo "::error::$context did not succeed: $url"
+              problems=$((problems + 1))
+            fi
+          done <<< "$required"
+          [ "$problems" = 0 ]
+
+      - name: Wait for the release PR to merge
+        if: steps.gate.outputs.ready == 'true' && steps.prepare.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ fromJSON(steps.prepare.outputs.pr || '{}').number }}
+        run: |
+          for _ in $(seq 1 40); do
             state=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json state --jq .state)
             [ "$state" = MERGED ] && exit 0
             [ "$state" = CLOSED ] && { echo "::error::The release PR was closed"; exit 1; }
             sleep 30
           done
-          echo "::error::The release PR did not merge within 50 minutes: a required check failed or is still running"
-          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json mergeStateStatus,statusCheckRollup \
-            --jq '"merge state: \(.mergeStateStatus)", (.statusCheckRollup[] | select((.conclusion // .state) != "SUCCESS") | "\(.name // .context): \(.status // "") \(.conclusion // .state)")' || true
+          echo "::error::The release PR did not merge within 20 minutes of its checks being reported"
+          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json mergeStateStatus,mergeable,reviewDecision,statusCheckRollup \
+            --jq '"merge state: \(.mergeStateStatus), mergeable: \(.mergeable), review decision: \(.reviewDecision)", (.statusCheckRollup[] | "\(.name // .context): \(.status // "") \(.conclusion // .state)")' || true
           exit 1
 
       - name: Tag and publish the GitHub Release
