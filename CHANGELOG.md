@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.54.0](https://github.com/maoudia/RetroBoard/compare/v1.53.0...v1.54.0) (2026-11-13)
+
+
+### Features
+
+* **sync:** paced byte-cut uploads and a backoff that a refusal never resets (deploy-safe-sessions 3) ([553d016](https://github.com/maoudia/RetroBoard/commit/553d0165b6411c915c64bcff857d1174d46676f0))
+
 ## [1.53.0](https://github.com/maoudia/RetroBoard/compare/v1.52.0...v1.53.0) (2026-11-13)
 
 
