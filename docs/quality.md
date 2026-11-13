@@ -36,6 +36,14 @@ ADR: about 5 minutes together) and deletes the held runs. No click, no second fu
 Dependency review always run and pass with nothing to do outside a pull request: a required check that is skipped is not a
 result the merge box accepts.
 
+The check runs of a dispatched run are not counted by the pull request, however green they are: on release PR 1.52.1 all 12
+required contexts had a successful check run on the head commit, `gh pr checks --required` listed only CodeQL and the merge
+state stayed BLOCKED (the ruleset's required-status-checks rule; no review, approval or other rule applies). A commit status
+belongs to the commit, so once the dispatched runs finish the workflow copies each required context that the pull request
+does not report as a check run onto the head commit as a status of the same name. The contexts are read from the ruleset
+of main, the state is the real conclusion of the dispatched check run (success only for `success`), and a required context
+that no dispatched run reports fails the step by name, so no check is dropped or invented.
+
 Measured on 2026-11-13 (GitHub API, `run_started_at` to `updated_at`):
 
 | Step | Before (releases 1.51.0 to 1.52.0) | Target |
@@ -44,9 +52,11 @@ Measured on 2026-11-13 (GitHub API, `run_started_at` to `updated_at`):
 | Quality on main (gate of the release) | 17 to 48 min, median about 25 (it included mutation, the rest of the e2e suite and the Pages report) | about 6 min once the slow tail moved to `quality-reports.yml` |
 | Nightly | 27 to 36 min when it passes | see the same change |
 
-If the release PR still does not merge, the failed step of the release job prints the merge state and the checks that are
-not green. If it says the held runs could not be deleted, the fallback is a GitHub App token for release-please (a
-secret only the owner can add).
+If the release PR still does not merge, the failed step of the release job prints the merge state and every check the pull
+request sees. To unstick an open release PR, run `gh workflow run release.yml`: it dispatches the checks again,
+copies their results and merges. If the held runs could not be deleted or the statuses do not unblock the merge, the
+fallback is a GitHub App token for release-please (a secret only the owner can add): its pull request starts its own
+`pull_request` runs and none of this is needed.
 
 ### Nightly timing (measured 2026-11-12 and 2026-11-13)
 

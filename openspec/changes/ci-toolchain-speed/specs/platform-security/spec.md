@@ -14,6 +14,10 @@ The release pull request SHALL reach `main` through the same required checks as 
 - **WHEN** the release workflow opens the release pull request
 - **THEN** it dispatches the required checks on the release branch, deletes the `pull_request` runs held for approval, and the pull request merges once those checks are green
 
+#### Scenario: Dispatched checks counted by the pull request
+- **WHEN** the dispatched runs finish and the pull request does not report a required context as a check run
+- **THEN** the workflow reports the real conclusion of the dispatched check run of that name as a commit status on the head commit, reads the required contexts from the ruleset of `main`, reports success only for a successful check run, and fails by name when a required context has no dispatched check run
+
 #### Scenario: Required check with nothing to do
 - **WHEN** a required check applies only to pull requests (mutants of the changed files, spec gate, dependency review) and runs on a dispatched run
 - **THEN** it reports success without doing work instead of being skipped
