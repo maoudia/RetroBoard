@@ -67,7 +67,8 @@ module.exports = {
     {
       name: 'production-code-never-imports-testkit',
       severity: 'error',
-      from: { path: '^(packages/[^/]+/src|apps/[^/]+/(src|app))' },
+      // The testkit's own files may import each other.
+      from: { path: '^(packages/[^/]+/src|apps/[^/]+/(src|app))', pathNot: '^packages/testkit/' },
       to: { path: '^packages/testkit/' },
     },
     {

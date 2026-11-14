@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type CloneKind, cloneSpec } from '@retroboard/application'
 import { CLONE_KEY } from '~/utils/clone'
+import { boardHash, inviteFromHash } from '~/utils/invite'
 const { t } = useT()
 const runUndo = useUndo()
 const router = useRouter()
@@ -64,6 +65,17 @@ onMounted(() => {
 })
 const recents = useRecentsStore()
 const otherBoards = computed(() => recents.items.some((r) => r.id !== board.roomId))
+// A board opened by link is listed in the library only when its owner says so (change user-drive-storage).
+const library = useLibraryStore()
+const route = useRoute()
+const { push } = useToasts()
+const inLibrary = computed(() => !!board.roomId && !!library.get(board.roomId))
+async function saveToLibrary() {
+  const invite = inviteFromHash(route.hash)
+  if (!invite || !board.roomId || !board.settings) return
+  await recents.save(board.roomId, board.settings.title, board.settings.themeId, boardHash(invite, 'facilitator'))
+  push(t('library.saved.toast'), 'ok')
+}
 onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAnimationFrame(fitFrame); document.documentElement.style.removeProperty('--toolbar-actual') })
 </script>
 
@@ -88,6 +100,9 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
           <RecentBoards :exclude="board.roomId ?? undefined" :limit="8" testid="boards-menu" @open="close()" />
           <p v-if="!otherBoards" class="boards-none muted">{{ t('toolbar.boards.none') }}</p>
           <NuxtLink to="/new" class="boards-new" data-testid="boards-new" @click="close()"><Icon name="lucide:plus" /> {{ t('toolbar.boards.new') }}</NuxtLink>
+          <p v-if="inLibrary" class="boards-none muted" data-testid="boards-saved"><Icon name="lucide:bookmark-check" aria-hidden="true" /> {{ t('library.saved') }}</p>
+          <button v-else class="boards-new" type="button" data-testid="boards-save" @click="saveToLibrary(); close()"><Icon name="lucide:bookmark-plus" /> {{ t('library.save') }}</button>
+          <NuxtLink to="/boards" class="boards-new" data-testid="boards-all" @click="close()"><Icon name="lucide:library" /> {{ t('library.all') }}</NuxtLink>
           <!-- Clone (change feedback-wave-7): the structure of this board, or only its open actions, in a new empty board. -->
           <button class="boards-new" type="button" data-testid="boards-clone" @click="clone('board'); close()"><Icon name="lucide:copy" /> {{ t('clone.board') }}</button>
           <button class="boards-new" type="button" data-testid="boards-clone-actions" :disabled="!board.openActions" @click="clone('actions'); close()"><Icon name="lucide:list-checks" /> {{ t('clone.actions') }}</button>

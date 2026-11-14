@@ -387,8 +387,11 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   <div class="page" :class="{ 'chrome-hidden': ui.chromeHidden }" :data-locked="board.locked">
     <AmbientLayer />
 
+    <!-- No board link: the library of boards this person created or saved. -->
+    <LibraryPage v-if="!route.hash" />
+
     <ServicePage
-      v-if="!validRoom" icon="lucide:link-2-off" :title="t(retiredLink ? 'board.retired.h' : 'board.invalid.h')"
+      v-else-if="!validRoom" icon="lucide:link-2-off" :title="t(retiredLink ? 'board.retired.h' : 'board.invalid.h')"
       :lead="t(retiredLink ? 'board.retired.p' : 'board.invalid.p')" :testid="retiredLink ? 'retired-link' : 'invalid-link'"
     >
       <template #actions><NuxtLink class="btn btn-primary" to="/"><Icon name="lucide:arrow-left" /> {{ t('board.invalid.cta') }}</NuxtLink></template>

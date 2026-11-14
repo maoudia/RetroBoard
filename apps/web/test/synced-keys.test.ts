@@ -5,7 +5,8 @@ import { LOCAL_ONLY_IDENTITY, LOCAL_ONLY_SETTINGS, SYNCED_IDENTITY, SYNCED_SETTI
 const source = (file: string) => readFileSync(new URL(`../app/stores/${file}`, import.meta.url), 'utf8')
 
 /** Keys of an interface written one property per line (LocalSettings) or on one line (the identity's saved shape). */
-function keysOf(text: string, name: string): string[] {
+function keysOf(source: string, name: string): string[] {
+  const text = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
   const start = text.indexOf(`interface ${name} {`)
   if (start < 0) throw new Error(`interface ${name} not found`)
   const open = start + `interface ${name} {`.length

@@ -7,7 +7,7 @@
 /** Preferences about the person: last write wins per key. */
 export const SYNCED_SETTINGS = [
   'locale', 'variant', 'defaultTheme', 'avatarHue', 'uiMode', 'motion', 'sound', 'ambient', 'presentGroups', 'shortcuts', 'keyHints',
-  'shareCursor', 'showCursors', 'notifyPos', 'phaseWarning', 'presenterHideMenus', 'stepperTime', 'ringTime', 'chatStatus', 'votedSort',
+  'shareCursor', 'showCursors', 'notifyPos', 'phaseWarning', 'presenterHideMenus', 'stepperTime', 'ringTime', 'chatStatus', 'votedSort', 'saveJoinedBoards',
 ] as const
 
 /** Preferences about the device, its browser or a secret (ADR-0033): never synced. */
