@@ -13,6 +13,10 @@ test('write and publish without the mouse; typing a shortcut letter in a note do
   await expect(area).toHaveValue('plan pour 2 pompes')
   await expect(page.locator('article.note')).toHaveCount(0)
   await page.keyboard.press('Enter')
+  // Enter turns the text into a draft and the composer then takes the focus back: Escape before that is overtaken by the refocus and the next key is typed in the field.
+  await expect(area).toHaveValue('')
+  await expect(page.getByText('plan pour 2 pompes')).toBeVisible()
+  await expect(area).toBeFocused()
   // Escape may land before the composer handled Enter on a slow runner: press it until the field lets go.
   await expect(async () => {
     await page.keyboard.press('Escape')

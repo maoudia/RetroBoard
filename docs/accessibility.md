@@ -3,13 +3,36 @@
 Target: WCAG 2.2 level AA (ADR-0022). The public statement is the page `/accessibility`
 (`apps/web/app/pages/accessibility.vue`, texts in `packages/i18n`).
 
-## What the build checks
+## What gates a pull request
 
-- `tests/e2e/a11y.spec.ts`: axe with `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa` on every
-  route and dialog, in light and dark, on Chromium and the phone project. Every impact fails the build.
-- `packages/themes` tests: contrast of every token pair for every theme and variant.
+A pull request runs `pnpm e2e:core` on Chromium (`.github/workflows/e2e.yml`, the list is `tests/e2e/core.json`), so these specs
+fail the build before a merge:
+
+- `tests/e2e/a11y.spec.ts`: axe with `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa` on every route and dialog,
+  in light and dark, at desktop width and at a phone viewport. Every impact fails the build.
+- `tests/e2e/theme-contrast.spec.ts`: the axe `color-contrast` rule on a board of every theme, in light and dark. The list of
+  themes is `THEMES` of `@retroboard/themes`, so a new theme is checked without touching the spec.
+- `tests/e2e/keyboard.spec.ts`: a board driven by the keyboard alone, the shortcuts and the help overlay (axe clean).
 - `tests/e2e/accessibility-statement.spec.ts`: skip link, statement page and its footer link.
+- `packages/themes` unit tests (`pnpm verify`): contrast of every token pair for every theme and variant.
+
+The cost: the three added specs take about 2 minutes on one worker (60 tests, measured on Chromium), shared by the two shards of the
+required checks.
+
+## What the nightly run adds
+
+`.github/workflows/nightly.yml` runs the whole suite on Chromium, Firefox, WebKit (reports, does not gate), the phone, the tv and the
+tablet, laptop and narrow widths. For accessibility that means:
+
+- `a11y.spec.ts` and the other axe checks on every browser and viewport.
+- `tests/e2e/contrast-themes.spec.ts`: contrast measured on the computed colours of every theme (also from `THEMES`), in states axe does
+  not reach (#225): the character counter, the locked board with the vote bar disabled and pressed, a toolbar panel (the filter bar), the chat
+  unread count and the open chat panel.
 - `tests/e2e/live-regions.spec.ts` and `drag-alternatives.spec.ts`: announcements and drag alternatives.
+- `tests/e2e/forced-colors.spec.ts`: controls and focus in forced colours.
+
+Lighthouse (budgets of `quality/lighthouse-budgets.json`, the landing above 95 for performance and 100 for accessibility on a mobile
+profile) is `pnpm lighthouse`, run by hand against `pnpm dev:worker`; no workflow runs it yet (task 1.4 of the change).
 
 Automated checks find part of the problems only. The manual checklist below is run before each
 release that changes the interface, and the result is written in the release notes.

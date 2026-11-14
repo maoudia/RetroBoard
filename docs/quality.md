@@ -43,6 +43,14 @@ In CI (`e2e.yml` on pull requests, `quality.yml` on main, `nightly.yml`):
 
 The deploy and release gates wait for the whole Quality run, so a regression on either runtime blocks them.
 
+## Accessibility in the push gate
+
+`a11y`, `theme-contrast` and `keyboard` are in `tests/e2e/core.json` (change `a11y-gate-and-derived-contrast`, tasks 1.1 to 1.3): a pull request
+fails on an axe violation on any route or dialog, on a theme whose text falls under 4.5:1, or on a keyboard regression, on Chromium. Cost, measured on
+Chromium against the Node adapter on 2026-11-14: the three specs are 60 tests and took 2.2 minutes on one worker (the worker count of CI), so about
+1.1 minutes more per shard of `Playwright (chromium 1/2)` and `(2/2)`, and the same on `Playwright wrangler`. The core suite is 151 tests and took
+1.8 minutes with the parallel workers of a developer machine. The other browsers and viewports run the same specs nightly.
+
 ## Nightly gate
 
 The nightly run (`nightly.yml`) is the cross-browser gate of releases R1 and R2 (definition and dates: `docs/roadmap.md`, section

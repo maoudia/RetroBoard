@@ -1,5 +1,5 @@
 {
-  "comment": "The push gate: data loss, encryption, sync, the daily flow and facilitation. Everything else runs nightly (pnpm e2e).",
+  "comment": "The push gate: data loss, encryption, sync, the daily flow, facilitation and accessibility (axe on every route and dialog, theme contrast, keyboard). Everything else runs nightly (pnpm e2e).",
   "specs": [
     "encryption",
     "p2p",
@@ -15,7 +15,10 @@
     "voting",
     "takeover",
     "presence",
-    "accessibility-statement"
+    "accessibility-statement",
+    "a11y",
+    "theme-contrast",
+    "keyboard"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",
