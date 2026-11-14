@@ -1,0 +1,41 @@
+{
+  "node": "v26.13.0",
+  "platform": "darwin-arm64",
+  "runs": 3,
+  "results": [
+    {
+      "name": "19 MiB x 2 (OWASP floor)",
+      "m": 19456,
+      "t": 2,
+      "desktopMs": 112,
+      "phone": {
+        "estimatedMs": 560
+      }
+    },
+    {
+      "name": "32 MiB x 3",
+      "m": 32768,
+      "t": 3,
+      "desktopMs": 283,
+      "phone": {
+        "estimatedMs": 1415
+      }
+    },
+    {
+      "name": "64 MiB x 3",
+      "m": 65536,
+      "t": 3,
+      "desktopMs": 570,
+      "phone": {
+        "estimatedMs": 2850
+      }
+    }
+  ],
+  "default": {
+    "id": "argon2id",
+    "m": 32768,
+    "t": 3,
+    "p": 1
+  },
+  "why": "Targets: at most 1.5 s on a desktop and 4 s on a mid-range phone. 64 MiB x 3 fits on the desktop (about 0.6 s) but the phone figure is unmeasured, so the default is 32 MiB x 3; the parameters are stored with every wrap, so raising them later keeps old wraps unlockable."
+}
