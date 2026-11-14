@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synchroniser avec un dossier - RetroBoard</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../guide.css">
+<script src="../guide.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top">
+<a class="brand" href="index.html">RetroBoard <span>Guide d’utilisation</span></a>
+<nav class="tools" aria-label="Guide d’utilisation">
+<a class="btn" href="/new">Ouvrir RetroBoard</a>
+<a class="btn" href="../en/sync.html" hreflang="en" lang="en">English</a>
+<button class="btn" type="button" id="variant" aria-pressed="false">Thème clair ou sombre</button>
+</nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="toc" aria-label="Chapitres"><ol><li><a href="create.html">Créer un board</a></li><li><a href="invite.html">Inviter l’équipe</a></li><li><a href="write.html">Écrire et publier des idées</a></li><li><a href="agenda.html">Le déroulé et le minuteur</a></li><li><a href="people.html">Les participants et le chat</a></li><li><a href="actions.html">Le plan d’actions</a></li><li><a href="present.html">Présenter</a></li><li><a href="export.html">Exporter et garder une trace</a></li><li><a href="options.html">Les options du board</a></li><li><a href="sync.html" aria-current="page">Synchroniser avec un dossier</a></li></ol></nav>
+<article>
+<h1>Synchroniser avec un dossier</h1>
+<p class="lead">Garde tes boards et tes préférences sur tes autres ordinateurs, dans des fichiers chiffrés que seul toi peux lire.</p>
+<p>La synchronisation garde tes boards et tes préférences sur tes autres ordinateurs, sans compte et sans serveur de notre côté. Tu choisis un dossier que ton client OneDrive, Google Drive, Dropbox, iCloud, Syncthing ou Nextcloud synchronise déjà. RetroBoard y écrit des fichiers chiffrés dans un dossier <code>RetroBoard</code>, et ton client les transporte vers tes autres ordinateurs. Ce ne sont que des fichiers.</p>
+<p><strong>Ton mot de passe et ta clé de récupération.</strong> La première fois, tu choisis un mot de passe de 12 caractères ou plus. RetroBoard chiffre tout avec une clé que seuls le mot de passe (ou la clé de récupération affichée juste après) peuvent ouvrir. Imprime la clé de récupération, enregistre-la en fichier ou copie-la, et garde-la loin de cet ordinateur. Si tu perds à la fois ton mot de passe et ta clé de récupération, personne, nous compris, ne peut lire ce qui est stocké : il est impossible de le récupérer. La synchronisation ne démarre qu&#39;après avoir coché les deux cases qui confirment que tu as rangé la clé et compris cela. Il n&#39;y a aucun moyen de synchroniser sans mot de passe ni de désactiver le chiffrement.</p>
+<p><strong>Changer d&#39;ordinateur.</strong> Sur le nouvel ordinateur, attends que ton client de synchronisation apporte le dossier, ouvre Préférences &gt; Synchronisation, choisis le même dossier et saisis le mot de passe (ou utilise la clé de récupération). Ta bibliothèque apparaît en un instant. Le contenu d&#39;un board est lu quand tu l&#39;ouvres, si bien qu&#39;un long historique ne ralentit jamais la première synchronisation. Les préférences et la bibliothèque sont fusionnées : le changement le plus récent de chaque réglage l&#39;emporte.</p>
+<p><strong>Ce qui est synchronisé.</strong> Tes boards (conservés hors ligne quand tu les as créés, ou ceux que tu enregistres dans ta bibliothèque), la bibliothèque, tes préférences, ton nom affiché et tes équipes. Les réglages d&#39;appareil (densité, conservation, notifications, webhook Slack) et tous les secrets restent sur l&#39;appareil.</p>
+<p><strong>Ce que le cloud du dossier peut voir.</strong> Seulement des fichiers chiffrés aux noms aléatoires : à peu près combien de boards tu as, la taille des fichiers (arrondie à une puissance de deux), le moment des changements et le nombre d&#39;appareils, plus le chemin du dossier qu&#39;il connaissait déjà. Aucun titre, note, nom ou réglage n&#39;est lisible.</p>
+<p><strong>Limites.</strong> La synchronisation par dossier fonctionne dans Chrome, Edge, Opera et Brave sur ordinateur, et seulement tant qu&#39;un onglet est ouvert : la mise à jour se fait à l&#39;ouverture de l&#39;application, au retour sur l&#39;onglet, au retour du réseau, chaque minute (toutes les 30 secondes sur un board) et avec « Synchroniser maintenant ». Ton client de synchronisation donne le rythme, donc un changement peut mettre de quelques secondes à quelques minutes à arriver. Chrome redemande parfois l&#39;autorisation du dossier : l&#39;état indique « Autoriser l&#39;accès au dossier » et tes modifications attendent sur l&#39;appareil que tu cliques. Safari, Firefox et les téléphones gardent leurs boards sur l&#39;appareil comme avant.</p>
+<p><strong>Déconnecter et oublier.</strong> Arrête la synchronisation et retire de ce navigateur le dossier, les clés et les préférences synchronisées. Tes boards restent. Tu peux aussi supprimer les fichiers du coffre dans le dossier : cela demande ton mot de passe et ne supprime que les fichiers de RetroBoard.</p>
+<section id="folder" aria-labelledby="folder-h"><h2 id="folder-h"><span class="n">1</span> Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud.</h2>
+<p>La section Synchronisation se trouve en bas de ton profil. « Choisir un dossier » ouvre le sélecteur de dossier de ton navigateur. Si le dossier contient déjà un coffre, RetroBoard demande son mot de passe et ne l&#39;écrase jamais ; sinon tu en crées un. La barre d&#39;outils affiche ensuite un petit état (Synchronisé, Synchronisation en cours, Hors ligne, Verrouillé, Autoriser l&#39;accès au dossier, Dossier introuvable, En attente d&#39;un fichier de votre client de synchronisation, Demande votre attention) avec « Synchroniser maintenant » et la liste de tes appareils dans la boîte de dialogue.</p>
+<figure class="shot"><img class="light" src="../img/fr/light/sync-folder.webp" width="578" height="313" alt="Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud." loading="lazy"><img class="dark" src="../img/fr/dark/sync-folder.webp" width="578" height="313" alt="Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud." loading="lazy"><figcaption>Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud.</figcaption></figure>
+</section>
+<nav class="pager" aria-label="Guide d’utilisation"><a href="options.html" rel="prev">Précédent: Les options du board</a><span></span></nav>
+</article>
+</main>
+</body>
+</html>

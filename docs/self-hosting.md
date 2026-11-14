@@ -134,6 +134,10 @@ backend retroboard
 
 When the pool changes (an instance added or removed) the rooms that move are dropped and rebuilt by their participants, as after a restart.
 
+## Sync with a folder
+
+Preferences > Sync (change `user-drive-storage`) writes the person's boards and preferences, encrypted in the browser, to a folder they pick with the browser's folder picker. Nothing about it touches the server: no new route, no storage, no secret, no change to the Content-Security-Policy (the key derivation runs in a first-party worker served from the same origin). A self-hosted instance therefore needs no setting for it. It works only in Chromium browsers on a computer (the File System Access API); elsewhere the section says so and boards stay on the device. The privacy page lists it among what stays on the person's side.
+
 ## Notes
 
 * Pin an exact tag (`1.3.0`) for stable deployments; `latest` follows every release.

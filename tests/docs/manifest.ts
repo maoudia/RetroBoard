@@ -117,6 +117,14 @@ export const CHAPTERS: readonly Chapter[] = [
       { id: 'options', caption: t('Les options règlent les votes, le verrouillage et qui peut animer.', 'Options set the votes, the lock and who can facilitate.'), ops: [{ press: 'Escape' }, { click: 'btn-options' }], anchors: ['opt-lock', 'opt-votes'] },
     ],
   },
+  {
+    id: 'sync',
+    title: t('Synchroniser avec un dossier', 'Sync with a folder'),
+    intro: t('Garde tes boards et tes préférences sur tes autres ordinateurs, dans des fichiers chiffrés que seul toi peux lire.', 'Keep your boards and preferences on your other computers, in encrypted files only you can read.'),
+    steps: [
+      { id: 'folder', caption: t('Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud.', 'In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-section', 'sync-choose'], shoot: 'sync-card' },
+    ],
+  },
 ]
 
 /** Every anchor the tour needs, once each, in first-use order. */

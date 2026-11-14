@@ -55,6 +55,7 @@
     "@stryker-mutator/vitest-runner": "10.1.1",
     "@types/node": "^26.6.6",
     "@types/pngjs": "^6.0.5",
+    "esbuild": "^0.28.2",
     "@vitest/coverage-v8": "^5.1.0",
     "allure": "3.33.0",
     "allure-playwright": "3.14.0",
