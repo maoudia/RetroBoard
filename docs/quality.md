@@ -62,7 +62,7 @@ nightly, delete its entry and lower the ceiling.
 
 The nightly run also has a `Lighthouse` job (change `a11y-gate-and-derived-contrast`, task 1.4): `pnpm lighthouse` against the Node adapter on the
 generated site, mobile profile, 4 pages in light and dark, against `quality/lighthouse-budgets.json` (the landing needs 95 for performance and 100 for
-accessibility), each page scored 5 times with the median kept (`LIGHTHOUSE_RUNS`: a single run on a shared runner swung /privacy from 100 to 65). The scores are a table in the job summary and a budget miss fails the job, so it makes the night red like any gating job.
+accessibility), each page scored 5 times with the median kept (`LIGHTHOUSE_RUNS`: a single run on a shared runner swung /privacy from 100 to 65). The runs go in rounds after one discarded warm-up round, because a runner stays slow for minutes and consecutive runs of one page share the slowdown; the throttling settings are pinned in the script (simulated 4G, 4x CPU); and a page whose median misses its budget is scored `LIGHTHOUSE_EXTRA_RUNS` (default 10) more times, the verdict being the median of all its runs. The budget is never lowered: a real regression stays under 95 at any sample size (the nightly of 14 November 2026 scored the landing 94 and /new 79 on a build whose `apps/web` was byte-identical to one that scored 99 and 96). The scores are a table in the job summary and a budget miss fails the job, so it makes the night red like any gating job.
 
 ## Release path
 
