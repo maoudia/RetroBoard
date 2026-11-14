@@ -60,6 +60,10 @@ in `quality/quarantine-baseline.json`, part of `pnpm verify`). `pnpm nightly:str
 nights in a row were green by that definition (needs the `gh` CLI). To take a spec out of quarantine: fix it, run it
 nightly, delete its entry and lower the ceiling.
 
+The nightly run also has a `Lighthouse` job (change `a11y-gate-and-derived-contrast`, task 1.4): `pnpm lighthouse` against the Node adapter on the
+generated site, mobile profile, 4 pages in light and dark, against `quality/lighthouse-budgets.json` (the landing needs 95 for performance and 100 for
+accessibility). The scores are a table in the job summary and a budget miss fails the job, so it makes the night red like any gating job.
+
 ## Release path
 
 `release.yml` opens the release PR (version and changelog only) once Checks and Quality are green on main (Quality is the unit tests and the core e2e specs, the slow tail runs in `quality-reports.yml` and does not hold the release), then merges it

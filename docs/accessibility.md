@@ -32,7 +32,7 @@ tablet, laptop and narrow widths. For accessibility that means:
 - `tests/e2e/forced-colors.spec.ts`: controls and focus in forced colours.
 
 Lighthouse (budgets of `quality/lighthouse-budgets.json`, the landing above 95 for performance and 100 for accessibility on a mobile
-profile) is `pnpm lighthouse`, run by hand against `pnpm dev:worker`; no workflow runs it yet (task 1.4 of the change).
+profile) is `pnpm lighthouse` (by hand against `pnpm dev:worker`) and the nightly job `Lighthouse`, which fails the night on a miss.
 
 Automated checks find part of the problems only. The manual checklist below is run before each
 release that changes the interface, and the result is written in the release notes.

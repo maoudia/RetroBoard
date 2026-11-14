@@ -109,3 +109,39 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm generate
       - run: scripts/ci/relay-checks.sh ${{ matrix.target }}
+
+  # Lighthouse (mobile profile) on the landing, /new, /accessibility and /privacy, light and dark, against
+  # quality/lighthouse-budgets.json: the landing needs 95 for performance and 100 for accessibility (the R2 launch gate, docs/roadmap.md).
+  # The scores are a table in the job summary. Change a11y-gate-and-derived-contrast, task 1.4.
+  lighthouse:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+    # The same ready-made browser image as the e2e job: Chromium is already there (chromium.executablePath() in scripts/quality/lighthouse.mjs).
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+      options: --ipc=host --init
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate
+      - run: pnpm --filter @retroboard/relay build:node
+      - name: Serve the site and run Lighthouse
+        shell: bash
+        env:
+          HOME: /root
+        run: |
+          PORT=18790 HOST=127.0.0.1 PUBLIC_DIR=apps/web/.output/public RATE_LIMIT_PER_MIN=0 MAX_CONNECTIONS_PER_ADDRESS=0 MAX_CONNECTS_PER_MINUTE=0 \
+            node apps/relay/dist/node.mjs > relay.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do curl -fsS http://127.0.0.1:18790/healthz >/dev/null 2>&1 && break; sleep 1; done
+          curl -fsS http://127.0.0.1:18790/healthz >/dev/null || { cat relay.log; exit 1; }
+          pnpm lighthouse http://127.0.0.1:18790 | tee -a "$GITHUB_STEP_SUMMARY"
