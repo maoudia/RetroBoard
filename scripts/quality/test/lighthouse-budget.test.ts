@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain ESM script without types
-import { budgetFor, categories, evaluate, renderTable } from '../lighthouse-budget.mjs'
+import { budgetFor, categories, evaluate, median, renderTable } from '../lighthouse-budget.mjs'
 
 const budgets = { performance: 0.8, accessibility: 0.95 }
 
@@ -27,5 +27,10 @@ describe('lighthouse budgets', () => {
       { page: 'new', variant: 'light', scores: { performance: 0.9, accessibility: 1 } },
     ]
     expect(evaluate(results, withPages)).toEqual([{ page: 'landing', variant: 'light', category: 'performance', score: 0.9, min: 0.95 }])
+  })
+  it('keeps the median of several runs, so one slow run does not decide', () => {
+    expect(median([{ performance: 0.65, accessibility: 1 }, { performance: 0.97, accessibility: 1 }, { performance: 0.98, accessibility: 0.9 }])).toEqual({ performance: 0.97, accessibility: 1 })
+    expect(median([{ performance: 0.5 }, { performance: 0.7 }])).toEqual({ performance: 0.6 })
+    expect(median([{ performance: 0.8 }])).toEqual({ performance: 0.8 })
   })
 })

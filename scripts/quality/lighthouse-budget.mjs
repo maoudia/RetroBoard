@@ -4,6 +4,16 @@ export function categories(budgets) {
   return Object.keys(budgets).filter((k) => k !== 'pages')
 }
 
+/** The middle score of each category over several runs of one page: one slow run on a shared runner does not fail the budget. */
+export function median(runs) {
+  const keys = Object.keys(runs[0] ?? {})
+  return Object.fromEntries(keys.map((k) => {
+    const sorted = runs.map((r) => r[k] ?? 0).sort((a, b) => a - b)
+    const mid = sorted.length >> 1
+    return [k, sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2]
+  }))
+}
+
 /** Minimums for one page: the global ones, raised by the page's own entry (`pages`, change landing-speed-and-accessibility). */
 export function budgetFor(budgets, page) {
   const { pages = {}, ...global } = budgets
