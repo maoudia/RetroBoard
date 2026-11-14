@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.54.1](https://github.com/maoudia/RetroBoard/compare/v1.54.0...v1.54.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **web:** fail the build on an inline style in prerendered markup, only warn in dev ([b87d2d2](https://github.com/maoudia/RetroBoard/commit/b87d2d2970d9a4c0ed3498d3fc6b32f270c58fe6))
+* **web:** keep the team join link and client navigation working on the prerendered landing ([35949bb](https://github.com/maoudia/RetroBoard/commit/35949bbd7d15453cd784775625bd8879a0c427e9))
+
+
+### Performance
+
+* **web:** prerender the landing page at build time (ADR-0038) ([157324d](https://github.com/maoudia/RetroBoard/commit/157324d37f91473386a8907b21d5afdd91e898b5))
+
 ## [1.54.0](https://github.com/maoudia/RetroBoard/compare/v1.53.0...v1.54.0) (2026-11-13)
 
 
