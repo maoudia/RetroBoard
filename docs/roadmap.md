@@ -50,7 +50,7 @@ Launch path only (owner decision 2026-11-12): what the launch needs, nothing els
 above), CLA live, Lighthouse mobile above 95 on the landing, axe without violation on the public pages, the launch kit ready.
 Anything not on this list slipped to R3.
 
-* Nightly health: `agentic-delivery-harness` ([proposal](../openspec/changes/agentic-delivery-harness/proposal.md)), the nightly gate above, the quarantine and the streak.
+* Nightly health: the nightly gate above, the quarantine and the streak. Delivered and archived: `agentic-delivery-harness` ([proposal](../openspec/changes/archive/2026-11-14-agentic-delivery-harness/proposal.md)).
 * Accessibility gate: `a11y-gate-and-derived-contrast` ([proposal](../openspec/changes/a11y-gate-and-derived-contrast/proposal.md)), axe, contrast and keyboard specs in the push gate; Lighthouse.
 * Safe deploys: `deploy-safe-sessions` ([proposal](../openspec/changes/deploy-safe-sessions/proposal.md)), a deploy during a retro no longer drops peer links or hides events of a newer client.
 * Landing and launch kit: `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md)), then `public-launch` ([proposal](../openspec/changes/public-launch/proposal.md)): indexing of the public pages, one page per retro format, the launch kit and `pnpm launch:check`, the readiness check of the gate above.
