@@ -194,6 +194,9 @@ importers:
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
+      '@noble/hashes':
+        specifier: ^2.4.0
+        version: 2.4.0
 
   packages/domain:
     devDependencies:
@@ -249,6 +252,9 @@ importers:
 
   packages/testkit:
     dependencies:
+      '@retroboard/application':
+        specifier: workspace:*
+        version: link:../application
       '@retroboard/domain':
         specifier: workspace:*
         version: link:../domain
