@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Relay protocol contract: node scripts/relay-contract.mjs http://127.0.0.1:8787
 // Opens real sockets on one room (or several) of any base URL and asserts the frame sequences and close codes of the
-// `relay-core` spec (openspec/changes/portable-relay-core). Every adapter (wrangler dev, the Node adapter, a container)
+// `relay-core` spec (openspec/specs/relay-core). Every adapter (wrangler dev, the Node adapter, a container)
 // must pass it unchanged. It sends nothing but fresh random rooms and encrypted-looking envelopes, and leaves nothing behind.
 // `runContract` takes the WebSocket class as a dependency so the checks are unit tested (apps/relay/test/node.test.ts).
 import { randomBytes } from 'node:crypto'

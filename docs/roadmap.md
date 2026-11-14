@@ -100,7 +100,7 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 * `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
 * `join-code-drop-fallback` ([proposal](../openspec/changes/join-code-drop-fallback/proposal.md))
 * `local-data-durability` ([proposal](../openspec/changes/local-data-durability/proposal.md)), the browser is the only copy of a board: persistence status, sealed drafts
-* `portable-relay-core` ([proposal](../openspec/changes/portable-relay-core/proposal.md)), see Cloudflare independence below
+* Delivered and archived: `portable-relay-core` ([proposal](../openspec/changes/archive/2026-11-14-portable-relay-core/proposal.md)), see Cloudflare independence below
 
 ## R4 Monetisation and growth (target 2027-03-14)
 
@@ -130,6 +130,6 @@ target among others. The work was open without a release; it is placed by what t
 | `deploy-safe-sessions` | R2 | Production deploys several times a day and a retro lasts an hour: the launch cannot drop peer links on every deploy |
 | `a11y-gate-and-derived-contrast` | R2 | Launch gate (axe without violation); nightly failed on axe checks |
 | `local-data-durability` | R3 | Protects the one copy of a board in the browser; not a launch blocker |
-| `portable-relay-core` | R3 | Runtime-neutral relay core, thin Durable Object adapter and a Node adapter for the self-host container; not a launch blocker |
+| `portable-relay-core` | R3 | Delivered and archived (1.53.0 to 1.55.0): runtime-neutral relay core, thin Durable Object adapter and a Node adapter for the self-host container |
 
 The follow-ups named in the `portable-relay-core` proposal (`rtc-config-and-deploy-targets`, `selfhost-container-gate`) are not yet changes of their own.
