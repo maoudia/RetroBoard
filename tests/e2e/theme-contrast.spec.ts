@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { THEMES } from '../../packages/themes/src/index'
 import { axe, createBoard, publishNote, settle } from './helpers'
-const THEMES = [{ id: 'studio' }, { id: 'corporate' }, { id: 'slate' }, { id: 'paper' }, { id: 'minimal' }, { id: 'halloween' }, { id: 'noel' }, { id: 'cyber' }, { id: 'sakura' }]
 
 // Change quality-gates-v2: every theme in light and dark is checked for text contrast (WCAG 2.2 AA) on the board.
 // Results go to test-results/contrast/*.json; `node scripts/quality/contrast-report.mjs` turns them into a table.

@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
-import { composeField, createBoard, settle } from './helpers'
+import { THEMES } from '../../packages/themes/src/index'
+import { composeField, createBoard, join, settle } from './helpers'
 
-/** Text that stays dark on dark (or light on light) in a state axe does not reach (#225): measured on every theme, both variants. */
-const THEMES = ['studio', 'corporate', 'slate', 'paper', 'minimal', 'halloween', 'noel', 'cyber', 'sakura']
+/** Text that stays dark on dark (or light on light) in a state axe does not reach (#225): measured on every theme of the themes package, both variants. */
 
 async function lowContrast(page: Page): Promise<string[]> {
   return page.evaluate(() => {
@@ -39,8 +39,8 @@ async function lowContrast(page: Page): Promise<string[]> {
 }
 
 for (const variant of ['light', 'dark'] as const) {
-  for (const theme of THEMES) {
-    test(`contrast, ${theme}, ${variant} (#225)`, async ({ page }) => {
+  for (const { id: theme } of THEMES) {
+    test(`contrast, ${theme}, ${variant} (#225)`, async ({ page, browser }) => {
       await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: variant })
       await page.addInitScript((v) => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ variant: v })) } catch { /* ignore */ } }, variant)
       await createBoard(page, { theme, template: 'start-stop-continue' })
@@ -54,6 +54,27 @@ for (const variant of ['light', 'dark'] as const) {
       })
       await settle(page)
       expect(await lowContrast(page)).toEqual([])
+      // A toolbar panel (the filter bar) and the chat: a peer writes, so the toolbar shows the unread count, then the panel opens on the thread.
+      await page.getByTestId('btn-filter').click()
+      await expect(page.getByTestId('board-filter')).toBeVisible()
+      await settle(page)
+      expect(await lowContrast(page), 'filter panel').toEqual([])
+      await page.getByTestId('filter-close').click()
+      await page.getByTestId('btn-share').click()
+      const link = await page.getByTestId('share-url').inputValue()
+      await page.keyboard.press('Escape')
+      const bob = await join(browser, link, 'Bob')
+      await bob.page.getByTestId('btn-chat').click()
+      await bob.page.getByTestId('chat-input').fill('Contrast check')
+      await bob.page.getByTestId('chat-send').click()
+      await expect(page.getByTestId('chat-unread')).toHaveText('1')
+      await settle(page)
+      expect(await lowContrast(page), 'chat unread count').toEqual([])
+      await page.getByTestId('btn-chat').click()
+      await expect(page.getByTestId('chat-log')).toContainText('Contrast check')
+      await settle(page)
+      expect(await lowContrast(page), 'chat panel').toEqual([])
+      await bob.ctx.close()
     })
   }
 }
