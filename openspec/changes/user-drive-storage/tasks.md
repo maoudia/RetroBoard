@@ -1,13 +1,71 @@
 # Tasks
 
+Groups 1 and 2 are R2 (priority 1); groups 3 to 10 are R3. One PR per group. Nothing is ticked: this change is spec only until the spec PR merges. Group titles of 1 and 2 are the sub-issue titles; group 1 keeps the title of the existing issue.
+
 ## 1. Foundations
-- [ ] 1.1 ADR and `StoragePort` with an in-memory fake; verify unit tests of merge by union and encryption round trip
-- [ ] 1.2 Local folder adapter (File System Access API, handle in IndexedDB, atomic write); verify e2e in Chromium and fallback in other browsers
 
-## 2. Product
-- [ ] 2.1 Storage preference UI (connect, status, last sync, disconnect and forget) with fr and en; verify e2e and axe
-- [ ] 2.2 Automatic save of boards and settings and restore on a new browser; verify e2e with two profiles sharing a folder
-- [ ] 2.3 Obsidian and Joplin readable Markdown mode (explicit per board); verify unit tests and e2e
+- [ ] 1.1 `SyncTargetPort`, `ObjectInfo`, `TargetCapabilities`, `TargetError` in `packages/application/src/ports/sync-target.ts` (exported from `ports/index.ts`); `createMemoryTarget()` in `packages/testkit/src/sync-target.ts` with the plaintext guard (`assertNoPlaintext(canaries)` over every path and byte array, in UTF-8, UTF-16, base64 and percent-encoded forms); verify unit tests of the fake (put, get, list, delete, `ifMatch`, `absent`) and of the guard (it fails on a planted plaintext path and a planted plaintext body)
+- [ ] 1.2 `runSyncTargetContract(name, makeTarget)` in `packages/testkit/src/contract.ts` as designed (round trips of 0 B, 1 B and 5 MiB, create-only, stale and current etag, missing get and stat, prefix listing across 1,200 objects, idempotent delete, lowercase names, error mapping); run on the fake; verify `pnpm verify` and that a deliberately broken fake fails each check
+- [ ] 1.3 Object format in `packages/crypto/src/vault.ts`: plaintext header (magic, version, cipher id, key id, salt, chunk size), AES-GCM chunks with counter nonce and per-object key from `HKDF(vaultKey, salt)`, associated data binding header hash, chunk index, final flag, path class and stream, padding to a power of two (1 KiB minimum), key schedule from the master key (stream keys, name key, library key; names `HMAC(nameKey, name)` in base32 lowercase); verify unit tests with fixed vectors, truncation, reorder, swapped stream, wrong key, padding sizes
+- [ ] 1.4 Password wrap and recovery key in `packages/crypto/src/kdf.ts` and `recovery.ts`: Argon2id from `@noble/hashes` in a first-party worker (parameters stored per wrap, never below 19 MiB, 2 passes, 1 lane), PBKDF2-SHA-256 600,000 as a registered fallback id, `info.json` wrap structure and per-property `updatedTime`, recovery key (160 random bits, base32 groups with a check digit, QR payload), password change re-wraps only, minimum 12 characters with a local strength hint; a benchmark script under `quality/` records desktop and mid-range phone timings and fixes the default parameters; check the licence (MIT) and the bundle size against `scripts/check-bundle-size.mjs`; verify unit tests (wrap and unwrap, wrong password, recovery key typo detected, parameters raised later still unlock), `pnpm verify` and the bundle budget
+- [ ] 1.5 Pure sync model in `packages/application/src/storage/`: `LibraryEntry` and its merge (last-write-wins per board id, `lastActivityAt` by maximum, tombstone), `SYNCED_SETTINGS` and `LOCAL_ONLY_SETTINGS` and the equivalents for identity and workspace as in `design.md` ("What syncs"), `mergeWorkspace` (teams by id last-write-wins, saved retros by board id union, owners union); verify unit tests and a test that fails when a key of `LocalSettings`, identity or workspace is in neither list
+- [ ] 1.6 `apps/web/app/adapters/sync/idb-target.ts`: `SyncTargetPort` over a `vault` object store (`replica-idb.ts` version bump, additive), objects in the vault format sealed with a key derived from the existing device key (`device-key.ts` hands back a `CryptoKey`, nothing exported); idempotent migration of `retroboard:recents` and `retroboard:solo` into the library, old keys kept one release; verify the contract suite on this adapter (fake-indexeddb), a migration test from a legacy fixture, and that nothing readable is stored
+- [ ] 1.7 `stores/library.ts` and use cases `saveBoardToLibrary`, `archiveBoard`, `forgetBoard`, `openLibraryBoard` (restores from the replica; the target path arrives in group 2); `stores/recents.ts` becomes a view of the library with its API unchanged; created boards enter the library automatically, joined boards only by "Save to my library" or the opt-in setting; verify unit tests and that the existing recents e2e specs still pass
+- [ ] 1.8 Library UI on `pages/boards.vue` and `components/LibraryList.vue`: list with title, team, role, last activity, archived filter, open, archive, forget (with confirmation), "Save to my library" on a joined board, fr and en keys, phone to TV layout, design tokens; verify e2e (create, archive, forget, reopen after reload, passcode board asks the passcode) and axe without violation
+- [ ] 1.9 `docs/architecture.md` section "Sync targets and the vault" (layers, ports, where the guard lives); verify `pnpm verify`, `pnpm adr:check`
 
-## 3. Later
-- [ ] 3.1 Google Drive appData adapter (needs maintainer decision on CSP and OAuth client)
+## 2. Local folder sync
+
+- [ ] 2.1 Vault engine, part 1, in `packages/sync/src/vault/`: `info.json` per-property merge with `updatedTime` and anti-rollback memory, `minReader` refusal, immutable segment writer (device, sequence, random suffix, create-only), per-device manifest, reader that lists `m/` and computes unapplied segments; verify unit tests on `createMemoryTarget()` with two simulated devices (offline edits, both orders give identical state), a lost put response, a deleted segment, and the plaintext guard on every object
+- [ ] 2.2 Vault engine, part 2: streams. Board events union by event id with `compareEvents` order, lazy fetch from the latest checkpoint, checkpoints and own-segment compaction with the previous checkpoint kept and 24 hours before deletion; `settings`, `identity`, `workspace` and `library` streams with hybrid-clock last-write-wins, remote stamp clamping and local edits ticking above the replaced stamp; verify unit tests (clock one year ahead, tombstone against an older put, compaction while another device reads, a 200-board library fetches no board stream) and the plaintext guard with canaries in titles, notes, names, team names and settings
+- [ ] 2.3 Use cases `createVault`, `unlockVault`, `syncVault`, `disconnectAndForget` in `packages/application/src/storage/` and the scheduler in `stores/vault.ts`: triggers (app open, visibility, focus, `online`, debounced local writes, timer 60 s or 30 s on an open board, "Sync now"), one leader per vault with `navigator.locks`, backoff, states (synced, syncing, offline, locked, allow folder access, folder not found, waiting for a file, needs attention, target full), local editing never blocked; verify unit tests with fake timers and a fake lock manager
+- [ ] 2.4 Folder adapter `apps/web/app/adapters/sync/folder-target.ts` and `packages/testkit/src/fake-directory.ts`: swap-file writes through `createWritable`, size re-check after write, create-only by "get without create", etag `size:lastModified`, name whitelist, ignore list for temp and conflict-copy names, half-synced detection (zero bytes, size differing from the manifest, failed final chunk, iCloud placeholder) with backoff, `info.json` conflict copies merged and the recognised copy deleted, lowercase ASCII names under 64 characters, reserved Windows names refused; verify the contract suite on the fake directory handle, a sync-client simulator test (adds `name (conflicted copy ...)`, `name-DESKTOP-1`, `*.sync-conflict-*`, `.syncthing.*.tmp`, a zero-byte file, a half file) and one contract run in real Chromium on the origin private file system
+- [ ] 2.5 `adapters/sync/folder-handle.ts` and feature detection: handle stored in IndexedDB, `queryPermission` at start, "Allow folder access" state needing a click (never an automatic `requestPermission`), `NotFoundError` and `denied` give "Folder not found, choose it again" keeping the vault id, the `RetroBoard` subfolder, no `showDirectoryPicker` gives the matrix message (Chrome on Android, Safari, Firefox, iOS) by feature test and never by user agent; verify unit tests with a stubbed handle in each permission state
+- [ ] 2.6 Preferences > Sync UI (`components/SyncSettings.vue` in `ProfileDialog.vue`, status chip in `AppToolbar.vue`): choose folder, create or unlock, password with strength hint, recovery key screen (print, save, copy), the two acknowledgement boxes before the first sync with the unrecoverable-data sentence, status text and polite announcements, "Sync now", device list, show recovery key after the password, disconnect and forget with the optional vault deletion; no control can switch encryption off; fr and en keys; verify e2e on the origin private file system with the picker stubbed (create, lock, unlock, wrong password message, disconnect) and axe
+- [ ] 2.7 Apply synced values: one `syncedSettings` composable that reads and writes `stores/settings.ts`, `identity.ts` and `team.ts` through the synced lists, library and workspace stream wiring, `openLibraryBoard` restoring a board's events from the target into the replica before the live path; verify e2e with two browser contexts and a sync-client simulator that copies the folder between them (library appears, board opens with its events, a setting changes on both, two offline edits merge), and the plaintext canary test that reads the real folder
+- [ ] 2.8 Documentation: `docs/user-guide/{fr,en}/sync.md` as outlined in `design.md`, guide manifest and tour step in `tests/docs/manifest.ts`, `pnpm docs:tour && pnpm docs:guide`, privacy page (what a folder's cloud sees), `docs/self-hosting.md`, `docs/owner-checks.md` (live check: pick a folder carried by the owner's sync client, second machine, library appears); verify `pnpm verify` and `pnpm e2e:core`
+
+## 3. OneDrive adapter
+
+- [ ] 3.1 Spike and go or no-go: `/sync/onedrive.js` as an un-hashed worker script with its own `Content-Security-Policy` header from `apps/relay/src/core/headers.ts` (table by path), build step emitting it, `worker-src` fallback to `script-src 'self'`; prove in Chromium, Firefox and WebKit that the worker's fetches follow the worker's policy and not the page's, confirm the upload-session hosts, confirm whether work and school accounts can use the app folder (`design.md`); verify e2e in three engines, `apps/relay/test/worker.test.ts`, `scripts/ci/test/asset-headers.test.ts`, and a note in the ADR on the outcome (fallback if it fails)
+- [ ] 3.2 Sign-in: `/storage/callback` page (in `APP_ROUTES`), PKCE authorization code flow as a single-page application, state and verifier in `sessionStorage`, route restore, refresh token sealed in IndexedDB, access token in worker memory, public client id from runtime configuration (`NUXT_PUBLIC_ONEDRIVE_CLIENT_ID`, empty hides the provider); verify unit tests of the PKCE and token store, e2e against the fake identity endpoint
+- [ ] 3.3 Graph adapter in a worker (`adapters/sync/onedrive-*.ts`, `workers/onedrive.ts`, page-side proxy over a typed message channel): list with `nextLink` paging, get, put with `If-Match` and create-only, resumable upload session above 4 MiB, 429 503 509 with `Retry-After`, error mapping to `TargetError`; `packages/testkit/src/fake-graph.ts`; verify the contract suite against the fake Graph, throttling and resume tests, the plaintext guard on bodies and URLs
+- [ ] 3.4 UI: "Sign in with Microsoft" in Preferences > Sync, "Sign in again", disconnect and forget with the revocation explanation and the link to the Microsoft page; verify e2e with the fake Graph (device switch end to end: second context signs in, enters the password, the library appears, a board opens lazily) and axe
+- [ ] 3.5 `docs/storage-onedrive.md` with the Entra step list of `design.md`, user guide paragraph, `docs/owner-checks.md` live check, `docs/self-hosting.md` (own registration), `wrangler.jsonc` vars; verify `pnpm verify`, the owner's live check recorded
+
+## 4. GitHub adapter
+
+- [ ] 4.1 Adapter in its own worker script (`connect-src https://api.github.com`): fine-grained token sealed locally, private-repository check at connect and at each session start, Git Data API with one commit per cycle, branch ref etag as change detector, 403 and 429 secondary-limit handling, refusal of a public repository; verify the contract suite against a fake GitHub, unit tests of batching and of the private check
+- [ ] 4.2 UI and docs: token help (scopes, one repository), "repository is public" state, guide and `docs/owner-checks.md`; verify e2e with the fake and axe
+
+## 5. Google Drive adapter
+
+- [ ] 5.1 Confirm the implicit token redirect still works for a new web client and decide go or no-go (otherwise drop this group in favour of the folder path); register the project (list in the group's docs); verify a recorded real sign-in by the owner
+- [ ] 5.2 Adapter (`drive.appdata`, hourly token, "Sign in again"), listing, create-only and `If-Match` through `ETag` of the revision or a version check, quota error mapping; verify the contract suite against a fake Drive
+- [ ] 5.3 UI and docs, including the Google Cloud step list and the OAuth consent screen requirements; verify e2e and axe
+
+## 6. Dropbox adapter
+
+- [ ] 6.1 Adapter: PKCE code flow with offline refresh token, app folder, `list_folder` with cursor, `rev` as etag, `mode` add and update; verify the contract suite against a fake Dropbox
+- [ ] 6.2 UI and docs, including the App Console step list and the development-status user cap; verify e2e and axe
+
+## 7. WebDAV adapter
+
+- [ ] 7.1 The `net` worker (`connect-src https:`, credentials pinned to their origin, ciphertext only): spike on the policy and on the pinning, ADR note on the exposure; verify e2e and a test that credentials are never sent to another origin
+- [ ] 7.2 WebDAV adapter (`PROPFIND`, `PUT` with `If-Match`, `If-None-Match: *`, `MKCOL`, `MOVE`, `DELETE`), HTTPS only, atomic write through `tmp/`; verify the contract suite against a WebDAV container in CI
+- [ ] 7.3 Connect check that explains a missing CORS answer, tested server configurations and header snippets in `docs/storage-webdav.md`; verify e2e against the container with and without CORS
+
+## 8. S3-compatible adapter
+
+- [ ] 8.1 SigV4 signing with WebCrypto, path-style addressing, `ListObjectsV2` paging, conditional write probing recorded in the capabilities; verify the contract suite against a MinIO container in CI
+- [ ] 8.2 UI, bucket CORS and restricted-key policy snippets in `docs/storage-s3.md`; verify e2e and axe
+
+## 9. Generic HTTP adapter
+
+- [ ] 9.1 The published profile (`docs/storage-http.md`), the adapter on the `net` worker, a reference implementation of the listing (a ten-line Worker and an `rclone serve` recipe); verify the contract suite against the reference server
+- [ ] 9.2 UI (base URL, header name and token) and docs; verify e2e and axe
+
+## 10. Device pairing
+
+- [ ] 10.1 Pairing payload (target settings, credentials, unlock key) sealed with a one-time key shown as ten words, QR rendering and scanning (reuse `JoinScanner.vue`), expiry after two minutes; verify unit tests and that the QR alone does not decrypt
+- [ ] 10.2 UI on both devices and, if cut from group 2, the printable recovery page and "Stay unlocked on this device"; verify e2e and axe

@@ -238,7 +238,7 @@ const ROADMAP = {
   'board-undo-rewind': 'R3',
   'export-hub': 'R3',
   'export-destinations-v2': 'R3',
-  'user-drive-storage': 'R3',
+  'user-drive-storage': 'R2',
   'postit-visual-system': 'R3',
   'publishing-ux-redesign': 'R3',
   'board-creation-v2': 'R3',
@@ -317,7 +317,7 @@ const PRIORITY = {
   'board-undo-rewind': 4,
   'export-hub': 4,
   'export-destinations-v2': 4,
-  'user-drive-storage': 4,
+  'user-drive-storage': 1,
   'postit-visual-system': 4,
   'publishing-ux-redesign': 4,
   'board-creation-v2': 4,
@@ -347,6 +347,15 @@ const GROUP_OVERRIDES = {
   // Production audit 2026-11-09: removal is undone by a new tab until the fresh link ships; snapshots bound what a relay-only joiner gets.
   'facilitator-moderation:2': { release: 'R1', priority: 1 },
   'p2p-presence-and-cursors:4': { priority: 2 },
+  // Owner request 2026-11-14: the interface, the browser adapter, the library and OneDrive are in R2 at priority 1; the other adapters follow in R3.
+  'user-drive-storage:3': { release: 'R3', priority: 4 },
+  'user-drive-storage:4': { release: 'R3', priority: 4 },
+  'user-drive-storage:5': { release: 'R3', priority: 4 },
+  'user-drive-storage:6': { release: 'R3', priority: 4 },
+  'user-drive-storage:7': { release: 'R3', priority: 4 },
+  'user-drive-storage:8': { release: 'R3', priority: 4 },
+  'user-drive-storage:9': { release: 'R3', priority: 4 },
+  'user-drive-storage:10': { release: 'R3', priority: 4 },
 }
 // A change with every task ticked needs no priority (its issues only wait to be closed).
 const prioLabels = (c, g) => {

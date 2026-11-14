@@ -49,3 +49,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0036](0036-cloudflare-is-one-deploy-target-relay-core-runtime-neutral.md) | Cloudflare is one deploy target; the relay core is runtime-neutral | accepted | 2026-11-12 |
 | [0037](0037-signed-snapshots-are-a-verified-shortcut-for-joiners-never-a.md) | Signed snapshots are a verified shortcut for joiners, never a replacement for the event log | accepted | 2026-11-11 |
 | [0038](0038-prerender-the-landing-page-at-build-time.md) | Prerender the landing page at build time | accepted | 2026-11-13 |
+| [0039](0039-sync-boards-and-settings-as-encrypted-immutable-objects-on-a.md) | Sync boards and settings as encrypted immutable objects on a user-chosen file target | proposed | 2026-11-14 |
