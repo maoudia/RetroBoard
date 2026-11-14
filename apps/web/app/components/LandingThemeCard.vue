@@ -6,7 +6,9 @@ defineProps<{ theme: ThemeDefinition }>()
 /** One rule per theme, from the theme data: the landing is prerendered under a strict CSP, so colours are never style attributes. */
 const swatchCss = THEMES.map(({ id, tokens: k, noteColors }) =>
   `.lp-swatch[data-theme="${id}"]{--bg:${k.bg};--bg2:${k.bg2};--sf:${k.surface};--bd:${k.border};--tx:${k.text};--mu:${k.muted};--ac:${k.accent};${noteColors.map((c, i) => `--n${i}:${c}`).join(';')}}`).join('')
-useHead({ style: [{ key: 'landing-swatches', innerHTML: swatchCss }] })
+// The prerendered tag stays out of the head manager in the browser: leaving the page would blank it, and CSP refuses
+// that rewrite (no hash for an empty style). Arriving from another page, the tag is added at runtime, as before.
+if (import.meta.server || !document.querySelector('style[data-hid="landing-swatches"]')) useHead({ style: [{ key: 'landing-swatches', innerHTML: swatchCss }] })
 </script>
 
 <template>

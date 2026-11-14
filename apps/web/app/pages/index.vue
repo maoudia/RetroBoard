@@ -10,7 +10,9 @@ useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color
 const router = useRouter()
 /** A team link (#team=...) opens its join dialog; the component is loaded only then. */
 const joiningTeam = ref(false)
-onMounted(() => { joiningTeam.value = window.location.hash.startsWith('#team=') })
+/** The prerendered page hydrates on `/` and Nuxt puts the fragment back only after hydration: follow the route's hash instead of reading it at mount. */
+const route = useRoute()
+watch(() => route.hash, (hash) => { if (hash.startsWith('#team=')) joiningTeam.value = true }, { immediate: true })
 const recents = useRecentsStore()
 useSetupAgentTools()
 const tab = ref<'pro' | 'fun'>('pro')
