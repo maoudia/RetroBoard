@@ -3,10 +3,11 @@ import { isUnknownAppPath, pickErrorResponse, wantsHtml } from './errors'
 import { createLimiter, isMaintenance, maintenanceAction, RETRY_AFTER_SECONDS } from './guards'
 import { type AssetsPort, buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
 import { consoleLogger, roomHash } from './logger'
+import { operatorResponse, type OperatorSettings } from './operator'
 import { admitUpgrade } from './origin'
 
 /** The deployment settings the HTTP handler reads. */
-export interface Settings extends ClientIpSettings {
+export interface Settings extends ClientIpSettings, OperatorSettings {
   /** Extra allowed WebSocket origins, comma separated (local dev with `nuxt dev`). */
   ALLOWED_ORIGINS?: string
   /** "1" switches the site to maintenance mode (503 + Retry-After). */
@@ -72,6 +73,7 @@ export async function handleHttp(request: Request, deps: HttpDeps): Promise<Resp
   if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Method not allowed', { status: 405 })
 
   const hashes = await loadCspHashes(deps.assets)
+  if (url.pathname === '/operator.json') return withSecurityHeaders(operatorResponse(settings, request.method === 'HEAD'), buildCsp(hashes), null)
   const extra = (settings.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim().replace(/^http/, 'ws')).filter(Boolean)
   let res = await deps.assets.fetch(request)
   // The asset layer answers 404 itself (not_found_handling "none"); an unknown path still gets the branded page.

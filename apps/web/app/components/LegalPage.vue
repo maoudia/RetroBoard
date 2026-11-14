@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { td } from '~/i18n'
 const { t } = useT()
+const { legalText } = useOperator()
 
 /**
  * Legal, privacy and terms pages: text lives in i18n (fr, en) as `${doc}.${n}.h`, `${doc}.${n}.p`
@@ -18,9 +19,9 @@ useHead({ title: computed(() => `${td(`${props.doc}.title`)} - RetroBoard`) })
     <p class="beta"><Icon name="lucide:flask-conical" /> {{ t('legal.beta') }}</p>
     <section v-for="(s, i) in sections" :key="i">
       <h2>{{ td(`${doc}.${i + 1}.h`) }}</h2>
-      <p>{{ td(`${doc}.${i + 1}.p`) }}</p>
+      <p>{{ legalText(`${doc}.${i + 1}.p`) }}</p>
       <ul v-if="s.bullets">
-        <li v-for="m in s.bullets" :key="m" :data-testid="`${doc}-${i + 1}-${m}`">{{ td(`${doc}.${i + 1}.li.${m}`) }}</li>
+        <li v-for="m in s.bullets" :key="m" :data-testid="`${doc}-${i + 1}-${m}`">{{ legalText(`${doc}.${i + 1}.li.${m}`) }}</li>
       </ul>
     </section>
     <p class="muted updated">{{ t('legal.updated') }}</p>

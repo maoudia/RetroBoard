@@ -40,7 +40,8 @@
   <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/DEVELOPMENT.md"><img alt="Node 26 LTS" src="https://img.shields.io/badge/node-26%20LTS-5FA04E?labelColor=1d1d1f&style=flat-square&logo=nodedotjs&logoColor=white"></a>
   <a href="https://nuxt.com"><img alt="Nuxt 4" src="https://img.shields.io/badge/Nuxt-4-00DC82?labelColor=1d1d1f&style=flat-square&logo=nuxt&logoColor=white"></a>
   <a href="https://www.typescriptlang.org"><img alt="TypeScript strict" src="https://img.shields.io/badge/TypeScript-strict-3178C6?labelColor=1d1d1f&style=flat-square&logo=typescript&logoColor=white"></a>
-  <a href="https://developers.cloudflare.com/durable-objects/"><img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers%20%2B%20Durable%20Objects-F38020?labelColor=1d1d1f&style=flat-square&logo=cloudflare&logoColor=white"></a>
+  <a href="https://developers.cloudflare.com/durable-objects/"><img alt="Hosted on Cloudflare Workers" src="https://img.shields.io/badge/hosted-Cloudflare%20Workers%20%2B%20Durable%20Objects-F38020?labelColor=1d1d1f&style=flat-square&logo=cloudflare&logoColor=white"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/self-hosting.md"><img alt="Self-hosted on Node" src="https://img.shields.io/badge/self--hosted-Node%20container%20%C2%B7%20no%20Cloudflare-5FA04E?labelColor=1d1d1f&style=flat-square&logo=nodedotjs&logoColor=white"></a>
   <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/adr/0004-end-to-end-encryption-with-keys-in-the-link.md"><img alt="End-to-end encrypted" src="https://img.shields.io/badge/boards-end--to--end%20encrypted-0a7a3d?labelColor=1d1d1f&style=flat-square&logo=letsencrypt&logoColor=white"></a>
   <a href="https://www.conventionalcommits.org"><img alt="Conventional Commits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?labelColor=1d1d1f&style=flat-square&logo=conventionalcommits&logoColor=white"></a>
 </p>
@@ -50,7 +51,7 @@ Private drafts, votes, groups, a shared agenda with timer, presenter mode, chat,
 
 **[User guide](https://retroboard.maoudia.com/guide/en/)** (illustrated, [en](https://retroboard.maoudia.com/guide/en/) and [fr](https://retroboard.maoudia.com/guide/fr/), generated from the real app) - [Quality reports](https://maoudia.github.io/RetroBoard/) - [Self-hosting](docs/self-hosting.md)
 
-> A static Nuxt site served by a Cloudflare Worker. Boards are end-to-end encrypted; the relay is a memory-only Durable Object that forwards ciphertext and stores nothing.
+> A static Nuxt site and a memory-only relay that forwards ciphertext and stores nothing. Boards are end-to-end encrypted. The relay core is runtime-neutral: the hosted service runs it on a Cloudflare Worker and a Durable Object, the container image on plain Node (no Cloudflare account needed).
 
 ## Roadmap and contributing with agents
 
@@ -82,26 +83,26 @@ Private drafts, votes, groups, a shared agenda with timer, presenter mode, chat,
 | Local profile and teams | Name, avatar, language, display options and recent boards, and local team workspaces, all on your device. |
 | Browser agents | WebMCP tools let an agent in the browser read the board and draft, with your confirmation ([docs/webmcp.md](docs/webmcp.md)). |
 | i18n, accessibility | English and French, auto-detected; WCAG 2.2 AA checked with axe on every theme ([docs/accessibility.md](docs/accessibility.md)). |
-| Self-hosting | A signed container image with its SBOM ([docs/self-hosting.md](docs/self-hosting.md)). |
+| Self-hosting | A signed container image on plain Node, with its SBOM, no Cloudflare needed ([docs/self-hosting.md](docs/self-hosting.md)). |
 
 ## Architecture
 
 ```
-Browser (Nuxt, prerendered landing)           Cloudflare
+Browser (Nuxt, prerendered landing)           Relay (apps/relay), one of two adapters
 +-----------------------------+              +--------------------------------+
-| pages / components          |  WebSocket   | Worker (apps/relay)            |
-| Pinia stores                | <==========> |  - serves .output/public       |
-| EncryptedRelayTransport     |  encrypted   |  - CSP + security headers      |
-|  - AES-GCM envelopes        |  envelopes   |  - origin and room id checks   |
-|  - signed events (Ed25519)  |              +---------------+----------------+
-|  - IndexedDB replica        |                              | idFromName(room)
-| LocalRelaySocket (solo)     |                              v
-+-------------+---------------+              +--------------------------------+
-              |                              | Durable Object RelayRoom       |
-              v                              |  - forwards ciphertext only    |
-   packages/domain (pure TypeScript)         |  - memory ring buffer          |
-   ledger fold -> reduce() -> snapshot       |  - never touches ctx.storage   |
-   runs in every browser                     +--------------------------------+
+| pages / components          |  WebSocket   | core: HTTP rules, CSP + headers|
+| Pinia stores                | <==========> |  origin and room id checks     |
+| EncryptedRelayTransport     |  encrypted   |  RoomCore (src/core)           |
+|  - AES-GCM envelopes        |  envelopes   +---------------+----------------+
+|  - signed events (Ed25519)  |              | Cloudflare: Worker + Durable   |
+|  - IndexedDB replica        |              |   Object RelayRoom (hosted)    |
+| LocalRelaySocket (solo)     |              | Node: node:http + ws, one      |
++-------------+---------------+              |   process (container image)    |
+              |                              +---------------+----------------+
+              v                                              |
+   packages/domain (pure TypeScript)         both: forward ciphertext only, memory
+   ledger fold -> reduce() -> snapshot       ring buffer, never touch ctx.storage
+   runs in every browser
 ```
 
 - **Peer to peer first**: board events and cursors travel directly between browsers when WebRTC links open; the relay carries signalling, presence and the fallback path, never plaintext.
@@ -177,7 +178,7 @@ Add `packages/i18n/src/<code>.ts` typed as `Record<keyof typeof fr, string>` (th
 
 ```
 apps/web/          Nuxt 4 app (static, landing prerendered): pages, components, Pinia view models, adapters, composition root; the generated user guide (public/guide)
-apps/relay/        Cloudflare Worker + Durable Object relay, security headers, logger
+apps/relay/        Relay and HTTP handler: runtime-neutral core, Cloudflare Worker + Durable Object adapter, Node adapter (container image)
 packages/domain/   Pure domain by bounded context: ideation, voting, action-tracking, facilitation, access, presence, catalogue
 packages/application/  Use cases, ports, read models
 packages/protocol/ Wire schemas (valibot)

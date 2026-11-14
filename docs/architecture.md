@@ -5,7 +5,7 @@ Split out of the former master plan on 2026-11-05 (change stabilise-main, docs t
 ## 3. Target architecture
 
 ```
-                         retroboard.maoudia.com (Cloudflare edge, Free plan)
+                         retroboard.maoudia.com (hosted: Cloudflare edge, Free plan)
 +-------------------------------------------------------------------------------------------+
 | Worker "retroboard"                                                                       |
 |  - static assets (Nuxt generate)        - security headers, CSP with build hashes         |
@@ -32,12 +32,14 @@ Split out of the former master plan on 2026-11-05 (change stabilise-main, docs t
   apps/mcp (npm @retroboard/mcp)                Ollama / LM Studio / Chrome Prompt API / WebLLM
 ```
 
+The box at the top is the hosted deployment. Cloudflare is one deploy target (ADR-0036): the room logic and the HTTP rules are a runtime-neutral core (`apps/relay/src/core`, no `cloudflare:*`, no `node:*`, enforced by the `relay-core-is-runtime-neutral` architecture rule), and two adapters wire it. `adapters/cloudflare.ts` is the Worker and the `RelayRoom` Durable Object (hibernation, one object per room). `adapters/node.ts` is the container image: `node:http` for the files, `ws` for the sockets, rooms in the memory of one process. The same contract suite (`scripts/relay-contract.mjs`, `scripts/smoke.mjs`, `pnpm e2e:core`) runs against both.
+
 ### 3.1 Repository layout (target)
 
 ```
 apps/
   web/            Nuxt 4 app, generated static: the landing is prerendered (ADR-0038), every other route is a client-rendered shell (presentation + composition root). No domain logic.
-  relay/          Cloudflare Worker + Durable Object (adapter of RelayPort, server side).
+  relay/          Relay and HTTP handler: runtime-neutral core (`src/core`) and two adapters, Cloudflare Worker + Durable Object and Node (container image).
   mcp/            @retroboard/mcp, Node stdio MCP server (adapter of RelayPort + tools).
 packages/
   domain/         Pure TypeScript. Aggregates, value objects, domain events, policies. No I/O.
@@ -117,14 +119,17 @@ Plaintext (encrypted)       = { type, actor (pubkey hash), payload, signature }
 - Invalid events (bad signature, broken invariant) are ignored deterministically by every peer, so all replicas converge.
 - Snapshots (ADR-0037): the browser holding the facilitator link signs the ledger folded up to a cut (ids of the covered events, signed genesis) and sends it to its direct links; a participant with no board yet asks a peer for it (`snapreq`), verifies it (signer = genesis key, signature, fold version, ids) and starts from it, then verifies the events after the cut one by one. Any failure, and any event before the cut that it does not cover, ends with the full event log. Peer to peer only; the relay history stays at most 2,000 envelopes.
 
-### 5.3 Relay behaviour (Durable Object, memory only)
+### 5.3 Relay behaviour (room core on a Durable Object or Node, memory only)
+
+The behaviour below is `RoomCore` (`apps/relay/src/core/room.ts`), written once over a small port (sockets, per-socket attachment, clock). On Cloudflare the port is the Durable Object (`RelayRoom`, hibernation, the attachment is read and written on every call); on Node it is an in-process room registry. A room lives in one object or one process: several Node instances need room affinity at the proxy (`docs/self-hosting.md`).
 
 - Admission: origin (`apps/relay/src/core/origin.ts`), room id format, at most 30 connections per room, frame size (256 KB, ciphertext of one message 16 KB), frame rate per connection (`packages/protocol/src/budgets.ts`). Planned and not built: entitlement token (change `licensing-and-monetization`) and a room lifetime cap. No Turnstile: ADR-0019 chose edge protection instead.
 - The client stays under those budgets by itself (change `deploy-safe-sessions`): an upload is cut by bytes under the frame size (`chunk`) and paced at half the frame budget (`FramePacer`, 40 `pub` frames per 10 s window); the reconnect backoff starts over only once a connection held 30 s past the relay history, and a close for size or rate (1008, 1009) is followed by at least 30 s of quiet before the next socket.
 - Fan-out of envelopes to the other sockets of the room.
 - Bounded ring buffer of the last N envelopes in memory (e.g. 2,000 or 4 MB) for fast catch-up.
 - WebRTC signalling: forwards SDP offers/answers and ICE candidates between peers (encrypted too).
-- **Never** calls `ctx.storage`. A test in CI fails if the relay code references the storage API.
+- **Never** calls `ctx.storage`. A test in CI fails if the relay code (including the core) references the storage API.
+- Node adapter only: a payload limit equal to the frame limit (close 1009), ping and idle timeout, send-buffer guard, per-address connection cap and connect rate, `SIGTERM` drain closing every socket with 1001. These replace the part of the edge protection that a self-hosted instance does not have; volumetric protection stays the operator's proxy. The adapter never logs a URL (the room id is in the query string).
 
 ### 5.4 Resurrection (replication)
 
@@ -147,7 +152,7 @@ Our model is a small set of aggregates with invariants (vote limits, author-only
 
 ### 5.7 What the relay can observe
 
-Room ids, IP addresses (Cloudflare), connection times, envelope sizes and counts. It cannot read titles, notes, names, votes, actions or settings. The privacy page states this list.
+Room ids, IP addresses (the hosting provider's edge, or the operator's proxy on a self-hosted instance), connection times, envelope sizes and counts. It cannot read titles, notes, names, votes, actions or settings. The privacy page states this list.
 
 ## 6. Retro flow
 
@@ -271,7 +276,7 @@ Guardrails: `--max-turns`, job timeouts, concurrency 1 per issue, only maintaine
 
 ## 11. Edge security on the Cloudflare free plan
 
-For `retroboard.maoudia.com`:
+For `retroboard.maoudia.com`, the hosted deployment. A self-hosted instance has the code-level protections below (headers, CSP, origin checks, the Node adapter's limits) and leaves DNS, TLS, WAF and volumetric protection to the operator's proxy (`docs/self-hosting.md`).
 
 - DNS: proxied record or Workers custom domain; DNSSEC on; CAA limiting issuers.
 - TLS: Always Use HTTPS, minimum TLS 1.2, TLS 1.3 on, HSTS (start at 6 months, preload later).

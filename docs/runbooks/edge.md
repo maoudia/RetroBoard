@@ -1,5 +1,7 @@
 # Edge security runbook (Cloudflare free plan)
 
+This runbook covers the hosted deployment on Cloudflare. A self-hosted instance (Node image) has no dashboard: the same layers are your reverse proxy's job, see `docs/self-hosting.md`.
+
 Dashboard settings are not code: this checklist is the source of truth. Tick each item in the
 checklist issue after applying it. Everything here is free-plan. The site only needs Cloudflare to
 serve static files and the relay; nothing below creates a dependency the code cannot do without.

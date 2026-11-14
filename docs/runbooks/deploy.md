@@ -36,6 +36,8 @@ version of each pull request and comments its URL. Both are dormant until you do
 
 ## Container image
 
+The image runs the Node adapter (ADR-0036; operator guide `docs/self-hosting.md`). The previous workerd image is published as `:workerd` and `:<version>-workerd` for one release as a rollback for operators (`docker build --target workerd .`); remove its steps from `release.yml` and `container.yml` once it has been published for one release.
+
 Built on release (`release.yml`): scanned with Trivy before it is pushed (a fixable critical or high finding stops the
 release), signed with cosign (keyless), attested with build provenance, SBOM attached to the GitHub Release. Verify:
 
