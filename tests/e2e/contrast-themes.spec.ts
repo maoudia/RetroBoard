@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { THEMES } from '../../packages/themes/src/index'
-import { composeField, createBoard, join, settle } from './helpers'
+import { composeField, createBoard, join, settle, showChrome } from './helpers'
 
 /** Text that stays dark on dark (or light on light) in a state axe does not reach (#225): measured on every theme of the themes package, both variants. */
 
@@ -44,7 +44,8 @@ for (const variant of ['light', 'dark'] as const) {
       await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: variant })
       await page.addInitScript((v) => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ variant: v })) } catch { /* ignore */ } }, variant)
       await createBoard(page, { theme, template: 'start-stop-continue' })
-      await (await composeField(page, 0)).fill('x'.repeat(150)) // the counter shows from 80% of the limit
+      const field = await composeField(page, 0)
+      await field.fill('x'.repeat(150)) // the counter shows from 80% of the limit
       await settle(page)
       expect(await lowContrast(page)).toEqual([])
       // The locked board shows the lock pill and the vote bar controls in their disabled and pressed states.
@@ -54,6 +55,10 @@ for (const variant of ['light', 'dark'] as const) {
       })
       await settle(page)
       expect(await lowContrast(page)).toEqual([])
+      // On a phone the compose sheet covers the toolbar: close it (the draft stays), then the folded menus come back.
+      const close = page.getByTestId('compose-close')
+      if (await close.isVisible()) await close.click()
+      await showChrome(page)
       // A toolbar panel (the filter bar) and the chat: a peer writes, so the toolbar shows the unread count, then the panel opens on the thread.
       await page.getByTestId('btn-filter').click()
       await expect(page.getByTestId('board-filter')).toBeVisible()
