@@ -32,6 +32,10 @@ describe('stamps', () => {
     expect(Object.hasOwn(merged, '__proto__')).toBe(true)
     expect(({} as Record<string, unknown>).value).toBeUndefined()
     expect(mergeStamped(b, a).k!.value).toBe(2)
+    const tie = { value: 'second', stamp: { at: 5, device: 'a' } }
+    const first = { value: 'first', stamp: { at: 5, device: 'a' } }
+    expect(mergeStamped({ k: first }, { k: tie }).k).toBe(first)
+    expect(mergeStamped({ k: tie }, { k: first }).k).toBe(tie)
   })
 })
 
@@ -63,6 +67,16 @@ describe('library merge', () => {
     const b = entry('b1', { title: 'old title', lastActivityAt: 500, stamp: { at: 5, device: 'd2' } })
     expect(mergeRecord(a, b)).toMatchObject({ title: 'new title', lastActivityAt: 500 })
     expect(mergeRecord(b, a)).toMatchObject({ title: 'new title', lastActivityAt: 500 })
+  })
+  it('keeps the first record on an exact tie of stamps, and the winner itself when nothing else changes', () => {
+    const a = entry('b1', { title: 'first', stamp: { at: 5, device: 'd1' }, lastActivityAt: 10 })
+    const b = entry('b1', { title: 'second', stamp: { at: 5, device: 'd1' }, lastActivityAt: 10 })
+    expect(mergeRecord(a, b)).toBe(a)
+    expect(mergeRecord(b, a)).toBe(b)
+    const newer = entry('b1', { stamp: { at: 9, device: 'd1' }, lastActivityAt: 20 })
+    expect(mergeRecord(a, newer)).toBe(newer)
+    expect(mergeRecord(newer, a)).toBe(newer)
+    expect(mergeRecord(a, newer)).not.toBe(a)
   })
   it('unites two libraries by board id', () => {
     const l1: Library = { a: entry('a'), b: entry('b', { title: 'one' }) }
@@ -99,6 +113,18 @@ describe('library operations', () => {
     expect(getEntry(lib, 'room-1')!.lastActivityAt).toBe(4000)
     expect(touchEntry(lib, 'nope', 1, 1, 'd')).toBe(lib)
   })
+  it('orders by activity, newest first, and by board id on a tie, whatever the order they were added in', () => {
+    const add = (ids: [string, number][]) => ids.reduce((lib, [boardId, lastActivityAt]) => saveEntry(lib, { ...base, boardId, lastActivityAt }, 1, 'd'), EMPTY_LIBRARY)
+    for (const order of [[['x', 10], ['y', 30], ['e', 20], ['c', 20]], [['c', 20], ['e', 20], ['y', 30], ['x', 10]], [['e', 20], ['x', 10], ['c', 20], ['y', 30]]] as [string, number][][]) {
+      expect(libraryEntries(add(order)).map((e) => e.boardId)).toEqual(['y', 'c', 'e', 'x'])
+    }
+    expect(libraryEntries(add([['a', 1], ['b', 2]])).map((e) => e.boardId)).toEqual(['b', 'a'])
+  })
+  it('ticks a new stamp above the one it replaces, even when the clock is behind', () => {
+    const lib = saveEntry(EMPTY_LIBRARY, base, 5000, 'd1')
+    expect(getEntry(saveEntry(lib, base, 1000, 'd2'), 'room-1')!.stamp).toEqual({ at: 5001, device: 'd2' })
+    expect(getEntry(saveEntry(EMPTY_LIBRARY, base, 1000, 'd2'), 'room-1')!.stamp).toEqual({ at: 1000, device: 'd2' })
+  })
   it('lists most recent first, archived ones apart, forgotten ones never', () => {
     let lib = saveEntry(EMPTY_LIBRARY, { ...base, boardId: 'a', lastActivityAt: 10 }, 1, 'd')
     lib = saveEntry(lib, { ...base, boardId: 'b', lastActivityAt: 30 }, 1, 'd')
@@ -126,16 +152,23 @@ describe('library operations', () => {
 
 describe('parsing a stored record', () => {
   const good = entry('b1', { teamId: 't' })
-  it('round-trips an entry and a tombstone', () => {
-    expect(parseLibraryRecord(JSON.parse(JSON.stringify(good)))).toEqual(good)
+  it('round-trips an entry and a tombstone, with the optional fields present or absent', () => {
+    expect(parseLibraryRecord(JSON.parse(JSON.stringify(good)))).toStrictEqual(good)
+    const withTheme = entry('b2', { themeId: 'slate', teamId: 't' })
+    expect(parseLibraryRecord(JSON.parse(JSON.stringify(withTheme)))).toStrictEqual(withTheme)
+    const bare = entry('b3')
+    expect(parseLibraryRecord(JSON.parse(JSON.stringify(bare)))).toStrictEqual(bare)
+    expect(Object.keys(parseLibraryRecord(bare)!)).not.toContain('themeId')
+    expect(Object.keys(parseLibraryRecord(bare)!)).not.toContain('teamId')
     const t = { boardId: 'b1', forgotten: true, lastActivityAt: 3, stamp: { at: 2, device: 'd' } }
-    expect(parseLibraryRecord(t)).toEqual(t)
+    expect(parseLibraryRecord(t)).toStrictEqual(t)
+    expect(parseLibraryRecord({ ...t, extra: 1, title: 'kept out' })).toStrictEqual(t)
   })
   it('refuses anything of another shape', () => {
     const bad: unknown[] = [
-      null, 'x', 1, {}, { ...good, boardId: '' }, { ...good, boardId: 3 }, { ...good, stamp: { at: 'x', device: 'd' } }, { ...good, stamp: null }, { ...good, stamp: { at: 1 } },
+      null, undefined, 'x', 1, [], {}, { ...good, boardId: '' }, { ...good, boardId: 3 }, { ...good, stamp: { at: 'x', device: 'd' } }, { ...good, stamp: null }, { ...good, stamp: { at: 1 } },
       { ...good, lastActivityAt: 'x' }, { ...good, title: 3 }, { ...good, fragment: null }, { ...good, createdAt: NaN }, { ...good, role: 'admin' }, { ...good, origin: 'cloned' },
-      { ...good, hasPasscode: 'yes' }, { ...good, solo: 1 }, { ...good, archived: null }, { ...good, keepOffline: undefined }, { ...good, teamId: 5 },
+      { ...good, hasPasscode: 'yes' }, { ...good, themeId: 5 }, { ...good, stamp: { at: 1, device: 5 } }, { ...good, stamp: 'now' }, { ...good, stamp: { device: 'd' } }, { ...good, lastActivityAt: undefined }, { ...good, createdAt: '5' }, { ...good, boardId: undefined }, { ...good, solo: 1 }, { ...good, archived: null }, { ...good, keepOffline: undefined }, { ...good, teamId: 5 },
     ]
     for (const b of bad) expect(parseLibraryRecord(b), JSON.stringify(b)).toBeNull()
   })

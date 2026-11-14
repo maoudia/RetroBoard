@@ -11,6 +11,7 @@ export function toBase32(bytes: Uint8Array): string {
   for (const b of bytes) {
     acc = (acc << 8) | b
     bits += 8
+    // Stryker disable next-line EqualityOperator: five bits left are emitted by the tail instead of the loop, as the same character
     for (; bits >= 5; bits -= 5) out += ALPHABET[(acc >> (bits - 5)) & 31]
     acc &= (1 << bits) - 1
   }
