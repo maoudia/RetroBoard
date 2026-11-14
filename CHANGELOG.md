@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.55.0](https://github.com/maoudia/RetroBoard/compare/v1.54.1...v1.55.0) (2026-11-14)
+
+
+### Features
+
+* **relay:** run the container image on the Node adapter ([8930948](https://github.com/maoudia/RetroBoard/commit/89309486973125789e9e5a8b806bd907313c55b8))
+
 ## [1.54.1](https://github.com/maoudia/RetroBoard/compare/v1.54.0...v1.54.1) (2026-11-14)
 
 
