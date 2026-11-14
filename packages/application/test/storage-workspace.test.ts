@@ -84,7 +84,7 @@ describe('what syncs', () => {
       const all = [...a, ...b]
       expect(new Set(all).size).toBe(all.length)
     }
-    expect(LOCAL_ONLY_SETTINGS).toContain('slackWebhook')
+    expect(LOCAL_ONLY_SETTINGS).toContain('density')
     expect(LOCAL_ONLY_IDENTITY).toContain('cid')
   })
   it('picks the listed keys only', () => {

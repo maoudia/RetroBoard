@@ -18,6 +18,9 @@ describe('every preference and identity key is classified for sync (change user-
     const keys = keysOf(source('settings.ts'), 'LocalSettings')
     expect(keys.length).toBeGreaterThan(20)
     expect([...SYNCED_SETTINGS, ...LOCAL_ONLY_SETTINGS].sort()).toEqual([...keys].sort())
+    // A secret of this device (ADR-0033) must never be in the synced list.
+    expect(SYNCED_SETTINGS).not.toContain('slackWebhook')
+    expect(LOCAL_ONLY_SETTINGS).toContain('slackWebhook')
   })
   it('identity: each saved key is in SYNCED_IDENTITY or LOCAL_ONLY_IDENTITY, and the lists name no other key', () => {
     const keys = keysOf(source('identity.ts'), 'Saved')

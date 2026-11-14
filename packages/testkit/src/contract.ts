@@ -19,6 +19,8 @@ export interface ContractHarness {
   readonly target: SyncTargetPort
   /** Makes the next operation fail the way the provider would. An adapter without it skips the mapping checks. */
   inject?(fault: ContractFault): void | Promise<void>
+  /** The faults `inject` can provoke (default: all). A local store has no token to expire. */
+  faults?: readonly ContractFault[]
   dispose?(): void | Promise<void>
 }
 
@@ -168,13 +170,14 @@ export function runSyncTargetContract(name: string, make: () => ContractHarness 
         try { await check.run(h) } finally { await h.dispose?.() }
       }, 60_000)
     }
-    for (const check of faultChecks) {
+    for (const [i, check] of faultChecks.entries()) {
+      const fault = (Object.keys(FAULT_CODES) as ContractFault[])[i]!
       it(check.name, async () => {
         const h = await make()
         try {
-          if (!h.inject) {
+          if (!h.inject || (h.faults && !h.faults.includes(fault))) {
             // An adapter that cannot provoke a provider failure says so; the mapping is then covered by its own tests.
-            expect(h.inject).toBeUndefined()
+            expect(h.inject === undefined || h.faults?.includes(fault) === false).toBe(true)
             return
           }
           await check.run(h)

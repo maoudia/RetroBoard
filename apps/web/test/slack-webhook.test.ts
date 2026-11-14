@@ -53,11 +53,12 @@ describe('the webhook never travels', () => {
     return e.isDirectory() ? files(p) : /\.(ts|vue)$/.test(e.name) ? [p] : []
   })
 
-  it('is read only by the settings, the export panel and the settings file filter; no package or the relay knows it', () => {
+  it('is read only by the settings, the export panel, the settings file filter and the sync list that excludes it; no other package or the relay knows it', () => {
     const users = [...files(join(root, 'apps/web/app')), ...files(join(root, 'apps/relay/src')), ...files(join(root, 'packages'))]
       .filter((f) => readFileSync(f, 'utf8').includes('slackWebhook'))
       .map((f) => f.slice(root.length + 1))
       .sort()
-    expect(users).toEqual(['apps/web/app/components/ExportDialog.vue', 'apps/web/app/stores/settings.ts', 'apps/web/app/utils/settings-file.ts'])
+    // settings-sync.ts names it only in LOCAL_ONLY_SETTINGS, the list of what never syncs (change user-drive-storage).
+    expect(users).toEqual(['apps/web/app/components/ExportDialog.vue', 'apps/web/app/stores/settings.ts', 'apps/web/app/utils/settings-file.ts', 'packages/application/src/storage/settings-sync.ts'])
   })
 })
