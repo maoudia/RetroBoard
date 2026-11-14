@@ -36,11 +36,11 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-11-14: total raised from 352 to 356 kB for the minor-and-patch dependency group (vue 3.5.45, @nuxt/icon 2.6.2, @mcp-b/global 6.2.0):
 // 352.8 kB measured, 351.8 kB before, no source change.
 // The captain allows up to 400 kB.
-// 2026-11-14: entry raised from 50 to 51 kB and total from 352 to 360 kB for the board library (user-drive-storage, group 1): the sealed
-// vault object format, the IndexedDB target, the library store and list, the migration and their fr/en strings (50.1 kB entry and
-// 358.5 kB total measured). The Argon2id derivation is a lazy import that nothing loads yet, so it is not in these figures.
+// 2026-11-14: entry raised from 50 to 51 kB and total from 356 to 360 kB for the board library (user-drive-storage, group 1): the sealed
+// vault object format, the IndexedDB target, the library store and list, the migration and their fr/en strings (50.2 kB entry and
+// 359.5 kB total measured, 352.8 kB before). The Argon2id derivation is a lazy import that nothing loads yet, so it is not in these figures.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 51, totalKb: 361 }
+const BUDGET = { entryKb: 51, totalKb: 360 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
