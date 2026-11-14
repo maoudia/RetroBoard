@@ -144,6 +144,22 @@ test('security.txt is published with a future expiry (RFC 9116)', async ({ reque
   expect(expires && Date.parse(expires)).toBeGreaterThan(Date.now())
 })
 
+test('a configured operator replaces the hosted provider on the legal and privacy pages (change portable-relay-core)', async ({ page }) => {
+  await page.route('**/operator.json', (route) => route.fulfill({ json: { name: 'Association Exemple', address: '1 rue de la Paix, 75002 Paris', contact: 'retro@example.org' } }))
+  await page.goto('/legal')
+  const legal = page.getByTestId('page-legal')
+  await expect(legal).toContainText('Association Exemple, 1 rue de la Paix, 75002 Paris')
+  await expect(legal).toContainText('retro@example.org')
+  await expect(legal).not.toContainText('Cloudflare')
+  await page.getByTestId('link-privacy').click()
+  const privacy = page.getByTestId('page-privacy')
+  await expect(privacy).toContainText('Association Exemple (retro@example.org)')
+  await expect(privacy).not.toContainText('Cloudflare')
+  await expect(privacy).not.toContainText('cf_clearance')
+  // What the service can observe is still listed in full.
+  for (const m of [1, 2, 3, 4, 5, 6, 7]) await expect(page.getByTestId(`privacy-2-${m}`)).toBeVisible()
+})
+
 test('legal notice, privacy and terms are linked from every page, in both languages', async ({ page }) => {
   await page.goto('/')
   await page.getByTestId('link-privacy').click()

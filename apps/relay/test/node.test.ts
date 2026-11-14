@@ -90,6 +90,11 @@ describe('Node adapter: site', () => {
     expect(await page('198.51.100.2')).toBe(200)
   })
 
+  it('reads the operator of the instance from the environment', () => {
+    expect(settingsFromEnv({ OPERATOR_NAME: 'Example Asso', OPERATOR_CONTACT: 'retro@example.org' }))
+      .toEqual({ OPERATOR_NAME: 'Example Asso', OPERATOR_CONTACT: 'retro@example.org' })
+  })
+
   it('reads the settings from the environment', () => {
     expect(settingsFromEnv({ SELF_HOSTED: '1', CLIENT_IP_HEADER: 'X-Forwarded-For', TRUSTED_PROXIES: '2', RATE_LIMIT_PER_MIN: '', ORIGIN_TRIAL_TOKENS: '{"a.example":"t"}' }))
       .toEqual({ SELF_HOSTED: '1', CLIENT_IP_HEADER: 'X-Forwarded-For', TRUSTED_PROXIES: '2', ORIGIN_TRIAL_TOKENS: { 'a.example': 't' } })

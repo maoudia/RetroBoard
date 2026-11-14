@@ -15,6 +15,10 @@ board content: it stops people from collaborating until it is fixed. Say so to a
 - Workers logs (`wrangler.jsonc` `observability`) carry event names and short room hashes only. Useful events:
   `ws.reject` (refused upgrade, with `reason` `origin` or `room`), `ws.full`, `ws.open`, `rate.limited`, `msg.too-large`.
 
+## Self-hosted instance (Node image)
+
+The adapter logs one JSON line per event (`node.listening`, `ws.open`, `ws.full`, `ws.reject`, `rate.limited`, `msg.too-large`...), with statuses and short room hashes, never a URL: read them with `docker logs`. `node scripts/smoke.mjs https://<host>` is the same probe as production. A restart drops the rooms and participants reconnect by themselves; the process answers `SIGTERM` by closing every socket with 1001 (`docker stop` waits for it). To go back to the previous runtime pull the `:workerd` tag (kept for one release).
+
 ## What to check first
 
 | Symptom | Likely cause | Action |

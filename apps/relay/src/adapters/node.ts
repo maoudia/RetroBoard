@@ -225,6 +225,7 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
   return {
     ...pick('ALLOWED_ORIGINS'), ...pick('MAINTENANCE'), ...pick('RATE_LIMIT_PER_MIN'), ...pick('SELF_HOSTED'),
     ...pick('CLIENT_IP_HEADER'), ...pick('TRUSTED_PROXIES'),
+    ...pick('OPERATOR_NAME'), ...pick('OPERATOR_ADDRESS'), ...pick('OPERATOR_CONTACT'),
     ...(env.ORIGIN_TRIAL_TOKENS ? { ORIGIN_TRIAL_TOKENS: JSON.parse(env.ORIGIN_TRIAL_TOKENS) as Record<string, string> } : {}),
   }
 }

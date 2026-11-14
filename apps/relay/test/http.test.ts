@@ -44,6 +44,24 @@ describe('handleHttp', () => {
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
+  it('tells the legal pages who operates the instance: nothing by default, the configured operator otherwise', async () => {
+    const hosted = await handleHttp(html('/operator.json'), deps().d)
+    expect([hosted.status, await hosted.json(), hosted.headers.get('Cache-Control')]).toEqual([200, {}, 'no-store'])
+    expect(hosted.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    const settings = { SELF_HOSTED: '1', RATE_LIMIT_PER_MIN: '0', OPERATOR_NAME: '  Example\nAsso ', OPERATOR_CONTACT: 'retro@example.org' }
+    const { d, calls } = deps({ settings })
+    const own = await handleHttp(html('/operator.json'), d)
+    expect(await own.json()).toEqual({ name: 'Example Asso', address: '', contact: 'retro@example.org' })
+    expect(own.headers.get('Content-Type')).toContain('application/json')
+    expect(calls.assets).not.toContain('/operator.json')
+    expect(await (await handleHttp(new Request('https://retroboard.example/operator.json', { method: 'HEAD' }), d)).text()).toBe('')
+  })
+
+  it('does not publish an address or contact without a name', async () => {
+    const res = await handleHttp(html('/operator.json'), deps({ settings: { SELF_HOSTED: '1', RATE_LIMIT_PER_MIN: '0', OPERATOR_CONTACT: 'x@example.org' } }).d)
+    expect(await res.json()).toEqual({})
+  })
+
   it('answers a missing file with the branded 404', async () => {
     const res = await handleHttp(html('/missing'), deps().d)
     expect(res.status).toBe(404)

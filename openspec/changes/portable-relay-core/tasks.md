@@ -30,8 +30,8 @@
 
 ## 6. Documentation and privacy text
 
-- [ ] 6.1 `docs/architecture.md` (sections 3, 5.3, 11), `docs/self-hosting.md` (Node runtime, compose with Caddy, proxy log format without the query string, room-affinity recipes for nginx, Caddy and HAProxy), runbooks (`deploy`, `edge`, `incident`, `maintenance`), README architecture block and badge; verify `pnpm docs:check` and a reading pass against the shipped image
-- [ ] 6.2 Operator block of the privacy and legal pages configurable per deployment (fr and en keys, hosted defaults name MAIDAF and Cloudflare, no hard-coded Cloudflare outside the default); verify i18n tests, `apps/web` unit tests, the legal and privacy e2e, and the 360 px overflow check
+- [x] 6.1 `docs/architecture.md` (sections 3, 5.3, 11), `docs/self-hosting.md` (Node runtime, compose with Caddy, proxy log format without the query string, room-affinity recipes for nginx, Caddy and HAProxy), runbooks (`deploy`, `edge`, `incident`, `maintenance`), README architecture block and badge; verify `pnpm docs:check` and a reading pass against the shipped image
+- [x] 6.2 Operator block of the privacy and legal pages configurable per deployment (fr and en keys, hosted defaults name MAIDAF and Cloudflare, no hard-coded Cloudflare outside the default); verify i18n tests, `apps/web` unit tests, the legal and privacy e2e, and the 360 px overflow check
 
 ## Workflow follow-up
 
