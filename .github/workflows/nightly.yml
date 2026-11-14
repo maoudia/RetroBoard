@@ -137,6 +137,8 @@ jobs:
         shell: bash
         env:
           HOME: /root
+          # Median of 5 runs per page: the first run on this job scored /privacy 65 where the same build scores 100 on a laptop.
+          LIGHTHOUSE_RUNS: '5'
         run: |
           PORT=18790 HOST=127.0.0.1 PUBLIC_DIR=apps/web/.output/public RATE_LIMIT_PER_MIN=0 MAX_CONNECTIONS_PER_ADDRESS=0 MAX_CONNECTS_PER_MINUTE=0 \
             node apps/relay/dist/node.mjs > relay.log 2>&1 &

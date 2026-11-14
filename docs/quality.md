@@ -62,7 +62,7 @@ nightly, delete its entry and lower the ceiling.
 
 The nightly run also has a `Lighthouse` job (change `a11y-gate-and-derived-contrast`, task 1.4): `pnpm lighthouse` against the Node adapter on the
 generated site, mobile profile, 4 pages in light and dark, against `quality/lighthouse-budgets.json` (the landing needs 95 for performance and 100 for
-accessibility). The scores are a table in the job summary and a budget miss fails the job, so it makes the night red like any gating job.
+accessibility), each page scored 5 times with the median kept (`LIGHTHOUSE_RUNS`: a single run on a shared runner swung /privacy from 100 to 65). The scores are a table in the job summary and a budget miss fails the job, so it makes the night red like any gating job.
 
 ## Release path
 
