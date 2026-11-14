@@ -248,7 +248,17 @@ importers:
         specifier: workspace:*
         version: link:../testkit
 
-  packages/sync: {}
+  packages/sync:
+    devDependencies:
+      '@retroboard/application':
+        specifier: workspace:*
+        version: link:../application
+      '@retroboard/crypto':
+        specifier: workspace:*
+        version: link:../crypto
+      '@retroboard/testkit':
+        specifier: workspace:*
+        version: link:../testkit
 
   packages/testkit:
     dependencies:

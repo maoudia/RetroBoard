@@ -10,5 +10,10 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json"
+  },
+  "devDependencies": {
+    "@retroboard/application": "workspace:*",
+    "@retroboard/crypto": "workspace:*",
+    "@retroboard/testkit": "workspace:*"
   }
 }

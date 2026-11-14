@@ -38,8 +38,18 @@ export function isAcceptableKdf(kdf: KdfParams): boolean {
   }
 }
 
+export type WrapKeyDeriver = (secret: Uint8Array, salt: Uint8Array, kdf: KdfParams) => Promise<Bytes>
+let offThread: WrapKeyDeriver | null = null
+
+/**
+ * Routes the memory-hard derivation somewhere else, in the app a first-party worker, so typing a password never freezes
+ * the page. `null` puts it back in this thread. The worker itself calls `deriveWrapKey` with no router installed.
+ */
+export function useWrapKeyDeriver(deriver: WrapKeyDeriver | null): void { offThread = deriver }
+
 export async function deriveWrapKey(secret: Uint8Array, salt: Uint8Array, kdf: KdfParams): Promise<Bytes> {
   if (!isAcceptableKdf(kdf)) throw new Error('key derivation parameters refused')
+  if (kdf.id === 'argon2id' && offThread) return offThread(secret, salt, kdf)
   switch (kdf.id) {
     case 'argon2id': {
       // Lazy: the memory-hard function is only needed when a password is typed, so it stays out of the entry chunk.

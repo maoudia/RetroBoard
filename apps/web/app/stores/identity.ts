@@ -36,7 +36,16 @@ export const useIdentityStore = defineStore('identity', () => {
 
   function stopNudging() { nudgeOff.value = true; persist() }
 
+  /** Display choices that came from another device (the synced list of identity keys, never `cid`). */
+  function applySynced(v: Partial<{ name: string; showName: boolean; named: boolean; nudgeOff: boolean }>) {
+    if (typeof v.name === 'string') name.value = v.name.slice(0, 24)
+    if (typeof v.showName === 'boolean') showName.value = v.showName
+    if (typeof v.named === 'boolean') named.value = v.named
+    if (typeof v.nudgeOff === 'boolean') nudgeOff.value = v.nudgeOff
+    persist()
+  }
+
   const settings = useSettingsStore()
   const identity = computed<Identity>(() => ({ cid: cid.value, name: name.value, showName: showName.value, hue: settings.s.avatarHue }))
-  return { cid, name, showName, named, nudgeOff, identity, load, set, stopNudging }
+  return { cid, name, showName, named, nudgeOff, identity, load, set, stopNudging, applySynced }
 })

@@ -205,6 +205,11 @@ async function wipe() {
       <ToggleSwitch plain :label="t('profile.saveJoined')" :hint="t('profile.saveJoined.hint')" :model-value="settings.s.saveJoinedBoards" data-testid="set-save-joined" @update:model-value="(on: boolean) => set({ saveJoinedBoards: on })" />
     </section>
 
+    <section class="grp" data-testid="sync-card">
+      <h3>{{ t('sync.title') }}</h3>
+      <SyncSettings />
+    </section>
+
     <section class="grp" data-testid="team-section">
       <h3>{{ t('team.share.title') }}</h3>
       <LazyTeamShare />

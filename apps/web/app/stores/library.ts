@@ -1,6 +1,6 @@
 import {
   type Library, type LibraryDeps, type LibraryEntry, type LibraryStorePort, type NewEntry, EMPTY_LIBRARY, archiveBoard, forgetBoard, libraryEntries,
-  openLibraryBoard, recordBoardActivity, saveBoardToLibrary,
+  mergeIncomingLibrary, openLibraryBoard, recordBoardActivity, saveBoardToLibrary,
 } from '@retroboard/application'
 import { createIdbReplicaStore, openReplicaDb } from '~/adapters/replica-idb'
 import { createLocalSealer } from '~/adapters/device-key'
@@ -55,15 +55,28 @@ export const useLibraryStore = defineStore('library', () => {
 
   return {
     records, ready, entries, archived, get, refresh,
+    /** The library as stored, for the vault engine. */
+    read: () => store.load(),
+    /** Entries that came from another device: merged by last write wins, stamps clamped. */
+    mergeRemote: (incoming: Library) => changed(store.update((l) => mergeIncomingLibrary(l, incoming, Date.now()))),
     save: (input: NewEntry) => changed(saveBoardToLibrary(deps, input)),
     touch: (boardId: string, at?: number) => changed(recordBoardActivity(deps, boardId, at)),
     archive: (boardId: string, value = true) => changed(archiveBoard(deps, boardId, value)),
-    forget: (boardId: string, opts: { deleteLocalCopy?: boolean } = {}) => changed(forgetBoard(deps, boardId, { ...(replica ? { replica } : {}), ...opts })),
+    forget: async (boardId: string, opts: { deleteLocalCopy?: boolean } = {}) => {
+      await changed(forgetBoard(deps, boardId, { ...(replica ? { replica } : {}), ...opts }))
+      // Confirmed with the copies deleted: the board's files leave the connected target too.
+      if (opts.deleteLocalCopy) await useVaultStore().forgetBoardStream(boardId)
+    },
     /** The solo mark of a listed board (a board made shareable is solo no more, on every device). */
     setSolo: (boardId: string, solo: boolean) => {
       const e = get(boardId)
       return e ? changed(saveBoardToLibrary(deps, { ...e, solo })) : Promise.resolve(undefined)
     },
-    open: (boardId: string) => changed(openLibraryBoard({ ...deps, ...(replica ? { replica } : {}) }, boardId)),
+    open: async (boardId: string) => {
+      const opened = await changed(openLibraryBoard({ ...deps, ...(replica ? { replica } : {}) }, boardId))
+      // A board this browser holds no events of is restored from the connected target before the live path continues.
+      if (opened.ok && !opened.hasLocalCopy) await useVaultStore().fetchBoard(boardId)
+      return opened
+    },
   }
 })

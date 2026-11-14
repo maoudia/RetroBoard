@@ -230,3 +230,18 @@ describe('recovery key', () => {
     expect((await unlockWithRecoveryKey(second.info, second.recoveryKey))?.master).toEqual(master)
   })
 })
+
+describe('off-thread derivation hook', () => {
+  it('routes only Argon2id to the installed deriver, and goes back to this thread when it is removed', async () => {
+    const { useWrapKeyDeriver } = await import('../src')
+    const seen: string[] = []
+    useWrapKeyDeriver(async (_s, _salt, kdf) => { seen.push(kdf.id); return new Uint8Array(32).fill(7) })
+    try {
+      expect(await deriveWrapKey(utf8('pw'), randomBytes(16), FLOOR)).toEqual(new Uint8Array(32).fill(7))
+      await deriveWrapKey(utf8('pw'), randomBytes(16), { id: 'hkdf-sha256' })
+      await expect(deriveWrapKey(utf8('pw'), randomBytes(16), { id: 'argon2id', m: 1024, t: 1, p: 1 })).rejects.toThrow('refused')
+      expect(seen).toEqual(['argon2id'])
+    } finally { useWrapKeyDeriver(null) }
+    expect(await deriveWrapKey(utf8('pw'), randomBytes(16), FLOOR)).not.toEqual(new Uint8Array(32).fill(7))
+  })
+})

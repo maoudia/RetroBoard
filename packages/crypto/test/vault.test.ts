@@ -248,3 +248,36 @@ describe('key schedule', () => {
     await expect(deriveVaultKeys(new Uint8Array(16), 'v')).rejects.toThrow('32 bytes')
   })
 })
+
+describe('vault sealer (what the engine seals and opens with)', () => {
+  it('round trips text per stream, and an object cannot be moved to another stream, another class or another vault', async () => {
+    const { createVaultSealer, deriveVaultKeys, randomKey } = await import('../src')
+    const keys = await deriveVaultKeys(randomKey(), 'vault-a')
+    const sealer = createVaultSealer(keys, '0011223344556677')
+    const lib = await sealer.streamId('library')
+    const other = await sealer.streamId('settings')
+    const sealed = await sealer.seal('seg', other, '{"k":"é"}')
+    expect(await sealer.open('seg', other, sealed)).toBe('{"k":"é"}')
+    expect(await sealer.open('seg', lib, sealed)).toBeNull()
+    expect(await sealer.open('chk', other, sealed)).toBeNull()
+    expect(await sealer.open('man', '', sealed)).toBeNull()
+    const manifest = await sealer.seal('man', '', 'm')
+    expect(await sealer.open('man', '', manifest)).toBe('m')
+    expect(await sealer.open('seg', other, manifest)).toBeNull()
+    const elsewhere = createVaultSealer(await deriveVaultKeys(randomKey(), 'vault-a'), '0011223344556677')
+    expect(await elsewhere.open('seg', other, sealed)).toBeNull()
+    // The library has a key of its own: its stream cannot be opened with a stream key.
+    const libSealed = await sealer.seal('seg', lib, 'x')
+    expect(await sealer.open('seg', lib, libSealed)).toBe('x')
+    expect(await sealer.open('seg', lib, new Uint8Array(10))).toBeNull()
+  })
+
+  it('refuses plaintext that is not valid UTF-8 after opening', async () => {
+    const { createVaultSealer, deriveVaultKeys, randomKey, sealObject } = await import('../src')
+    const keys = await deriveVaultKeys(randomKey(), 'v')
+    const sealer = createVaultSealer(keys, '0011223344556677')
+    const sid = await sealer.streamId('s')
+    const bad = await sealObject(await keys.stream(sid), '0011223344556677', { pathClass: 'seg', stream: sid }, new Uint8Array([0xff, 0xfe]))
+    expect(await sealer.open('seg', sid, bad)).toBeNull()
+  })
+})
