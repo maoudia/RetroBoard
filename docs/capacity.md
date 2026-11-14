@@ -46,6 +46,35 @@ Local runs put every board in one workerd process; in production each board is i
 Durable Object (soft limit 1,000 requests per second per object). A local run with 300 people
 on 30 boards saturates the single local process (p50 ~200 ms) and says nothing about production.
 
+### Parity of the two relay adapters (container images, one generator process)
+
+Measured on 2026-11-14 with `pnpm load:relay --clients 30 --boards 1 --seconds 10` (one board of 30 people, the
+scenario above) against the self-host image running each adapter ([ADR-0036](adr/0036-cloudflare-is-one-deploy-target-relay-core-runtime-neutral.md)),
+on an arm64 Podman VM with 2 GB of memory. The `:node` image is the default of the `Dockerfile`; the workerd image is
+`docker build --target workerd .` (published as the `:workerd` tag for one release).
+
+| | Node adapter (default image) | workerd (`:workerd` image) |
+|---|---|---|
+| Connected | 30 / 30 | 30 / 30 |
+| Refused, errors, closes during the run | 0 | 0 |
+| In / s, out / s (per board) | 63, 1,836 | 63, 1,839 |
+| Cursor latency p50 / p95 / p99 | 20 / 32 / 34 ms | 38 / 57 / 61 ms |
+| Board event latency p50 / p95 / p99 | 5 / 19 / 20 ms | 11 / 52 / 52 ms |
+| Image size | 293 MB | 529 MB |
+| Memory after start (container) | 21 MB (process RSS 65 MB) | 374 MB |
+| Memory after the run (container) | 27 MB (process RSS 76 MB, peak 76 MB) | 443 MB |
+
+Two more Node runs gave the same shape (30 / 30, 0 errors, 1,641 and 1,789 out per second, cursor p99 30 to 31 ms). In the
+first Node run 95% of the board events reached every receiver by the end of the 10 seconds (the generator stops while the
+last ones are in flight); the other runs delivered 100%. The Node adapter is lighter by an order of magnitude in
+memory, 45% smaller on disk and at least as fast; the numbers are one short local run, not a benchmark.
+
+**Single-instance limit.** The Node adapter keeps every room in the memory of one process: a board lives on one instance
+and is lost when it restarts (the relay stores nothing anyway). It cannot be scaled out behind a plain round-robin
+balancer; every connection of a room has to reach the same instance (room affinity, recipes in `docs/self-hosting.md`).
+One instance carries the 30 people of a board with room to spare; the per-address connection cap and connect rate
+(`MAX_CONNECTIONS_PER_ADDRESS`, `MAX_CONNECTS_PER_MINUTE`) are per instance too.
+
 ### Recommendation
 
 - **Comfortable: up to 15 participants**, on any device including phones.
