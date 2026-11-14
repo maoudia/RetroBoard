@@ -75,7 +75,7 @@ const label = (c: LiveCursor) => c.name || t('common.anonymous')
 .cursors { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
 .cursor { position: absolute; top: 0; left: 0; will-change: transform; }
 .cursor svg { display: block; fill: var(--c); stroke: var(--ink); stroke-width: 1; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .3)); }
-.label { position: absolute; left: 14px; top: 14px; padding: .1rem .4rem; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; border-radius: var(--r-xs); background: var(--c); color: var(--ink); }
+.label { position: absolute; left: 14px; top: 14px; padding: .1rem .4rem; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; border-radius: var(--r-xs); background: var(--c); color: var(--note-ink); }
 .crown { position: absolute; left: 0; top: -15px; width: 14px; height: 14px; color: var(--ink); filter: drop-shadow(0 0 1px var(--c)); }
 .cursor.laser .dot { display: block; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 4px color-mix(in oklab, var(--danger) 35%, transparent), 0 0 18px 6px color-mix(in oklab, var(--danger) 55%, transparent); animation: laser-pulse 1.2s ease-in-out infinite; }
 @keyframes laser-pulse { 50% { transform: scale(1.25); } }
