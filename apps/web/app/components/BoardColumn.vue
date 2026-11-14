@@ -178,7 +178,7 @@ header { display: flex; align-items: center; gap: .5rem; padding: .8rem .8rem .5
 h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .titles p { font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .count { padding: .1rem .55rem; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); font-size: var(--fs-xs); font-weight: 700; }
-.mini-btn.on { color: var(--accent); background: var(--accent-soft); }
+.mini-btn.on, .mini-btn[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
 .notes { position: relative; flex: 1; min-height: 120px; overflow-y: auto; overflow-x: hidden; padding: .6rem .8rem 1rem; scrollbar-width: thin; }
 /* Masonry (change postit-visual-system, task 1.2): notes of different heights pack into columns without the holes a row grid leaves.
    Width, text size and spacing come from the facilitator's display, the personal zoom and the density (base.css). */

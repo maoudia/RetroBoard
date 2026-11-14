@@ -6,7 +6,7 @@
 
 ## 2. Gesture
 
-- [ ] 2.1 `useNoteZoomGesture` (second tap within 300 ms and 10 px, drag and long press cancel, excluded targets, `touch-action: manipulation`), wired on notes and cluster stacks; verify unit tests of the timing and slop function and an e2e with touch emulation and a mouse double click, including that drag, vote, menu and a single tap are unaffected and not delayed
+- [ ] 2.1 `useNoteZoomGesture` (second tap within 300 ms and 10 px, drag and long press cancel, excluded targets, `touch-action: manipulation`), wired on notes and cluster stacks; verify unit tests of the timing and slop function and an e2e with touch emulation and a mouse double click, including that drag, vote, menu and a single tap are unaffected and not delayed (done early: `touch-action: manipulation` on notes and group stacks; open: the gesture itself)
 
 ## 3. Keyboard, menu and text
 

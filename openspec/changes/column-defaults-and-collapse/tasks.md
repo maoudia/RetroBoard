@@ -7,7 +7,7 @@
 
 ## 2. Collapse spread, off by default
 
-- [ ] 2.1 Personal setting `collapseButtons` (default off, switch in the profile board display section), `expand-<column>` rendered only when on; verify e2e that the button is absent by default and appears when switched on
+- [ ] 2.1 Personal setting `collapseButtons` (default off, switch in the profile board display section), `expand-<column>` rendered only when on; verify e2e that the button is absent by default and appears when switched on (done early: the expand and collapse button shows its pressed state; open: the setting)
 - [ ] 2.2 Collapse and expand apply to every column with groups while linked; verify e2e on a board with groups in two columns, phone and desktop
 
 ## 3. Progress bar switch

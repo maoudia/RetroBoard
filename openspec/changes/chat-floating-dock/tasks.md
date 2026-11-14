@@ -7,7 +7,7 @@
 
 ## 2. The button
 
-- [ ] 2.1 Bubble drag with slop, snap spring and reduced-motion jump in `ChatPanel.vue`, `data-avoid-chat` on the toolbar, presenter bar and composer actions, keyboard handling via `visualViewport`; verify e2e at 360 and 1280 px (drag to each edge, corner, rotate, keyboard open) and that board scrolling is unaffected
+- [ ] 2.1 Bubble drag with slop, snap spring and reduced-motion jump in `ChatPanel.vue`, `data-avoid-chat` on the toolbar, presenter bar and composer actions, keyboard handling via `visualViewport`; verify e2e at 360 and 1280 px (drag to each edge, corner, rotate, keyboard open) and that board scrolling is unaffected (done early: the bubble and the drawer respect the safe-area insets and the close mark is 24 px; open: everything else of the task)
 - [ ] 2.2 Badge on the inner corner, drawer side follows the edge; verify e2e with unread messages on the left and right edges
 
 ## 3. Without dragging and in the profile

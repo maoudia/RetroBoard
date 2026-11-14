@@ -104,7 +104,7 @@ function onDrop() {
   position: relative; display: grid; gap: .5rem; align-content: space-between; min-height: 112px; padding: .75rem .8rem .5rem;
   background: var(--c); color: var(--note-ink); border-radius: calc(var(--r-card) / 3 + 2px);
   box-shadow: var(--shadow-1), inset 0 -22px 30px -26px rgb(0 0 0 / .25); transform: rotate(var(--tilt, 0deg));
-  cursor: grab; transition: box-shadow .2s, transform .25s var(--ease), outline-color .2s; outline: 2px solid transparent; min-width: 0;
+  cursor: grab; touch-action: manipulation; transition: box-shadow .2s, transform .25s var(--ease), outline-color .2s; outline: 2px solid transparent; min-width: 0;
   /* The text never leaves the card: the single track is capped to the card width and long words break. */
   grid-template-columns: minmax(0, 1fr);
 }
