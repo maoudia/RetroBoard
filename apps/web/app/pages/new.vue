@@ -86,7 +86,10 @@ async function create({ passcode, ...form }: SetupResult) {
   try { sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup)) } catch { /* the board page will ask for the passcode */ }
   // The board page reads the passcode from the sealed device vault, never from a clear-text hand-off.
   if (passcode && !soloMode.value) { try { await $ports.vault.set(ring.roomId, passcode) } catch { /* the board page will ask for the passcode */ } }
-  void router.push({ path: '/boards', hash: boardHash({ kind: 'encrypted', ring }, 'facilitator') })
+  const hash = boardHash({ kind: 'encrypted', ring }, 'facilitator')
+  // The library entry is written while the board page opens, not after its first event: a tab left right after creating must keep it.
+  void recents.touch(ring.roomId, setup.title, setup.themeId, hash)
+  void router.push({ path: '/boards', hash })
 }
 </script>
 
