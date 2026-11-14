@@ -8,6 +8,8 @@ export interface LibraryEntry {
   /** Room id. */
   readonly boardId: string
   readonly title: string
+  /** The board's theme, for the dot the recent-boards list shows; unknown for a board saved from a link only. */
+  readonly themeId?: string
   /** Local team workspace reference (ADR-0027), if any. */
   readonly teamId?: string
   readonly role: 'facilitator' | 'participant'
@@ -131,8 +133,9 @@ export function parseLibraryRecord(value: unknown): LibraryRecord | null {
   if (v.origin !== 'created' && v.origin !== 'joined') return null
   for (const flag of ['hasPasscode', 'solo', 'archived', 'keepOffline']) if (typeof v[flag] !== 'boolean') return null
   if (v.teamId !== undefined && typeof v.teamId !== 'string') return null
+  if (v.themeId !== undefined && typeof v.themeId !== 'string') return null
   return {
-    boardId: v.boardId, title: v.title, ...(v.teamId === undefined ? {} : { teamId: v.teamId }), role: v.role, origin: v.origin, fragment: v.fragment,
+    boardId: v.boardId, title: v.title, ...(v.themeId === undefined ? {} : { themeId: v.themeId }), ...(v.teamId === undefined ? {} : { teamId: v.teamId }), role: v.role, origin: v.origin, fragment: v.fragment,
     hasPasscode: v.hasPasscode as boolean, solo: v.solo as boolean, createdAt: v.createdAt as number, lastActivityAt: v.lastActivityAt as number,
     archived: v.archived as boolean, keepOffline: v.keepOffline as boolean, stamp: { at: v.stamp.at, device: v.stamp.device },
   }

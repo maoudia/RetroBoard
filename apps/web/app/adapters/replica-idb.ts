@@ -5,19 +5,23 @@
 import type { ReplicaRecord, ReplicaStorePort } from '@retroboard/application'
 
 const DB = 'retroboard-replica'
-const VERSION = 1
+/** 2: the `vault` store (change user-drive-storage), additive. */
+const VERSION = 2
 
 const req = <T>(r: IDBRequest<T>) => new Promise<T>((resolve, reject) => { r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error) })
 const done = (tx: IDBTransaction) => new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error) })
 
 export function openReplicaDb(factory: IDBFactory = indexedDB): Promise<IDBDatabase> {
   const open = factory.open(DB, VERSION)
-  open.onupgradeneeded = () => {
+  open.onupgradeneeded = (e) => {
     const db = open.result
-    const envs = db.createObjectStore('envelopes', { keyPath: ['room', 'id'] })
-    envs.createIndex('room', 'room')
-    db.createObjectStore('rooms', { keyPath: 'room' })
-    db.createObjectStore('keys')
+    if (e.oldVersion < 1) {
+      const envs = db.createObjectStore('envelopes', { keyPath: ['room', 'id'] })
+      envs.createIndex('room', 'room')
+      db.createObjectStore('rooms', { keyPath: 'room' })
+      db.createObjectStore('keys')
+    }
+    if (e.oldVersion < 2) db.createObjectStore('vault', { keyPath: 'path' })
   }
   return req(open)
 }
