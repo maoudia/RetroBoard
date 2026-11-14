@@ -61,6 +61,7 @@ async function importSettings(e: Event) {
   push(t('profile.settingsFile.imported', { n: Object.keys(parsed).length }), 'ok')
 }
 async function wipe() {
+  try { await useVaultStore().forgetConnection() } catch { /* ignore */ }
   try { Object.keys(localStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => localStorage.removeItem(k)) } catch { /* ignore */ }
   try { Object.keys(sessionStorage).filter((k) => k.startsWith('retroboard:')).forEach((k) => sessionStorage.removeItem(k)) } catch { /* ignore */ }
   // Encrypted local copies of boards too.
@@ -207,7 +208,7 @@ async function wipe() {
 
     <section class="grp" data-testid="sync-card">
       <h3>{{ t('sync.title') }}</h3>
-      <SyncSettings />
+      <LazySyncSettings />
     </section>
 
     <section class="grp" data-testid="team-section">

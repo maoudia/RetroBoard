@@ -1,6 +1,6 @@
 {
-  "manifest": "6235c06a",
-  "sources": "21ac6b25b3c2",
+  "manifest": "dd879f5c",
+  "sources": "de1d40600e78",
   "chapters": [
     "create",
     "invite",
@@ -10,7 +10,8 @@
     "actions",
     "present",
     "export",
-    "options"
+    "options",
+    "sync"
   ],
   "locales": [
     "fr",

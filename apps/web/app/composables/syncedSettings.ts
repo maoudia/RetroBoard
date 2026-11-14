@@ -26,16 +26,19 @@ export function useSyncedSettings(state: State = createSyncStateStore(), now: ()
   const load = async (): Promise<Stamps> => ({ ...EMPTY, ...(await state.get<Stamps>(STAMPS)) })
   const save = (s: Stamps) => state.set(STAMPS, s)
 
-  const settingValues = (): Record<string, unknown> => pickKeys({ ...settings.s }, SYNCED_SETTINGS)
+  /** The stores hold reactive objects; what is stored and sent is plain data (a proxy cannot be cloned into IndexedDB). */
+  const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+
+  const settingValues = (): Record<string, unknown> => plain(pickKeys({ ...settings.s }, SYNCED_SETTINGS))
   const identityValues = (): Record<string, unknown> => pickKeys({ name: identity.name, showName: identity.showName, named: identity.named, nudgeOff: identity.nudgeOff }, SYNCED_IDENTITY)
-  const teamValues = (): Record<string, unknown> => Object.fromEntries(team.ws.teams.map((t) => [t.id, t]))
+  const teamValues = (): Record<string, unknown> => plain(Object.fromEntries(team.ws.teams.map((t) => [t.id, t])))
 
   /** The doc for the workspace stream: each team with the stamp of its last edit, saved retros and owners as they are. */
   async function readWorkspace(): Promise<WorkspaceDoc> {
     const stamps = await load()
     const teams = recordEdits(stamps.teams, teamValues(), now(), device)
     await save({ ...stamps, teams })
-    return { teams: teams as WorkspaceDoc['teams'], retros: team.ws.retros, owners: team.ws.owners }
+    return { teams: teams as WorkspaceDoc['teams'], retros: plain(team.ws.retros), owners: plain(team.ws.owners) }
   }
 
   return {

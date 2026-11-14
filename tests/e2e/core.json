@@ -18,7 +18,9 @@
     "accessibility-statement",
     "a11y",
     "theme-contrast",
-    "keyboard"
+    "keyboard",
+    "folder-sync",
+    "folder-contract"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",

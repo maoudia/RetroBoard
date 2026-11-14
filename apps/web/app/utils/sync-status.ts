@@ -16,3 +16,6 @@ const ICONS: Readonly<Record<VaultStatus, string>> = {
 }
 
 export const syncStatusIcon = (status: VaultStatus): string => ICONS[status]
+
+/** Set while a folder is connected, so a browser that never used sync never loads the engine or opens its database. */
+export const SYNC_FLAG = 'retroboard:sync'

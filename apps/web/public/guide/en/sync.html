@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sync with a folder - RetroBoard</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../guide.css">
+<script src="../guide.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+<a class="brand" href="index.html">RetroBoard <span>User guide</span></a>
+<nav class="tools" aria-label="User guide">
+<a class="btn" href="/new">Open RetroBoard</a>
+<a class="btn" href="../fr/sync.html" hreflang="fr" lang="fr">Français</a>
+<button class="btn" type="button" id="variant" aria-pressed="false">Light or dark theme</button>
+</nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="toc" aria-label="Chapters"><ol><li><a href="create.html">Create a board</a></li><li><a href="invite.html">Invite the team</a></li><li><a href="write.html">Write and publish ideas</a></li><li><a href="agenda.html">The agenda and the timer</a></li><li><a href="people.html">Participants and chat</a></li><li><a href="actions.html">The action plan</a></li><li><a href="present.html">Present</a></li><li><a href="export.html">Export and keep a record</a></li><li><a href="options.html">Board options</a></li><li><a href="sync.html" aria-current="page">Sync with a folder</a></li></ol></nav>
+<article>
+<h1>Sync with a folder</h1>
+<p class="lead">Keep your boards and preferences on your other computers, in encrypted files only you can read.</p>
+<p>Sync keeps your boards and your preferences on your other computers, without an account and without a server of ours. You pick a folder that your OneDrive, Google Drive, Dropbox, iCloud, Syncthing or Nextcloud client already syncs. RetroBoard writes encrypted files in a <code>RetroBoard</code> folder inside it, and your sync client carries them to your other computers. It is just files.</p>
+<p><strong>Your password and your recovery key.</strong> The first time, you choose a password of 12 characters or more. RetroBoard encrypts everything with a key that only the password (or the recovery key shown right after) can open. Print the recovery key, save it as a file or copy it, and keep it away from this computer. If you lose both your password and your recovery key, nobody, including us, can read what is stored: it cannot be recovered. Sync starts only after you tick the two boxes that confirm you stored the key and understood this. There is no way to sync without a password and no way to turn encryption off.</p>
+<p><strong>Changing computer.</strong> On the new computer, wait for your sync client to bring the folder, open Preferences &gt; Sync, choose the same folder and type the password (or use the recovery key). Your library appears within a moment. A board&#39;s content is read when you open it, so a long history never slows the first sync. Preferences and the library are merged: the most recent change of each setting wins.</p>
+<p><strong>What is synced.</strong> Your boards (kept offline when you created them, or ones you save to your library), the library, your preferences, your display name and your teams. Device settings (density, retention, notifications, Slack webhook) and every secret stay on the device.</p>
+<p><strong>What the folder&#39;s cloud can see.</strong> Only encrypted files with random names: roughly how many boards you have, the size of the files (rounded up to powers of two), when they change and how many devices you use, plus the folder path it already knew. No title, note, name or setting is readable.</p>
+<p><strong>Limits.</strong> Folder sync works in Chrome, Edge, Opera and Brave on a computer, and only while a tab is open: pulls happen when you open the app, come back to the tab, regain the network, every minute (every 30 seconds on a board) and with &quot;Sync now&quot;. Your sync client sets the pace, so a change can take seconds to minutes to arrive. Chrome asks again for the folder permission in some sessions: the status says &quot;Allow folder access&quot; and your edits wait on the device until you click. Safari, Firefox and phones keep their boards on the device as before.</p>
+<p><strong>Disconnect and forget.</strong> Stops syncing and removes the folder, the keys and the synced preferences from this browser. Your boards stay. You can also delete the vault files from the folder: that asks for your password and deletes only RetroBoard&#39;s own files.</p>
+<section id="folder" aria-labelledby="folder-h"><h2 id="folder-h"><span class="n">1</span> In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs.</h2>
+<p>The Sync section is at the bottom of your profile. &quot;Choose folder&quot; opens your browser&#39;s folder picker. If the folder already holds a vault, RetroBoard asks for its password and never overwrites it; otherwise you create one. The toolbar then shows a small status (Synced, Syncing, Offline, Locked, Allow folder access, Folder not found, Waiting for a file from your sync client, Needs attention) with &quot;Sync now&quot; and the list of your devices in the dialog.</p>
+<figure class="shot"><img class="light" src="../img/en/light/sync-folder.webp" width="578" height="292" alt="In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs." loading="lazy"><img class="dark" src="../img/en/dark/sync-folder.webp" width="578" height="292" alt="In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs." loading="lazy"><figcaption>In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs.</figcaption></figure>
+</section>
+<nav class="pager" aria-label="User guide"><a href="options.html" rel="prev">Previous: Board options</a><span></span></nav>
+</article>
+</main>
+</body>
+</html>

@@ -39,10 +39,14 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-11-14: entry raised from 50 to 51 kB and total from 356 to 360 kB for the board library (user-drive-storage, group 1): the sealed
 // vault object format, the IndexedDB target, the library store and list, the migration and their fr/en strings (50.2 kB entry and
 // 359.5 kB total measured, 352.8 kB before). The Argon2id derivation is a lazy import that nothing loads yet, so it is not in these figures.
+// 2026-11-14: total raised from 360 to 398 kB for folder sync (user-drive-storage, group 2): the vault engine and its merge rules, the
+// folder adapter, the use cases and codecs, the scheduler, the Argon2id derivation (a lazy chunk, now loaded when a password is typed),
+// Preferences > Sync, the status chip and their fr/en strings (396.2 kB total measured, 359.5 kB before). The entry stays under 51 kB
+// (50.4 measured): the engine and the interface load only when a folder is connected or chosen.
 // Raise it only on purpose.
 // 2026-11-19: total raised from 360 to 362 kB for the landing's open-code section and five feature cards (landing-v2-and-product-video,
 // tasks 2.1 and 2.3): 26 fr/en strings, +1.8 kB measured over 359.5 (361.3 kB after). The entry stays at 50.2 kB.
-const BUDGET = { entryKb: 51, totalKb: 362 }
+const BUDGET = { entryKb: 51, totalKb: 400 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
