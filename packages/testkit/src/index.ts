@@ -30,3 +30,5 @@ export function harness() {
     col: (i: number) => state.columns[i]!.id,
   }
 }
+export * from './sync-target'
+export * from './contract'
