@@ -33,9 +33,11 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-11-13: entry raised from 48 to 50 kB for the prerendered landing (ADR-0038): the hydration of the server-rendered hero and the
 // post-hydration language and theme settings joined the entry (47.5 to 49.7 kB measured, total 348.6 to 350.9 kB). The first and the
 // largest contentful paint no longer wait for it: Lighthouse mobile on the landing went from 90 to 100, LCP from 3.6 s to 1.1 s.
+// 2026-11-14: total raised from 352 to 356 kB for the minor-and-patch dependency group (vue 3.5.45, @nuxt/icon 2.6.2, @mcp-b/global 6.2.0):
+// 352.8 kB measured, 351.8 kB before, no source change.
 // The captain allows up to 400 kB.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 50, totalKb: 352 }
+const BUDGET = { entryKb: 50, totalKb: 356 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
