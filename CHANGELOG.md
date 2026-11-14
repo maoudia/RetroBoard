@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.55.1](https://github.com/maoudia/RetroBoard/compare/v1.55.0...v1.55.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **web:** chat bubble safe-area insets, 24 px close mark, manipulation touch-action on notes, pressed expand button ([50ccd2a](https://github.com/maoudia/RetroBoard/commit/50ccd2a4c323a93db2a6dde966727aa82d7ad9c5))
+
 ## [1.55.0](https://github.com/maoudia/RetroBoard/compare/v1.54.1...v1.55.0) (2026-11-14)
 
 
