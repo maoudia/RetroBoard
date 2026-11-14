@@ -5,6 +5,7 @@
       "entry": [
         "tests/e2e/**/*.ts",
         "scripts/**/*.mjs",
+        "quality/*.mjs",
         "allurerc.mjs",
         "vitest.mutation.config.ts",
         "tests/docs/**/*.ts",
@@ -12,7 +13,8 @@
       ],
       "ignoreDependencies": [
         "allure-playwright",
-        "allure-vitest"
+        "allure-vitest",
+        "@noble/hashes"
       ],
       "ignoreBinaries": [
         "cwebp",

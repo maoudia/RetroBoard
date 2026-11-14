@@ -4,6 +4,7 @@ import { td } from '~/i18n'
 import { boardHash, inviteFromHash, participantLink } from '~/utils/invite'
 import { isSolo, unmarkSolo } from '~/utils/solo'
 const { t } = useT()
+const library = useLibraryStore()
 /** The creator's tab keeps the passcode in memory: offered for copy, never put in a message. */
 const props = defineProps<{ passcode?: string | null }>()
 const emit = defineEmits<{ convert: [] }>()
@@ -18,6 +19,8 @@ const solo = computed(() => isSolo(board.roomId))
 function makeShareable() {
   if (!board.roomId) return
   unmarkSolo(board.roomId)
+  // The library entry says it too, so the board is not solo on the other devices either.
+  void library.setSolo(board.roomId, false)
   emit('convert')
   push(t('share.solo.done'), 'ok')
 }

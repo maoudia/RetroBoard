@@ -53,7 +53,7 @@ Errors are one `TargetError` with a `code`: `precondition-failed`, `not-found`, 
 
 ### Adapter contract suite
 
-`runSyncTargetContract(name, makeTarget)` in `packages/testkit` is a vitest suite every adapter file calls. It checks: put then get round trip (0 bytes, 1 byte, 5 MiB); `absent` fails on an existing path and succeeds on a free one; `ifMatch` with a stale etag fails and with the current one succeeds (skipped, and asserted skipped, when `conditionalPut` is `'none'`); `get` and `stat` of a missing path give `null`; `list` returns only the prefix, with sizes and etags, across more than one provider page (1,200 objects); `delete` is idempotent; names are lowercase ASCII and two names differing by case cannot coexist; error mapping (permission revoked, expired token, full quota, offline fetch give the matching `code`). The in-memory fake runs it in CI with no browser; the folder adapter runs it against the fake directory handle (and once in real Chromium on the origin private file system); each later adapter adds its run against a provider fake.
+`runSyncTargetContract(name, makeTarget)` in `packages/testkit` is a vitest suite every adapter file calls. It checks: put then get round trip (0 bytes, 1 byte, 5 MiB); `absent` fails on an existing path and succeeds on a free one; `ifMatch` with a stale etag fails and with the current one succeeds (skipped, and asserted skipped, when `conditionalPut` is `'none'`, which also skips the create-only check: the folder adapter achieves create-only by its own means and the engine never relies on it); `get` and `stat` of a missing path give `null`; `list` returns only the prefix, with sizes and etags, across more than one provider page (1,200 objects); `delete` is idempotent; names are lowercase ASCII and two names differing by case cannot coexist; error mapping (permission revoked, expired token, full quota, offline fetch give the matching `code`; a harness lists the faults it can provoke, a local store has no token to expire). The in-memory fake runs it in CI with no browser; the folder adapter runs it against the fake directory handle (and once in real Chromium on the origin private file system); each later adapter adds its run against a provider fake.
 
 ## Encryption is mandatory
 
@@ -68,7 +68,7 @@ Every user-owned datum found in the code today, with its decision. The lists `SY
 | Boards: the ledger envelopes in `retroboard-replica` | **Sync**, stream per board, segments plus checkpoints, lazy | the point of the feature |
 | Saved boards list (`stores/recents.ts`, `retroboard:recents`) | **Sync** as the library | becomes the library; recents is a view of it |
 | Solo marks (`utils/solo.ts`, `retroboard:solo`) | **Sync** as `solo` on the library entry | a solo board must never reach the real relay by accident, on any device |
-| Preferences about the person (`LocalSettings`): `locale`, `variant`, `defaultTheme`, `avatarHue`, `uiMode`, `motion`, `sound`, `ambient`, `presentGroups`, `shortcuts`, `keyHints`, `shareCursor`, `showCursors`, `notifyPos`, `phaseWarning`, `presenterHideMenus`, `stepperTime`, `ringTime`, `chatStatus`, `votedSort` | **Sync**, last-write-wins per key | follow the person |
+| Preferences about the person (`LocalSettings`): `locale`, `variant`, `defaultTheme`, `avatarHue`, `uiMode`, `motion`, `sound`, `ambient`, `presentGroups`, `shortcuts`, `keyHints`, `shareCursor`, `showCursors`, `notifyPos`, `phaseWarning`, `presenterHideMenus`, `stepperTime`, `ringTime`, `chatStatus`, `votedSort`, `saveJoinedBoards` | **Sync**, last-write-wins per key | follow the person |
 | Preferences about the device: `density` (screen), `chatSide` (layout), `retentionDays` (this device's storage), `systemNotify` and `browserAgents` (browser permission and consent), `p2p` (network), `slackWebhook` (secret, ADR-0033) | **Skip** | differ per device or are secrets |
 | Identity (`stores/identity.ts`): `name`, `showName`, `named`, `nudgeOff` | **Sync** | the person's display choices |
 | Identity `cid` | **Skip** | per-device participant id; two devices sharing one would look like one participant in presence |
@@ -107,6 +107,7 @@ An entry (sealed in the `library` stream, never in a file name):
 interface LibraryEntry {
   boardId: string          // room id
   title: string
+  themeId?: string         // the board's theme, for the dot of the recent-boards list (unknown for a board saved from a link only)
   teamId?: string          // local team workspace reference (ADR-0027), if any
   role: 'facilitator' | 'participant'
   origin: 'created' | 'joined'
@@ -126,7 +127,7 @@ interface LibraryEntry {
 
 ## Local storage and migration (group 1)
 
-`idb-target.ts` implements `SyncTargetPort` over a new object store `vault` in the existing `retroboard-replica` database (`replica-idb.ts` bumps `VERSION`, additive upgrade). Objects are in the same format as on a remote target, sealed with a local key derived from the existing non-extractable device key (`createLocalSealer` generalised to hand back a `CryptoKey` handle; no raw key is ever exported). Replica envelopes already sit sealed with the board key and stay in `envelopes`; the library, and in group 2 the settings and workspace, move into the vault with a one-time, idempotent migration that keeps the old keys for one release for rollback. The IndexedDB target keeps the offline working cache role for every later target: the target is the sync source of truth, IndexedDB the cache.
+`idb-target.ts` implements `SyncTargetPort` over a new object store `vault` in the existing `retroboard-replica` database (`replica-idb.ts` bumps `VERSION`, additive upgrade). Objects are in the same format as on a remote target, sealed with a local key derived from the existing non-extractable device key (`createLocalSealer().derive(label)` returns 32 bytes computed with the device key by a fixed-nonce encryption of a constant, so the device key is never exported and no second key is stored; a `CryptoKey` handle could not feed `HKDF`). Replica envelopes already sit sealed with the board key and stay in `envelopes`; the library, and in group 2 the settings and workspace, move into the vault with a one-time, idempotent migration that keeps the old keys for one release for rollback. In group 1 the library is one mutable sealed document `s/<stream>/local.rbs` of this local vault, written with an etag precondition so two tabs merge instead of overwriting; group 2 mirrors it to a target as immutable segments. The migration imports every legacy recent board, joined ones included, so nothing is lost; a board that already has a record, a tombstone included, is never imported again. The IndexedDB target keeps the offline working cache role for every later target: the target is the sync source of truth, IndexedDB the cache.
 
 ## Preferences > Sync (UX, group 2)
 

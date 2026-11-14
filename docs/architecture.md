@@ -46,7 +46,7 @@ packages/
   application/    Use cases (commands, queries), ports (interfaces), read models.
   protocol/       Versioned wire envelopes and valibot schemas shared by web, relay and mcp.
   sync/           Event log, hybrid logical clock, version vectors, resync, snapshots.
-  crypto/         WebCrypto adapter: AES-GCM, HKDF, PBKDF2, Ed25519 signatures, X25519 sealing.
+  crypto/         WebCrypto adapter: AES-GCM, HKDF, PBKDF2, Ed25519 signatures, X25519 sealing; vault object format, Argon2id password wrap, recovery key.
   themes/         Theme definitions with light/dark variants, contrast tests.
   i18n/           Typed dictionaries (fr source, en), pseudo-locale, ICU-lite helpers.
   exporters/      Pure functions: Markdown, HTML report, CSV, JSON, Jira CSV, Slack blocks, Confluence.
@@ -153,6 +153,22 @@ Our model is a small set of aggregates with invariants (vote limits, author-only
 ### 5.7 What the relay can observe
 
 Room ids, IP addresses (the hosting provider's edge, or the operator's proxy on a self-hosted instance), connection times, envelope sizes and counts. It cannot read titles, notes, names, votes, actions or settings. The privacy page states this list.
+
+### 5.8 Sync targets and the vault
+
+A person's own data (boards, library, preferences) can be kept on storage they choose, always encrypted in the browser first (change `user-drive-storage`, ADR-0039). The relay and the share links are untouched; this is a second, optional path that never carries anything readable.
+
+Layers (the dependency rules of section 3 hold, `pnpm arch` checks them):
+
+- **Port** `SyncTargetPort` in `packages/application/src/ports/sync-target.ts`: `list`, `get`, `put` (with `ifMatch` an etag or `'absent'`), `delete`, `stat`, and a `TargetCapabilities` record. Paths are lowercase ASCII, at most 90 characters and 3 levels (`isObjectPath`). Every adapter failure is one `TargetError` with a `code`; its message is the code only, so no path or body reaches a log. The port moves bytes: an adapter never holds a key.
+- **Object format and keys** in `packages/crypto` (`vault.ts`, `kdf.ts`, `recovery.ts`): a plaintext header, AES-256-GCM chunks bound to their path class and stream, padding to a power of two (1 KiB minimum), a key schedule from the master key (stream keys, name key, library key), Argon2id (pure JavaScript, `@noble/hashes`, loaded only when a password is typed) wrapping the master key in `info.json`, and the recovery key.
+- **Pure model** in `packages/application/src/storage/`: the library entry and its merge, last-write-wins stamps, the lists of what syncs (`SYNCED_SETTINGS`, `LOCAL_ONLY_SETTINGS`, identity and workspace equivalents, enforced by tests), `mergeWorkspace`, and the library use cases (`saveBoardToLibrary`, `archiveBoard`, `forgetBoard`, `openLibraryBoard`) over a `LibraryStorePort`.
+- **Adapters** in `apps/web/app/adapters/sync/`: `idb-target.ts` (the browser's own vault, a `vault` object store of `retroboard-replica`), `local-vault.ts` (sealed JSON documents in the vault format, key derived from the device key without exporting it) and `library-migration.ts`. The folder and network adapters come with the next groups.
+- **App**: `stores/library.ts` (the library, with a `BroadcastChannel` between tabs) and `stores/recents.ts` (a view of it), `components/LibraryList.vue` on `/boards` without a link, "Save to my library" in the board menu.
+
+**Where the plaintext guard lives.** `createMemoryTarget()` in `packages/testkit/src/sync-target.ts` records every path and every byte array it receives and exposes `assertNoPlaintext(canaries)`, which looks for each canary string in UTF-8, UTF-16, base64 (all three alignments) and percent-encoded form, in paths and in bodies. The same assertion runs on whatever the engine and each adapter write. `runSyncTargetContract(name, makeTarget)` in `packages/testkit/src/contract.ts` is the suite every adapter file calls; `contractChecks` are also exported so a test proves each check fails on a deliberately broken target.
+
+Before any target is connected the library lives only in the browser, sealed with a key derived from the non-extractable device key: nothing readable sits in IndexedDB and nothing is sent anywhere.
 
 ## 6. Retro flow
 

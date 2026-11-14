@@ -59,6 +59,11 @@ export const useLibraryStore = defineStore('library', () => {
     touch: (boardId: string, at?: number) => changed(recordBoardActivity(deps, boardId, at)),
     archive: (boardId: string, value = true) => changed(archiveBoard(deps, boardId, value)),
     forget: (boardId: string, opts: { deleteLocalCopy?: boolean } = {}) => changed(forgetBoard(deps, boardId, { ...(replica ? { replica } : {}), ...opts })),
+    /** The solo mark of a listed board (a board made shareable is solo no more, on every device). */
+    setSolo: (boardId: string, solo: boolean) => {
+      const e = get(boardId)
+      return e ? changed(saveBoardToLibrary(deps, { ...e, solo })) : Promise.resolve(undefined)
+    },
     open: (boardId: string) => changed(openLibraryBoard({ ...deps, ...(replica ? { replica } : {}) }, boardId)),
   }
 })

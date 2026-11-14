@@ -58,6 +58,8 @@ export interface LocalSettings {
   chatStatus: boolean
   /** Sort of the voted ideas list in the actions panel. */
   votedSort: 'votes' | 'column' | 'newest' | 'author'
+  /** A board opened by link joins the library on its own (change user-drive-storage); off: only "Save to my library". */
+  saveJoinedBoards: boolean
   /** Slack incoming webhook (change export-hub): a secret of this device, never synced, never in a settings file. */
   slackWebhook: string
 }
@@ -70,7 +72,7 @@ export const DEFAULTS: LocalSettings = {
   ambient: true, presentGroups: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: -1, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
-  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatStatus: true, votedSort: 'votes', slackWebhook: '',
+  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatStatus: true, votedSort: 'votes', saveJoinedBoards: false, slackWebhook: '',
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */

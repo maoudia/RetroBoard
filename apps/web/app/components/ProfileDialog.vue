@@ -201,6 +201,8 @@ async function wipe() {
         <TeamSwitcher />
         <RecentBoards removable testid="recents" @open="ui.close()" />
       </template>
+      <NuxtLink class="btn btn-sm" to="/boards" data-testid="profile-library" @click="ui.close()"><Icon name="lucide:library" /> {{ t('library.all') }}</NuxtLink>
+      <ToggleSwitch plain :label="t('profile.saveJoined')" :hint="t('profile.saveJoined.hint')" :model-value="settings.s.saveJoinedBoards" data-testid="set-save-joined" @update:model-value="(on: boolean) => set({ saveJoinedBoards: on })" />
     </section>
 
     <section class="grp" data-testid="team-section">
