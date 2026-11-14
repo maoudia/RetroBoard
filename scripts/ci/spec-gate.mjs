@@ -19,7 +19,7 @@ export function decide({ title, body, labels }) {
   const exempt = String(labels ?? '').split(',').map((l) => l.trim()).some((l) => ['no-spec', 'dependencies', 'github_actions'].includes(l))
   if (change) return { need: 'change', change }
   if (behaviour) {
-    return { need: 'change', problem: `A ${type}${m?.groups?.bang ? ' (breaking)' : ''} pull request changes the product and needs an OpenSpec change: write the proposal first (/opsx:propose), then add "Change: <openspec-change>" to the pull request body. The no-spec label does not apply to ${[...SPEC_TYPES].join(', ')} or breaking changes.` }
+    return { need: 'change', problem: `A ${type}${m?.groups?.bang ? ' (breaking)' : ''} pull request changes the product and needs an OpenSpec change: write the proposal first (the openspec-propose skill), then add "Change: <openspec-change>" to the pull request body. The no-spec label does not apply to ${[...SPEC_TYPES].join(', ')} or breaking changes.` }
   }
   if (exempt) return { need: 'optional' }
   return { need: 'optional', problem: `Add "Change: <openspec-change>" to the pull request body, or the no-spec label (allowed for docs, test, build, ci, chore, style, refactor and revert pull requests).` }

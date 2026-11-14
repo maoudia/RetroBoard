@@ -419,8 +419,8 @@ const groupBody = (c, g) => [
   `**Change:** \`${c.name}\` - **Task group:** ${g.n}. ${g.title}`, '',
   '## Tasks (verification included in each line)', ...g.tasks.map((t) => `- [ ] ${t}`), '',
   '## How to implement',
-  `- Claude Code: \`/opsx:apply ${c.name}\` and work only on group ${g.n}`,
-  `- OpenCode: \`/opsx-apply ${c.name}\` and work only on group ${g.n}`,
+  `- Claude Code: \`/openspec-apply-change ${c.name}\` and work only on group ${g.n}`,
+  `- OpenCode: ask for the \`openspec-apply-change\` skill on \`${c.name}\` and work only on group ${g.n}`,
   `- PR body must contain \`Change: ${c.name}\`; tick the tasks in \`openspec/changes/${c.name}/tasks.md\`; run \`npm run verify\`.`,
 ].join('\n')
 
