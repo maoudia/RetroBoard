@@ -23,3 +23,6 @@ overrides:
   'node-forge@<1.4.3': ^1.4.3
   # GHSA-474x-hrwr-fgx4 (quadratic CPU on unterminated stop-node tags), via @allurereport/reader which pins 5.11.2 exactly.
   'fast-xml-parser@<5.12.0': ^5.12.0
+  # Dependabot alerts 2 and 3 (glob AbortSignal, <14.0.2; minimatch DoS, <11.0.1), dev only: via allure and @stryker-mutator/core. minimatch is scoped to stryker: eslint-plugin-import-x needs the makeRe export that 11 dropped.
+  'glob@<14.0.2': ^14.0.2
+  '@stryker-mutator/core>minimatch': ^11.0.1
