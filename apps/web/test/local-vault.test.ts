@@ -12,8 +12,11 @@ import { deviceId } from '../app/utils/device-id'
 
 ;(globalThis as { IDBKeyRange?: unknown }).IDBKeyRange = IDBKeyRange
 
+/** The fake browser storage keeps its entries in `backing`, which a test fills directly instead of through the Storage API. */
+const backing = new Map<string, string>()
 function memoryStorage(): Storage {
-  const m = new Map<string, string>()
+  const m = backing
+  m.clear()
   return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => { m.set(k, v) }, removeItem: (k) => { m.delete(k) }, clear: () => m.clear(), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size } }
 }
 
@@ -93,7 +96,7 @@ describe('local vault', () => {
     const id = deviceId()
     expect(id).toMatch(/^[a-z2-7]{13}$/)
     expect(deviceId()).toBe(id)
-    localStorage.setItem('retroboard:device', JSON.stringify('bad'))
+    backing.set('retroboard:device', JSON.stringify('bad'))
     expect(deviceId()).toMatch(/^[a-z2-7]{13}$/)
   })
 })
@@ -106,14 +109,14 @@ describe('migration of recents and solo marks', () => {
     const db = openReplicaDb(factory)
     const sealer = createLocalSealer(db)
     const sealed = async (n: number, title: string, hash: string, at: number) => ({ id: ring(n).roomId, themeId: 'slate', at, sealed: await sealer.seal(JSON.stringify({ title, hash })) })
-    localStorage.setItem(LEGACY_RECENTS_KEY, JSON.stringify([
+    backing.set(LEGACY_RECENTS_KEY, JSON.stringify([
       await sealed(1, 'CANARY-created-board', link(1, 'facilitator', true), 3000),
       await sealed(2, 'Joined retro', link(2, 'participant'), 2000),
       { id: ring(3).roomId, themeId: 'paper', at: 1000, title: 'Clear text board', hash: link(3, 'facilitator') },
       { id: 'tampered', themeId: 'x', at: 1, sealed: 'garbage' },
       { id: 4, themeId: 'x', at: 'later' },
     ]))
-    localStorage.setItem(LEGACY_SOLO_KEY, JSON.stringify([ring(1).roomId]))
+    backing.set(LEGACY_SOLO_KEY, JSON.stringify([ring(1).roomId]))
     const store = createLibraryStore(createLocalVault(createIdbTarget(db), () => sealer.derive('local-vault/v1')))
     return { store, sealer, db }
   }
@@ -146,10 +149,10 @@ describe('migration of recents and solo marks', () => {
 
   it('does nothing when there is nothing to import', async () => {
     const { store, sealer } = await legacyFixture()
-    localStorage.removeItem(LEGACY_RECENTS_KEY)
+    backing.delete(LEGACY_RECENTS_KEY)
     expect(await migrateLegacyLibrary(store, (s) => sealer.open(s), 1, 'd')).toBe(0)
     expect(await store.load()).toEqual({})
-    localStorage.setItem(LEGACY_RECENTS_KEY, JSON.stringify({ not: 'a list' }))
+    backing.set(LEGACY_RECENTS_KEY, JSON.stringify({ not: 'a list' }))
     expect(await readLegacyRecents(async () => null)).toEqual([])
   })
 })
