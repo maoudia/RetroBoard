@@ -44,3 +44,15 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Run the image and smoke test it
         run: scripts/ci/container-smoke.sh retroboard:ci
+      # The workerd fallback image (`:workerd` tag, one release) has to keep starting as long as it is published.
+      - name: Build the workerd fallback (amd64)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          target: workerd
+          load: true
+          push: false
+          tags: retroboard:ci-workerd
+          cache-from: type=gha
+      - name: Run the workerd fallback and smoke test it
+        run: scripts/ci/container-smoke.sh retroboard:ci-workerd

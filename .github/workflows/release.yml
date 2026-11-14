@@ -312,6 +312,51 @@ jobs:
         env:
           DIGEST: ${{ steps.push.outputs.digest }}
         run: cosign sign --yes "$IMAGE@$DIGEST"
+      # The workerd image of the previous release stays one more release as the `workerd` tag, a fallback for operators
+      # that need to roll back from the Node adapter (portable-relay-core, ADR-0036). Same gates as the main image.
+      - name: Build the workerd fallback for the scan (amd64)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          target: workerd
+          load: true
+          push: false
+          tags: retroboard:scan-workerd
+          build-args: |
+            VERSION=${{ needs.release.outputs.version }}
+            REVISION=${{ github.sha }}
+          cache-from: type=gha
+      - name: Run the workerd fallback and smoke test it
+        run: scripts/ci/container-smoke.sh retroboard:scan-workerd
+      - name: Scan the workerd fallback (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: retroboard:scan-workerd
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+      - name: Build and push the workerd fallback (amd64, arm64)
+        id: push-workerd
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          target: workerd
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:workerd
+            ${{ env.IMAGE }}:${{ needs.release.outputs.version }}-workerd
+          build-args: |
+            VERSION=${{ needs.release.outputs.version }}
+            REVISION=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+      - name: Sign the workerd digest
+        env:
+          DIGEST: ${{ steps.push-workerd.outputs.digest }}
+        run: cosign sign --yes "$IMAGE@$DIGEST"
       - name: Attest the build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
@@ -347,6 +392,8 @@ jobs:
 
               gh attestation verify oci://$IMAGE:$VERSION --repo $GITHUB_REPOSITORY
               cosign verify $IMAGE:$VERSION --certificate-identity-regexp '^https://github.com/$GITHUB_REPOSITORY/' --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+          The image runs the Node adapter. The previous workerd image stays one more release as \`$IMAGE:workerd\` (also \`$IMAGE:$VERSION-workerd\`) for a rollback.
 
           Self-hosting: https://github.com/$GITHUB_REPOSITORY/blob/$TAG/docs/self-hosting.md
           NOTES
