@@ -21,7 +21,7 @@ retro.example.com {
 
 * Pin an exact tag (`1.3.0`) for stable deployments; `latest` follows every release.
 * The container runs as a non-root user and answers `/healthz`.
-* The runtime is the local workerd runtime started by Wrangler (`wrangler dev --local`). It is the same Worker code as the hosted service. Whether it is suitable for large public instances is not verified; it is meant for teams and small instances (a verifier before wider use).
+* The runtime is the Node adapter (`node dist/node.mjs`, [ADR-0036](adr/0036-cloudflare-is-one-deploy-target-relay-core-runtime-neutral.md)): the same relay core as the hosted service, rooms in the memory of one process, so one instance per site (measurements in [capacity.md](capacity.md)). The previous image, which ran the Worker under the local workerd runtime started by Wrangler, stays one release as the `:workerd` tag (`docker build --target workerd .`). Configuration: the environment variables of `deploy/selfhost/relay.env`. Whether it is suitable for large public instances is not verified; it is meant for teams and small instances (a verifier before wider use).
 * Releases, versions and the image build: ADR-0025.
 
 ## Build it yourself

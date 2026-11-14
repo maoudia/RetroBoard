@@ -25,8 +25,8 @@
 
 ## 5. Container on the Node adapter
 
-- [ ] 5.1 `Dockerfile` runtime stage copies the site, `dist/node.mjs` and `ws` only and starts `node dist/node.mjs`; `deploy/selfhost` configuration for the Node adapter (`SELF_HOSTED=1`, `RATE_LIMIT_PER_MIN=0`, `CLIENT_IP_HEADER` unset); keep a `:workerd` tag for one release; verify the container smoke job of `selfhost-container-gate` passes on the image, image size and RSS recorded in `docs/capacity.md`
-- [ ] 5.2 Load parity: `pnpm load:relay --clients 30 --boards 1 --seconds 10` against both adapters, numbers in `docs/capacity.md`; verify 30/30 connected and 0 errors on both and the document states the single-instance limit
+- [x] 5.1 `Dockerfile` runtime stage copies the site, `dist/node.mjs` and `ws` only and starts `node dist/node.mjs`; `deploy/selfhost` configuration for the Node adapter (`SELF_HOSTED=1`, `RATE_LIMIT_PER_MIN=0`, `CLIENT_IP_HEADER` unset); keep a `:workerd` tag for one release; verify the container smoke job of `selfhost-container-gate` passes on the image, image size and RSS recorded in `docs/capacity.md`
+- [x] 5.2 Load parity: `pnpm load:relay --clients 30 --boards 1 --seconds 10` against both adapters, numbers in `docs/capacity.md`; verify 30/30 connected and 0 errors on both and the document states the single-instance limit
 
 ## 6. Documentation and privacy text
 
