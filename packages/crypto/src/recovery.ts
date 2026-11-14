@@ -34,14 +34,15 @@ export interface RecoveryKey {
 
 export const RECOVERY_QR_PREFIX = 'RBR1:'
 
-function describeKey(bytes: Bytes): RecoveryKey {
+/** The printed forms of 160 bits. */
+export function recoveryKeyFromBytes(bytes: Bytes): RecoveryKey {
   const chars = toBase32(bytes)
   const groups = chars.match(new RegExp(`.{${GROUP}}`, 'g'))!.map((g) => g.toUpperCase())
   const check = checkChars(chars).toUpperCase()
   return { bytes, text: `${groups.join('-')}-${check}`, qr: `${RECOVERY_QR_PREFIX}${chars.toUpperCase()}${check}` }
 }
 
-export const generateRecoveryKey = (): RecoveryKey => describeKey(randomBytes(RECOVERY_KEY_BYTES))
+export const generateRecoveryKey = (): RecoveryKey => recoveryKeyFromBytes(randomBytes(RECOVERY_KEY_BYTES))
 
 export type RecoveryKeyParse = { readonly ok: true; readonly key: RecoveryKey } | { readonly ok: false; readonly reason: 'length' | 'characters' | 'check' }
 
@@ -52,7 +53,7 @@ export function parseRecoveryKey(input: string): RecoveryKeyParse {
   const bytes = fromBase32(text.slice(0, KEY_CHARS))
   if (!bytes) return { ok: false, reason: 'characters' }
   if (checkChars(text.slice(0, KEY_CHARS)) !== text.slice(KEY_CHARS)) return { ok: false, reason: 'check' }
-  return { ok: true, key: describeKey(bytes) }
+  return { ok: true, key: recoveryKeyFromBytes(bytes) }
 }
 
 /** Adds (or replaces) the recovery wrap. The recovery key is returned once, for the person to store. */

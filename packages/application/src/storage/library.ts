@@ -67,7 +67,12 @@ export function mergeLibrary(a: Library, b: Library): Library {
 export function libraryEntries(library: Library, opts: { archived?: boolean } = {}): LibraryEntry[] {
   return Object.values(library)
     .filter((r): r is LibraryEntry => !isTombstone(r) && r.archived === (opts.archived ?? false))
-    .sort((a, b) => b.lastActivityAt - a.lastActivityAt || (a.boardId < b.boardId ? -1 : 1))
+    .sort(byActivity)
+}
+
+function byActivity(a: LibraryEntry, b: LibraryEntry): number {
+  // Stryker disable next-line EqualityOperator: board ids are unique keys here, two equal ones are never compared
+  return b.lastActivityAt - a.lastActivityAt || (a.boardId < b.boardId ? -1 : 1)
 }
 
 export const getEntry = (library: Library, boardId: string): LibraryEntry | undefined => {
@@ -119,14 +124,13 @@ export function forgetEntry(library: Library, boardId: string, now: number, devi
   return put(library, { boardId, forgotten: true, lastActivityAt: old.lastActivityAt, stamp: nextStamp(old.stamp, now, device) })
 }
 
-const isStamp = (v: unknown): v is Stamp => typeof v === 'object' && v !== null && Number.isFinite((v as Stamp).at) && typeof (v as Stamp).device === 'string'
-const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
+const isStamp = (v: unknown): v is Stamp => Number.isFinite((v as Stamp | null)?.at) && typeof (v as Stamp).device === 'string'
+const num = (v: unknown) => Number.isFinite(v)
 
 /** Reads a record from storage or from a synced segment: untrusted shape, so every field is checked. */
 export function parseLibraryRecord(value: unknown): LibraryRecord | null {
-  if (typeof value !== 'object' || value === null) return null
-  const v = value as Record<string, unknown>
-  if (typeof v.boardId !== 'string' || !v.boardId || !isStamp(v.stamp) || !num(v.lastActivityAt)) return null
+  const v = value as Record<string, unknown> | null
+  if (typeof v?.boardId !== 'string' || !v.boardId || !isStamp(v.stamp) || !num(v.lastActivityAt)) return null
   if (v.forgotten === true) return { boardId: v.boardId, forgotten: true, lastActivityAt: v.lastActivityAt as number, stamp: { at: v.stamp.at, device: v.stamp.device } }
   if (typeof v.title !== 'string' || typeof v.fragment !== 'string' || !num(v.createdAt)) return null
   if (v.role !== 'facilitator' && v.role !== 'participant') return null

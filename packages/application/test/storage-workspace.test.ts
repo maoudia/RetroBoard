@@ -11,6 +11,52 @@ const doc = (over: Partial<WorkspaceDoc> = {}): WorkspaceDoc => ({ ...EMPTY_WORK
 const stamped = (t: Team, at: number, device = 'd1') => ({ value: t, stamp: { at, device } })
 
 describe('workspace merge', () => {
+  it('has an empty document that is really empty', () => {
+    expect(EMPTY_WORKSPACE_DOC).toStrictEqual({ teams: {}, retros: [], owners: [] })
+  })
+  it('keeps the team order of this device and puts new teams last, by id', () => {
+    const local: Workspace = { ...EMPTY_WORKSPACE, teams: [team('t2'), team('t1')], lastTeamId: 't1' }
+    const remote = doc({ teams: { t9: stamped(team('t9'), 1), t1: stamped(team('t1'), 1), t8: stamped(team('t8'), 1), t2: stamped(team('t2'), 1) } })
+    expect(applyWorkspaceDoc(local, remote).teams.map((t) => t.id)).toEqual(['t2', 't1', 't8', 't9'])
+    expect(applyWorkspaceDoc(local, doc({ teams: { t8: stamped(team('t8'), 1), t9: stamped(team('t9'), 1) } })).teams.map((t) => t.id)).toEqual(['t8', 't9'])
+    expect(applyWorkspaceDoc({ ...EMPTY_WORKSPACE, teams: [] }, doc({ teams: { b: stamped(team('b'), 1), a: stamped(team('a'), 1) } })).teams.map((t) => t.id)).toEqual(['a', 'b'])
+  })
+  it('keeps a longer local order as it is', () => {
+    const local: Workspace = { ...EMPTY_WORKSPACE, teams: [team('tc'), team('tb'), team('ta')], lastTeamId: 'tb' }
+    const remote = doc({ teams: { ta: stamped(team('ta'), 1), tb: stamped(team('tb'), 1), tc: stamped(team('tc'), 1) } })
+    expect(applyWorkspaceDoc(local, remote).teams.map((t) => t.id)).toEqual(['tc', 'tb', 'ta'])
+    // Whatever order the document lists them in.
+    for (const keys of [['tb', 'ta', 'tc'], ['ta', 'tc', 'tb'], ['tc', 'ta', 'tb']]) {
+      const shuffled = doc({ teams: Object.fromEntries(keys.map((k) => [k, stamped(team(k), 1)])) })
+      expect(applyWorkspaceDoc(local, shuffled).teams.map((t) => t.id), keys.join()).toEqual(['tc', 'tb', 'ta'])
+    }
+  })
+  it('puts the teams of the document, not of the device, in the result', () => {
+    const local: Workspace = { ...EMPTY_WORKSPACE, teams: [team('t1', 'Old name')] }
+    expect(applyWorkspaceDoc(local, doc({ teams: { t1: stamped(team('t1', 'New name'), 9) } })).teams.map((t) => t.name)).toEqual(['New name'])
+  })
+  it('breaks a tie of saved times by the larger text, whichever side holds it', () => {
+    const lo = retro('b1', 5, 't1', 'alpha')
+    const hi = retro('b1', 5, 't1', 'beta')
+    expect(mergeWorkspace(doc({ retros: [lo] }), doc({ retros: [hi] })).retros).toEqual([hi])
+    expect(mergeWorkspace(doc({ retros: [hi] }), doc({ retros: [lo] })).retros).toEqual([hi])
+    expect(mergeWorkspace(doc({ retros: [retro('b1', 6, 't1', 'old')] }), doc({ retros: [retro('b1', 5, 't1', 'new')] })).retros[0]!.title).toBe('old')
+    expect(mergeWorkspace(doc({ retros: [retro('b1', 5, 't1', 'new')] }), doc({ retros: [retro('b1', 6, 't1', 'old')] })).retros[0]!.title).toBe('old')
+  })
+  it('orders saved retros newest first, then by board id', () => {
+    const rs = [retro('c', 5), retro('a', 5), retro('b', 9), retro('d', 1)]
+    for (const input of [rs, [...rs].reverse()]) expect(mergeWorkspace(doc({ retros: input }), EMPTY_WORKSPACE_DOC).retros.map((r) => r.boardId)).toEqual(['b', 'a', 'c', 'd'])
+  })
+  it('orders owners the same on both sides, also for names that only differ in how they are written', () => {
+    const composed = '\u00e9mile'
+    const decomposed = 'e\u0301mile'
+    const one = mergeWorkspace(doc({ owners: [composed, 'bob'] }), doc({ owners: [decomposed, 'Alice'] }))
+    const two = mergeWorkspace(doc({ owners: [decomposed, 'Alice'] }), doc({ owners: [composed, 'bob'] }))
+    expect(one.owners).toEqual(two.owners)
+    expect(one.owners).toContain('Alice')
+    expect(one.owners).toContain('bob')
+    expect(one.owners.length).toBeGreaterThanOrEqual(3)
+  })
   it('merges teams by id, the later edit winning', () => {
     const a = doc({ teams: { t1: stamped(team('t1', 'Old'), 1), t2: stamped(team('t2'), 1) } })
     const b = doc({ teams: { t1: stamped(team('t1', 'New'), 2, 'd2'), t3: stamped(team('t3'), 1) } })
@@ -89,7 +135,9 @@ describe('what syncs', () => {
   })
   it('picks the listed keys only', () => {
     expect(pickKeys({ locale: 'fr', density: 'compact', sound: true }, SYNCED_SETTINGS)).toEqual({ locale: 'fr', sound: true })
-    expect(pickKeys({}, SYNCED_SETTINGS)).toEqual({})
+    expect(pickKeys({}, SYNCED_SETTINGS)).toStrictEqual({})
+    expect(pickKeys({ locale: undefined, density: 1 }, SYNCED_SETTINGS)).toStrictEqual({ locale: undefined })
+    expect(Object.keys(pickKeys({ density: 1 }, SYNCED_SETTINGS))).toEqual([])
     expect(pickKeys({ cid: 'abc', name: 'Ann' }, SYNCED_IDENTITY)).toEqual({ name: 'Ann' })
   })
 })

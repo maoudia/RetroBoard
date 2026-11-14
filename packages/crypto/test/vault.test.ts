@@ -1,13 +1,39 @@
-import { createCipheriv, createHash, hkdfSync } from 'node:crypto'
+import { createCipheriv, createHash, createHmac, hkdfSync } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import {
-  CHUNK_PLAINTEXT, HEADER_BYTES, MIN_OBJECT_BYTES, type ObjectBinding, concat, deriveVaultKeys, fromBase32, fromHex, openObject, paddedSize,
+  CHUNK_PLAINTEXT, HEADER_BYTES, MAX_OBJECT_BYTES, MIN_OBJECT_BYTES, type ObjectBinding, concat, deriveVaultKeys, fromBase32, fromHex, openObject, paddedSize,
   randomBytes, randomKey, readObjectHeader, sealObject, toBase32, toHex, utf8,
 } from '../src'
 
 const KEY_ID = '0011223344556677'
 const seg: ObjectBinding = { pathClass: 'seg', stream: 'abcdefghijklmnopqrstuvwxyz' }
 const filled = (n: number, v = 0x5a) => new Uint8Array(n).fill(v)
+
+/** An independent implementation of the object format on node:crypto: the library must match it byte for byte. */
+function referenceSeal(streamKey: Uint8Array, binding: ObjectBinding, salt: Uint8Array, data: Uint8Array, claimedLength = data.length): Buffer {
+  const capacity = (size: number) => size - 34 - 16 * Math.ceil((size - 34) / 65_536)
+  let size = 1024
+  while (capacity(size) < data.length + 4) size *= 2
+  const count = Math.ceil((size - 34) / 65_536)
+  const plain = Buffer.alloc(capacity(size))
+  plain.writeUInt32BE(claimedLength, 0)
+  Buffer.from(data).copy(plain, 4)
+  const head = Buffer.concat([Buffer.from('RBOB'), Buffer.from([1, 1]), Buffer.from(KEY_ID, 'hex'), Buffer.from(salt), Buffer.from([0, 0, 0xff, 0xf0])])
+  const objKey = Buffer.from(hkdfSync('sha256', streamKey, salt, 'rb/object/v1', 32))
+  const parts: Buffer[] = [head]
+  for (let i = 0; i < count; i++) {
+    const final = i === count - 1
+    const index = Buffer.alloc(4); index.writeUInt32BE(i)
+    const iv = Buffer.alloc(12); iv.writeUInt32BE(i, 8)
+    const cipher = createCipheriv('aes-256-gcm', objKey, iv)
+    cipher.setAAD(Buffer.concat([
+      Buffer.from('rb/object-aad/v1'), createHash('sha256').update(head).digest(), index, Buffer.from([final ? 1 : 0, binding.pathClass.length]),
+      Buffer.from(binding.pathClass), Buffer.from([binding.stream.length]), Buffer.from(binding.stream),
+    ]))
+    parts.push(cipher.update(plain.subarray(i * 65_520, final ? plain.length : (i + 1) * 65_520)), cipher.final(), cipher.getAuthTag())
+  }
+  return Buffer.concat(parts)
+}
 
 describe('base32', () => {
   it('matches the RFC 4648 vectors, lowercase and unpadded', () => {
@@ -45,8 +71,12 @@ describe('object sizes', () => {
       expect(await openObject(key, seg, sealed)).toEqual(filled(n))
     }
   })
-  it('refuses an absurd size', async () => {
+  it('refuses an absurd size, and the limit is exact', async () => {
     await expect(sealObject(randomKey(), KEY_ID, seg, { length: 2 ** 30 } as Uint8Array)).rejects.toThrow('too large')
+    // The largest object is 2^28 bytes: 4,096 chunks, each with a tag, a header and a 4-byte length in front.
+    const biggest = MAX_OBJECT_BYTES - 34 - 16 * 4096 - 4
+    expect(paddedSize(biggest)).toBe(MAX_OBJECT_BYTES)
+    expect(() => paddedSize(biggest + 1)).toThrow('too large')
   })
 })
 
@@ -143,6 +173,47 @@ describe('sealed object', () => {
   })
 })
 
+describe('sealed object, byte for byte', () => {
+  const streamKey = fromHex('000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f')
+  const salt = fromHex('a0a1a2a3a4a5a6a7a8a9aaabacadaeaf')
+  const data = (n: number) => Uint8Array.from({ length: n }, (_, i) => (i * 31 + 7) & 255)
+
+  it('matches the reference for one chunk, for several, and at the sizes where the last chunk is the smallest or the largest', async () => {
+    for (const n of [0, 970, 971, 65_000, 65_482, 65_483, 70_000, 200_000]) {
+      const sealed = await sealObject(streamKey, KEY_ID, seg, data(n), salt)
+      expect(toHex(sealed), `${n} bytes`).toBe(referenceSeal(streamKey, seg, salt, data(n)).toString('hex'))
+      expect(await openObject(streamKey, seg, sealed)).toEqual(data(n))
+    }
+  })
+
+  it('binds the path class and the stream into every chunk, as the reference does', async () => {
+    for (const binding of [{ pathClass: 'chk', stream: seg.stream }, { pathClass: 'man', stream: '' }, { pathClass: 'seg', stream: 'x'.repeat(255) }] as const) {
+      const sealed = await sealObject(streamKey, KEY_ID, binding, data(100), salt)
+      expect(toHex(sealed)).toBe(referenceSeal(streamKey, binding, salt, data(100)).toString('hex'))
+    }
+    expect(await sealObject(streamKey, KEY_ID, { pathClass: 'seg', stream: 'x'.repeat(255) }, data(1), salt)).toHaveLength(1024)
+  })
+
+  it('refuses an authentic object whose inner length claims more than it holds, and reads the largest honest one', async () => {
+    const capacity = 1024 - 34 - 16 - 4
+    const honest = referenceSeal(streamKey, seg, salt, data(capacity))
+    expect(await openObject(streamKey, seg, honest)).toEqual(data(capacity))
+    const tooLong = referenceSeal(streamKey, seg, salt, data(10), capacity + 1)
+    expect(await openObject(streamKey, seg, tooLong)).toBeNull()
+    expect(await openObject(streamKey, seg, referenceSeal(streamKey, seg, salt, data(10), capacity))).toHaveLength(capacity)
+  })
+
+  it('reads a header of exactly 34 bytes as a header', async () => {
+    const sealed = await sealObject(streamKey, KEY_ID, seg, data(3), salt)
+    expect(readObjectHeader(sealed.slice(0, 34))).toMatchObject({ keyId: KEY_ID })
+    expect(readObjectHeader(sealed.slice(0, 33))).toBeNull()
+  })
+
+  it('refuses a stream id of 256 characters and accepts 255', async () => {
+    await expect(sealObject(streamKey, KEY_ID, { pathClass: 'seg', stream: 'x'.repeat(256) }, data(1), salt)).rejects.toThrow('stream id too long')
+  })
+})
+
 describe('key schedule', () => {
   const master = fromHex('ff'.repeat(32))
   it('derives separate keys for the library, the manifests and each stream', async () => {
@@ -163,6 +234,15 @@ describe('key schedule', () => {
     expect(await (await deriveVaultKeys(master, 'vault-2')).streamId('board:room-123')).not.toBe(a)
     expect(await (await deriveVaultKeys(randomKey(), 'vault-1')).streamId('board:room-123')).not.toBe(a)
     expect(a).not.toContain('room')
+  })
+  it('matches the reference derivations, so the names and keys are what the documents say', async () => {
+    const keys = await deriveVaultKeys(master, 'vault-1')
+    const hk = (info: string) => toHex(Buffer.from(hkdfSync('sha256', master, 'vault-1', info, 32)))
+    expect(toHex(await keys.library())).toBe(hk('rb/vault/library/v1'))
+    expect(toHex(await keys.manifest())).toBe(hk('rb/vault/manifest/v1'))
+    expect(toHex(await keys.stream('abc'))).toBe(hk('rb/vault/stream/v1/abc'))
+    const nameKey = Buffer.from(hkdfSync('sha256', master, 'vault-1', 'rb/vault/name/v1', 32))
+    expect(await keys.streamId('board:room-123')).toBe(toBase32(createHmac('sha256', nameKey).update('board:room-123').digest().subarray(0, 16)))
   })
   it('refuses a master key that is not 32 bytes', async () => {
     await expect(deriveVaultKeys(new Uint8Array(16), 'v')).rejects.toThrow('32 bytes')

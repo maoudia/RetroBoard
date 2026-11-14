@@ -1,9 +1,10 @@
+import { hkdfSync } from 'node:crypto'
 import { argon2id } from '@noble/hashes/argon2.js'
 import { describe, expect, it } from 'vitest'
 import {
-  ARGON2ID_FLOOR, DEFAULT_ARGON2ID, type KdfParams, type KeyWrap, PBKDF2_FALLBACK, RECOVERY_QR_PREFIX, addRecoveryWrap, acceptablePassword,
+  ARGON2ID_CEILING, ARGON2ID_FLOOR, DEFAULT_ARGON2ID, type KdfParams, type KeyWrap, PBKDF2_FALLBACK, RECOVERY_QR_PREFIX, addRecoveryWrap, acceptablePassword,
   changePassword, createVaultInfo, deriveWrapKey, fromHex, generateRecoveryKey, isAcceptableKdf, parseRecoveryKey, passwordBytes,
-  passwordStrength, randomBytes, toBase64Url, toHex, unlockWith, unlockWithPassword, unlockWithRecoveryKey, unwrapMasterKey, utf8, wrapMasterKey,
+  passwordStrength, randomBytes, recoveryKeyFromBytes, strengthLevel, toBase32, toBase64Url, toHex, unlockWith, unlockWithPassword, unlockWithRecoveryKey, unwrapMasterKey, utf8, wrapMasterKey,
 } from '../src'
 
 const FLOOR: KdfParams = { id: 'argon2id', ...ARGON2ID_FLOOR }
@@ -24,6 +25,13 @@ describe('KDF parameters', () => {
       { id: 'scrypt' },
     ] as unknown as KdfParams[]) expect(isAcceptableKdf(bad), JSON.stringify(bad)).toBe(false)
   })
+  it('accepts the ceilings exactly and refuses one step past them', () => {
+    expect(isAcceptableKdf({ id: 'argon2id', ...ARGON2ID_CEILING })).toBe(true)
+    expect(isAcceptableKdf({ id: 'pbkdf2-sha256', iterations: 10_000_000 })).toBe(true)
+    expect(isAcceptableKdf({ id: 'argon2id', ...ARGON2ID_CEILING, m: ARGON2ID_CEILING.m + 1 })).toBe(false)
+    expect(isAcceptableKdf({ id: 'argon2id', ...ARGON2ID_CEILING, t: ARGON2ID_CEILING.t + 1 })).toBe(false)
+    expect(isAcceptableKdf({ id: 'argon2id', ...ARGON2ID_CEILING, p: ARGON2ID_CEILING.p + 1 })).toBe(false)
+  })
   it('refuses to derive with parameters below the floor', async () => {
     await expect(deriveWrapKey(utf8('pw'), randomBytes(16), { id: 'argon2id', m: 1024, t: 1, p: 1 })).rejects.toThrow('refused')
   })
@@ -33,6 +41,7 @@ describe('KDF parameters', () => {
     expect(a).toHaveLength(32)
     expect(await deriveWrapKey(utf8('pw'), salt, PBKDF2_FALLBACK)).toEqual(a)
     expect(await deriveWrapKey(utf8('pw'), salt, { id: 'hkdf-sha256' })).not.toEqual(a)
+    expect(toHex(await deriveWrapKey(utf8('pw'), salt, { id: 'hkdf-sha256' }))).toBe(toHex(Buffer.from(hkdfSync('sha256', utf8('pw'), salt, 'rb/wrap/hkdf/v1', 32))))
   })
   it('normalises a password, so one word typed two ways is one key', () => {
     expect(passwordBytes('été-pass')).toEqual(passwordBytes('été-pass'))
@@ -108,18 +117,39 @@ describe('password wrap', () => {
 })
 
 describe('password strength hint', () => {
-  it('ranks obvious passwords low and long random ones high, and never exceeds what the input is worth', () => {
-    expect(passwordStrength('').bits).toBe(0)
-    expect(passwordStrength('aaaaaaaaaaaa').level).toBe('weak')
-    expect(passwordStrength('password1234').level).toBe('weak')
-    expect(passwordStrength('correct horse battery').level).not.toBe('weak')
+  const bitsOf = (n: number, pool: number) => Math.round(n * Math.log2(pool))
+
+  it('names the level by thresholds of 40, 60 and 80 bits', () => {
+    for (const [bits, level] of [[0, 'weak'], [39, 'weak'], [40, 'fair'], [59, 'fair'], [60, 'good'], [79, 'good'], [80, 'strong'], [200, 'strong']] as const) expect(strengthLevel(bits), `${bits}`).toBe(level)
+  })
+  it('counts the distinct characters times the bits of the pool they come from', () => {
+    expect(passwordStrength('')).toEqual({ bits: 0, level: 'weak' })
+    expect(passwordStrength('qzjxkvbmpwlh').bits).toBe(bitsOf(12, 26))
+    expect(passwordStrength('QZJXKVBMPWLH').bits).toBe(bitsOf(12, 26))
+    expect(passwordStrength('9081726354').bits).toBe(bitsOf(10, 10))
+    expect(passwordStrength('!@#$%^&*()').bits).toBe(bitsOf(10, 33))
+    expect(passwordStrength('\u00e9\u00e8\u00e0\u00f9\u00e7\u00f4\u00ee\u00ea\u00e2\u00fb').bits).toBe(bitsOf(10, 100))
+    expect(passwordStrength('aB3!aB3!aB3!').bits).toBe(bitsOf(4, 26 + 26 + 10 + 33))
+    expect(passwordStrength('aaaaaaaaaaaa').bits).toBe(bitsOf(1, 26))
+  })
+  it('puts the edges of the symbol class and of ASCII where they belong', () => {
+    // Space and "~" are symbols, "\u007f" and what follows are not ASCII.
+    expect(passwordStrength(' ').bits).toBe(bitsOf(1, 33))
+    expect(passwordStrength('~').bits).toBe(bitsOf(1, 33))
+    expect(passwordStrength('/:@[`{').bits).toBe(bitsOf(6, 33))
+    expect(passwordStrength('\u007f').bits).toBe(bitsOf(1, 100))
+    expect(passwordStrength('a\u00e9').bits).toBe(bitsOf(2, 26 + 100))
+    expect(passwordStrength('\uff21\uff22').bits).toBe(bitsOf(2, 26))
+  })
+  it('takes 20 bits off for a common word, in any case, and never goes below zero', () => {
+    expect(passwordStrength('azertyqzjxkvb').bits).toBe(bitsOf(12, 26) - 20)
+    expect(passwordStrength('AZERTYqzjxkvb').bits).toBe(bitsOf(13, 52) - 20)
+    expect(passwordStrength('123456')).toEqual({ bits: 0, level: 'weak' })
+    expect(Object.is(passwordStrength('123456').bits, 0)).toBe(true)
+  })
+  it('ranks a long random passphrase strong', () => {
     expect(passwordStrength('Tr0ub4dor&3-Retro-Team').level).toBe('strong')
-    expect(passwordStrength('glück-und-Wohlstand-42').bits).toBeGreaterThan(passwordStrength('glueck-und-wohlstand-42').bits - 1)
-    const levels = ['weak', 'fair', 'good', 'strong']
-    for (const p of ['abc', 'abcdefghijkl', 'Abcdefghijk1', 'Abcdefghijk1!xyzzyQ']) expect(levels).toContain(passwordStrength(p).level)
-    expect(passwordStrength('Zx9!Qw3#Lm7$Pk5%').level).toBe('strong')
-    expect(passwordStrength('Zx9Qw3LmPk5Rt').level).toBe('good')
-    expect(passwordStrength('zxqwlmpkrtbn').level).toBe('fair')
+    expect(passwordStrength('correct horse battery').level).toBe('good')
   })
 })
 
@@ -131,6 +161,16 @@ describe('recovery key', () => {
     expect(a.qr).toMatch(/^RBR1:[A-Z2-7]{34}$/)
     expect(a.qr.slice(RECOVERY_QR_PREFIX.length)).toBe(a.text.replaceAll('-', ''))
     expect(generateRecoveryKey().text).not.toBe(a.text)
+  })
+  it('prints a known key as a known text, so the check characters are what the format says', () => {
+    const bytes = Uint8Array.from({ length: 20 }, (_, i) => i)
+    const chars = toBase32(bytes)
+    expect(chars).toBe('aaaqeayeaudaocajbifqydiob4ibceqt')
+    const printed = recoveryKeyFromBytes(bytes)
+    expect(printed.text.replaceAll('-', '').slice(0, 32)).toBe(toBase32(bytes).toUpperCase())
+    const sum = [...toBase32(bytes)].reduce((n, c, i) => n + (i + 1) * 'abcdefghijklmnopqrstuvwxyz234567'.indexOf(c), 0) % 1009
+    expect(printed.text.slice(-2).toLowerCase()).toBe(`${'abcdefghijklmnopqrstuvwxyz234567'[sum >> 5]}${'abcdefghijklmnopqrstuvwxyz234567'[sum & 31]}`)
+    expect(printed.text).toMatch(/^AAAQ-EAYE-AUDA-OCAJ-BIFQ-YDIO-B4IB-CEQT-[A-Z2-7]{2}$/)
   })
   it('parses what was printed, in any case, with spaces, or from the QR payload', () => {
     const k = generateRecoveryKey()
@@ -184,6 +224,8 @@ describe('recovery key', () => {
     const first = await addRecoveryWrap(info, master, 2)
     const second = await addRecoveryWrap(first.info, master, 3)
     expect(second.info.wraps.filter((w) => w.kind === 'recovery')).toHaveLength(1)
+    expect(second.info.wraps.map((w) => w.kind).sort()).toEqual(['password', 'recovery'])
+    expect((await unlockWithPassword(second.info, PASSWORD))?.master).toEqual(master)
     expect(await unlockWithRecoveryKey(second.info, first.recoveryKey)).toBeNull()
     expect((await unlockWithRecoveryKey(second.info, second.recoveryKey))?.master).toEqual(master)
   })

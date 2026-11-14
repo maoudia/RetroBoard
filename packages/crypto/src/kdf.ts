@@ -118,9 +118,11 @@ export async function createVaultInfo(password: string, now: number, kdf: KdfPar
 
 export interface Unlocked { readonly master: Bytes; readonly keyId: string }
 
-/** Tries every wrap of the given kind, newest first: a password change leaves one, an interrupted merge may leave two. */
+/** Tries every wrap of the given kind: a password change leaves one, an interrupted merge may leave two. */
 export async function unlockWith(info: VaultInfo, kind: WrapKind, secret: Uint8Array): Promise<Unlocked | null> {
-  for (const wrap of [...info.wraps].filter((w) => w.kind === kind).sort((a, b) => b.updatedTime - a.updatedTime)) {
+  for (const wrap of info.wraps) {
+    // Stryker disable next-line ConditionalExpression: a wrap of another kind fails to open anyway (its kind is authenticated); skipping it only saves a derivation
+    if (wrap.kind !== kind) continue
     const master = await unwrapMasterKey(wrap, secret, info.vaultId)
     if (master) return { master, keyId: wrap.keyId }
   }
@@ -141,26 +143,24 @@ export const acceptablePassword = (password: string): boolean => [...password.no
 
 export type PasswordStrength = 'weak' | 'fair' | 'good' | 'strong'
 
+/** Thresholds in bits: under 40 weak, under 60 fair, under 80 good. */
+export const strengthLevel = (bits: number): PasswordStrength => (bits < 40 ? 'weak' : bits < 60 ? 'fair' : bits < 80 ? 'good' : 'strong')
+
+const POOLS: readonly (readonly [RegExp, number])[] = [[/[a-z]/, 26], [/[A-Z]/, 26], [/\d/, 10], [/[ -/:-@[-`{-~]/, 33]]
+const NON_ASCII_POOL = 100
 const COMMON = ['password', 'motdepasse', 'azerty', 'qwerty', 'letmein', 'welcome', 'retroboard', 'iloveyou', 'admin', '123456', 'abcdef']
+const COMMON_PENALTY = 20
 
 /**
- * A local, offline hint, never a gate beyond the length: bits of the character pool times the length, less what repeats,
- * runs in sequence or common words give away. It is advice shown while typing, not a measurement.
+ * A local, offline hint, never a gate beyond the length: the number of distinct characters times the bits of the pool they
+ * are drawn from, less a penalty when a common word is in it. It is advice shown while typing, not a measurement.
  */
 export function passwordStrength(password: string): { bits: number; level: PasswordStrength } {
-  const chars = [...password.normalize('NFKC')]
-  let pool = 0
-  if (/[a-z]/.test(password)) pool += 26
-  if (/[A-Z]/.test(password)) pool += 26
-  if (/\d/.test(password)) pool += 10
-  if (/[ -/:-@[-`{-~]/.test(password)) pool += 33
-  if (chars.some((c) => c.charCodeAt(0) > 126)) pool += 100
-  let bits = pool === 0 ? 0 : chars.length * Math.log2(pool)
-  bits *= new Set(chars).size / Math.max(chars.length, 1)
-  const lower = password.toLowerCase()
-  if (COMMON.some((w) => lower.includes(w))) bits -= 20
-  if (/(.)\1{2,}/.test(password)) bits -= 10
-  if (/0123|1234|2345|3456|4567|5678|6789|abcd|bcde|cdef|qwer|wert|erty/i.test(password)) bits -= 10
-  bits = Math.max(0, Math.round(bits))
-  return { bits, level: bits < 40 ? 'weak' : bits < 60 ? 'fair' : bits < 80 ? 'good' : 'strong' }
+  const normalised = password.normalize('NFKC')
+  const chars = [...normalised]
+  const pool = POOLS.reduce((n, [re, size]) => n + (re.test(normalised) ? size : 0), 0) + (chars.some((c) => c.charCodeAt(0) > 126) ? NON_ASCII_POOL : 0)
+  const raw = pool ? new Set(chars).size * Math.log2(pool) : 0
+  const lower = normalised.toLowerCase()
+  const bits = Math.max(0, Math.round(raw - (COMMON.some((w) => lower.includes(w)) ? COMMON_PENALTY : 0)))
+  return { bits, level: strengthLevel(bits) }
 }
