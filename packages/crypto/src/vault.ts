@@ -10,7 +10,7 @@
  * and the last chunk always fits whatever the padded size is.
  */
 import { toBase32 } from './base32'
-import { type Bytes, concat, equalBytes, fromHex, toHex, utf8 } from './bytes'
+import { type Bytes, concat, equalBytes, fromHex, fromUtf8, toHex, utf8 } from './bytes'
 import { hkdf, randomBytes } from './primitives'
 import { subtle } from './webcrypto'
 
@@ -155,5 +155,30 @@ export async function deriveVaultKeys(master: Uint8Array, vaultId: string): Prom
     manifest: () => derive('rb/vault/manifest/v1'),
     stream: (streamId) => derive(`rb/vault/stream/v1/${streamId}`),
     streamId: async (name) => toBase32(new Uint8Array(await subtle().sign('HMAC', nameKey, utf8(name))).subarray(0, 16)),
+  }
+}
+
+/** What the vault engine seals and opens with: text in, text out, keyed by what the object is and the stream it belongs to. */
+export interface VaultSealer {
+  streamId(name: string): Promise<string>
+  seal(pathClass: PathClass, streamId: string, plaintext: string): Promise<Bytes>
+  open(pathClass: PathClass, streamId: string, bytes: Uint8Array): Promise<string | null>
+}
+
+/** Binds the key schedule to the engine's needs: manifests under the manifest key, the library under its own, every other stream under its stream key. */
+export function createVaultSealer(keys: VaultKeys, keyId: string): VaultSealer {
+  const libraryId = keys.streamId('library')
+  const keyFor = async (pathClass: PathClass, streamId: string): Promise<Bytes> =>
+    pathClass === 'man' ? keys.manifest() : streamId === (await libraryId) ? keys.library() : keys.stream(streamId)
+  return {
+    streamId: keys.streamId,
+    async seal(pathClass, streamId, plaintext) {
+      return sealObject(await keyFor(pathClass, streamId), keyId, { pathClass, stream: pathClass === 'man' ? '' : streamId }, utf8(plaintext))
+    },
+    async open(pathClass, streamId, bytes) {
+      const data = await openObject(await keyFor(pathClass, streamId), { pathClass, stream: pathClass === 'man' ? '' : streamId }, bytes)
+      if (!data) return null
+      try { return fromUtf8(data) } catch { return null }
+    },
   }
 }

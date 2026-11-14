@@ -150,6 +150,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
       >
         <Icon :name="theme.variant === 'dark' ? 'lucide:sun' : 'lucide:moon'" class="ico" />
       </button>
+      <SyncChip />
       <ProfileButton class="me" />
     </nav>
     <!-- The menus slide away and a chevron stays to bring them back: by hand, on scroll on phones, and by default in
