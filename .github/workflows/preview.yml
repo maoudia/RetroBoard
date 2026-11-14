@@ -41,13 +41,22 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PR: ${{ github.event.pull_request.number }}
           SHA: ${{ github.event.pull_request.head.sha }}
+          WORKER: retroboard
         run: |
           set -euo pipefail
           pnpm exec wrangler versions upload --preview-alias "pr-$PR" --message "PR $PR $SHA" | tee upload.log
           # Prefer the stable per-PR alias URL, then the per-version URL (wrangler prints both when preview_urls is on).
           url=$(grep -E 'Version Preview Alias URL' upload.log | grep -oE 'https://[^ ]+' | head -1 || true)
           [ -n "$url" ] || url=$(grep -E 'Version Preview URL' upload.log | grep -oE 'https://[^ ]+' | head -1 || true)
-          [ -n "$url" ] || echo "::warning::wrangler printed no preview URL; check preview_urls in wrangler.jsonc"
+          if [ -z "$url" ]; then
+            # wrangler printed no URL although previews are on for the Worker (the upload response carries no preview flag):
+            # ask the API for the Worker's preview suffix, the same call wrangler makes, and build the alias URL from it.
+            suffix=$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/workers/$WORKER" \
+              | jq -r '.result.subdomain | select(.previews_enabled) | .preview_url_suffix // empty' || true)
+            [ -z "$suffix" ] || url="https://pr-$PR$suffix"
+          fi
+          [ -n "$url" ] || echo "::warning::no preview URL from wrangler or the Workers API; check preview_urls in wrangler.jsonc"
           echo "url=$url" >> "$GITHUB_OUTPUT"
       - name: Comment the preview URL
         if: steps.upload.outputs.url != ''
@@ -56,7 +65,7 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           URL: ${{ steps.upload.outputs.url }}
         run: |
-          body="Preview of this pull request: $URL (a version of the Worker, not deployed to production)."
+          body="Preview of this pull request: $URL (a version of the Worker, not deployed to production; behind Cloudflare Access)."
           existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --jq '[.[] | select(.body | startswith("Preview of this pull request"))][0].id // empty')
           if [ -n "$existing" ]; then gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" -f body="$body" >/dev/null
           else gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$body"; fi
