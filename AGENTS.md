@@ -29,19 +29,22 @@ Instructions for coding agents (Claude Code, OpenCode, Copilot, others) and huma
 
 ## Workflow (OpenSpec)
 
-| Step | Claude Code | OpenCode |
-|---|---|---|
-| Explore an idea | `/opsx:explore` | `/opsx-explore` |
-| Propose a change | `/opsx:propose "<idea>"` | `/opsx-propose "<idea>"` |
-| Implement tasks | `/opsx:apply <change>` | `/opsx-apply <change>` |
-| Sync specs mid-way | `/opsx:sync <change>` | `/opsx-sync <change>` |
-| Archive after merge | `/opsx:archive <change>` | `/opsx-archive <change>` |
+OpenSpec 2.0 ships skills only (`.agents/skills/`, linked from `.claude/skills/` and `.opencode/skills/`); there are no `/opsx:*` commands. Claude Code runs a skill as `/<skill>`; in OpenCode, ask for it by name.
+
+| Step | Skill |
+|---|---|
+| Explore an idea | `/openspec-explore` |
+| Propose a change | `/openspec-propose "<idea>"` |
+| Implement tasks | `/openspec-apply-change <change>` |
+| Sync specs mid-way | `/openspec-sync-specs <change>` |
+| Archive after merge | `/openspec-archive-change <change>` |
+| Revise a change's plan | `/openspec-update-change <change>` |
 
 Rules:
 - **Work in progress is capped**: `pnpm wip` (part of `pnpm verify`) counts changes with some tasks ticked and some open and fails above the ceiling in `quality/wip-baseline.json`. The ceiling only goes down (target 3). Finish or split a change before starting another; lower the ceiling when the count drops.
 - Implement **one task group per PR**. Tick tasks in `tasks.md` as you finish them.
 - If the code must diverge from the spec, update the spec delta in the same PR and say why.
-- **Every feature has an OpenSpec change**: a `feat`, `fix`, `perf` or breaking pull request must name it (`Change: <change-name>` in the body, the change open or archived) and the `no-spec` label does not apply to it (spec gate, `scripts/ci/spec-gate.mjs`). Only pull requests that change no behaviour (`docs`, `test`, `build`, `ci`, `chore`, `style`, `refactor`, `revert`, dependency updates) may use the `no-spec` label. No idea is implemented before its proposal exists: `/opsx:propose` first.
+- **Every feature has an OpenSpec change**: a `feat`, `fix`, `perf` or breaking pull request must name it (`Change: <change-name>` in the body, the change open or archived) and the `no-spec` label does not apply to it (spec gate, `scripts/ci/spec-gate.mjs`). Only pull requests that change no behaviour (`docs`, `test`, `build`, `ci`, `chore`, `style`, `refactor`, `revert`, dependency updates) may use the `no-spec` label. No idea is implemented before its proposal exists: `/openspec-propose` first.
 
 ## Commands
 

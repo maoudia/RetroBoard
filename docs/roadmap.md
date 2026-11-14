@@ -89,7 +89,7 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 * `design-system-components` ([proposal](../openspec/changes/design-system-components/proposal.md))
 * `ci-toolchain-speed` ([proposal](../openspec/changes/ci-toolchain-speed/proposal.md))
 * `scorecard-hardening` ([proposal](../openspec/changes/scorecard-hardening/proposal.md))
-* `code-health-for-agents` (change to open: `/opsx:propose`; its formatting commit conflicts with every open pull request: the week after the launch)
+* `code-health-for-agents` (change to open: `openspec-propose`; its formatting commit conflicts with every open pull request: the week after the launch)
 * `note-edit-and-unpublish` ([proposal](../openspec/changes/note-edit-and-unpublish/proposal.md))
 * `note-zoom-on-double-tap` ([proposal](../openspec/changes/note-zoom-on-double-tap/proposal.md))
 * `group-colors-menu-and-scope` ([proposal](../openspec/changes/group-colors-menu-and-scope/proposal.md))

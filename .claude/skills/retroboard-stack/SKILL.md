@@ -9,7 +9,7 @@ Use this to put code in the right place, respect the hard constraints and prove 
 
 ## 0. Start from a spec
 
-1. Find the change: `npx openspec list`, `npx openspec show <change>`. No change? Propose one first (`/opsx:propose` or `/opsx-propose`): every feature, fix and performance change has an OpenSpec change, and the pull request names it (`Change: <name>` in the body); the spec gate refuses `feat`, `fix`, `perf` and breaking pull requests without one, and the `no-spec` label does not apply to them. Only pull requests that change no behaviour (`docs`, `test`, `build`, `ci`, `chore`, `style`, `refactor`, `revert`, dependency updates) may carry `no-spec`.
+1. Find the change: `npx openspec list`, `npx openspec show <change>`. No change? Propose one first (the `openspec-propose` skill): every feature, fix and performance change has an OpenSpec change, and the pull request names it (`Change: <name>` in the body); the spec gate refuses `feat`, `fix`, `perf` and breaking pull requests without one, and the `no-spec` label does not apply to them. Only pull requests that change no behaviour (`docs`, `test`, `build`, `ci`, `chore`, `style`, `refactor`, `revert`, dependency updates) may carry `no-spec`.
 2. Work one task group at a time from `openspec/changes/<change>/tasks.md`. Tick tasks when verified.
 3. If reality contradicts the spec, update the spec delta in the same PR and explain why.
 

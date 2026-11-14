@@ -61,7 +61,7 @@ Private drafts, votes, groups, a shared agenda with timer, presenter mode, chat,
 - Specs and planned changes ([OpenSpec](https://www.npmjs.com/package/@fission-ai/openspec)): `openspec/specs`, `openspec/changes`
 - Every feature, fix and performance change has an OpenSpec change (`Change: <name>` in the pull request; the spec gate refuses the rest), everything is verified locally first (`pnpm prepush`), and the guide and docs move with the code
 - Agent instructions: [AGENTS.md](AGENTS.md), skill `.claude/skills/retroboard-stack` (commits are authored by Claude only, work goes through pull requests merged by a bot, in parallel git worktrees)
-- Claude Code: `/opsx:propose`, `/opsx:apply`, `/opsx:archive`. OpenCode: `/opsx-propose`, `/opsx-apply`, `/opsx-archive`.
+- Skills `openspec-propose`, `openspec-apply-change`, `openspec-archive-change` (Claude Code: `/openspec-propose` and so on; OpenCode: ask for them by name).
 
 ## Features
 

@@ -260,7 +260,7 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `agent-implement` | Issue labelled `agent:claude` or `agent:opencode` | Runs `anthropics/claude-code-action@v1` or `anomalyco/opencode/github@latest` with `/opsx:apply <change>` scoped to the task group in the issue, opens a PR |
+| `agent-implement` | Issue labelled `agent:claude` or `agent:opencode` | Runs `anthropics/claude-code-action@v1` or `anomalyco/opencode/github@latest` with `/openspec-apply-change <change>` scoped to the task group in the issue, opens a PR |
 | `agent-review` | PR opened/updated | Claude code-review plugin posts inline comments; checks spec conformance |
 | `agent-mention` | `@claude`, `/opencode` in comments | Interactive help |
 | `agent-triage` | Nightly | Summarises failing nightly e2e, flaky tests, outdated deps; opens issues |
