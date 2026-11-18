@@ -9,7 +9,6 @@ export const STREAM_PREFIX = 's/'
 
 const DEVICE = /^[a-z0-9]{4,13}$/
 const STREAM = /^[a-z2-7]{26}$/
-const COPY_TAG = /^copy-[0-9a-f]{8}$/
 
 export const isDeviceId = (device: string): boolean => DEVICE.test(device)
 export const isStreamId = (id: string): boolean => STREAM.test(id)
@@ -24,7 +23,7 @@ export const checkpointPath = (streamId: string, rand: string): string => `${str
 export function parseManifestPath(path: string): { device: string; copy: boolean } | null {
   const m = /^m\/([a-z0-9]+)(?:\.(copy-[0-9a-f]{8}))?\.rbm$/.exec(path)
   if (!m || !DEVICE.test(m[1]!)) return null
-  return { device: m[1]!, copy: m[2] !== undefined && COPY_TAG.test(m[2]) }
+  return { device: m[1]!, copy: m[2] !== undefined }
 }
 
 /** A conflict copy of `info.json` as an adapter names it: `info.copy-<hash>.json`. */

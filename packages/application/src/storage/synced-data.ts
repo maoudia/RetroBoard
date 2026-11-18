@@ -43,6 +43,7 @@ export function valuesOf(map: StampedMap, keys: readonly string[]): Record<strin
 
 /** A library change from another device, its stamps clamped like any other remote stamp. */
 export function mergeIncomingLibrary(local: Library, incoming: Library, now: number): Library {
+  // Stryker disable next-line EqualityOperator: at the limit itself the clamped stamp equals the original
   const clamp = (r: LibraryRecord): LibraryRecord => (r.stamp.at > now + STAMP_DRIFT_MS ? { ...r, stamp: { at: now + STAMP_DRIFT_MS, device: r.stamp.device } } : r)
   return mergeLibrary(local, Object.fromEntries(Object.entries(incoming).map(([id, r]) => [id, clamp(r)])))
 }

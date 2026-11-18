@@ -2,8 +2,8 @@
 import { createVaultSealer, deriveVaultKeys, randomKey } from '@retroboard/crypto'
 import { type MemoryTarget, createMemoryTarget } from '@retroboard/testkit'
 import {
-  type BoardEvent, type EngineMemory, type InfoDoc, type MemoryPort, type StreamCodec, type SyncReport, type VaultEngine, type VaultLocal,
-  boardCodec, boardStream, createVaultEngine, isBoardStream, mergeEvents,
+  type BoardEvent, type EngineMemory, type InfoDoc, type Manifest, type MemoryPort, type StreamCodec, type SyncReport, type VaultEngine, type VaultLocal,
+  boardCodec, boardStream, createVaultEngine, isBoardStream, mergeEvents, segmentPath,
 } from '../src'
 
 export const INFO: InfoDoc = {
@@ -76,7 +76,19 @@ export interface Device {
 }
 
 /** Devices that share one target and one clock, each with its own browser-side memory. */
-export async function fleet(target: MemoryTarget = createMemoryTarget()): Promise<{ target: MemoryTarget; clock: { now: number }; device(id: string, over?: Partial<Parameters<typeof createVaultEngine>[0]>): Device }> {
+export interface Fleet {
+  target: MemoryTarget
+  clock: { now: number }
+  /** Seals like the vault does, to put hand-made objects on the target. */
+  sealer: ReturnType<typeof createVaultSealer>
+  device(id: string, over?: Partial<Parameters<typeof createVaultEngine>[0]>): Device
+  /** Writes a manifest of another device. */
+  putManifest(path: string, doc: Partial<Manifest> & { device: string }): Promise<void>
+  /** Writes a segment of a stream; returns its path and size. */
+  putSegment(stream: string, device: string, seq: number, payload: unknown, over?: { rand?: string; body?: string }): Promise<{ path: string; size: number }>
+}
+
+export async function fleet(target: MemoryTarget = createMemoryTarget()): Promise<Fleet> {
   const keys = await deriveVaultKeys(randomKey(), INFO.vaultId)
   const sealer = createVaultSealer(keys, INFO.activeKeyId.value)
   const clock = { now: 1_700_000_000_000 }
@@ -84,6 +96,18 @@ export async function fleet(target: MemoryTarget = createMemoryTarget()): Promis
   return {
     target,
     clock,
+    sealer,
+    async putManifest(path, doc) {
+      const full: Manifest = { v: 1, name: 'Other', seq: 1, updatedAt: 1, segments: [], checkpoints: [], ...doc }
+      await target.put(path, await sealer.seal('man', '', JSON.stringify(full)))
+    },
+    async putSegment(stream, device, seq, payload, over = {}) {
+      const sid = await sealer.streamId(stream)
+      const path = segmentPath(sid, device, seq, over.rand ?? 'aaaaaaaa')
+      const body = await sealer.seal('seg', sid, over.body ?? JSON.stringify({ v: 1, stream, device, seq, delta: payload }))
+      await target.put(path, body)
+      return { path, size: body.length }
+    },
     device(id, over = {}) {
       const local = new FakeLocal()
       const memory = memoryPort()
