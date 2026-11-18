@@ -20,9 +20,9 @@ export const COMPACT_BYTES = 4 * 1024 * 1024
 export const RETIRE_AFTER_MS = 24 * 60 * 60 * 1000
 /** Segments stay small so a sync client uploads them quickly and a conflict stays small. */
 export const MAX_SEGMENT_BYTES = 3 * 1024 * 1024
-const BACKOFF_BASE_MS = 5_000
-const BACKOFF_MAX_MS = 10 * 60 * 1000
-const KEPT_CHECKPOINTS = 2
+export const BACKOFF_BASE_MS = 5_000
+export const BACKOFF_MAX_MS = 10 * 60 * 1000
+export const KEPT_CHECKPOINTS = 2
 
 export interface EngineOptions {
   readonly target: VaultTarget
@@ -96,7 +96,7 @@ function parseJson(text: string): Record<string, unknown> | null {
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
-function parseManifest(text: string): Manifest | null {
+export function parseManifest(text: string): Manifest | null {
   const v = parseJson(text)
   if (!v || v.v !== 1 || typeof v.device !== 'string' || typeof v.name !== 'string' || !isNum(v.seq) || !isNum(v.updatedAt)) return null
   if (!Array.isArray(v.segments) || !Array.isArray(v.checkpoints)) return null
@@ -202,7 +202,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
       if (mem.manifests[o.path]?.etag === o.etag) continue
       if (backing(mem, o.path)) continue
       const got = await target.get(o.path)
-      const text = got && got.bytes.length === o.size && o.size > 0 ? await crypto.open('man', '', got.bytes) : null
+      const text = got && got.bytes.length === o.size ? await crypto.open('man', '', got.bytes) : null
       const doc = text === null ? null : parseManifest(text)
       if (!doc || doc.device !== p.device) {
         if (!report.warnings.includes('unreadable-manifest')) report.warnings.push('unreadable-manifest')
@@ -237,7 +237,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
     const got = await target.get(path)
     // Not there (the sync client has not delivered it, or a compaction removed it), empty or of another size than the
     // manifest says (half written), or not authentic: not ready, retried later.
-    const text = got && got.bytes.length === size && size > 0 ? await crypto.open(cls, await streamId(name), got.bytes) : null
+    const text = got && got.bytes.length === size ? await crypto.open(cls, await streamId(name), got.bytes) : null
     if (text === null) { failed(mem, path); return null }
     return text
   }
@@ -366,7 +366,6 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
     const mine = mem.own.checkpoints.filter((c) => c.stream === name).sort((a, b) => a.at - b.at || (a.path < b.path ? -1 : 1))
     const dropped = new Set(mine.slice(0, Math.max(0, mine.length - KEPT_CHECKPOINTS)).map((c) => c.path))
     mem.own.checkpoints = mem.own.checkpoints.filter((c) => !dropped.has(c.path))
-    mem.own.dirty = true
     await writeManifest(mem)
     for (const p of dropped) await target.delete(p)
   }
@@ -437,7 +436,6 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
       Reflect.deleteProperty(mem.known, name)
       Reflect.deleteProperty(mem.streams, name)
       mem.opened = mem.opened.filter((n) => n !== name)
-      mem.own.dirty = true
       await writeManifest(mem)
       await options.memory.save(mem)
     },

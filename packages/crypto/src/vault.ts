@@ -177,6 +177,7 @@ export function createVaultSealer(keys: VaultKeys, keyId: string): VaultSealer {
     },
     async open(pathClass, streamId, bytes) {
       const data = await openObject(await keyFor(pathClass, streamId), { pathClass, stream: pathClass === 'man' ? '' : streamId }, bytes)
+      // Stryker disable next-line ConditionalExpression: with no data `fromUtf8` throws and the catch returns the same null
       if (!data) return null
       try { return fromUtf8(data) } catch { return null }
     },
