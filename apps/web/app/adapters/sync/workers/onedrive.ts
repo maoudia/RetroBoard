@@ -10,6 +10,8 @@ const scope = self as unknown as { postMessage(message: unknown, transfer?: Tran
 const handle = createWorkerCore({ fetch: (input, init) => fetch(input, init), emit: (reply) => scope.postMessage(reply) })
 
 scope.onmessage = (event) => {
+  // A dedicated worker only hears its own page, whose messages carry no origin: anything else is not ours.
+  if (event.origin !== '') return
   void handle(event.data).then((reply) => {
     const found = 'ok' in reply && reply.ok ? reply.value.found : null
     scope.postMessage(reply, found ? [found.bytes.buffer as ArrayBuffer] : [])

@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { type APIRequestContext, type BrowserContext, type Page, expect, test } from '@playwright/test'
 import { axe, createBoard, noteByText, publishNote } from './helpers'
 
@@ -15,7 +16,7 @@ const GRAPH = `http://127.0.0.1:${process.env.E2E_GRAPH_PORT ?? 8789}`
  */
 
 let counter = 0
-const newAccount = () => `acct-${Date.now().toString(36)}-${(counter++).toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+const newAccount = () => `acct-${Date.now().toString(36)}-${(counter++).toString(36)}-${randomBytes(4).toString('hex')}`
 
 /** The next sign-in of this browser context is as this account (the fake reads it from a cookie on its authorize page). */
 const asAccount = (ctx: BrowserContext, id: string) => ctx.addCookies([{ name: 'rb_fake_account', value: id, url: GRAPH }])

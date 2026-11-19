@@ -27,7 +27,7 @@ async function startWorker() {
   runInNewContext(source, scope)
   const send = async (request: WorkerRequest) => {
     const before = replies.length
-    ;(scope.onmessage as (e: { data: WorkerRequest }) => void)({ data: request })
+    ;(scope.onmessage as (e: { data: WorkerRequest; origin: string }) => void)({ data: request, origin: '' })
     for (let i = 0; i < 500 && !replies.slice(before).some((r) => 'id' in r && r.id === request.id); i++) await new Promise((r) => setTimeout(r, 2))
     return replies.slice(before).find((r) => 'id' in r && r.id === request.id) as Extract<WorkerReply, { id: number }>
   }
