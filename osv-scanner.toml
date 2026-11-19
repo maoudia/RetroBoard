@@ -24,3 +24,18 @@ reason = "glob 10 to 14.0.1 ReDoS, reached through nitropack (@vercel/nft, archi
 id = "GHSA-g3hv-75wg-m249"
 ignoreUntil = 2027-01-31
 reason = "minimatch <11.0.1 ReDoS, reached through nitropack (glob, readdir-glob) during nuxt generate only; patterns are our own build globs. Overriding to 11 breaks eslint-plugin-import-x (checked 2026-10-31). Revisit when nitropack updates."
+
+[[IgnoredVulns]]
+id = "GHSA-f3x9-2chm-73c8"
+ignoreUntil = 2026-12-31
+reason = "CVE-2026-128071, false positive: the advisory is fixed in nuxt and @nuxt/nitro-server 4.6.4, which we run (latest, checked 2026-11-19), but the OSV record also lists an open-ended 3.x range (no fixed event), which semver-matches 4.6.4. Anyway a static export (nuxt generate): no Nuxt server and no route rules at runtime. Drop once OSV closes the 3.x range."
+
+[[IgnoredVulns]]
+id = "GHSA-hf59-9xwc-2g4p"
+ignoreUntil = 2026-12-31
+reason = "CVE-2026-128076, false positive: fixed in nuxt and @nuxt/nitro-server 4.6.4, which we run (latest, checked 2026-11-19); the OSV record's open-ended 3.21.6 range matches 4.6.4. Anyway a static export: no Nuxt server and no /__nuxt_island at runtime. Drop once OSV closes the 3.x range."
+
+[[IgnoredVulns]]
+id = "GHSA-96x6-fvhx-49hg"
+ignoreUntil = 2026-12-31
+reason = "CVE-2026-128075, false positive: fixed in nuxt 4.6.4, which we run (latest, checked 2026-11-19); the OSV record's open-ended 3.0.0 range matches 4.6.4. Anyway a static export: no server rendering at runtime, so no unhandled server render error to expose. Drop once OSV closes the 3.x range."
