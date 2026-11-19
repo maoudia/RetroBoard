@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.56.0](https://github.com/maoudia/RetroBoard/compare/v1.55.0...v1.56.0) (2026-11-19)
+
+
+### Features
+
+* **crypto:** Argon2id password wrap, PBKDF2 fallback and recovery key for the vault ([0706c03](https://github.com/maoudia/RetroBoard/commit/0706c032f4d0c5449ece1a27cb02fff0e53cde04))
+* **crypto:** sealed vault object format and key schedule ([d1ea099](https://github.com/maoudia/RetroBoard/commit/d1ea099bd3cebc0a5bf87fa3527cab3bdd83ba2a))
+* **storage:** IndexedDB sync target, local vault, board library store and legacy migration ([325521c](https://github.com/maoudia/RetroBoard/commit/325521ca2f74e44eff299741677ac55c28986e3f))
+* **storage:** pure library, workspace merge and synced-key lists ([2ea849f](https://github.com/maoudia/RetroBoard/commit/2ea849fe1bebff3f005a1e6398b86218e6b126c0))
+* **storage:** sync target port, in-memory fake with plaintext guard and adapter contract suite ([ef66d26](https://github.com/maoudia/RetroBoard/commit/ef66d26ab0b2d1d919b146d926433152432ffd4c))
+* **sync:** keep direct links open when the relay restarts and clear the relay buffer when a room empties ([b29b294](https://github.com/maoudia/RetroBoard/commit/b29b2945d7fcf024b35b0696ae13a84eca9c5634))
+* **web:** add the open-code section and refresh the landing features, with the walkthrough storyboard ([298188f](https://github.com/maoudia/RetroBoard/commit/298188fca8824d6af808a4e7a220f7b734f25de8))
+* **web:** board library page, save-to-library action and opt-in setting for joined boards ([41451c8](https://github.com/maoudia/RetroBoard/commit/41451c8d19289c3dca465000b7fa58de958d897d))
+
+
+### Bug Fixes
+
+* **web:** chat bubble safe-area insets, 24 px close mark, manipulation touch-action on notes, pressed expand button ([50ccd2a](https://github.com/maoudia/RetroBoard/commit/50ccd2a4c323a93db2a6dde966727aa82d7ad9c5))
+* **web:** theme contrast spec on phone layouts, presence dot ink readable on dark themes ([0023c19](https://github.com/maoudia/RetroBoard/commit/0023c19b87ca1ddcfa56ebb62bd937ef394b2f9d))
+* **web:** write the library entry when a board is created, not after its first event ([2c89217](https://github.com/maoudia/RetroBoard/commit/2c89217990b43a8ad9dda63b4d086342e7302e69))
+
 ## [1.55.0](https://github.com/maoudia/RetroBoard/compare/v1.54.1...v1.55.0) (2026-11-14)
 
 
