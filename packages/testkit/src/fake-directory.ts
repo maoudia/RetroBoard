@@ -66,7 +66,7 @@ export function createFakeDirectory(name = 'RetroBoard'): FakeDirectory {
         if (pending) fail(pending)
         let swap: Uint8Array = new Uint8Array(0)
         return {
-          async write(data) { if (pending) fail(pending); swap = new Uint8Array([...swap, ...data]) },
+          async write(data) { swap = new Uint8Array([...swap, ...data]) },
           async close() { access(); node.bytes = swap; node.lastModified = now() },
           async abort() { swap = new Uint8Array(0) },
         }

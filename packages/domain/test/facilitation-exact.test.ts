@@ -1,6 +1,6 @@
 import { alice, harness } from '@retroboard/testkit'
 import { describe, expect, it } from 'vitest'
-import { type AgendaState, type BoardState, type Command, createBoard, DEFAULT_COLUMN_ICON, getTemplate, LIMITS, MIN, NOTE_TEXT_MIN, type Outcome, reduce } from '../src'
+import { type AgendaState, type BoardState, type Command, columnsFromTemplate, createBoard, DEFAULT_COLUMN_ICON, getTemplate, LIMITS, MIN, NOTE_TEXT_MIN, type Outcome, reduce } from '../src'
 
 const CLEAN = { meta: false, notes: [], groups: [], actions: [], wipe: false }
 const META = { ...CLEAN, meta: true }
@@ -407,6 +407,8 @@ describe('the agenda, exactly', () => {
     const capped = idle({ current: 1 })
     capped.agenda!.phases[0]!.actualMs = 99 * MIN
     expect(ok(run(capped, { t: 'agenda.prev' }, 500 * MIN)).state.agenda!.startedAt).toBe(500 * MIN - 10 * MIN)
+    const unrecorded = idle({ current: 1 })
+    expect(ok(run(unrecorded, { t: 'agenda.prev' }, 80_000)).state.agenda!.startedAt).toBe(80_000)
   })
 
   it('lengthens the running phase, borrowing from the following ones when asked, and refuses when nothing runs', () => {
@@ -472,5 +474,12 @@ describe('the agenda, exactly', () => {
     expect(run(noClose, { t: 'agenda.toClose' })).toEqual({ ok: false, error: 'not-found' })
     const closeFirst = { ...idle(), agenda: { ...idle().agenda!, phases: [phase('p0', 'close', 10), phase('p1', 'group', 10)] } }
     expect(ok(run(closeFirst, { t: 'agenda.toClose' })).dirty).toEqual(CLEAN)
+  })
+})
+
+describe('columns of a template without an icon', () => {
+  it('get the default icon', () => {
+    const tpl = { ...getTemplate('start-stop-continue')!, columns: [{ title: 'A', subtitle: '', icon: '' }] }
+    expect(columnsFromTemplate(tpl, () => 'x')[0]).toMatchObject({ title: 'A', icon: DEFAULT_COLUMN_ICON })
   })
 })

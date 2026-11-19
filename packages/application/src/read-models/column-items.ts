@@ -42,7 +42,7 @@ export function buildColumnItems(s: Pick<Snapshot, 'notes' | 'groups'>, columnId
     const votes = g.votes ?? 0
     items.push({ kind: 'group', key: g.id, group: g, notes, votes, title: groupTitle(g, notes) })
   }
-  const pos = (i: ColumnItem) => order.get(i.kind === 'note' ? i.note.id : i.notes[0]!.id) ?? 0
+  const pos = (i: ColumnItem) => order.get(i.kind === 'note' ? i.note.id : i.notes[0]!.id)!
   const first = (i: ColumnItem) => (i.kind === 'note' ? i.note : i.notes[0]!)
   const text = (i: ColumnItem) => (i.kind === 'note' ? i.note.text : i.title).trim()
   // Stryker disable next-line MethodExpression: upper- and lower-casing fold the same names together

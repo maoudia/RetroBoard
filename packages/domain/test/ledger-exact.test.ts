@@ -166,3 +166,13 @@ describe('the rate limit, exactly', () => {
     expect(foldEvent(full, post(ALICE, 5_000, 999)).ledger).toBe(full)
   })
 })
+
+describe('hiding and removing a participant twice', () => {
+  const lists = (l: Ledger) => [l.hidden, l.removed]
+  it('lists them once', () => {
+    const hidden = foldAll(started(), [ev(FAC, { t: 'participant.hide', key: BOB }), ev(FAC, { t: 'participant.hide', key: BOB })])
+    expect(lists(hidden)).toEqual([[BOB], []])
+    const removed = foldAll(hidden, [ev(FAC, { t: 'participant.remove', key: BOB }), ev(FAC, { t: 'participant.remove', key: BOB })])
+    expect(lists(removed)).toEqual([[BOB], [BOB]])
+  })
+})

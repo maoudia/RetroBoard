@@ -225,6 +225,24 @@ describe('info.json in a pass, edge by edge', () => {
   })
 })
 
+describe('info.json that cannot be read', () => {
+  it('writes the device copy back when the listed document is gone by the time it is fetched', async () => {
+    const { f, spy: s } = await boot()
+    const a = f.device(A, { target: s.target })
+    s.fetched = (path, got) => (path === 'info.json' ? null : got)
+    const report = await a.sync()
+    expect(report.info).toEqual(INFO)
+    expect(s.puts.some((p) => p.path === 'info.json')).toBe(true)
+  })
+
+  it('folds a document into the one the engine was started with when none was remembered yet', async () => {
+    const { f } = await boot()
+    const a = f.device(A)
+    await a.engine.updateInfo({ ...INFO, settings: { t: { value: 2, updatedTime: 9 } } })
+    expect(Object.keys((memoryOf(a).info as typeof INFO).settings)).toEqual(['t'])
+  })
+})
+
 describe('manifests of the other devices', () => {
   it('forgets a manifest that left the target, and never fetches its own or one it already holds', async () => {
     const { f, target, spy: s } = await boot()

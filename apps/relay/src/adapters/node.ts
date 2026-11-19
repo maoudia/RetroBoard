@@ -188,7 +188,7 @@ export async function startServer(options: NodeOptions): Promise<NodeServer> {
     const now = Date.now()
     book.sweep(now)
     for (const ws of wss.clients) {
-      const action = idleAction(lastSeen.get(ws) ?? now, now, idle)
+      const action = idleAction(lastSeen.get(ws)!, now, idle)
       if (action === 'ping') ws.ping()
       else if (action === 'close') {
         ws.close(1001, 'Idle')

@@ -86,3 +86,12 @@ describe('retro report', () => {
     expect(rep().roti).toEqual({ counts: [0, 1, 0, 1, 0], total: 2, average: 3 })
   })
 })
+
+describe('retro report of a legacy snapshot', () => {
+  it('counts votes missing from notes and clusters as zero', () => {
+    const h = retro()
+    const snap = buildSnapshot(h.state, { cid: alice.cid }, [], h.now)
+    const legacy = { ...snap, notes: snap.notes.map((n) => ({ ...n, votes: undefined })), groups: snap.groups.map((g) => ({ ...g, votes: undefined })) } as unknown as typeof snap
+    expect(buildReport(legacy, new Date()).metrics.votes).toBe(0)
+  })
+})

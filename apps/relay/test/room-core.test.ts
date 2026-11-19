@@ -53,6 +53,12 @@ describe('RoomCore admission', () => {
     expect(last(b)).toEqual({ t: 'peers', peers: ['conn0001', 'conn0002'] })
   })
 
+  it('leaves a socket that has no attachment yet out of the peers', () => {
+    const h = harness()
+    h.live.push(h.socket())
+    expect(h.join().out[0]).toEqual({ t: 'welcome', conn: 'conn0001', peers: ['conn0001'] })
+  })
+
   it('starts the budget window at the clock it is given', () => {
     const h = harness()
     expect(h.join(4242).att).toMatchObject({ rh: 'rh01', room: ROOM, conn: 'conn0001', windowStart: 4242, count: 0 })

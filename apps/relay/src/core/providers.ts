@@ -15,7 +15,7 @@ const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
  */
 export function providersResponse(settings: ProviderSettings, head: boolean): Response {
   const clientId = (settings.ONEDRIVE_CLIENT_ID ?? '').trim()
-  const fake = (settings.FAKE_PROVIDER_ORIGINS ?? '').split(',')[0]?.trim() ?? ''
+  const fake = (settings.FAKE_PROVIDER_ORIGINS ?? '').split(',')[0]!.trim()
   const body = GUID.test(clientId)
     ? { onedrive: { clientId, ...(fake ? { authority: `${fake}/consumers`, graph: `${fake}/v1.0` } : {}) } }
     : {}
