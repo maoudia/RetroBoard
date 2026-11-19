@@ -95,6 +95,11 @@ describe('Node adapter: site', () => {
       .toEqual({ OPERATOR_NAME: 'Example Asso', OPERATOR_CONTACT: 'retro@example.org' })
   })
 
+  it('reads the OneDrive client id and the fake provider origin from the environment', () => {
+    expect(settingsFromEnv({ ONEDRIVE_CLIENT_ID: '11111111-2222-4333-8444-555555555555', FAKE_PROVIDER_ORIGINS: 'http://127.0.0.1:8789' }))
+      .toEqual({ ONEDRIVE_CLIENT_ID: '11111111-2222-4333-8444-555555555555', FAKE_PROVIDER_ORIGINS: 'http://127.0.0.1:8789' })
+  })
+
   it('reads the settings from the environment', () => {
     expect(settingsFromEnv({ SELF_HOSTED: '1', CLIENT_IP_HEADER: 'X-Forwarded-For', TRUSTED_PROXIES: '2', RATE_LIMIT_PER_MIN: '', ORIGIN_TRIAL_TOKENS: '{"a.example":"t"}' }))
       .toEqual({ SELF_HOSTED: '1', CLIENT_IP_HEADER: 'X-Forwarded-For', TRUSTED_PROXIES: '2', ORIGIN_TRIAL_TOKENS: { 'a.example': 't' } })
