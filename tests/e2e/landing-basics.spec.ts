@@ -66,8 +66,13 @@ test('the "Open code, fair business" section states the license and links to the
   // The license link points at a file that exists in the repository root.
   expect(existsSync(new URL('../../LICENSE', import.meta.url))).toBe(true)
   expect(existsSync(new URL('../../docs/self-hosting.md', import.meta.url))).toBe(true)
-  // The section is part of the prerendered HTML and the menu reaches it.
-  await expect(page.locator('nav.links a[href="#open"]')).toBeVisible()
+  // The section is part of the prerendered HTML and the menu reaches it. The menu is hidden at 900 px and below (the page is short
+  // enough to scroll), so there it must still be in the markup and point at a section that exists.
+  const menuLink = page.locator('nav.links a[href="#open"]')
+  await expect(menuLink).toBeAttached()
+  await expect(page.locator('#open')).toBeAttached()
+  if ((page.viewportSize()?.width ?? 0) > 900) await expect(menuLink).toBeVisible()
+  else await expect(menuLink).toBeHidden()
 })
 
 test('the open-code section and the feature cards are in English too, and are read without motion (change landing-v2-and-product-video, tasks 2.1 and 2.3)', async ({ browser }) => {
