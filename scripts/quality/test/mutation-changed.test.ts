@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain ESM script without types
-import { isMutated, undetected } from '../mutation-changed.mjs'
+import { hunkRanges, isMutated, undetected } from '../mutation-changed.mjs'
 
 describe('mutation of the changed files', () => {
   it('only looks at what stryker.config.json mutates', () => {
@@ -16,5 +16,11 @@ describe('mutation of the changed files', () => {
     } }
     expect(undetected(report)).toEqual(['a.ts:3 Z (Survived)', 'b.ts:9 Y (NoCoverage)'])
     expect(undetected({})).toEqual([])
+  })
+
+  it('reads the changed line ranges of a zero-context diff, and skips a pure deletion', () => {
+    const diff = ['@@ -10,2 +10,3 @@ a', '+x', '@@ -20 +22 @@', '+y', '@@ -30,4 +32,0 @@', '-z'].join('\n')
+    expect(hunkRanges(diff)).toEqual(['10-12', '22-22'])
+    expect(hunkRanges('')).toEqual([])
   })
 })
