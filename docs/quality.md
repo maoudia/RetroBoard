@@ -121,7 +121,7 @@ the job when a score is below its floor or lower than the previous main run (rea
 
 ### A mutant survived
 
-Run `pnpm mutation:changed` (also part of `pnpm prepush`): it mutation-tests the files you changed and lists the
+Run `pnpm mutation:changed` (also part of `pnpm prepush`): it mutation-tests the lines you changed (the changed ranges of each file; a new file whole) and lists the
 survivors with the line and the replacement. Then, in this order:
 
 1. **Kill it.** Add a test that fails with the mutation: assert the exact value, the boundary (`>=` against `>`), the

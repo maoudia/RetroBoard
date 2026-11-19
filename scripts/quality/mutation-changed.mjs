@@ -3,7 +3,9 @@
 // The whole run is slow; this one is proportional to the change, so it can run before every push and on every pull request.
 //   pnpm mutation:changed                 files changed since the merge base with origin/main (and the working tree)
 //   pnpm mutation:changed --base <ref>    another base
-//   pnpm mutation:changed <file>...       exactly these files
+//   pnpm mutation:changed <file>...       exactly these files (whole)
+// Files found through git are mutated on the lines the change touches, not whole: a module of top-level declarations (a wire
+// schema) has hundreds of mutants that each rerun the whole suite, and one edited line must not cost the hour they take.
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 
@@ -27,11 +29,29 @@ export function undetected(report) {
   return out.sort()
 }
 
+/** The added or changed line ranges of a zero-context diff, as "a-b" strings. A pure deletion has no mutant to test. */
+export function hunkRanges(diff) {
+  const out = []
+  for (const m of diff.matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)) {
+    const count = m[2] === undefined ? 1 : Number(m[2])
+    if (count > 0) out.push(`${m[1]}-${Number(m[1]) + count - 1}`)
+  }
+  return out
+}
+
 const git = (...args) => spawnSync('git', args, { encoding: 'utf8' }).stdout.split('\n').filter(Boolean)
 
 function changedFiles(base) {
   const mergeBase = git('merge-base', base, 'HEAD')[0] ?? base
   return [...new Set([...git('diff', '--name-only', '--diff-filter=d', mergeBase), ...git('ls-files', '--others', '--exclude-standard')])]
+}
+
+/** What to hand to stryker for a changed file: the file with its changed ranges, or the bare file when it is new or the diff says nothing. */
+function target(file, base) {
+  const mergeBase = git('merge-base', base, 'HEAD')[0] ?? base
+  if (!git('ls-tree', mergeBase, '--', file).length) return [file]
+  const ranges = hunkRanges(spawnSync('git', ['diff', '-U0', mergeBase, '--', file], { encoding: 'utf8' }).stdout)
+  return ranges.map((r) => `${file}:${r}`)
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -41,10 +61,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const named = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--base')
   const files = (named.length ? named : changedFiles(base)).filter(isMutated).filter((f) => existsSync(f))
   if (!files.length) { console.log('mutation:changed: no mutated source file changed'); process.exit(0) }
-  console.log(`mutation:changed: ${files.length} file(s)\n  ${files.join('\n  ')}`)
+  const targets = named.length ? files : files.flatMap((f) => target(f, base))
+  if (!targets.length) { console.log('mutation:changed: the changes hold no line to mutate'); process.exit(0) }
+  console.log(`mutation:changed: ${files.length} file(s)\n  ${targets.join('\n  ')}`)
   // A report left by an earlier run must never be mistaken for this one.
   rmSync('reports/mutation/mutation.json', { force: true })
-  const run = spawnSync('pnpm', ['exec', 'stryker', 'run', '--mutate', files.join(','), '--reporters', 'json', '--force', '--concurrency', '4'], { stdio: 'inherit' })
+  const run = spawnSync('pnpm', ['exec', 'stryker', 'run', '--mutate', targets.join(','), '--reporters', 'json', '--force', '--concurrency', '4'], { stdio: 'inherit' })
   if (run.status !== 0 || !existsSync('reports/mutation/mutation.json')) { console.error('Stryker failed or did not write a report'); process.exit(run.status || 1) }
   const left = undetected(JSON.parse(readFileSync('reports/mutation/mutation.json', 'utf8')))
   if (left.length) { console.error(`\n${left.length} mutant(s) survived. Kill each with a test, or waive an equivalent one with "// Stryker disable next-line <Mutator>: <reason>":\n  ${left.join('\n  ')}`); process.exit(1) }
