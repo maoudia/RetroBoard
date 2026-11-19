@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { acceptablePassword, passwordStrength } from '@retroboard/crypto'
+import { MICROSOFT_APP_ACCESS_URL } from '~/adapters/sync/onedrive-config'
 import { lastOpenedLabel } from '~/utils/relative-time'
 import { syncStatusIcon } from '~/utils/sync-status'
 
 /**
- * Preferences > Sync (change user-drive-storage, "Preferences > Sync (UX)"): choose a folder, create or unlock the vault,
+ * Preferences > Sync (change user-drive-storage, "Preferences > Sync (UX)"): choose a folder or sign in with Microsoft, create or unlock the vault,
  * the recovery key and the plain warning, the status, "Sync now", the devices, and "Disconnect and forget". There is no
  * control that switches encryption off: a vault always has a password.
  */
@@ -12,6 +13,14 @@ const { t, locale } = useT()
 const vault = useVaultStore()
 const { $ports } = useNuxtApp()
 const { push } = useToasts()
+const route = useRoute()
+
+// OneDrive is offered only where the deployment configured it; the section reads that once it is on screen.
+onMounted(() => { void vault.loadProviders() })
+const onedrive = computed(() => vault.provider === 'onedrive')
+/** The page to come back to after the redirect: a path only, never a board link (its key stays out of the tab's storage). */
+const returnTo = () => (['/board', '/new', '/storage/callback'].includes(route.path) ? '/boards' : route.path)
+const kindText = (key: string, onedriveKey: string) => t((onedrive.value ? onedriveKey : key) as never)
 
 const password = ref('')
 const again = ref('')
@@ -30,11 +39,17 @@ const mismatch = computed(() => again.value !== '' && again.value !== password.v
 const canCreate = computed(() => longEnough.value && password.value === again.value && !vault.busy)
 const statusText = computed(() => {
   if (vault.status === 'synced' && vault.lastSyncAt) return t('sync.status.synced.at', { time: lastOpenedLabel(vault.lastSyncAt, Date.now(), locale.value) })
+  if (vault.status === 'target-full' && onedrive.value) return t('sync.status.target-full.onedrive')
   return t(`sync.status.${vault.status}` as never)
 })
-const reasonText = computed(() => (vault.status === 'needs-attention' && vault.reason ? t(`sync.reason.${vault.reason}` as never) : ''))
+const reasonText = computed(() => {
+  if (vault.status !== 'needs-attention' || !vault.reason) return ''
+  const own = `sync.reason.${vault.reason}.onedrive`
+  return t((onedrive.value && (vault.reason === 'forbidden' || vault.reason === 'refused') ? own : `sync.reason.${vault.reason}`) as never)
+})
 const lastSync = computed(() => (vault.lastSyncAt ? t('sync.last', { time: lastOpenedLabel(vault.lastSyncAt, Date.now(), locale.value) }) : t('sync.never')))
-const errorText = computed(() => (vault.error ? t(vault.error) : ''))
+const errorText = computed(() => (vault.error ? t((vault.error === 'sync.error.target' && onedrive.value ? 'sync.error.target.onedrive' : vault.error) as never) : ''))
+const folderLine = computed(() => (onedrive.value ? t('sync.onedrive.name', { name: vault.folderName }) : t('sync.folder.name', { name: vault.folderName })))
 
 function submitCreate() { if (canCreate.value) void vault.create(password.value) }
 function submitUnlock() {
@@ -71,19 +86,40 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
     <template v-else>
       <p class="muted">{{ t('sync.lead') }}</p>
 
-      <!-- No folder yet. -->
-      <div v-if="vault.step === 'idle'" class="stack">
-        <h4>{{ t('sync.folder.title') }}</h4>
-        <p class="muted">{{ t('sync.folder.lead') }}</p>
-        <button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-choose" @click="vault.chooseFolder()"><Icon name="lucide:folder-open" /> {{ t('sync.folder.choose') }}</button>
-        <p class="muted small">{{ t('sync.limits') }}</p>
+      <!-- A sign-in that ended: one click, then the vault asks for its password again. -->
+      <div v-if="vault.status === 'sign-in-again' && vault.step !== 'recovery'" class="stack" data-testid="sync-signin-again-panel">
+        <p class="muted">{{ folderLine }}</p>
+        <p class="status" role="status" aria-live="polite" :data-status="vault.status" data-testid="sync-status">
+          <Icon :name="syncStatusIcon(vault.status)" /> <span>{{ statusText }}</span>
+        </p>
+        <p class="muted small">{{ t('sync.onedrive.again.hint') }}</p>
+        <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
+        <div><button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-signin-again" @click="vault.signInAgain(returnTo())"><Icon name="lucide:log-in" /> {{ t('sync.onedrive.again') }}</button></div>
+      </div>
+
+      <!-- No provider chosen yet. -->
+      <div v-else-if="vault.step === 'idle'" class="stack">
+        <template v-if="vault.folderSupported">
+          <h4>{{ t('sync.folder.title') }}</h4>
+          <p class="muted">{{ t('sync.folder.lead') }}</p>
+          <button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-choose" @click="vault.chooseFolder()"><Icon name="lucide:folder-open" /> {{ t('sync.folder.choose') }}</button>
+        </template>
+        <p v-else-if="vault.onedrive" class="muted" data-testid="sync-folder-unsupported">{{ t('sync.folder.unsupported') }}</p>
+        <section v-if="vault.onedrive" class="stack" data-testid="sync-onedrive">
+          <h4>{{ t('sync.onedrive.title') }}</h4>
+          <p class="muted">{{ t('sync.onedrive.lead') }}</p>
+          <p class="muted small">{{ t('sync.onedrive.personal') }}</p>
+          <div><button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-onedrive-signin" @click="vault.connectOnedrive(returnTo())"><Icon name="lucide:log-in" /> {{ t('sync.onedrive.signin') }}</button></div>
+        </section>
+        <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
+        <p class="muted small">{{ t(vault.folderSupported ? 'sync.limits' : 'sync.onedrive.limits') }}</p>
       </div>
 
       <!-- A folder without a vault: choose a password. -->
       <form v-else-if="vault.step === 'create'" class="stack" data-testid="sync-create-form" @submit.prevent="submitCreate">
         <h4>{{ t('sync.create.title') }}</h4>
-        <p class="muted">{{ t('sync.folder.name', { name: vault.folderName }) }}</p>
-        <p class="muted">{{ t('sync.create.lead') }}</p>
+        <p class="muted">{{ folderLine }}</p>
+        <p class="muted">{{ kindText('sync.create.lead', 'sync.onedrive.create.lead') }}</p>
         <label class="lbl">{{ t('sync.password') }}
           <input v-model="password" class="field" type="password" autocomplete="new-password" aria-describedby="sync-pw-hint" data-testid="sync-password">
         </label>
@@ -104,8 +140,8 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
       <!-- A vault is there: its password or its recovery key. -->
       <form v-else-if="vault.step === 'unlock'" class="stack" data-testid="sync-unlock-form" @submit.prevent="submitUnlock">
         <h4>{{ t('sync.unlock.title') }}</h4>
-        <p class="muted">{{ t('sync.folder.name', { name: vault.folderName }) }}</p>
-        <p class="muted">{{ t('sync.unlock.lead') }}</p>
+        <p class="muted">{{ folderLine }}</p>
+        <p class="muted">{{ kindText('sync.unlock.lead', 'sync.onedrive.unlock.lead') }}</p>
         <label class="lbl">{{ useKey ? t('sync.recoveryKey') : t('sync.password') }}
           <input v-model="secret" class="field" :type="useKey ? 'text' : 'password'" :autocomplete="useKey ? 'off' : 'current-password'" :spellcheck="false" data-testid="sync-unlock-secret">
         </label>
@@ -140,7 +176,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
 
       <!-- Connected and unlocked. -->
       <div v-else class="stack">
-        <p class="muted">{{ t('sync.folder.name', { name: vault.folderName }) }}</p>
+        <p class="muted">{{ folderLine }}</p>
         <p class="status" role="status" aria-live="polite" :data-status="vault.status" data-testid="sync-status">
           <Icon :name="syncStatusIcon(vault.status)" /> <span>{{ statusText }}</span>
         </p>
@@ -153,7 +189,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
         </div>
         <p v-if="vault.status === 'allow-folder'" class="muted small">{{ t('sync.allow.hint') }}</p>
         <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
-        <p class="muted small">{{ t('sync.limits') }}</p>
+        <p class="muted small">{{ t(onedrive ? 'sync.onedrive.limits' : 'sync.limits') }}</p>
       </div>
 
       <section v-if="vault.step === 'ready' && vault.devices.length" class="stack">
@@ -174,13 +210,17 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
 
       <section v-if="vault.connected" class="stack danger">
         <h4>{{ t('sync.disconnect') }}</h4>
-        <p class="muted small">{{ t('sync.disconnect.hint') }}</p>
-        <ToggleSwitch v-model="deleteFiles" plain :label="t('sync.disconnect.delete')" :hint="t('sync.disconnect.delete.hint')" data-testid="sync-delete-files" />
+        <p class="muted small">{{ kindText('sync.disconnect.hint', 'sync.disconnect.hint.onedrive') }}</p>
+        <ToggleSwitch v-model="deleteFiles" plain :label="kindText('sync.disconnect.delete', 'sync.disconnect.delete.onedrive')" :hint="kindText('sync.disconnect.delete.hint', 'sync.disconnect.delete.hint.onedrive')" data-testid="sync-delete-files" />
         <label v-if="deleteFiles" class="lbl">{{ t('sync.password') }}
           <input v-model="deletePassword" class="field" type="password" autocomplete="current-password" data-testid="sync-delete-password">
         </label>
+        <div v-if="onedrive" class="stack" data-testid="sync-revoke">
+          <p class="muted small">{{ t('sync.disconnect.revoke') }}</p>
+          <p class="small"><a :href="MICROSOFT_APP_ACCESS_URL" target="_blank" rel="noopener noreferrer" data-testid="sync-revoke-link"><Icon name="lucide:external-link" /> {{ t('sync.disconnect.revoke.link') }}</a></p>
+        </div>
         <div><button class="btn btn-danger btn-sm" type="button" :disabled="!canDisconnect" data-testid="sync-disconnect" @click="confirmDisconnect = true"><Icon name="lucide:unplug" /> {{ t('sync.disconnect') }}</button></div>
-        <ConfirmDialog v-model:open="confirmDisconnect" danger :title="t('sync.disconnect.title')" :confirm-label="t('sync.disconnect.button')" :message="t(deleteFiles ? 'sync.disconnect.message.delete' : 'sync.disconnect.message')" confirm-icon="lucide:unplug" @confirm="disconnect" />
+        <ConfirmDialog v-model:open="confirmDisconnect" danger :title="t('sync.disconnect.title')" :confirm-label="t('sync.disconnect.button')" :message="kindText(deleteFiles ? 'sync.disconnect.message.delete' : 'sync.disconnect.message', deleteFiles ? 'sync.disconnect.message.delete.onedrive' : 'sync.disconnect.message.onedrive')" confirm-icon="lucide:unplug" @confirm="disconnect" />
       </section>
     </template>
   </section>
@@ -195,7 +235,7 @@ h4 { font-size: var(--fs-md); }
 .warn { color: var(--danger); }
 .status { display: flex; align-items: center; gap: var(--sp-2); font-weight: 700; }
 .status[data-status="synced"] { color: var(--success); }
-.status[data-status="offline"], .status[data-status="needs-attention"], .status[data-status="target-full"], .status[data-status="allow-folder"], .status[data-status="folder-not-found"] { color: var(--warn); }
+.status[data-status="offline"], .status[data-status="needs-attention"], .status[data-status="target-full"], .status[data-status="allow-folder"], .status[data-status="folder-not-found"], .status[data-status="sign-in-again"] { color: var(--warn); }
 .key { padding: var(--sp-3); border: 1px dashed var(--border); border-radius: var(--r-control); font-family: var(--f-mono); font-size: var(--fs-lg); letter-spacing: .04em; word-break: break-all; user-select: all; }
 .recovery-print { display: grid; gap: var(--sp-2); justify-items: start; }
 .print-title { display: none; }

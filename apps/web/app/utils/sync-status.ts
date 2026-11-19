@@ -13,6 +13,7 @@ const ICONS: Readonly<Record<VaultStatus, string>> = {
   'waiting-for-file': 'lucide:loader',
   'needs-attention': 'lucide:triangle-alert',
   'target-full': 'lucide:triangle-alert',
+  'sign-in-again': 'lucide:log-in',
 }
 
 export const syncStatusIcon = (status: VaultStatus): string => ICONS[status]

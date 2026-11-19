@@ -6,9 +6,9 @@
   "license": "AGPL-3.0-only",
   "description": "RetroBoard web app (Nuxt 4 static SPA): presentation, view models, adapters.",
   "scripts": {
-    "dev": "nuxt dev",
+    "dev": "node scripts/build-sync-workers.mjs && nuxt dev",
     "prepare": "nuxt prepare",
-    "generate": "nuxt generate && node scripts/csp-hashes.mjs && node scripts/asset-headers.mjs && node scripts/security-txt.mjs",
+    "generate": "node scripts/build-sync-workers.mjs && nuxt generate && node scripts/csp-hashes.mjs && node scripts/asset-headers.mjs && node scripts/security-txt.mjs",
     "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

@@ -14,8 +14,8 @@ export const BOARD_TIMER_MS = 30_000
 export const BACKOFF_BASE_MS = 2_000
 export const BACKOFF_MAX_MS = 5 * 60_000
 
-/** After these the person has to act (grant access, choose the folder again, type the password): automatic passes stop. */
-const NEEDS_PERSON: readonly VaultStatus[] = ['allow-folder', 'folder-not-found', 'locked']
+/** After these the person has to act (grant access, choose the folder again, type the password, sign in again): automatic passes stop. */
+const NEEDS_PERSON: readonly VaultStatus[] = ['allow-folder', 'folder-not-found', 'locked', 'sign-in-again']
 const FAILING: readonly VaultStatus[] = ['offline', 'needs-attention', 'target-full']
 
 export interface LockManagerLike {

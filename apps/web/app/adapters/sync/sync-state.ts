@@ -33,9 +33,9 @@ export function createSyncStateStore(factory: IDBFactory = indexedDB): SyncState
   }
 }
 
-/** The connection record: nothing secret, nothing synced. */
+/** The connection record: nothing secret, nothing synced. A OneDrive connection has no handle: its sign-in lives in the sealed token store. */
 export interface Connection {
-  readonly kind: 'folder'
+  readonly kind: 'folder' | 'onedrive'
   /** The vault found or made in the folder: choosing the folder again must lead to the same one. */
   readonly vaultId: string
   readonly folderName: string
