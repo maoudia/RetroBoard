@@ -41,6 +41,29 @@ export function buildCsp(hashes: CspHashes, extraConnect: string[] = []): string
 }
 
 /**
+ * Provider worker scripts (change user-drive-storage, ADR-0039): a fixed, un-hashed path per provider, each served with a policy of
+ * its own that names only that provider's origins. A dedicated worker takes the policy of its own script response, not the page's,
+ * so these origins exist inside the worker only and the page policy above never changes. `default-src 'none'` also closes
+ * `eval`, `importScripts`, nested workers and every same-origin request inside the worker.
+ */
+export const SYNC_WORKER_ORIGINS: Readonly<Record<string, readonly string[]>> = {
+  '/sync/onedrive.js': [
+    'https://login.microsoftonline.com',
+    'https://graph.microsoft.com',
+    // The pre-authenticated upload and download hosts of OneDrive personal accounts (to confirm live, docs/owner-checks.md).
+    'https://*.up.1drv.com',
+    'https://*.files.1drv.com',
+  ],
+}
+
+/** The policy of a provider worker script, or null for any other path. `extraConnect` is the fake provider origin of the e2e harness. */
+export function workerCsp(pathname: string, extraConnect: string[] = []): string | null {
+  const origins = SYNC_WORKER_ORIGINS[pathname]
+  if (!origins) return null
+  return ["default-src 'none'", `connect-src ${[...origins, ...extraConnect].join(' ')}`].join('; ')
+}
+
+/**
  * Origin trial tokens are bound to one origin, so each host gets its own token
  * (a token for another origin would be ignored by Chrome).
  */
@@ -65,13 +88,17 @@ export function httpsRedirect(url: URL, selfHosted = false): Response | null {
   return new Response(null, { status: 308, headers: { Location: target.toString(), 'Cache-Control': 'no-store' } })
 }
 
-export function withSecurityHeaders(res: Response, csp: string, originTrial: string | null = null): Response {
+export function withSecurityHeaders(res: Response, csp: string, originTrial: string | null = null, workerPolicy: string | null = null): Response {
   const out = new Response(res.body, res)
   const type = out.headers.get('content-type') ?? ''
   if (type.includes('text/html')) {
     out.headers.set('Content-Security-Policy', csp)
     out.headers.set('Cache-Control', 'no-cache')
     if (originTrial) out.headers.set('Origin-Trial', originTrial)
+  } else if (workerPolicy && out.ok && /javascript/.test(type)) {
+    // An un-hashed provider worker: its own policy, revalidated on every load because its URL never changes.
+    out.headers.set('Content-Security-Policy', workerPolicy)
+    out.headers.set('Cache-Control', 'no-cache')
   }
   out.headers.set('Strict-Transport-Security', HSTS)
   out.headers.set('X-Frame-Options', 'DENY')
