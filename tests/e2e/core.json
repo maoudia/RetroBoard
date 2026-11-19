@@ -20,7 +20,9 @@
     "theme-contrast",
     "keyboard",
     "folder-sync",
-    "folder-contract"
+    "folder-contract",
+    "onedrive-sync",
+    "onedrive-worker-csp"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",

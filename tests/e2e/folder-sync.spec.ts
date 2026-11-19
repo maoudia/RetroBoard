@@ -290,6 +290,8 @@ async function unlockIfLocked(page: Page) {
 }
 
 test('a browser without the folder picker says so, and nothing else changes', async ({ page }) => {
+  // Where the deployment offers no other provider (no OneDrive client id), the section says the folder is not available here.
+  await page.route('**/providers.json', (route) => route.fulfill({ json: {} }))
   await page.addInitScript(() => { delete (window as unknown as Record<string, unknown>).showDirectoryPicker })
   await page.goto('/new')
   await openSync(page)

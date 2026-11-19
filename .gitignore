@@ -17,6 +17,9 @@ allure-results/
 .idea/
 .env.local
 
+# Provider worker scripts, built from the sources by apps/web/scripts/build-sync-workers.mjs
+apps/web/public/sync/
+
 # The user guide tour (pnpm docs:tour)
 .guide-tmp/
 

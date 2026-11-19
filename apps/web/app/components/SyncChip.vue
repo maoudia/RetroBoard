@@ -23,7 +23,7 @@ const label = computed(() => t(`sync.status.${vault.status}` as never))
 .sync-chip span { overflow: hidden; text-overflow: ellipsis; }
 .sync-chip:hover { background: var(--accent-soft); }
 .sync-chip[data-status="synced"] { color: var(--success); }
-.sync-chip[data-status="offline"], .sync-chip[data-status="needs-attention"], .sync-chip[data-status="target-full"], .sync-chip[data-status="allow-folder"], .sync-chip[data-status="folder-not-found"] { color: var(--warn); }
+.sync-chip[data-status="offline"], .sync-chip[data-status="needs-attention"], .sync-chip[data-status="target-full"], .sync-chip[data-status="allow-folder"], .sync-chip[data-status="folder-not-found"], .sync-chip[data-status="sign-in-again"] { color: var(--warn); }
 .sync-chip[data-status="syncing"] .ico { animation: sync-spin 1.2s linear infinite; }
 @keyframes sync-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sync-chip[data-status="syncing"] .ico { animation: none; } }

@@ -16,7 +16,7 @@ const dynamicIcons = [
   'palette', 'wand-sparkles', 'sparkles', 'layers', 'ungroup', 'copy', 'link', 'file-text',
   'file-spreadsheet', 'file-json', 'send', 'user-round', 'chevron-down', 'grip-vertical', 'moon',
   'arrow-left', 'arrow-right', 'arrow-up', 'arrow-down', 'plus', 'dices', 'wifi-off', 'loader',
-  'columns-3', 'message-square-plus', 'folder-output', 'list-plus', 'circle-check', 'triangle-alert', 'compass', 'monitor-x', 'pencil-off', 'chevrons-down', 'chevrons-up', 'octagon-x', 'scan-line', 'chevron-left', 'chevron-right', 'lock-open', 'chevron-up', 'minimize-2', 'unplug', 'refresh-cw', 'folder', 'square', 'maximize-2', 'move-horizontal', 'bug', 'lightbulb', 'message-circle', 'link-2-off',
+  'columns-3', 'message-square-plus', 'folder-output', 'list-plus', 'circle-check', 'triangle-alert', 'compass', 'monitor-x', 'pencil-off', 'chevrons-down', 'chevrons-up', 'octagon-x', 'scan-line', 'chevron-left', 'chevron-right', 'lock-open', 'chevron-up', 'minimize-2', 'unplug', 'refresh-cw', 'folder', 'square', 'maximize-2', 'move-horizontal', 'bug', 'lightbulb', 'message-circle', 'link-2-off', 'log-in',
 ].map((n) => `lucide:${n}`)
 
 export default defineNuxtConfig({
@@ -70,6 +70,9 @@ export default defineNuxtConfig({
       // STUN only (no TURN, no paid service): lets two browsers find a direct path. Comma separated,
       // override with NUXT_PUBLIC_ICE_SERVERS (a self-hosted coturn, for example).
       iceServers: 'stun:stun.cloudflare.com:3478',
+      // The public client id of the Microsoft Entra app registration, when it is set at build time (NUXT_PUBLIC_ONEDRIVE_CLIENT_ID).
+      // Empty: OneDrive is offered only if the deployment serves one in /providers.json (the Worker setting ONEDRIVE_CLIENT_ID).
+      onedriveClientId: '',
     },
   },
   // Static hoisting turns constant :style bindings into literal style attributes (innerHTML), which the CSP blocks.

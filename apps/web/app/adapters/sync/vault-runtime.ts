@@ -1,13 +1,17 @@
 import { watch } from 'vue'
 import type { Ref } from 'vue'
 import {
-  type AttentionReason, type DirectoryHandleLike, type Library, type RecoveryKeyView, type StampedMap, type SyncOutcome, type UnlockSecret, type UnlockedVault, type VaultDevice, type VaultStatus,
+  type AttentionReason, type DirectoryHandleLike, type Library, type RecoveryKeyView, type StampedMap, type SyncOutcome, type SyncTargetPort, type UnlockSecret, type UnlockedVault, type VaultDevice, type VaultStatus,
   type ReplicaStorePort, type WorkspaceDoc, createVault, disconnectAndForget, libraryCodec, stampedCodec, syncVault, unlockVault, workspaceCodec,
 } from '@retroboard/application'
 import { type BoardEvent, type EngineMemory, type StreamCodec, type VaultLocal, boardCodec, boardStream, isBoardStream, mergeEvents } from '@retroboard/sync'
 import { type FolderAccess, folderAccess, openVaultFolder, pickFolder, requestFolderAccess } from '~/adapters/sync/folder-handle'
 import { createFolderTarget } from '~/adapters/sync/folder-target'
 import { createKdfWorker, installKdfWorker } from '~/adapters/sync/kdf-client'
+import { createLocalSealer } from '~/adapters/device-key'
+import { ONEDRIVE_FOLDER } from '~/adapters/sync/onedrive-config'
+import type { OnedriveConfig } from '~/adapters/sync/onedrive-protocol'
+import { type OnedriveSession, type SignInOutcome, createOnedriveSession } from '~/adapters/sync/onedrive-session'
 import { type Connection, type SyncStateStore, createSyncStateStore } from '~/adapters/sync/sync-state'
 import { createVaultKit } from '~/adapters/sync/vault-kit'
 import { type SyncReason, createVaultScheduler, type VaultScheduler } from '~/utils/vault-scheduler'
@@ -18,7 +22,7 @@ import { safeStorage } from '~/utils/storage'
 
 export type SetupStep = 'idle' | 'create' | 'unlock' | 'recovery' | 'ready'
 /** The i18n key of what went wrong in the last action, or null. */
-export type SetupError = 'sync.error.wrong' | 'sync.error.key' | 'sync.error.wrongKey' | 'sync.error.exists' | 'sync.error.otherVault' | 'sync.error.none' | 'sync.error.unreadable' | 'sync.error.newer' | 'sync.error.target' | null
+export type SetupError = 'sync.error.signin' | 'sync.error.wrong' | 'sync.error.key' | 'sync.error.wrongKey' | 'sync.error.exists' | 'sync.error.otherVault' | 'sync.error.none' | 'sync.error.unreadable' | 'sync.error.newer' | 'sync.error.target' | null
 
 const deviceName = (): string => {
   const platform = (navigator as { userAgentData?: { platform?: string } }).userAgentData?.platform ?? navigator.platform ?? ''
@@ -40,11 +44,16 @@ export interface VaultState {
   busy: Ref<boolean>
   pendingFolder: Ref<string>
   unlocked: Ref<boolean>
+  /** What this deployment offers for OneDrive, once `/providers.json` has been read; null when nothing is configured. */
+  onedrive: Ref<OnedriveConfig | null>
+  /** The provider a setup in progress is for (a connection carries its own). */
+  pendingKind: Ref<'folder' | 'onedrive' | null>
 }
 
 export interface VaultRuntimeContext {
   readonly state: VaultState
-  readonly supported: boolean
+  /** Can this browser sync at all? Asked each time: OneDrive's availability is read after the store is made. */
+  readonly supported: () => boolean
   readonly library: ReturnType<typeof useLibraryStore>
   readonly settings: ReturnType<typeof useSettingsStore>
   readonly identity: ReturnType<typeof useIdentityStore>
@@ -59,8 +68,8 @@ export interface VaultRuntimeContext {
  * editing never waits on any of it: a failure here is a status the person reads, not an exception.
  */
 export function createVaultRuntime(ctx: VaultRuntimeContext) {
-  const { library, settings, identity, team, supported } = ctx
-  const { connection, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, pendingFolder, unlocked } = ctx.state
+  const { library, settings, identity, team } = ctx
+  const { connection, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, pendingFolder, unlocked, onedrive, pendingKind } = ctx.state
 
   let state: SyncStateStore | null = null
   let handle: DirectoryHandleLike | null = null
@@ -70,6 +79,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   let removeListeners: (() => void) | null = null
   let stopWatch: (() => void) | null = null
   let stopKdf: (() => void) | null = null
+  let session: OnedriveSession | null = null
   let synced: ReturnType<typeof useSyncedSettings> | null = null
   const openQueue: string[] = []
   const device = import.meta.client ? deviceId() : ''
@@ -106,8 +116,26 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
     save: async (m: EngineMemory) => { await ensureState()?.set('engine', m) },
   })
 
-  async function kitFor(root: DirectoryHandleLike, create: boolean) {
-    const target = createFolderTarget(await openVaultFolder(root, create))
+  /** The provider of the connection, or of the setup in progress. */
+  const providerNow = (): 'folder' | 'onedrive' | null => connection.value?.kind ?? pendingKind.value
+
+  /** The OneDrive connection of this browser, made once its configuration is known. */
+  function ensureSession(): OnedriveSession | null {
+    if (session) return session
+    const config = onedrive.value
+    const store = ensureState()
+    if (!config || !store) return null
+    return (session = createOnedriveSession({ config, state: store, sealer: createLocalSealer(), storage: sessionStorage, navigate: (url) => window.location.assign(url) }))
+  }
+
+  async function targetFor(root: DirectoryHandleLike | null, create: boolean): Promise<SyncTargetPort | null> {
+    if (providerNow() === 'onedrive') return ensureSession()?.target ?? null
+    return root ? createFolderTarget(await openVaultFolder(root, create)) : null
+  }
+
+  async function kitFor(root: DirectoryHandleLike | null, create: boolean) {
+    const target = await targetFor(root, create)
+    if (!target) throw new Error('no target')
     return { target, crypto: createVaultKit({ target, local, memory: memory(), device, deviceName: deviceName(), now: Date.now }), clock: { now: Date.now } }
   }
 
@@ -126,13 +154,23 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
       connection.value = (await store?.get<Connection>('connection')) ?? null
       handle = (await store?.get<DirectoryHandleLike>('handle')) ?? null
     } catch { return }
-    if (!connection.value || !handle) { status.value = supported ? 'off' : 'unsupported'; return }
+    if (connection.value?.kind === 'onedrive') { await initOnedrive(); return }
+    if (!connection.value || !handle) { status.value = ctx.supported() ? 'off' : 'unsupported'; return }
     await refreshAccess()
+  }
+
+  /** A browser that connected OneDrive before: its sign-in is back in the worker, or it must be done again (24 hours at most). */
+  async function initOnedrive() {
+    const current = ensureSession()
+    if (!current) { status.value = 'off'; return }
+    step.value = 'unlock'
+    const back = await current.restore().catch(() => 'sign-in-again' as const)
+    status.value = back === 'ready' ? 'locked' : 'sign-in-again'
   }
 
   async function remember() {
     safeStorage.set(SYNC_FLAG, true)
-    await ensureState()?.set('handle', handle)
+    if (connection.value?.kind !== 'onedrive') await ensureState()?.set('handle', handle)
     await ensureState()?.set('connection', { ...connection.value })
   }
 
@@ -169,6 +207,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
       }
       pending = picked
       pendingFolder.value = picked.name
+      pendingKind.value = 'folder'
       step.value = hasVault ? 'unlock' : 'create'
     } catch { error.value = 'sync.error.target' } finally { busy.value = false }
   }
@@ -183,7 +222,8 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   }
 
   async function create(password: string) {
-    if (!pending) return
+    const kind = providerNow()
+    if (!kind || (kind === 'folder' && !pending)) return
     error.value = null
     busy.value = true
     try {
@@ -195,8 +235,8 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
       unlocked.value = true
       recoveryKey.value = result.recoveryKey
       recoveryMode.value = 'first'
-      handle = pending
-      connection.value = { kind: 'folder', vaultId: vault.info.vaultId, folderName: pending.name, acknowledged: false, connectedAt: Date.now() }
+      if (kind === 'folder') handle = pending
+      connection.value = { kind, vaultId: vault.info.vaultId, folderName: kind === 'onedrive' ? ONEDRIVE_FOLDER : pending!.name, acknowledged: false, connectedAt: Date.now() }
       await remember()
       step.value = 'recovery'
     } catch { error.value = 'sync.error.target' } finally { busy.value = false }
@@ -207,7 +247,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   /** Opens the vault with the password or the recovery key. Used by the unlock form and by the actions that ask for the password again. */
   async function open(secret: UnlockSecret): Promise<UnlockedVault | null> {
     const root = pending ?? handle
-    if (!root) return null
+    if (!root && providerNow() !== 'onedrive') return null
     installWorker()
     const result = await unlockVault(await kitFor(root, false), secret)
     if (!result.ok) {
@@ -227,8 +267,9 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
       vault = opened
       unlocked.value = true
       if (!connection.value) {
-        handle = pending
-        connection.value = { kind: 'folder', vaultId: opened.info.vaultId, folderName: pending?.name ?? '', acknowledged: true, connectedAt: Date.now() }
+        const kind = providerNow() ?? 'folder'
+        if (kind === 'folder') handle = pending
+        connection.value = { kind, vaultId: opened.info.vaultId, folderName: kind === 'onedrive' ? ONEDRIVE_FOLDER : (pending?.name ?? ''), acknowledged: true, connectedAt: Date.now() }
         await remember()
         activate()
       } else if (!connection.value.acknowledged) {
@@ -332,11 +373,14 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
     stopWatch = removeListeners = scheduler = stopKdf = null
     vault = null; handle = null; pending = null; synced = null
     safeStorage.remove(SYNC_FLAG)
+    // The tokens and the worker that holds the access token go first: nothing here can act on the account any more.
+    try { await session?.forget() } catch { /* the worker is already gone */ }
+    session = null
     try { await state?.clear() } catch { /* the browser refused: nothing more to forget */ }
     connection.value = null
     unlocked.value = false
-    status.value = supported ? 'off' : 'unsupported'
-    reason.value = null; lastSyncAt.value = null; devices.value = []; step.value = 'idle'; recoveryKey.value = null; pendingFolder.value = ''
+    status.value = ctx.supported() ? 'off' : 'unsupported'
+    reason.value = null; lastSyncAt.value = null; devices.value = []; step.value = 'idle'; recoveryKey.value = null; pendingFolder.value = ''; pendingKind.value = null
   }
 
   /** Stops sync and forgets the connection; with `deleteFiles`, the vault files go first (the password is asked again). */
@@ -344,10 +388,10 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
     error.value = null
     busy.value = true
     try {
-      let session = vault
-      if (opts.deleteFiles && opts.password !== undefined) session = await open({ password: opts.password })
-      if (opts.deleteFiles && !session) return false
-      const result = await disconnectAndForget(session, { deleteFiles: opts.deleteFiles, clearLocal })
+      let opened = vault
+      if (opts.deleteFiles && opts.password !== undefined) opened = await open({ password: opts.password })
+      if (opts.deleteFiles && !opened) return false
+      const result = await disconnectAndForget(opened, { deleteFiles: opts.deleteFiles, clearLocal })
       if (!result.ok) { error.value = 'sync.error.target'; return false }
       return true
     } finally { busy.value = false }
@@ -359,11 +403,58 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   /** Back to the start of the setup, for the person who closed the dialog half way. */
   function cancelSetup() {
     if (connection.value) return
-    pending = null; pendingFolder.value = ''; error.value = null; step.value = 'idle'
+    if (pendingKind.value === 'onedrive') { void session?.forget().catch(() => undefined); session = null }
+    pending = null; pendingFolder.value = ''; pendingKind.value = null; error.value = null; step.value = 'idle'
+  }
+
+  // ---- OneDrive ----
+
+  /** "Sign in with Microsoft": the window goes to Microsoft and comes back to `/storage/callback`. */
+  async function connectOnedrive(returnTo: string) {
+    error.value = null
+    const current = ensureSession()
+    if (!current) { error.value = 'sync.error.target'; return }
+    busy.value = true
+    try { await current.start(returnTo, 'connect', 'select_account') } catch { error.value = 'sync.error.signin'; busy.value = false }
+  }
+
+  /** The daily renewal: a silent attempt first, and the person's own sign-in when Microsoft has no session to reuse. */
+  async function signInAgain(returnTo: string) {
+    error.value = null
+    const current = ensureSession()
+    if (!current) return
+    busy.value = true
+    try { await current.start(returnTo, 'renew', 'none') } catch { error.value = 'sync.error.signin'; busy.value = false }
+  }
+
+  /** The page of `/storage/callback` hands over what Microsoft brought back; the setup or the renewal goes on from here. */
+  async function completeSignIn(search: string): Promise<SignInOutcome> {
+    await init()
+    const current = ensureSession()
+    if (!current) return { kind: 'failed', returnTo: '/boards' }
+    const outcome = await current.complete(search)
+    if (outcome.kind === 'failed') error.value = 'sync.error.signin'
+    if (outcome.kind !== 'signed-in') return outcome
+    busy.value = true
+    try {
+      if (outcome.intent === 'renew' && connection.value?.kind === 'onedrive') {
+        // A page reload ended the unlocked session: the vault asks for its password again, then sync goes on.
+        step.value = unlocked.value ? 'ready' : 'unlock'
+        status.value = unlocked.value ? 'syncing' : 'locked'
+        scheduler?.resume()
+        if (unlocked.value) void scheduler?.trigger('manual')
+      } else {
+        pendingKind.value = 'onedrive'
+        pendingFolder.value = ONEDRIVE_FOLDER
+        step.value = (await current.target.get('info.json')) ? 'unlock' : 'create'
+      }
+    } catch { error.value = 'sync.error.target'; step.value = 'idle'; pendingKind.value = null } finally { busy.value = false }
+    return outcome
   }
 
   return {
     init, chooseFolder, requestAccess, create, unlock, acknowledge, reissueRecoveryKey, syncNow, fetchBoard, forgetBoardStream, disconnect, forgetConnection, cancelSetup,
+    connectOnedrive, signInAgain, completeSignIn,
   }
 }
 
