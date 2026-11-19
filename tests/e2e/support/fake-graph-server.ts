@@ -8,7 +8,7 @@
 import { createServer } from 'node:http'
 import { createFakeGraph } from '@retroboard/testkit'
 
-const port = Number(process.env.E2E_GRAPH_PORT ?? 8788)
+const port = Number(process.env.E2E_GRAPH_PORT ?? 8789)
 const site = `http://127.0.0.1:${process.env.E2E_PORT ?? 8787}`
 export const E2E_CLIENT_ID = '11111111-2222-4333-8444-555555555555'
 

@@ -30,6 +30,7 @@ Environment variables, the same names as the Worker variables (`deploy/selfhost/
 | `MAINTENANCE` | unset | `1` answers pages with a 503 and the maintenance page ([runbook](runbooks/maintenance.md)) |
 | `MAX_CONNECTIONS_PER_ADDRESS`, `MAX_CONNECTS_PER_MINUTE` | `200`, `600` | Per-address cap and connect rate of the adapter; `0` turns one off. Per instance, and per proxy address when you do not forward the client address |
 | `OPERATOR_NAME`, `OPERATOR_ADDRESS`, `OPERATOR_CONTACT` | unset | Who runs this instance, for the legal and privacy pages (below) |
+| `ONEDRIVE_CLIENT_ID` | unset | The public client id of your own Microsoft Entra registration, to offer "Sign in with Microsoft" in Preferences > Sync (below). Unset: OneDrive is not offered |
 | `PORT`, `HOST` | `8787`, `0.0.0.0` | Listening address |
 
 ### Legal and privacy pages
@@ -137,6 +138,10 @@ When the pool changes (an instance added or removed) the rooms that move are dro
 ## Sync with a folder
 
 Preferences > Sync (change `user-drive-storage`) writes the person's boards and preferences, encrypted in the browser, to a folder they pick with the browser's folder picker. Nothing about it touches the server: no new route, no storage, no secret, no change to the Content-Security-Policy (the key derivation runs in a first-party worker served from the same origin). A self-hosted instance therefore needs no setting for it. It works only in Chromium browsers on a computer (the File System Access API); elsewhere the section says so and boards stay on the device. The privacy page lists it among what stays on the person's side.
+
+## Sync with OneDrive
+
+Preferences > Sync can sign in with Microsoft and keep the encrypted vault in the person's own OneDrive app folder (change `user-drive-storage`, [storage-onedrive](storage-onedrive.md)). It needs a Microsoft Entra app registration, which is yours to make for your own host: the hosted service's registration only accepts its own redirect address. Follow the step list in [storage-onedrive](storage-onedrive.md) (a free tenant is enough, no client secret, the platform "Single-page application" and the redirect URI `https://<your host>/storage/callback`), then set `ONEDRIVE_CLIENT_ID` to the Application (client) ID. The page reads it at run time from `/providers.json`, so the image is not rebuilt. Without it OneDrive is simply not offered. Nothing about it is stored on your server: the browser talks to Microsoft directly from a worker script (`/sync/onedrive.js`) that the server sends with its own Content-Security-Policy naming only Microsoft's origins; the policy of your pages does not change. Only personal Microsoft accounts can use it.
 
 ## Notes
 

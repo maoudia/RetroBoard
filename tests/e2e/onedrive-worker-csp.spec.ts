@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { expect, test } from '@playwright/test'
 
-const GRAPH = `http://127.0.0.1:${process.env.E2E_GRAPH_PORT ?? 8788}`
+const GRAPH = `http://127.0.0.1:${process.env.E2E_GRAPH_PORT ?? 8789}`
 const CLIENT = '11111111-2222-4333-8444-555555555555'
 
 /**

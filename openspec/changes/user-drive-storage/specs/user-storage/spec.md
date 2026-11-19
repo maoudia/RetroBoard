@@ -42,7 +42,7 @@ Sync SHALL NOT start until the user has set a vault password and has been shown 
 For a cloud provider that needs a sign-in (OneDrive from its group), a user SHALL connect by signing in with their own account and SHALL NOT have to register an application, create a key or paste a secret. The application registration SHALL be a one-time step of the maintainer, and its public client id SHALL be configuration of the site.
 
 #### Scenario: Sign in with Microsoft
-- **WHEN** a user presses "Sign in with Microsoft" and signs in with an Outlook, Hotmail, or (where supported) work account
+- **WHEN** a user presses "Sign in with Microsoft" and signs in with an Outlook, Hotmail or Live account
 - **THEN** the application syncs files in its own OneDrive app folder and asks nothing else of the user except the vault password
 
 #### Scenario: Provider not configured
