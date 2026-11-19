@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "description": "Test builders and harnesses shared by package tests. Never imported by production code.",
   "exports": { ".": "./src/index.ts" },
   "dependencies": { "@retroboard/application": "workspace:*", "@retroboard/domain": "workspace:*", "@retroboard/protocol": "workspace:*" },

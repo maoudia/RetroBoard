@@ -20,7 +20,7 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0007](0007-integrations-run-in-the-browser.md) | Integrations run in the browser | accepted | 2026-10-24 |
 | [0008](0008-pnpm-monorepo-with-packages-per-layer.md) | pnpm monorepo with packages per layer | accepted | 2026-10-24 |
 | [0009](0009-openspec-spec-driven-workflow.md) | OpenSpec spec-driven workflow | accepted | 2026-10-24 |
-| [0010](0010-agpl-license-with-dual-licensing.md) | AGPL-3.0-only with dual licensing | accepted | 2026-10-24 |
+| [0010](0010-agpl-license-with-dual-licensing.md) | AGPL-3.0-only with dual licensing | superseded by [ADR-0040](0040-polyform-noncommercial-source-available-license.md) | 2026-10-24 |
 | [0011](0011-payments-through-a-merchant-of-record.md) | Payments through a merchant of record | accepted | 2026-10-24 |
 | [0012](0012-local-ai-only.md) | Local AI only | accepted | 2026-10-24 |
 | [0013](0013-mcp-server-as-a-local-package.md) | MCP server as a local package | accepted | 2026-10-24 |
@@ -50,3 +50,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0037](0037-signed-snapshots-are-a-verified-shortcut-for-joiners-never-a.md) | Signed snapshots are a verified shortcut for joiners, never a replacement for the event log | accepted | 2026-11-11 |
 | [0038](0038-prerender-the-landing-page-at-build-time.md) | Prerender the landing page at build time | accepted | 2026-11-13 |
 | [0039](0039-sync-boards-and-settings-as-encrypted-immutable-objects-on-a.md) | Sync boards and settings as encrypted immutable objects on a user-chosen file target | proposed | 2026-11-14 |
+| [0040](0040-polyform-noncommercial-source-available-license.md) | PolyForm Noncommercial 1.0.0, source available and closed to outside contributions | accepted | 2026-11-19 |

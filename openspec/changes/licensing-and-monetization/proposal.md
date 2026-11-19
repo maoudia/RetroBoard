@@ -1,5 +1,7 @@
 # Proposal
 
+> **Shelved on 2026-11-19.** The project moved from AGPL-3.0-only to the PolyForm Noncommercial License 1.0.0 and closed outside contributions ([ADR-0040](../../../docs/adr/0040-polyform-noncommercial-source-available-license.md)). The monetization it describes (paid tiers and entitlements) is not planned: the project is free for noncommercial use and commercial rights are reserved to the owner. Its tasks already delivered (LICENSE, NOTICE, the source link) stay. No task of this change is planned; the text below is kept as it was written.
+
 ## Why
 
 The owner wants a cheap SaaS with advanced features and themes unlocked for paying teams, a free tier that covers a real retro, an open source license (AGPL-3.0) that discourages closed resale, and no server or storage to manage subscriptions.

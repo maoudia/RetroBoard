@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { axe, createBoard } from './helpers'
 
-// AGPL section 13: users of the network service are offered the source (change licensing-and-monetization, task 1.3).
+// The source stays one click away: RetroBoard is built in public (change licensing-and-monetization, task 1.3).
 const SOURCE = 'https://github.com/maoudia/retroboard'
 
 test('the landing footer offers the source code', async ({ page }) => {

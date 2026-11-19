@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "description": "RetroBoard web app (Nuxt 4 static SPA): presentation, view models, adapters.",
   "scripts": {
     "dev": "node scripts/build-sync-workers.mjs && nuxt dev",
