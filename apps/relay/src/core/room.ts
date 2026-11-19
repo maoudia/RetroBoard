@@ -90,8 +90,12 @@ export class RoomCore<S> {
     this.log.info('env.ok', { rh: att.rh, n: fresh.length })
   }
 
-  /** A connection closed or failed: the others learn the new list of peers. */
+  /**
+   * A connection closed or failed (`webSocketClose`, `webSocketError`): the others learn the new list of peers, and
+   * the buffer is forgotten when nobody else is connected. `ws` may still be among `port.sockets()`.
+   */
   leave(ws: S): void {
+    if (this.others(ws).length === 0) this.buffer.clear()
     this.broadcastPeers(ws)
   }
 

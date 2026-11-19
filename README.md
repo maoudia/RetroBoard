@@ -108,6 +108,7 @@ Browser (Nuxt, prerendered landing)           Relay (apps/relay), one of two ada
 - **Peer to peer first**: board events and cursors travel directly between browsers when WebRTC links open; the relay carries signalling, presence and the fallback path, never plaintext.
 - **Functional core**: `packages/domain` has no I/O. Every browser folds the same signed event log with `reduce(state, command, actor, ctx)`; the relay never sees plaintext.
 - **No server-side storage**: the board lives on the participants' devices (encrypted IndexedDB replica, retention setting) and in `.retro` board files. When everyone has left, the relay forgets the room.
+- **Deploys do not interrupt a retro**: when the relay restarts, direct links between participants stay open and the board keeps working; everyone reconnects to the relay in the background and a participant on an older version is told to reload.
 - **Ports and adapters**: replica store, transport, signing and files are interfaces with swappable adapters.
 - Details and decisions: [docs/architecture.md](docs/architecture.md). Capacity and load tests: [docs/capacity.md](docs/capacity.md).
 

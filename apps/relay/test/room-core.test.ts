@@ -102,6 +102,39 @@ describe('RoomCore admission', () => {
   })
 })
 
+describe('RoomCore buffer lifetime', () => {
+  const publish = (h: ReturnType<typeof harness>, ws: FakeSocket) => h.say(ws, { t: 'pub', envs: [env(1), env(2)] })
+  const history = (ws: FakeSocket) => ws.out.filter((f) => f.t === 'hist').flatMap((f) => (f.t === 'hist' ? f.envs : []))
+
+  it('keeps the buffer while somebody is connected', () => {
+    const h = harness()
+    const a = h.join()
+    const b = h.join()
+    publish(h, a)
+    h.leave(a)
+    expect(history(h.join())).toHaveLength(2)
+    expect(b.closed).toBeNull()
+  })
+
+  it('forgets the buffer when the last socket leaves', () => {
+    const h = harness()
+    const a = h.join()
+    const b = h.join()
+    publish(h, a)
+    h.leave(a)
+    h.leave(b)
+    expect(history(h.join())).toEqual([])
+  })
+
+  it('forgets it when the leaving socket is still listed among the live ones (webSocketClose runs before the runtime drops it)', () => {
+    const h = harness()
+    const a = h.join()
+    publish(h, a)
+    h.core.leave(a)
+    expect(history(h.join())).toEqual([])
+  })
+})
+
 describe('RoomCore frames', () => {
   it('buffers fresh envelopes and forwards them once to everyone but the sender', () => {
     const h = harness()

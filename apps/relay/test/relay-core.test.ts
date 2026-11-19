@@ -24,6 +24,17 @@ describe('EnvelopeBuffer', () => {
     expect(small.size).toBe(1)
   })
 
+  it('forgets everything on clear, the byte count included', () => {
+    const b = new EnvelopeBuffer(100, 300)
+    b.add([env(1, 'A'.repeat(100)), env(2, 'A'.repeat(100))])
+    b.clear()
+    expect(b.size).toBe(0)
+    expect(b.history()).toEqual([{ t: 'hist', envs: [], done: true }])
+    // The byte budget starts from zero again: a single envelope that fits is kept.
+    expect(b.add([env(3, 'A'.repeat(100))])).toHaveLength(1)
+    expect(b.size).toBe(1)
+  })
+
   it('pages history and always ends with done', () => {
     expect(new EnvelopeBuffer().history()).toEqual([{ t: 'hist', envs: [], done: true }])
     const b = new EnvelopeBuffer()
