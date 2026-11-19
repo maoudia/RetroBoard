@@ -39,16 +39,11 @@ const mismatch = computed(() => again.value !== '' && again.value !== password.v
 const canCreate = computed(() => longEnough.value && password.value === again.value && !vault.busy)
 const statusText = computed(() => {
   if (vault.status === 'synced' && vault.lastSyncAt) return t('sync.status.synced.at', { time: lastOpenedLabel(vault.lastSyncAt, Date.now(), locale.value) })
-  if (vault.status === 'target-full' && onedrive.value) return t('sync.status.target-full.onedrive')
   return t(`sync.status.${vault.status}` as never)
 })
-const reasonText = computed(() => {
-  if (vault.status !== 'needs-attention' || !vault.reason) return ''
-  const own = `sync.reason.${vault.reason}.onedrive`
-  return t((onedrive.value && (vault.reason === 'forbidden' || vault.reason === 'refused') ? own : `sync.reason.${vault.reason}`) as never)
-})
+const reasonText = computed(() => (vault.status === 'needs-attention' && vault.reason ? t(`sync.reason.${vault.reason}` as never) : ''))
 const lastSync = computed(() => (vault.lastSyncAt ? t('sync.last', { time: lastOpenedLabel(vault.lastSyncAt, Date.now(), locale.value) }) : t('sync.never')))
-const errorText = computed(() => (vault.error ? t((vault.error === 'sync.error.target' && onedrive.value ? 'sync.error.target.onedrive' : vault.error) as never) : ''))
+const errorText = computed(() => (vault.error ? t(vault.error) : ''))
 const folderLine = computed(() => (onedrive.value ? t('sync.onedrive.name', { name: vault.folderName }) : t('sync.folder.name', { name: vault.folderName })))
 
 function submitCreate() { if (canCreate.value) void vault.create(password.value) }
@@ -119,7 +114,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
       <form v-else-if="vault.step === 'create'" class="stack" data-testid="sync-create-form" @submit.prevent="submitCreate">
         <h4>{{ t('sync.create.title') }}</h4>
         <p class="muted">{{ folderLine }}</p>
-        <p class="muted">{{ kindText('sync.create.lead', 'sync.onedrive.create.lead') }}</p>
+        <p class="muted">{{ t('sync.create.lead') }}</p>
         <label class="lbl">{{ t('sync.password') }}
           <input v-model="password" class="field" type="password" autocomplete="new-password" aria-describedby="sync-pw-hint" data-testid="sync-password">
         </label>
@@ -141,7 +136,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
       <form v-else-if="vault.step === 'unlock'" class="stack" data-testid="sync-unlock-form" @submit.prevent="submitUnlock">
         <h4>{{ t('sync.unlock.title') }}</h4>
         <p class="muted">{{ folderLine }}</p>
-        <p class="muted">{{ kindText('sync.unlock.lead', 'sync.onedrive.unlock.lead') }}</p>
+        <p class="muted">{{ t('sync.unlock.lead') }}</p>
         <label class="lbl">{{ useKey ? t('sync.recoveryKey') : t('sync.password') }}
           <input v-model="secret" class="field" :type="useKey ? 'text' : 'password'" :autocomplete="useKey ? 'off' : 'current-password'" :spellcheck="false" data-testid="sync-unlock-secret">
         </label>
