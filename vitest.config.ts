@@ -19,6 +19,8 @@ export default defineConfig({
     ...(process.env.ALLURE_RESULTS_DIR ? { setupFiles: ['allure-vitest/setup'], reporters: ['default', 'json', ['allure-vitest/reporter', { resultsDir: process.env.ALLURE_RESULTS_DIR }]], outputFile: { json: 'reports/unit/results.json' } } : {}),
     include: ['apps/*/test/**/*.test.ts', 'packages/*/test/**/*.test.ts', 'scripts/*/test/**/*.test.ts'],
     environment: 'node',
+    // Key derivation in the vault tests is slow on a shared CI runner under coverage: the default 5 s timed out there.
+    testTimeout: 30_000,
     environmentMatchGlobs: undefined,
     coverage: {
       provider: 'v8',
