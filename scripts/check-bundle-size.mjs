@@ -40,7 +40,9 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // vault object format, the IndexedDB target, the library store and list, the migration and their fr/en strings (50.2 kB entry and
 // 359.5 kB total measured, 352.8 kB before). The Argon2id derivation is a lazy import that nothing loads yet, so it is not in these figures.
 // Raise it only on purpose.
-const BUDGET = { entryKb: 51, totalKb: 360 }
+// 2026-11-19: total raised from 360 to 362 kB for the landing's open-code section and five feature cards (landing-v2-and-product-video,
+// tasks 2.1 and 2.3): 26 fr/en strings, +1.8 kB measured over 359.5 (361.3 kB after). The entry stays at 50.2 kB.
+const BUDGET = { entryKb: 51, totalKb: 362 }
 const OPT_IN = [/initializeWebModelContext/]
 
 const assets = join(dir, '_nuxt')
