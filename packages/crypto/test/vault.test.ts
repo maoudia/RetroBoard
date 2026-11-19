@@ -272,6 +272,24 @@ describe('vault sealer (what the engine seals and opens with)', () => {
     expect(await sealer.open('seg', lib, new Uint8Array(10))).toBeNull()
   })
 
+  it('seals each class under its own key and binding: manifests ignore the stream, the library has its key, every other stream its own', async () => {
+    const { createVaultSealer } = await import('../src')
+    const keys = await deriveVaultKeys(randomKey(), 'vault-b')
+    const sealer = createVaultSealer(keys, KEY_ID)
+    const lib = await sealer.streamId('library')
+    const other = await sealer.streamId('settings')
+    const text = async (bytes: Uint8Array | null) => (bytes ? new TextDecoder().decode(bytes) : null)
+    const manifest: ObjectBinding = { pathClass: 'man', stream: '' }
+    expect(await text(await openObject(await keys.manifest(), manifest, await sealer.seal('man', other, 'm1')))).toBe('m1')
+    expect(await sealer.open('man', other, await sealObject(await keys.manifest(), KEY_ID, manifest, utf8('m2')))).toBe('m2')
+    for (const pathClass of ['seg', 'chk'] as const) {
+      expect(await text(await openObject(await keys.library(), { pathClass, stream: lib }, await sealer.seal(pathClass, lib, 'l1')))).toBe('l1')
+      expect(await sealer.open(pathClass, lib, await sealObject(await keys.library(), KEY_ID, { pathClass, stream: lib }, utf8('l2')))).toBe('l2')
+      expect(await text(await openObject(await keys.stream(other), { pathClass, stream: other }, await sealer.seal(pathClass, other, 's1')))).toBe('s1')
+      expect(await sealer.open(pathClass, other, await sealObject(await keys.stream(other), KEY_ID, { pathClass, stream: other }, utf8('s2')))).toBe('s2')
+    }
+  })
+
   it('refuses plaintext that is not valid UTF-8 after opening', async () => {
     const { createVaultSealer, deriveVaultKeys, randomKey, sealObject } = await import('../src')
     const keys = await deriveVaultKeys(randomKey(), 'v')

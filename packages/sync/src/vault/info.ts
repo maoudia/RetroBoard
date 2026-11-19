@@ -26,11 +26,12 @@ const isTimed = (v: unknown): v is Timed<unknown> => typeof v === 'object' && v 
 /** Untrusted JSON to an info document, or null when it is not one (an empty or half-synced file is not one). */
 export function parseInfo<I extends InfoDoc>(text: string): I | null {
   let v: Record<string, unknown> | null
+  // Stryker disable next-line BlockStatement: v stays undefined and the check below refuses it
   try { v = JSON.parse(text) as Record<string, unknown> | null } catch { return null }
-  if (typeof v !== 'object' || v === null) return null
+  if (!v) return null
   if (!Number.isInteger(v.version) || !Number.isInteger(v.minReader) || typeof v.vaultId !== 'string' || typeof v.cipher !== 'string') return null
   if (!isTimed(v.activeKeyId) || typeof v.activeKeyId.value !== 'string') return null
-  if (!Array.isArray(v.wraps) || !v.wraps.every((w) => typeof w === 'object' && w !== null && typeof (w as { kind: unknown }).kind === 'string' && Number.isFinite((w as { updatedTime: unknown }).updatedTime))) return null
+  if (!Array.isArray(v.wraps) || !v.wraps.every((w: { kind?: unknown; updatedTime?: unknown } | null) => typeof w?.kind === 'string' && Number.isFinite(w.updatedTime))) return null
   const settings = v.settings
   if (typeof settings !== 'object' || settings === null || !Object.values(settings).every(isTimed)) return null
   return v as unknown as I
@@ -42,11 +43,8 @@ export function infoTime(info: InfoDoc): number {
 }
 
 /** JSON with sorted keys: equal documents give equal text whatever order a writer put their fields in. */
-const stable = (v: unknown): string => {
-  if (typeof v !== 'object' || v === null) return JSON.stringify(v)
-  if (Array.isArray(v)) return `[${v.map(stable).join(',')}]`
-  return `{${Object.entries(v).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0)).map(([k, x]) => `${JSON.stringify(k)}:${stable(x)}`).join(',')}}`
-}
+const stable = (v: unknown): string =>
+  JSON.stringify(v, (_key, x: unknown) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x))
 
 /** A total order on equal times, so the merge does not depend on which copy is on the left. */
 const byJson = (a: unknown, b: unknown): number => {
@@ -56,7 +54,8 @@ const byJson = (a: unknown, b: unknown): number => {
 }
 
 function newer<T extends { readonly updatedTime: number }>(a: T, b: T): T {
-  return a.updatedTime !== b.updatedTime ? (a.updatedTime > b.updatedTime ? a : b) : byJson(a, b) >= 0 ? a : b
+  const by = a.updatedTime - b.updatedTime || byJson(a, b)
+  return by >= 0 ? a : b
 }
 
 /**
@@ -81,8 +80,8 @@ export function mergeInfo<I extends InfoDoc>(a: I, b: I): I {
     version: Math.max(a.version, b.version),
     minReader: Math.max(a.minReader, b.minReader),
     activeKeyId: newer(a.activeKeyId, b.activeKeyId),
-    wraps: [...wraps.values()].sort((x, y) => (x.kind < y.kind ? -1 : x.kind > y.kind ? 1 : 0)),
-    settings: Object.fromEntries([...settings].sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))),
+    wraps: [...wraps.keys()].sort().map((kind) => wraps.get(kind)!),
+    settings: Object.fromEntries([...settings.keys()].sort().map((key) => [key, settings.get(key)!])),
   }
 }
 

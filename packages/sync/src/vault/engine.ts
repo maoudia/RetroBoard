@@ -23,6 +23,8 @@ export const MAX_SEGMENT_BYTES = 3 * 1024 * 1024
 export const BACKOFF_BASE_MS = 5_000
 export const BACKOFF_MAX_MS = 10 * 60 * 1000
 export const KEPT_CHECKPOINTS = 2
+/** `info.json` is read, merged and written again this many times when another device writes it in between. */
+const INFO_ATTEMPTS = 3
 
 export interface EngineOptions {
   readonly target: VaultTarget
@@ -59,6 +61,9 @@ export interface SyncReport {
   infoChanged: boolean
 }
 
+/** What the phases of a pass fill in as they go; the rest of the report is read off the memory once they are done. */
+type PassReport = Pick<SyncReport, 'pushed' | 'pulled' | 'warnings' | 'info' | 'infoChanged'>
+
 export interface SyncRequest {
   /** Streams to pull from now on, even though they are not mirrored (a board the person opens). */
   readonly open?: readonly string[]
@@ -85,16 +90,16 @@ const collect = async (it: AsyncIterable<VaultObject>): Promise<VaultObject[]> =
 }
 
 const isPrecondition = (e: unknown): boolean => (e as { code?: unknown } | null)?.code === 'precondition-failed'
-const byPath = (a: { path: string }, b: { path: string }): number => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)
+// Stryker disable next-line EqualityOperator: paths are unique, so `<` and `<=` give the same order
+const byPath = (a: { path: string }, b: { path: string }): number => (a.path < b.path ? -1 : 1)
 
+/** What every caller does with it is look for fields, so a value that is not an object (a number, an array, null) has none and is refused there. */
 function parseJson(text: string): Record<string, unknown> | null {
-  try {
-    const v = JSON.parse(text) as unknown
-    return typeof v === 'object' && v !== null && !Array.isArray(v) ? v as Record<string, unknown> : null
-  } catch { return null }
+  // Stryker disable next-line BlockStatement: undefined and null are both refused by every caller
+  try { return JSON.parse(text) as Record<string, unknown> | null } catch { return null }
 }
 
-const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+const isNum = (v: unknown): v is number => Number.isFinite(v)
 
 export function parseManifest(text: string): Manifest | null {
   const v = parseJson(text)
@@ -140,14 +145,15 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
   /** What the target holds of an item is the highest token seen: an item is pushed only when the local one is above it. */
   function absorb(mem: EngineMemory, stream: string, tokens: Readonly<Record<string, string>>): void {
     const known = (mem.known[stream] ??= {})
+    // Stryker disable next-line EqualityOperator: storing an equal token changes nothing
     for (const [key, token] of Object.entries(tokens)) if (known[key] === undefined || token > known[key]) known[key] = token
   }
 
   // ---- info.json ----
 
-  async function infoPhase(mem: EngineMemory, report: SyncReport): Promise<void> {
+  async function infoPhase(mem: EngineMemory, report: PassReport): Promise<void> {
     const base = (mem.info ?? options.info) as InfoDoc
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 1; ; attempt++) {
       const listed = await collect(target.list('info'))
       const main = listed.find((o) => o.path === INFO_PATH)
       const copies = listed.filter((o) => isInfoCopy(o.path))
@@ -175,7 +181,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
           etag = put.etag
         } catch (e) {
           // Another device changed it between the read and the write: read again and merge again.
-          if (isPrecondition(e) && attempt < 2) continue
+          if (isPrecondition(e) && attempt < INFO_ATTEMPTS) continue
           throw e
         }
       }
@@ -192,7 +198,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
   // ---- pull ----
 
   /** Manifests of the other devices, those that changed fetched again. A device with two manifests keeps the newer. */
-  async function readManifests(mem: EngineMemory, report: SyncReport): Promise<void> {
+  async function readManifests(mem: EngineMemory, report: PassReport): Promise<void> {
     const listed = (await collect(target.list('m/'))).filter((o) => parseManifestPath(o.path))
     const live = new Set(listed.map((o) => o.path))
     for (const path of Object.keys(mem.manifests)) if (!live.has(path)) Reflect.deleteProperty(mem.manifests, path)
@@ -203,6 +209,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
       if (backing(mem, o.path)) continue
       const got = await target.get(o.path)
       const text = got && got.bytes.length === o.size ? await crypto.open('man', '', got.bytes) : null
+      // Stryker disable next-line ConditionalExpression: JSON.parse(null) is null, which parseManifest refuses as well
       const doc = text === null ? null : parseManifest(text)
       if (!doc || doc.device !== p.device) {
         if (!report.warnings.includes('unreadable-manifest')) report.warnings.push('unreadable-manifest')
@@ -242,16 +249,18 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
     return text
   }
 
-  async function pullStream(mem: EngineMemory, report: SyncReport, name: string): Promise<void> {
+  async function pullStream(mem: EngineMemory, report: PassReport, name: string): Promise<void> {
     const codec = local.codec(name)
     if (!codec) return
     const sm = (mem.streams[name] ??= { covers: {}, applied: [] })
     const docs = remoteDocs(mem)
+    // Stryker disable next-line EqualityOperator: paths are unique, so `<` and `<=` give the same order
     const checkpoints = docs.flatMap((d) => d.checkpoints.filter((c) => c.stream === name)).sort((a, b) => b.at - a.at || (a.path < b.path ? 1 : -1))
     // The newest checkpoint that can be read; the one before it is kept on the target for exactly this.
     for (const cp of checkpoints) {
       if (cp.path === sm.checkpoint) break
       const text = await fetchOpened(mem, cp.path, cp.size, 'chk', name)
+      // Stryker disable next-line ConditionalExpression: JSON.parse(null) is null, which parseBody refuses as well
       const body = text === null ? null : parseBody(text, name, codec, 'state')
       if (!body) continue
       await local.apply(name, body.value)
@@ -264,10 +273,12 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
     }
     const applied = new Set(sm.applied)
     const refs = docs.flatMap((d) => d.segments.filter((s) => s.stream === name).map((s) => ({ ...s, device: d.device })))
-      .sort((a, b) => a.at - b.at || (a.path < b.path ? -1 : 1))
+    // Stryker disable next-line EqualityOperator: paths are unique, so `<` and `<=` give the same order
+    refs.sort((a, b) => a.at - b.at || (a.path < b.path ? -1 : 1))
     for (const ref of refs) {
       if (applied.has(ref.path) || (sm.covers[ref.device] ?? 0) >= ref.seq) continue
       const text = await fetchOpened(mem, ref.path, ref.size, 'seg', name)
+      // Stryker disable next-line ConditionalExpression: JSON.parse(null) is null, which parseBody refuses as well
       const body = text === null ? null : parseBody(text, name, codec, 'delta')
       if (!body) { if (text !== null) failed(mem, ref.path); continue }
       await local.apply(name, body.value)
@@ -295,11 +306,11 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
 
   /** A segment whose put response was lost may be on the target: if it is, it is adopted instead of being written twice. */
   async function settlePending(mem: EngineMemory): Promise<void> {
-    for (const p of [...mem.pending]) {
+    for (const p of mem.pending) {
       const found = await target.stat(p.path)
       if (found && found.size === p.size) adopt(mem, p)
-      mem.pending = mem.pending.filter((x) => x !== p)
     }
+    mem.pending = []
   }
 
   function adopt(mem: EngineMemory, p: PendingSegment): void {
@@ -308,7 +319,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
     absorb(mem, p.stream, p.tokens)
   }
 
-  async function pushStream(mem: EngineMemory, report: SyncReport, name: string): Promise<void> {
+  async function pushStream(mem: EngineMemory, report: PassReport, name: string): Promise<void> {
     const codec = local.codec(name)
     if (!codec) return
     const state = await local.read(name)
@@ -325,13 +336,13 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
       mem.pending.push(pending)
       await options.memory.save(mem)
       await target.put(pending.path, body, create)
-      mem.pending = mem.pending.filter((x) => x !== pending)
+      mem.pending = []
       adopt(mem, pending)
       report.pushed += 1
     }
   }
 
-  async function pushPhase(mem: EngineMemory, report: SyncReport, streams: readonly string[]): Promise<void> {
+  async function pushPhase(mem: EngineMemory, report: PassReport, streams: readonly string[]): Promise<void> {
     await settlePending(mem)
     for (const name of streams) await pushStream(mem, report, name)
     if (mem.own.dirty || mem.own.name !== options.deviceName) await writeManifest(mem)
@@ -362,7 +373,8 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
     await target.put(path, body, create)
     const now = options.now()
     mem.own.checkpoints.push({ path, stream: name, size: body.length, at: now, covers })
-    mem.own.segments = mem.own.segments.map((s) => (s.stream === name && s.retiredAt === undefined && s.seq <= (covers[device] ?? 0) ? { ...s, retiredAt: now } : s))
+    mem.own.segments = mem.own.segments.map((s) => (s.stream === name && s.retiredAt === undefined ? { ...s, retiredAt: now } : s))
+    // Stryker disable next-line EqualityOperator: paths are unique, so `<` and `<=` give the same order
     const mine = mem.own.checkpoints.filter((c) => c.stream === name).sort((a, b) => a.at - b.at || (a.path < b.path ? -1 : 1))
     const dropped = new Set(mine.slice(0, Math.max(0, mine.length - KEPT_CHECKPOINTS)).map((c) => c.path))
     mem.own.checkpoints = mem.own.checkpoints.filter((c) => !dropped.has(c.path))
@@ -372,7 +384,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
 
   async function compactPhase(mem: EngineMemory, streams: readonly string[], forced: readonly string[]): Promise<void> {
     const now = options.now()
-    const due = mem.own.segments.filter((s) => s.retiredAt !== undefined && now - s.retiredAt >= RETIRE_AFTER_MS)
+    const due = mem.own.segments.filter((s) => (s.retiredAt ?? Infinity) <= now - RETIRE_AFTER_MS)
     if (due.length > 0) {
       const gone = new Set(due.map((s) => s.path))
       mem.own.segments = mem.own.segments.filter((s) => !gone.has(s.path))
@@ -389,7 +401,7 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
 
   async function sync(request: SyncRequest = {}): Promise<SyncReport> {
     const mem = await load()
-    const report: SyncReport = { pushed: 0, pulled: 0, streams: [], waiting: [], warnings: [], devices: [], info: (mem.info ?? options.info) as InfoDoc, infoChanged: false }
+    const report: PassReport = { pushed: 0, pulled: 0, warnings: [], info: (mem.info ?? options.info) as InfoDoc, infoChanged: false }
     try {
       await infoPhase(mem, report)
       await readManifests(mem, report)
@@ -398,17 +410,17 @@ export function createVaultEngine(options: EngineOptions): VaultEngine {
       const streams = [...new Set([...eager, ...mem.opened])]
       for (const name of streams) await pullStream(mem, report, name)
       await pushPhase(mem, report, eager)
+      // Stryker disable next-line ArrayDeclaration: a stream with no segment of this device is never compacted, whoever names it
       await compactPhase(mem, streams, request.compact ?? [])
-      report.streams = [...new Set(remoteDocs(mem).flatMap((d) => d.segments.map((s) => s.stream)))].sort()
-      report.waiting = Object.entries(mem.waiting).map(([path, w]) => ({ path, since: w.since })).sort(byPath)
-      report.devices = [
-        { device, name: options.deviceName, updatedAt: options.now(), self: true },
-        ...remoteDocs(mem).map((d) => ({ device: d.device, name: d.name, updatedAt: d.updatedAt, self: false })),
-      ].sort((a, b) => Number(b.self) - Number(a.self) || (a.device < b.device ? -1 : 1))
     } finally {
       await options.memory.save(mem)
     }
-    return report
+    const waiting = Object.entries(mem.waiting).map(([path, w]) => ({ path, since: w.since })).sort(byPath)
+    // Stryker disable next-line EqualityOperator: device ids are unique, so `<` and `<=` give the same order
+    const others = remoteDocs(mem).map((d) => ({ device: d.device, name: d.name, updatedAt: d.updatedAt, self: false })).sort((a, b) => (a.device < b.device ? -1 : 1))
+    const devices = [{ device, name: options.deviceName, updatedAt: options.now(), self: true }, ...others]
+    const streams = [...new Set(remoteDocs(mem).flatMap((d) => d.segments.map((s) => s.stream)))].sort()
+    return { ...report, streams, waiting, devices }
   }
 
   return {
