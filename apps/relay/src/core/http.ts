@@ -1,13 +1,14 @@
 import type { ClientIpSettings } from './client-ip'
 import { isUnknownAppPath, pickErrorResponse, wantsHtml } from './errors'
 import { createLimiter, isMaintenance, maintenanceAction, RETRY_AFTER_SECONDS } from './guards'
-import { type AssetsPort, buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders } from './headers'
+import { type AssetsPort, buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders, workerCsp } from './headers'
 import { consoleLogger, roomHash } from './logger'
 import { operatorResponse, type OperatorSettings } from './operator'
 import { admitUpgrade } from './origin'
+import { type ProviderSettings, providersResponse } from './providers'
 
 /** The deployment settings the HTTP handler reads. */
-export interface Settings extends ClientIpSettings, OperatorSettings {
+export interface Settings extends ClientIpSettings, OperatorSettings, ProviderSettings {
   /** Extra allowed WebSocket origins, comma separated (local dev with `nuxt dev`). */
   ALLOWED_ORIGINS?: string
   /** "1" switches the site to maintenance mode (503 + Retry-After). */
@@ -18,6 +19,8 @@ export interface Settings extends ClientIpSettings, OperatorSettings {
   SELF_HOSTED?: string
   /** Chrome origin trial tokens keyed by host (WebMCP). Public values, not secrets. */
   ORIGIN_TRIAL_TOKENS?: Record<string, string>
+  /** Extra connect-src origins of the provider worker scripts, comma separated: the fake Graph of the e2e harness. Never set in production. */
+  FAKE_PROVIDER_ORIGINS?: string
 }
 
 /** What a runtime provides to the handler. */
@@ -74,6 +77,7 @@ export async function handleHttp(request: Request, deps: HttpDeps): Promise<Resp
 
   const hashes = await loadCspHashes(deps.assets)
   if (url.pathname === '/operator.json') return withSecurityHeaders(operatorResponse(settings, request.method === 'HEAD'), buildCsp(hashes), null)
+  if (url.pathname === '/providers.json') return withSecurityHeaders(providersResponse(settings, request.method === 'HEAD'), buildCsp(hashes), null)
   const extra = (settings.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim().replace(/^http/, 'ws')).filter(Boolean)
   let res = await deps.assets.fetch(request)
   // The asset layer answers 404 itself (not_found_handling "none"); an unknown path still gets the branded page.
@@ -81,5 +85,6 @@ export async function handleHttp(request: Request, deps: HttpDeps): Promise<Resp
     const shell = await deps.assets.fetch(new Request(new URL('/404.html', url), { headers: { Accept: 'text/html' } }))
     res = pickErrorResponse(request, 404, shell.ok ? shell : null, 'Not found')
   }
-  return withSecurityHeaders(res, buildCsp(hashes, extra), originTrialToken(url.host, settings.ORIGIN_TRIAL_TOKENS))
+  const fake = (settings.FAKE_PROVIDER_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  return withSecurityHeaders(res, buildCsp(hashes, extra), originTrialToken(url.host, settings.ORIGIN_TRIAL_TOKENS), workerCsp(url.pathname, fake))
 }

@@ -225,7 +225,7 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
   return {
     ...pick('ALLOWED_ORIGINS'), ...pick('MAINTENANCE'), ...pick('RATE_LIMIT_PER_MIN'), ...pick('SELF_HOSTED'),
     ...pick('CLIENT_IP_HEADER'), ...pick('TRUSTED_PROXIES'),
-    ...pick('OPERATOR_NAME'), ...pick('OPERATOR_ADDRESS'), ...pick('OPERATOR_CONTACT'),
+    ...pick('OPERATOR_NAME'), ...pick('OPERATOR_ADDRESS'), ...pick('OPERATOR_CONTACT'), ...pick('ONEDRIVE_CLIENT_ID'), ...pick('FAKE_PROVIDER_ORIGINS'),
     ...(env.ORIGIN_TRIAL_TOKENS ? { ORIGIN_TRIAL_TOKENS: JSON.parse(env.ORIGIN_TRIAL_TOKENS) as Record<string, string> } : {}),
   }
 }

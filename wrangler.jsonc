@@ -48,6 +48,9 @@
   "vars": {
     // Comma separated extra origins allowed to open the WebSocket. Used by `nuxt dev` on :3000.
     "ALLOWED_ORIGINS": "",
+    // The public client id of the Microsoft Entra app registration for "Sign in with Microsoft" (user-drive-storage, docs/storage-onedrive.md).
+    // A GUID, public by design, no secret. Empty: the OneDrive provider is not offered.
+    "ONEDRIVE_CLIENT_ID": "",
     // The header the page limiter reads the client address from (the only forwarding header trusted, portable-relay-core 2.2).
     "CLIENT_IP_HEADER": "CF-Connecting-IP",
     // Chrome origin trial tokens for WebMCP, one per origin (public values). Expire 2027-03-30.
