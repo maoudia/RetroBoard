@@ -191,6 +191,8 @@ describe('Node adapter: upgrades the parser never produces', () => {
     spied.server.emit('upgrade', fakeReq({ headers: { host: 'not a host' } }), socket, Buffer.alloc(0))
     await flush()
     expect(socket.destroyed).toBe(true)
+    // A peer that resets the connection is not an error of the server.
+    expect(() => socket.emit('error', new Error('ECONNRESET'))).not.toThrow()
   })
 
   it('refuses an upgrade from an unknown address with the reason of the handler', async () => {
