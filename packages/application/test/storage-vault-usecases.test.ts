@@ -37,7 +37,25 @@ function fakeCrypto(over: Partial<VaultCryptoPort> = {}) {
 const NOW = 1_700_000_000_000
 const clock = { now: () => NOW }
 
+describe('what a failure of the target means', () => {
+  it('a throttled target asks to be left alone for as long as it says, and says nothing when it does not', () => {
+    expect(statusOfError(new TargetError('throttled', { retryAfterMs: 4000 }))).toStrictEqual({ status: 'offline', retryAfterMs: 4000 })
+    expect(statusOfError(new TargetError('throttled'))).toStrictEqual({ status: 'offline' })
+  })
+
+  it('a file from the sync client may be missing for a day', () => {
+    expect(WAITING_FOR_FILE_MS).toBe(86_400_000)
+  })
+})
+
 describe('createVault', () => {
+  it('looks for a vault by listing info and nothing else', async () => {
+    const target = createMemoryTarget()
+    const { crypto } = fakeCrypto()
+    await createVault({ target, crypto, clock }, 'correct horse')
+    expect(target.seenPaths[0]).toBe('info')
+  })
+
   it('refuses a short password before touching the target', async () => {
     const target = createMemoryTarget()
     const { crypto } = fakeCrypto()

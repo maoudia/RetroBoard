@@ -135,3 +135,49 @@ describe('stream codecs', () => {
     expect(workspaceCodec.parse({ ...ws, retros: [{ ...retro, project: 'P' }] })).not.toBeNull()
   })
 })
+
+describe('stream codecs, edge by edge', () => {
+  const team = { id: 't1', name: 'Alpha', emoji: '🚀', color: '#fff' }
+  const retro = { boardId: 'b1', teamId: 't1', project: null, title: 'T', at: 9, actions: [] }
+  const ws: WorkspaceDoc = { teams: { t1: { value: team, stamp: at(3) } }, retros: [retro], owners: ['Ada', 'Bob'] }
+  const withTeam = (over: Record<string, unknown>) => ({ ...ws, teams: { t1: { value: { ...team, ...over }, stamp: at(3) } } })
+  const withRetro = (over: Record<string, unknown>) => ({ ...ws, retros: [{ ...retro, ...over }] })
+
+  it('keeps together what fits in the limit exactly, and splits one byte under it', () => {
+    const map: StampedMap = { a: { value: 'x', stamp: at(1) }, b: { value: 'y', stamp: at(2) } }
+    const size = (k: string) => JSON.stringify([k, map[k]]).length + 8
+    expect(stampedCodec.split(map, size('a') + size('b'))).toEqual([map])
+    expect(stampedCodec.split(map, size('a') + size('b') - 1)).toEqual([{ a: map.a }, { b: map.b }])
+    const three: StampedMap = { ...map, c: { value: 'z', stamp: at(3) } }
+    expect(stampedCodec.split(three, size('a') + size('b'))).toEqual([map, { c: three.c }])
+  })
+
+  it('picks only the keys a record holds', () => {
+    const map: StampedMap = { a: { value: 'x', stamp: at(1) } }
+    expect(Object.keys(stampedCodec.pick(map, ['a', 'nope', 'toString', '__proto__']))).toEqual(['a'])
+    expect(Object.keys(libraryCodec.pick({}, ['nope']))).toEqual([])
+  })
+
+  it('names the workspace items exactly: a team by its stamp, a retro by its save time and content, an owner by name', () => {
+    expect(workspaceCodec.index(ws)).toEqual({
+      't:t1': `${'3'.padStart(16, '0')}:d1`,
+      'r:b1': `${'9'.padStart(16, '0')}:${JSON.stringify(retro)}`,
+      'o:Ada': '1',
+      'o:Bob': '1',
+    })
+  })
+
+  it('refuses a team or a retro with any one field wrong', () => {
+    const bad: [string, unknown][] = [
+      ['team id', withTeam({ id: 1 })], ['team name', withTeam({ name: 1 })], ['team emoji', withTeam({ emoji: 1 })], ['team color', withTeam({ color: 1 })],
+      ['team not an object', { ...ws, teams: { t1: { value: 'x', stamp: at(3) } } }], ['team null', { ...ws, teams: { t1: { value: null, stamp: at(3) } } }],
+      ['retro boardId', withRetro({ boardId: 1 })], ['retro teamId', withRetro({ teamId: 1 })], ['retro title', withRetro({ title: 1 })], ['retro at', withRetro({ at: '9' })],
+      ['retro at infinite', withRetro({ at: Infinity })], ['retro actions', withRetro({ actions: {} })], ['retro project', withRetro({ project: undefined })],
+      ['retro null', { ...ws, retros: [null] }], ['one good retro and one bad', { ...ws, retros: [retro, { ...retro, title: 1 }] }],
+      ['one good owner and one bad', { ...ws, owners: ['Ada', 1] }],
+    ]
+    for (const [why, value] of bad) expect(workspaceCodec.parse(JSON.parse(JSON.stringify(value, (_k, v) => (v === Infinity ? 'inf' : v)))), why).toBeNull()
+    expect(workspaceCodec.parse(JSON.parse(JSON.stringify(withRetro({ project: 'P' }))))).not.toBeNull()
+    expect(workspaceCodec.parse(JSON.parse(JSON.stringify({ ...ws, retros: [retro, { ...retro, boardId: 'b2' }] })))?.retros).toHaveLength(2)
+  })
+})

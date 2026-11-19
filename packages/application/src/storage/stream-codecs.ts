@@ -80,7 +80,8 @@ export const stampedCodec: SyncedStreamCodec<StampedMap> = {
   },
 }
 
-const team = (v: unknown): v is Team => isRecord(v) && typeof v.id === 'string' && typeof v.name === 'string' && typeof v.emoji === 'string' && typeof v.color === 'string'
+/** A team stored under `id`: the key and the team's own id are the same. */
+const team = (v: unknown, id: string): v is Team => isRecord(v) && v.id === id && typeof v.name === 'string' && typeof v.emoji === 'string' && typeof v.color === 'string'
 const retro = (v: unknown): v is SavedRetro =>
   isRecord(v) && typeof v.boardId === 'string' && typeof v.teamId === 'string' && typeof v.title === 'string' && Number.isFinite(v.at) && Array.isArray(v.actions) && (v.project === null || typeof v.project === 'string')
 
@@ -119,7 +120,7 @@ export const workspaceCodec: SyncedStreamCodec<WorkspaceDoc> = {
     if (!isRecord(value) || !isRecord(value.teams) || !Array.isArray(value.retros) || !Array.isArray(value.owners)) return null
     const teams = new Map<string, Stamped<Team>>()
     for (const [id, raw] of Object.entries(value.teams)) {
-      if (!isRecord(raw) || !isStamp(raw.stamp) || !team(raw.value) || raw.value.id !== id) return null
+      if (!isRecord(raw) || !isStamp(raw.stamp) || !team(raw.value, id)) return null
       teams.set(id, { value: raw.value, stamp: { at: raw.stamp.at, device: raw.stamp.device } })
     }
     if (!value.retros.every(retro) || !value.owners.every((o) => typeof o === 'string')) return null

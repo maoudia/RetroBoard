@@ -35,6 +35,7 @@ describe('mergeInfo', () => {
 
   it('does not merge two vaults', () => {
     expect(() => mergeInfo(INFO, { ...INFO, vaultId: 'other' })).toThrow(VaultError)
+    expect(() => mergeInfo(INFO, { ...INFO, vaultId: 'other' })).toThrow('wrong-vault')
   })
 
   it('compares documents whatever order their fields are in', () => {
