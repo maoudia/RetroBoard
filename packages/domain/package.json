@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "description": "Pure domain of RetroBoard: aggregates, commands, policies. No I/O, no framework.",
   "exports": {
     ".": "./src/index.ts"

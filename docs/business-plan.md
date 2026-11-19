@@ -30,6 +30,8 @@ Pourquoi l'annuel en priorite : sur 2,99 EUR, les frais Polar (5 % + 0,50 USD, +
 
 ### 13.4 Cadre juridique et fiscal (a valider avec ton expert-comptable)
 
+> Mis a jour le 2026-11-19 : le projet est passe a la licence PolyForm Noncommercial 1.0.0 (source disponible, pas open source) et les contributions externes sont fermees (ADR-0040). Les passages sur l'AGPL, la double licence et le CLA ci-dessous sont historiques.
+
 - **Licence** : GNU AGPL-3.0-only (licence open source approuvee OSI). Quiconque fait tourner une version modifiee en service doit en publier le code source (art. 13 AGPL). Double licence : une licence commerciale peut etre vendue par MAIDAF a ceux qui ne veulent pas de ces obligations ; cela suppose de detenir les droits sur tout le code, donc un CLA (Contributor License Agreement) pour les contributions externes (CLA Assistant, gratuit). Les commits jusqu'au tag `last-mit` restent sous MIT.
 - **TVA** : en passant par un Merchant of Record, c'est lui qui vend au client final et gere la TVA de chaque pays (Directive 2006/112/CE, art. 58 pour le lieu de taxation des services electroniques B2C). Toi, tu factures une prestation au MoR. La qualification exacte (autoliquidation, lieu de la prestation B2B, CGI art. 259-1) est **a verifier** avec ton expert-comptable.
 - **Mentions legales** obligatoires sur le site : loi n. 2004-575 du 21 juin 2004 (LCEN), art. 6-III.

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Production dependency licenses must be compatible with AGPL-3.0 distribution.
+// Production dependency licenses must be compatible with distribution under PolyForm Noncommercial 1.0.0 (ADR-0040).
 // An "A OR B" expression passes when one option is allowed.
 import { execFileSync } from 'node:child_process'
 
 const ALLOWED = new Set([
   'MIT', 'ISC', 'BSD-2-Clause', 'BSD-3-Clause', 'Apache-2.0', '0BSD', 'BlueOak-1.0.0', 'CC0-1.0', 'Unlicense',
-  'MPL-2.0', 'OFL-1.1', 'CC-BY-4.0', 'Python-2.0', 'LGPL-3.0-or-later', 'GPL-3.0-or-later', 'AGPL-3.0-only', 'AGPL-3.0-or-later',
+  'MPL-2.0', 'OFL-1.1', 'CC-BY-4.0', 'Python-2.0', 'LGPL-3.0-or-later',
 ])
 const report = (msg) => console.error(process.env.GITHUB_ACTIONS ? `::error::${msg}` : msg)
 let byLicense

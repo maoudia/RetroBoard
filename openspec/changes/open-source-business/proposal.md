@@ -1,5 +1,7 @@
 # Proposal
 
+> **Shelved on 2026-11-19.** The project moved from AGPL-3.0-only to the PolyForm Noncommercial License 1.0.0 and closed outside contributions ([ADR-0040](../../../docs/adr/0040-polyform-noncommercial-source-available-license.md)). There is no CLA to run (no outside contributions) and no offers, sponsorware, marketplace or pricing to build while commercial rights are reserved to the owner. No task of this change is planned; the text below is kept as it was written.
+
 ## Why
 
 The code stays AGPL-3.0-only (ADR-0010) and the plan is to earn from convenience, capacity, brand and expertise rather than from the code: a facilitator subscription, sponsors, a community marketplace, a self-host offer for IT departments and MAIDAF's facilitation and training missions (docs/business-plan.md, epic #464). Two things stand between that plan and the launch. The Contributor License Agreement, without which the dual license is lost on the first external pull request: the workflow and the check exist, but the text is a draft, the signatures branch has never been created and the `CLA` status is not required (launch study of 2026-11-12, section 6). And none of the offers is written anywhere a visitor can read it. The CLA group ships before the launch (R2); the rest is R4.

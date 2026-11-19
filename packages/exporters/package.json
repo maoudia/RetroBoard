@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "description": "Pure export functions (Markdown, CSV, JSON) over application read models.",
   "exports": {
     ".": "./src/index.ts"

@@ -32,7 +32,7 @@ ARG REVISION=unknown
 LABEL org.opencontainers.image.title="RetroBoard" \
       org.opencontainers.image.description="End-to-end encrypted retrospective boards: static site and memory-only relay" \
       org.opencontainers.image.source="https://github.com/maoudia/RetroBoard" \
-      org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.licenses="PolyForm-Noncommercial-1.0.0" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${REVISION}"
 ENV NODE_ENV=production \
@@ -68,7 +68,7 @@ ARG REVISION=unknown
 LABEL org.opencontainers.image.title="RetroBoard" \
       org.opencontainers.image.description="End-to-end encrypted retrospective boards: static site and memory-only relay" \
       org.opencontainers.image.source="https://github.com/maoudia/RetroBoard" \
-      org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.licenses="PolyForm-Noncommercial-1.0.0" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${REVISION}"
 # Same values as deploy/selfhost/relay.env. TLS ends at the reverse proxy in front of the container; all clients share

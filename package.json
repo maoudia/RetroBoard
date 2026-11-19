@@ -75,6 +75,6 @@
     "wrangler": "^4.160.0",
     "ws": "8.22.2"
   },
-  "license": "AGPL-3.0-only",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "packageManager": "pnpm@10.28.0"
 }

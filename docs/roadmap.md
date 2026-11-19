@@ -47,7 +47,7 @@ Feature freeze until main is green. Gate: 7 green nights in a row (nightly gate 
 ## R2 Public launch (target 2026-12-13)
 
 Launch path only (owner decision 2026-11-12): what the launch needs, nothing else. The R2 gate is 14 green nights in a row (nightly gate
-above), CLA live, Lighthouse mobile above 95 on the landing, axe without violation on the public pages, the launch kit ready.
+above), Lighthouse mobile above 95 on the landing, axe without violation on the public pages, the launch kit ready.
 Anything not on this list slipped to R3.
 
 * Nightly health: the nightly gate above, the quarantine and the streak. Delivered and archived: `agentic-delivery-harness` ([proposal](../openspec/changes/archive/2026-11-14-agentic-delivery-harness/proposal.md)).
@@ -57,7 +57,7 @@ Anything not on this list slipped to R3.
 * Encrypted sync of boards and preferences to a folder the user picks: `user-drive-storage` ([proposal](../openspec/changes/user-drive-storage/proposal.md)), priority 1 (`priority:1-urgent`), task groups 1 (the `SyncTarget` interface, the browser adapter, local encryption, the board library, the contract tests and the in-memory fake) and 2 (the vault engine with its merge rules, the folder adapter and Preferences > Sync: automatic push and pull, status, disconnect and forget). It is Joplin's "File system" target: the user's own sync client (OneDrive, Drive, Dropbox, iCloud, Syncthing, Nextcloud) carries the encrypted files, so R2 needs no sign-in, no Microsoft registration and no CSP change. Chromium desktop only in R2. Groups 3 to 10 (OneDrive through Graph first, then GitHub, Google Drive, Dropbox, WebDAV, S3, generic HTTP, device pairing) sit in R3 as sub-issues of the same epic.
   The R2 scope grew by this item on 2026-11-14 at the owner's request. Estimate: two groups, one PR each, about 14 agent sessions of two hours in all (about 6 and 8), on top of the launch-path items above and under the limit of 3 changes in progress; smaller than the OneDrive-first plan (about 16 sessions plus the owner's Entra registration) because there is no OAuth, registration or CSP work. The 2026-12-13 target holds if group 1 is merged by 2026-11-27 and group 2 by 2026-12-08; the owner's only task is a live check with a folder carried by their own sync client. If group 2 is late, R2 keeps group 1 (the local library and the encrypted vault format, no sync yet) and group 2 ships right after the launch; the owner decides at the 2026-12-04 review.
 * Brand identity: `brand-identity` ([proposal](../openspec/changes/brand-identity/proposal.md)): charter, logo, icon kit, share images and press kit; the mark and the signature wait for the owner's approval.
-* CLA: task group 1 of `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)); the group sits in R2, the rest of the change in R4. It takes over task 1.2 of `licensing-and-monetization`; the text review, the required check and a test pull request from a fork are the owner's.
+* License: the project is source available under PolyForm Noncommercial 1.0.0 and closed to outside contributions ([ADR-0040](adr/0040-polyform-noncommercial-source-available-license.md)), so the launch path has no CLA, pricing or sponsorware decision.
 * Archived, owner check left: `p2p-presence-and-cursors` ([proposal](../openspec/changes/archive/2026-11-12-p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/archive/2026-11-12-webmcp-browser-agents/proposal.md)) are delivered; only the owner checks in [owner-checks.md](owner-checks.md) remain.
 * Delivered and archived: `user-manual-and-tutorials`, `short-links-and-join`, `retro-report`, `results-insights`, `voting-v2-and-ranking`, `responsive-and-i18n-hardening`, `activity-rings-timer`, `allure-report-aggregation`, `automated-semver-release`, `edge-security-and-domain`.
 
@@ -105,11 +105,11 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 
 ## R4 Monetisation and growth (target 2027-03-14)
 
-Licensing, offers, sponsors, marketplace, services, premium themes. Gate: first sale collected. The CLA group of `open-source-business` is in R2.
+Licensing, offers, sponsors, marketplace, services, premium themes. Gate: first sale collected.
 
-* `licensing-and-monetization` ([proposal](../openspec/changes/licensing-and-monetization/proposal.md))
+* `licensing-and-monetization` ([proposal](../openspec/changes/licensing-and-monetization/proposal.md)): shelved on 2026-11-19, see ADR-0040
 * `themes-pop-culture` ([proposal](../openspec/changes/themes-pop-culture/proposal.md))
-* `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)): sponsors and sponsorware, offers page, enterprise self-host, community marketplace, services page; prices are an open owner decision
+* `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)): shelved on 2026-11-19, see ADR-0040 (no CLA, sponsorware, offers or prices)
 
 ## R5 Agents (target 2027-05-02)
 

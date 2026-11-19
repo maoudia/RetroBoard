@@ -1,15 +1,13 @@
 RetroBoard
 Copyright (C) 2026 Moncef Aoudia (MAIDAF EURL)
 
-This program is free software: you can redistribute it and/or modify it under the terms of
-the GNU Affero General Public License as published by the Free Software Foundation, version 3
-(AGPL-3.0-only). See the LICENSE file.
-
-If you run a modified version of RetroBoard as a network service, section 13 of the AGPL
-requires you to offer its complete corresponding source code to its users.
+RetroBoard is source available, built in public. It is licensed under the PolyForm Noncommercial
+License 1.0.0 (PolyForm-Noncommercial-1.0.0). See the LICENSE file. It is not open source: you may
+read, run, modify and share it for noncommercial purposes; commercial rights are reserved to the author.
 
 Earlier releases: every commit up to and including commit 214fe7520dbf (tag `last-mit`) was published under the
-MIT License and remains available under that license.
+MIT License and remains available under that license. Versions up to v1.56.0 were published under the
+GNU Affero General Public License v3.0 (AGPL-3.0-only); copies already received under it stay under it
+(see ADR-0040).
 
-Commercial licensing (use without AGPL obligations): contact MAIDAF EURL through
-https://www.maoudia.com.
+Commercial use: contact MAIDAF EURL through https://www.maoudia.com.

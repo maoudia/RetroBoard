@@ -36,7 +36,7 @@
   <a href="https://retroboard.maoudia.com/guide/en/"><img alt="User guide" src="https://img.shields.io/badge/user%20guide-EN%20%7C%20FR-0066cc?labelColor=1d1d1f&style=flat-square&logo=gitbook&logoColor=white"></a>
   <a href="https://github.com/maoudia/RetroBoard/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/maoudia/RetroBoard?display_name=tag&labelColor=1d1d1f&style=flat-square&logo=github"></a>
   <a href="https://github.com/maoudia/RetroBoard/pkgs/container/retroboard"><img alt="Container image" src="https://img.shields.io/badge/ghcr.io-maoudia%2Fretroboard-2496ED?labelColor=1d1d1f&style=flat-square&logo=docker&logoColor=white"></a>
-  <a href="https://github.com/maoudia/RetroBoard/blob/main/LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue?labelColor=1d1d1f&style=flat-square"></a>
+  <a href="https://github.com/maoudia/RetroBoard/blob/main/LICENSE"><img alt="License: PolyForm Noncommercial 1.0.0" src="https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue?labelColor=1d1d1f&style=flat-square"></a>
   <a href="https://github.com/maoudia/RetroBoard/blob/main/docs/DEVELOPMENT.md"><img alt="Node 26 LTS" src="https://img.shields.io/badge/node-26%20LTS-5FA04E?labelColor=1d1d1f&style=flat-square&logo=nodedotjs&logoColor=white"></a>
   <a href="https://nuxt.com"><img alt="Nuxt 4" src="https://img.shields.io/badge/Nuxt-4-00DC82?labelColor=1d1d1f&style=flat-square&logo=nuxt&logoColor=white"></a>
   <a href="https://www.typescriptlang.org"><img alt="TypeScript strict" src="https://img.shields.io/badge/TypeScript-strict-3178C6?labelColor=1d1d1f&style=flat-square&logo=typescript&logoColor=white"></a>
@@ -197,4 +197,4 @@ docs/              Plan, architecture, ADRs, runbooks, quality, user guide sourc
 
 ## License
 
-[GNU AGPL-3.0](LICENSE). Commits up to the `last-mit` tag remain available under MIT. Commercial licensing (without AGPL obligations) is available from MAIDAF EURL. See [NOTICE](NOTICE).
+RetroBoard is built in public and source available, under the [PolyForm Noncommercial License 1.0.0](LICENSE): free to read, run, modify and share for noncommercial purposes; commercial rights are reserved to the author. It is not open source. Versions up to v1.56.0 were published under the GNU AGPL-3.0 and stay under it for those who received them; commits up to the `last-mit` tag remain available under MIT. Outside contributions are not accepted, issues are welcome. See [NOTICE](NOTICE) and [ADR-0040](docs/adr/0040-polyform-noncommercial-source-available-license.md).

@@ -4,7 +4,7 @@ import { THEMES } from '@retroboard/themes'
 import { inviteFromHash } from '~/utils/invite'
 import { normalizeJoinCode } from '~/utils/join-code'
 const { t, locale } = useT()
-/** The source repository: AGPL section 13 offers it to every user of the service. */
+/** The source repository: RetroBoard is built in public, every user may read it. */
 const REPO = 'https://github.com/maoudia/retroboard'
 const guideHref = computed(() => `/guide/${locale.value}/`)
 
