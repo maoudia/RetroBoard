@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.57.0](https://github.com/maoudia/RetroBoard/compare/v1.56.0...v1.57.0) (2026-11-19)
+
+
+### Features
+
+* **relay:** serve provider worker scripts with their own policy and the providers a deployment offers ([d733659](https://github.com/maoudia/RetroBoard/commit/d73365971f219679d06baedf5fc33ac9a8321d19))
+* **storage:** complete folder sync with the guide, the e2e specs and the lazy engine ([ef2c69f](https://github.com/maoudia/RetroBoard/commit/ef2c69f89e18324f3e5c9eed303deac2cf723eca))
+* **storage:** sync boards and preferences to a folder through an encrypted vault ([f880d61](https://github.com/maoudia/RetroBoard/commit/f880d6172561147a8db7f9596f55c5e24409871f))
+* **storage:** sync with OneDrive through a worker, with Sign in with Microsoft ([8b3d072](https://github.com/maoudia/RetroBoard/commit/8b3d07258c67cf2a976da207e60c0c1217ba2de3))
+
+
+### Bug Fixes
+
+* **storage:** answer the CodeQL findings of the OneDrive worker and its e2e accounts ([c4ca292](https://github.com/maoudia/RetroBoard/commit/c4ca292c7d32f148ff02eb5c2f42c8988f8cc600))
+
+
+### Refactoring
+
+* **sync:** harden vault manifest, compaction and conflict-copy edges ([276ed6c](https://github.com/maoudia/RetroBoard/commit/276ed6ce60643ec8cd26fd9adf64a17f0156e2bc))
+
 ## [1.56.0](https://github.com/maoudia/RetroBoard/compare/v1.55.0...v1.56.0) (2026-11-19)
 
 
