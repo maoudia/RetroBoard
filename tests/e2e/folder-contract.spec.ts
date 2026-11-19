@@ -10,7 +10,8 @@ const alias = Object.fromEntries(['domain', 'application', 'protocol'].map((p) =
  * the folder adapter over a directory of the origin private file system, so the swap-file write, the listing and the names are
  * proved on the real File System Access implementation and not only on the fake directory handle.
  */
-test('the folder adapter passes the contract suite on the origin private file system of Chromium', async ({ browser }) => {
+test('the folder adapter passes the contract suite on the origin private file system of Chromium', async ({ browser, browserName }) => {
+  test.skip(browserName === 'webkit', "Playwright's WebKit has no origin private file system in its ephemeral contexts: navigator.storage.getDirectory() throws UnknownError there, so the folder stub has nothing to hand out")
   test.setTimeout(120_000)
   const bundle = await build({
     stdin: {
