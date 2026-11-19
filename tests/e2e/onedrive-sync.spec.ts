@@ -223,6 +223,8 @@ test('throttling is waited out, not reported: a 429 with Retry-After still ends 
 
 test('the provider is not offered where the deployment has no client id, and the folder keeps working', async ({ page: p }) => {
   await p.route('**/providers.json', (route) => route.fulfill({ json: {} }))
+  // Firefox and WebKit have no folder picker: give this page one so the folder card is what is left to see.
+  await p.addInitScript(() => { (window as unknown as Record<string, unknown>).showDirectoryPicker ??= async () => { throw new DOMException('stub', 'AbortError') } })
   await p.goto('/new')
   await openSync(p)
   await expect(p.getByTestId('sync-onedrive')).toHaveCount(0)
