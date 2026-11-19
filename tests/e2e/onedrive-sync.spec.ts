@@ -5,7 +5,7 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 const PASSWORD = 'correct horse battery staple'
 const CANARIES = ['CANARY-title-7f3a', 'CANARY-note-91bc', 'CANARY-name-c04e']
 const [TITLE, NOTE, NAME] = CANARIES as [string, string, string]
-const GRAPH = `http://127.0.0.1:${process.env.E2E_GRAPH_PORT ?? 8788}`
+const GRAPH = `http://127.0.0.1:${process.env.E2E_GRAPH_PORT ?? 8789}`
 
 /**
  * Change user-drive-storage, group 3: sync with OneDrive. The site is started with a client id and the endpoints of a fake Microsoft

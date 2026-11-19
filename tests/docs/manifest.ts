@@ -123,6 +123,7 @@ export const CHAPTERS: readonly Chapter[] = [
     intro: t('Garde tes boards et tes préférences sur tes autres ordinateurs, dans des fichiers chiffrés que seul toi peux lire.', 'Keep your boards and preferences on your other computers, in encrypted files only you can read.'),
     steps: [
       { id: 'folder', caption: t('Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud.', 'In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-section', 'sync-choose'], shoot: 'sync-card' },
+      { id: 'onedrive', caption: t('Là où le site le propose, « Se connecter avec Microsoft » garde le coffre chiffré dans le dossier OneDrive de RetroBoard, sans client de synchronisation.', 'Where the site offers it, "Sign in with Microsoft" keeps the encrypted vault in RetroBoard\'s own OneDrive folder, with no sync client.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-onedrive', 'sync-onedrive-signin'], shoot: 'sync-onedrive' },
     ],
   },
 ]

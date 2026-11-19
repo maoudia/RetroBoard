@@ -832,6 +832,7 @@ export const en: Record<keyof typeof fr, string> = {
   'privacy.4.li.4': 'an encrypted copy of each board, kept per your retention setting (up to 30 days, or deleted when you leave the board);',
   'privacy.4.li.5': 'your private drafts until you publish them.',
   'privacy.4.li.6': 'if you choose to sync with a folder: encrypted files that only your password can open, written to that folder. Whatever service syncs the folder sees only those files, with random names, their sizes and times, never a title, a note or a name. Nothing is sent to us.',
+  'privacy.4.li.7': 'if you choose to sync with OneDrive: you sign in on a Microsoft page, and from then on your browser talks to Microsoft directly (login.microsoftonline.com and graph.microsoft.com), for that only and only after you chose it. RetroBoard keeps encrypted files, with random names, in its own OneDrive folder and cannot read anything else in your OneDrive. The sign-in token is kept encrypted in this browser. Nothing goes through us.',
   'privacy.5.h': 'No account, no cookie, no tracker',
   'privacy.5.p': 'No analytics, no ads, no third-party fonts or resources. One possible exception: during an attack, Cloudflare may show a check that sets a security cookie (cf_clearance), used only to protect the site.',
   'privacy.5.p.op': 'No analytics, no ads, no third-party fonts or resources.',

@@ -14,7 +14,7 @@ The page content security policy SHALL NOT gain an origin for a storage provider
 
 #### Scenario: Provider worker policy
 - **WHEN** a user chooses OneDrive
-- **THEN** the worker script is served with a policy whose `connect-src` lists the Microsoft sign-in and Graph origins and nothing else
+- **THEN** the worker script is served with a policy whose `connect-src` lists the Microsoft sign-in, Graph, upload and download origins and nothing else, and the page policy is unchanged
 
 #### Scenario: Unsupported browser
 - **WHEN** a browser applies the page policy to worker requests
@@ -32,7 +32,15 @@ A provider adapter SHALL request only the narrowest scope that reaches the appli
 - **THEN** it reaches only the application's folder, which holds ciphertext
 
 ### Requirement: OneDrive adapter
-The OneDrive adapter SHALL use Microsoft Graph with OAuth 2.0 authorization code and PKCE as a single-page application, store the vault under the application folder, honour the `eTag` with `If-Match`, create objects only when absent, upload objects above 4 MiB through a resumable upload session, and retry throttled requests (429, 503, 509) according to `Retry-After`.
+The OneDrive adapter SHALL use Microsoft Graph with OAuth 2.0 authorization code and PKCE as a single-page application, store the vault under the application folder, honour the `eTag` with `If-Match`, create objects only when absent, and retry throttled requests (429, 503, 509) according to `Retry-After`.
+
+#### Scenario: Read
+- **WHEN** an object is read
+- **THEN** it is fetched from its pre-authenticated download URL without credentials, never through the redirect of the content endpoint
+
+#### Scenario: Conditional write
+- **WHEN** an object is written with an `If-Match` etag or create-only
+- **THEN** the write goes through an upload session, where the provider documents both preconditions, and a failed precondition is reported as such
 
 #### Scenario: Concurrent update
 - **WHEN** two devices update `info.json` at the same time
@@ -44,18 +52,18 @@ The OneDrive adapter SHALL use Microsoft Graph with OAuth 2.0 authorization code
 
 #### Scenario: Large object
 - **WHEN** an object is larger than 4 MiB
-- **THEN** it is uploaded in fragments through an upload session and resumes after an interruption
+- **THEN** it is uploaded in fragments through an upload session, the fragments carry no credential, and the upload resumes after an interruption
 
 #### Scenario: Sign in again
-- **WHEN** the refresh token is no longer valid
-- **THEN** the status becomes "Sign in again" and the user restores sync with one redirect
+- **WHEN** the refresh token is no longer valid, which is at the latest 24 hours after the last interactive sign-in, renewals included
+- **THEN** the status becomes "Sign in again", the application makes no request that would fail, and the user restores sync with one redirect and the vault password
 
 #### Scenario: Accounts
-- **WHEN** a work or school account cannot use the application folder
-- **THEN** the application tells that user to use the local folder path instead of requesting broader access
+- **WHEN** a person has a work or school account, which cannot use the application folder
+- **THEN** the sign-in is for personal Microsoft accounts only and the section tells that person to use the local folder path with their OneDrive sync client, instead of requesting broader access
 
 ### Requirement: Maintainer setup is documented
-The documentation SHALL list, as a step list, what the maintainer creates for each provider (Microsoft Entra: a multitenant and personal-account application with the single-page application platform, redirect URIs for the hosted site and localhost, the delegated permissions, no client secret, the public client id as configuration), and a self-hosted deployment SHALL be able to use its own registration.
+The documentation SHALL list, as a step list, what the maintainer creates for each provider (Microsoft Entra: a multitenant and personal-account application with the single-page application platform, redirect URIs for the hosted site and localhost, the delegated permissions, no client secret, the public client id as configuration of the deployment, a Worker setting read at run time), and a self-hosted deployment SHALL be able to use its own registration.
 
 #### Scenario: Entra steps
 - **WHEN** the maintainer follows `docs/storage-onedrive.md`

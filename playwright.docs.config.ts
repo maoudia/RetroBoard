@@ -13,7 +13,8 @@ export default defineConfig({
   outputDir: '.guide-tmp/results',
   use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, baseURL: `http://127.0.0.1:${port}`, trace: 'off', video: 'off' },
   webServer: {
-    command: `npx wrangler dev --port ${port} --ip 127.0.0.1`,
+    // The guide shows what a deployment with OneDrive configured looks like (the id is a placeholder: the tour never signs in).
+    command: `npx wrangler dev --port ${port} --ip 127.0.0.1 --var ONEDRIVE_CLIENT_ID:11111111-2222-4333-8444-555555555555`,
     url: `http://127.0.0.1:${port}/healthz`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -831,6 +831,7 @@ export const fr = {
   'privacy.4.li.4': 'une copie chiffrée de chaque board, gardée selon ta durée de conservation (jusqu\'à 30 jours, ou effacée en quittant le board) ;',
   'privacy.4.li.5': 'tes brouillons privés tant que tu ne les publies pas.',
   'privacy.4.li.6': 'si tu choisis de synchroniser avec un dossier : des fichiers chiffrés que seul ton mot de passe ouvre, écrits dans ce dossier. Le service qui synchronise le dossier ne voit que ces fichiers, aux noms aléatoires, leur taille et leurs dates, jamais un titre, une note ou un nom. Rien ne nous est envoyé.',
+  'privacy.4.li.7': 'si tu choisis de synchroniser avec OneDrive : tu te connectes sur une page Microsoft, puis ton navigateur parle directement à Microsoft (login.microsoftonline.com et graph.microsoft.com), pour cela seulement et seulement après ton choix. RetroBoard garde des fichiers chiffrés, aux noms aléatoires, dans son propre dossier OneDrive et ne peut rien lire d\'autre dans ton OneDrive. Le jeton de connexion est conservé chiffré dans ce navigateur. Rien ne passe par nous.',
   'privacy.5.h': 'Pas de compte, pas de cookie, pas de traceur',
   'privacy.5.p': 'Aucune mesure d\'audience, aucune publicité, aucune police ni ressource tierce. Seule exception possible : pendant une attaque, Cloudflare peut afficher une vérification qui dépose un cookie de sécurité (cf_clearance), utilisé uniquement pour protéger le site.',
   'privacy.5.p.op': 'Aucune mesure d\'audience, aucune publicité, aucune police ni ressource tierce.',

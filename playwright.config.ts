@@ -8,7 +8,7 @@ const port = Number(process.env.E2E_PORT ?? 8787)
 const target = process.env.E2E_TARGET ?? 'workerd'
 // The fake Microsoft (change user-drive-storage, group 3): the site offers OneDrive with this client id, the endpoints point at the
 // fake, and the worker script of the provider may connect to it. Production sets none of this.
-const graphPort = Number(process.env.E2E_GRAPH_PORT ?? 8788)
+const graphPort = Number(process.env.E2E_GRAPH_PORT ?? 8789)
 const fakeProvider = { ONEDRIVE_CLIENT_ID: '11111111-2222-4333-8444-555555555555', FAKE_PROVIDER_ORIGINS: `http://127.0.0.1:${graphPort}` }
 if (target !== 'workerd' && target !== 'node') throw new Error(`E2E_TARGET must be workerd or node, got "${target}"`)
 // The Node target bundles the adapter first. Its per-address caps are off: every test of a worker comes from 127.0.0.1.
