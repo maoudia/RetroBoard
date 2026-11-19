@@ -182,7 +182,7 @@ describe('vault scheduler failures and leadership', () => {
   })
 
   it('stops by itself when the person has to act, and goes on after "Sync now" or resume', async () => {
-    for (const status of ['allow-folder', 'folder-not-found', 'locked'] as const) {
+    for (const status of ['allow-folder', 'folder-not-found', 'locked', 'sign-in-again'] as const) {
       const r = rig()
       const s = createVaultScheduler(r.deps)
       r.results.push({ status })
