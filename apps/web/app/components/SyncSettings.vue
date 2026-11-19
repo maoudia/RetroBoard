@@ -20,7 +20,6 @@ onMounted(() => { void vault.loadProviders() })
 const onedrive = computed(() => vault.provider === 'onedrive')
 /** The page to come back to after the redirect: a path only, never a board link (its key stays out of the tab's storage). */
 const returnTo = () => (['/board', '/new', '/storage/callback'].includes(route.path) ? '/boards' : route.path)
-const kindText = (key: string, onedriveKey: string) => t((onedrive.value ? onedriveKey : key) as never)
 
 const password = ref('')
 const again = ref('')
@@ -107,7 +106,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
           <div><button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-onedrive-signin" @click="vault.connectOnedrive(returnTo())"><Icon name="lucide:log-in" /> {{ t('sync.onedrive.signin') }}</button></div>
         </section>
         <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
-        <p class="muted small">{{ t(vault.folderSupported ? 'sync.limits' : 'sync.onedrive.limits') }}</p>
+        <p class="muted small">{{ t('sync.limits') }}</p>
       </div>
 
       <!-- A folder without a vault: choose a password. -->
@@ -184,7 +183,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
         </div>
         <p v-if="vault.status === 'allow-folder'" class="muted small">{{ t('sync.allow.hint') }}</p>
         <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
-        <p class="muted small">{{ t(onedrive ? 'sync.onedrive.limits' : 'sync.limits') }}</p>
+        <p class="muted small">{{ t('sync.limits') }}</p>
       </div>
 
       <section v-if="vault.step === 'ready' && vault.devices.length" class="stack">
@@ -205,8 +204,8 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
 
       <section v-if="vault.connected" class="stack danger">
         <h4>{{ t('sync.disconnect') }}</h4>
-        <p class="muted small">{{ kindText('sync.disconnect.hint', 'sync.disconnect.hint.onedrive') }}</p>
-        <ToggleSwitch v-model="deleteFiles" plain :label="kindText('sync.disconnect.delete', 'sync.disconnect.delete.onedrive')" :hint="kindText('sync.disconnect.delete.hint', 'sync.disconnect.delete.hint.onedrive')" data-testid="sync-delete-files" />
+        <p class="muted small">{{ t('sync.disconnect.hint') }}</p>
+        <ToggleSwitch v-model="deleteFiles" plain :label="t('sync.disconnect.delete')" :hint="t('sync.disconnect.delete.hint')" data-testid="sync-delete-files" />
         <label v-if="deleteFiles" class="lbl">{{ t('sync.password') }}
           <input v-model="deletePassword" class="field" type="password" autocomplete="current-password" data-testid="sync-delete-password">
         </label>
@@ -215,7 +214,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
           <p class="small"><a :href="MICROSOFT_APP_ACCESS_URL" target="_blank" rel="noopener noreferrer" data-testid="sync-revoke-link"><Icon name="lucide:external-link" /> {{ t('sync.disconnect.revoke.link') }}</a></p>
         </div>
         <div><button class="btn btn-danger btn-sm" type="button" :disabled="!canDisconnect" data-testid="sync-disconnect" @click="confirmDisconnect = true"><Icon name="lucide:unplug" /> {{ t('sync.disconnect') }}</button></div>
-        <ConfirmDialog v-model:open="confirmDisconnect" danger :title="t('sync.disconnect.title')" :confirm-label="t('sync.disconnect.button')" :message="kindText(deleteFiles ? 'sync.disconnect.message.delete' : 'sync.disconnect.message', deleteFiles ? 'sync.disconnect.message.delete.onedrive' : 'sync.disconnect.message.onedrive')" confirm-icon="lucide:unplug" @confirm="disconnect" />
+        <ConfirmDialog v-model:open="confirmDisconnect" danger :title="t('sync.disconnect.title')" :confirm-label="t('sync.disconnect.button')" :message="t(deleteFiles ? 'sync.disconnect.message.delete' : 'sync.disconnect.message')" confirm-icon="lucide:unplug" @confirm="disconnect" />
       </section>
     </template>
   </section>
