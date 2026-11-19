@@ -20,6 +20,10 @@ version of each pull request and comments its URL. Both are dormant until you do
 3. Cloudflare Workers Builds is already off (do not turn it on again: every push would deploy twice).
 4. Set the repository variable `CLOUDFLARE_DEPLOY` to `true`.
 
+## What a deploy does to a live board
+
+A deploy restarts the Durable Object: every WebSocket closes and the relay forgets its buffer. Boards in progress carry on: the direct links between participants stay open and re-key themselves when the relay is back (`docs/architecture.md` section 5.3), so notes and votes keep flowing and nobody re-syncs. A tab on an older version keeps unknown events and offers a reload. Deploying during a retro is therefore safe; the relay only sees participants reconnect.
+
 ## Rollback
 
 - Automatic: a failed smoke test after a deploy runs `wrangler rollback` to the previous version and fails the run.

@@ -126,10 +126,12 @@ The behaviour below is `RoomCore` (`apps/relay/src/core/room.ts`), written once 
 - Admission: origin (`apps/relay/src/core/origin.ts`), room id format, at most 30 connections per room, frame size (256 KB, ciphertext of one message 16 KB), frame rate per connection (`packages/protocol/src/budgets.ts`). Planned and not built: entitlement token (change `licensing-and-monetization`) and a room lifetime cap. No Turnstile: ADR-0019 chose edge protection instead.
 - The client stays under those budgets by itself (change `deploy-safe-sessions`): an upload is cut by bytes under the frame size (`chunk`) and paced at half the frame budget (`FramePacer`, 40 `pub` frames per 10 s window); the reconnect backoff starts over only once a connection held 30 s past the relay history, and a close for size or rate (1008, 1009) is followed by at least 30 s of quiet before the next socket.
 - Fan-out of envelopes to the other sockets of the room.
-- Bounded ring buffer of the last N envelopes in memory (e.g. 2,000 or 4 MB) for fast catch-up.
+- Bounded ring buffer of the last N envelopes in memory (e.g. 2,000 or 4 MB) for fast catch-up. It is cleared when the last socket of the room closes (`RoomCore.leave`, from `webSocketClose` and `webSocketError`): an empty room holds nothing, and the next participant re-seeds what it holds.
 - WebRTC signalling: forwards SDP offers/answers and ICE candidates between peers (encrypted too).
 - **Never** calls `ctx.storage`. A test in CI fails if the relay code (including the core) references the storage API.
 - Node adapter only: a payload limit equal to the frame limit (close 1009), ping and idle timeout, send-buffer guard, per-address connection cap and connect rate, `SIGTERM` drain closing every socket with 1001. These replace the part of the edge protection that a self-hosted instance does not have; volumetric protection stays the operator's proxy. The adapter never logs a URL (the room id is in the query string).
+
+**A deploy during a live board** (change `deploy-safe-sessions`): a relay restart closes every socket and gives everyone a new connection id, but the WebRTC links are not closed with it. `ws.onclose` keeps the mesh; at the next `welcome` the open links are held for 30 s (`HOLD_MS`) and re-keyed to the new ids by the session key announced in presence (`PeerMesh.hold`, `rekey`; `heldKeys` in `encrypted.ts`). A participant that reconnects alone is handled the same way on the others' `peers` frame. Meanwhile events flow over the links, then the usual `have` exchange fills what was missed; a link nobody claims in time is closed and set up again the ordinary way. The relay sees no new frame (design: `openspec/changes/deploy-safe-sessions/design.md`).
 
 ### 5.4 Resurrection (replication)
 

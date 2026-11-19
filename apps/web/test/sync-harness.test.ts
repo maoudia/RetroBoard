@@ -1,3 +1,4 @@
+import { HOLD_MS } from '../app/transport/mesh'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createBoardAs, holderOfBoardOf, type Peer, World } from './sync-harness'
 
@@ -31,7 +32,7 @@ describe('sync harness smoke', { timeout: 60_000 }, () => {
  * (memory gone, every socket closed) during a board is the normal case.
  *
  * Each scenario fails (or failed) for the reason in its comment, so it is marked `it.fails` until the group that
- * fixes it removes the marker (2.2 unknown command and 3.1 uploads, done; 4.2 links).
+ * fixes it removes the marker (2.2 unknown command, 3.1 uploads and 4.2 links, done).
  */
 describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
   async function boardWith(...names: string[]) {
@@ -44,9 +45,9 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     return { alice, others }
   }
 
-  // 4.2: `ws.onclose` closes the mesh, so the links die with the relay socket and nothing flows until the
+  // 4.2: `ws.onclose` used to close the mesh, so the links died with the relay socket and nothing flowed until the
   // reconnect (new connection ids, a new WebRTC set-up, a full re-sync).
-  it.fails('the relay closes every socket: the three direct links stay open and an event sent meanwhile reaches the others', async () => {
+  it('the relay closes every socket: the three direct links stay open and an event sent meanwhile reaches the others', async () => {
     const { alice, others } = await boardWith('bob', 'carol')
     const [bob, carol] = others as [Peer, Peer]
     const trio = [alice, bob, carol]
@@ -60,6 +61,46 @@ describe('a relay deploy during a live board', { timeout: 180_000 }, () => {
     expect(bob.note('written during the deploy')).toBe(true)
     expect(await world.until(() => alice.notes.includes('written during the deploy') && carol.notes.includes('written during the deploy'), 2_000)).toBe(true)
     world.relay.reopen()
+    // Back under new connection ids, the same links carry on: no new WebRTC set-up, the three agree.
+    expect(await world.until(() => trio.every((p) => p.status === 'open'), 60_000)).toBe(true)
+    await world.run(1_000)
+    expect(world.rtc.pcs.size).toBe(links)
+    expect(trio.map((p) => p.links?.peers)).toEqual([2, 2, 2])
+    expect(alice.note('after the deploy')).toBe(true)
+    expect(await world.until(() => bob.notes.includes('after the deploy') && carol.notes.includes('after the deploy'), 2_000)).toBe(true)
+    expect(world.converged()).toBe(true)
+  })
+
+  // 4.2: one participant loses its relay socket (a network blip): the others see it leave and come back under another
+  // connection id. Their links to it are kept meanwhile and re-keyed, nobody sets up a new one.
+  it('one participant loses its relay socket: its direct links are kept and re-keyed to its new connection id', async () => {
+    const { alice, others } = await boardWith('bob', 'carol')
+    const [bob, carol] = others as [Peer, Peer]
+    const trio = [alice, bob, carol]
+    expect(await world.until(() => trio.every((p) => p.links?.peers === 2))).toBe(true)
+    const links = world.rtc.pcs.size
+    bob.setOnline(false)
+    await world.run(200)
+    bob.setOnline(true)
+    expect(await world.until(() => bob.status === 'open', 60_000)).toBe(true)
+    await world.run(1_000)
+    expect(world.rtc.pcs.size).toBe(links)
+    expect(trio.map((p) => p.links?.peers)).toEqual([2, 2, 2])
+    expect(carol.note('after the blip')).toBe(true)
+    expect(await world.until(() => alice.notes.includes('after the blip') && bob.notes.includes('after the blip'), 2_000)).toBe(true)
+  })
+
+  // 4.1: a link nobody claims is closed when the grace period ends: its owner did not come back (or came back as
+  // another session, whose key matches nothing), and the ordinary mesh set-up takes over.
+  it('a link whose owner does not come back is closed when the grace period ends', async () => {
+    const { alice, others } = await boardWith('bob', 'carol')
+    const [bob, carol] = others as [Peer, Peer]
+    expect(await world.until(() => [alice, bob, carol].every((p) => p.links?.peers === 2))).toBe(true)
+    bob.setOnline(false)
+    await world.run(HOLD_MS - 5_000)
+    expect(alice.links?.peers).toBe(2)
+    await world.run(10_000)
+    expect([alice.links?.peers, carol.links?.peers]).toEqual([1, 1])
   })
 
   // An event whose body this version cannot parse is kept and passed on, and the page is told once (2.2).

@@ -16,15 +16,26 @@ export interface MeshOptions {
   onClose(conn: string): void
   onReliable(conn: string, data: string): void
   onLive(conn: string, data: string): void
+  /**
+   * True while a connection I know nothing about yet may be the new id of a held link: no offer is sent to it
+   * until its identity is known (a second link to the same participant would only be closed again).
+   */
+  deferCall?(conn: string): boolean
+  /** A held link was not claimed within the grace period and is closed (`onClose` ran). */
+  onHoldEnd?(conn: string): void
   RTC?: typeof RTCPeerConnection
 }
 
 interface Link {
+  /** The connection id the link is known by: it changes when a held link is re-keyed. */
+  conn: string
   pc: RTCPeerConnection
   rb: RTCDataChannel | null
   live: RTCDataChannel | null
   open: boolean
   timer: ReturnType<typeof setTimeout> | undefined
+  /** Set while the link waits to be re-keyed to its owner's new connection id. */
+  held: ReturnType<typeof setTimeout> | undefined
   attempts: number
 }
 
@@ -33,6 +44,11 @@ export const LINK_TIMEOUT_MS = 10_000
 const MAX_ATTEMPTS = 3
 /** Non-trickle ICE: wait for gathering, but never longer than this (an unreachable STUN server). */
 const ICE_WAIT_MS = 1_500
+/**
+ * How long a link whose connection id left the room waits for its owner to come back under a new id
+ * (change deploy-safe-sessions). A relay restart brings everybody back within the reconnect backoff (10 s at most).
+ */
+export const HOLD_MS = 30_000
 
 function waitIce(pc: RTCPeerConnection): Promise<void> {
   if (pc.iceGatheringState === 'complete') return Promise.resolve()
@@ -48,10 +64,17 @@ export class PeerMesh {
   private readonly links = new Map<string, Link>()
   private wanted = new Set<string>()
   private closed = false
+  private me: string
   private readonly RTC: typeof RTCPeerConnection
 
   constructor(private readonly o: MeshOptions) {
     this.RTC = o.RTC ?? RTCPeerConnection
+    this.me = o.me
+  }
+
+  /** My connection id changed (the relay welcomed me again): offers and the topology follow it, open links stay. */
+  setMe(conn: string): void {
+    this.me = conn
   }
 
   /** Links I should have with the current participants but that are not open (yet, or ever). */
@@ -67,9 +90,38 @@ export class PeerMesh {
   /** Recomputes the links from the room's participants; opens the missing ones, closes the extra ones. */
   update(conns: readonly string[]): void {
     if (this.closed) return
-    this.wanted = new Set(meshLinks(this.o.me, conns))
-    for (const c of [...this.links.keys()]) if (!this.wanted.has(c)) this.drop(c)
-    for (const c of this.wanted) if (!this.links.has(c) && isInitiator(this.o.me, c)) void this.call(c, 0)
+    this.wanted = new Set(meshLinks(this.me, conns))
+    for (const [c, link] of [...this.links]) if (!this.wanted.has(c) && !link.held) this.drop(c)
+    for (const c of this.wanted) if (!this.links.has(c) && isInitiator(this.me, c) && !this.o.deferCall?.(c)) void this.call(c, 0)
+  }
+
+  /**
+   * The participant behind an open link left the room (its relay socket closed): keep the link for `HOLD_MS`, it may come
+   * back under a new connection id (`rekey`). A held link carries data as before and survives `update`.
+   */
+  hold(conn: string): boolean {
+    const link = this.links.get(conn)
+    if (this.closed || !link?.open || link.held) return false
+    link.held = setTimeout(() => {
+      if (this.links.get(link.conn) !== link) return
+      this.drop(link.conn)
+      this.o.onHoldEnd?.(link.conn)
+    }, HOLD_MS)
+    return true
+  }
+
+  /** The owner of a held link is back under `to`: the link is known by that id from now on. */
+  rekey(from: string, to: string): boolean {
+    const link = this.links.get(from)
+    if (this.closed || !link?.held || from === to) return false
+    clearTimeout(link.held)
+    link.held = undefined
+    this.links.delete(from)
+    // A link set up to the new id in the meantime is the redundant one.
+    this.drop(to)
+    link.conn = to
+    this.links.set(to, link)
+    return true
   }
 
   async onSignal(from: string, kind: 'offer' | 'answer', sdp: string): Promise<void> {
@@ -132,18 +184,18 @@ export class PeerMesh {
 
   private create(conn: string, initiator: boolean, attempts: number): Link {
     const pc = new this.RTC({ iceServers: this.o.iceServers })
-    const link: Link = { pc, rb: null, live: null, open: false, timer: undefined, attempts }
+    const link: Link = { conn, pc, rb: null, live: null, open: false, timer: undefined, held: undefined, attempts }
     this.links.set(conn, link)
     const bind = (ch: RTCDataChannel) => {
       if (ch.label === 'rb') link.rb = ch
       else if (ch.label === 'live') link.live = ch
       else return
-      ch.onopen = () => this.maybeOpen(conn, link)
-      ch.onclose = () => { if (this.links.get(conn) === link) this.fail(conn) }
+      ch.onopen = () => this.maybeOpen(link)
+      ch.onclose = () => { if (this.links.get(link.conn) === link) this.fail(link.conn) }
       ch.onmessage = (e: MessageEvent) => {
         if (typeof e.data !== 'string') return
-        if (ch.label === 'rb') this.o.onReliable(conn, e.data)
-        else this.o.onLive(conn, e.data)
+        if (ch.label === 'rb') this.o.onReliable(link.conn, e.data)
+        else this.o.onLive(link.conn, e.data)
       }
     }
     if (initiator) {
@@ -152,17 +204,17 @@ export class PeerMesh {
     } else {
       pc.ondatachannel = (e) => bind(e.channel)
     }
-    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' && this.links.get(conn) === link) this.fail(conn) }
-    link.timer = setTimeout(() => { if (!link.open && this.links.get(conn) === link) this.fail(conn) }, LINK_TIMEOUT_MS)
+    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' && this.links.get(link.conn) === link) this.fail(link.conn) }
+    link.timer = setTimeout(() => { if (!link.open && this.links.get(link.conn) === link) this.fail(link.conn) }, LINK_TIMEOUT_MS)
     return link
   }
 
-  private maybeOpen(conn: string, link: Link): void {
+  private maybeOpen(link: Link): void {
     if (link.open || link.rb?.readyState !== 'open' || link.live?.readyState !== 'open') return
     link.open = true
     clearTimeout(link.timer)
     link.attempts = 0
-    this.o.onOpen(conn)
+    this.o.onOpen(link.conn)
   }
 
   /** A link failed: tear it down, and the initiator retries a couple of times. */
@@ -170,7 +222,7 @@ export class PeerMesh {
     const link = this.links.get(conn)
     const attempts = (link?.attempts ?? 0) + 1
     this.drop(conn)
-    if (this.closed || !this.wanted.has(conn) || !isInitiator(this.o.me, conn) || attempts >= MAX_ATTEMPTS) return
+    if (this.closed || !this.wanted.has(conn) || !isInitiator(this.me, conn) || attempts >= MAX_ATTEMPTS) return
     setTimeout(() => { if (!this.closed && this.wanted.has(conn) && !this.links.has(conn)) void this.call(conn, attempts) }, 1_000 * attempts)
   }
 
@@ -179,6 +231,7 @@ export class PeerMesh {
     if (!link) return
     this.links.delete(conn)
     clearTimeout(link.timer)
+    clearTimeout(link.held)
     try { link.rb?.close(); link.live?.close(); link.pc.close() } catch { /* already closed */ }
     if (link.open) this.o.onClose(conn)
   }

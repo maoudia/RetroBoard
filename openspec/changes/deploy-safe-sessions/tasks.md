@@ -17,7 +17,7 @@
 
 ## 4. Links survive the relay
 
-- [ ] 4.1 `design.md` decision: grace period, matching old and new connection ids by session key, what happens when the key changes; security note (what the relay observes is unchanged); verify review
-- [ ] 4.2 `mesh.ts` and `encrypted.ts`: keep links on `ws.onclose`, re-key them on the next `welcome`; verify the restart scenario of 1.1 passes and `p2p.spec.ts` stays green
-- [ ] 4.3 `EnvelopeBuffer.clear()` and a call in `webSocketClose` and `webSocketError` when no socket remains; verify `apps/relay/test/relay-core.test.ts`
-- [ ] 4.4 `docs/PLAN.md` sync section and README line on what a deploy does to a live board; verify `pnpm verify`
+- [x] 4.1 `design.md` decision: grace period, matching old and new connection ids by session key, what happens when the key changes; security note (what the relay observes is unchanged); verify review
+- [x] 4.2 `mesh.ts` and `encrypted.ts`: keep links on `ws.onclose`, re-key them on the next `welcome`; verify the restart scenario of 1.1 passes and `p2p.spec.ts` stays green
+- [x] 4.3 `EnvelopeBuffer.clear()` and a call in `webSocketClose` and `webSocketError` when no socket remains; verify `apps/relay/test/relay-core.test.ts`
+- [x] 4.4 `docs/PLAN.md` sync section and README line on what a deploy does to a live board; verify `pnpm verify`

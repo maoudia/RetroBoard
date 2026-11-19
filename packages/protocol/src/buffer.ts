@@ -30,6 +30,12 @@ export class EnvelopeBuffer {
     return fresh
   }
 
+  /** Forgets everything: the room is empty (the relay keeps board data only for those who are connected). */
+  clear(): void {
+    this.byId.clear()
+    this.bytes = 0
+  }
+
   /** History frames in arrival order, each under the frame and count limits. */
   history(): RelayFrame[] {
     const pages = chunk([...this.byId.values()].map((e) => e.env))

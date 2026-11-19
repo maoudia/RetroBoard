@@ -112,6 +112,8 @@ export class EncryptedRelayTransport implements BoardTransport {
   private full = false
   private synced = false
   private mesh: PeerMesh | null = null
+  /** Links kept while their owner is away from the room, by the connection id they had: the session key to match the new id with. */
+  private readonly heldKeys = new Map<string, string>()
   private p2pTimer: ReturnType<typeof setTimeout> | undefined
   /** Ids the relay is known to hold (history, fan-out, what I pushed): the rest is uploaded at the next welcome. */
   private readonly relayHas = new Set<string>()
@@ -792,7 +794,7 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   private onLive(live: Live): void {
     if (!this.conns.includes(live.conn) || live.conn === this.conn) return
-    if (live.t === 'presence') { this.presence.set(live.conn, live); this.emit(); return }
+    if (live.t === 'presence') { this.presence.set(live.conn, live); this.claimHeld(live); this.emit(); return }
     if (live.t === 'room.moved') { if (live.to === this.conn) this.enqueue(() => this.onMoved(live.ct)); return }
     const name = this.liveName(live.conn)
     if (name === undefined) return
@@ -802,14 +804,26 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   // ----- Mesh -----
 
+  /**
+   * A relay socket closed and a new one was welcomed: the connection ids changed, the links did not. Open links are
+   * kept for `HOLD_MS` and re-keyed one by one as presence announces their owner under the new id (`claimHeld`).
+   */
   private startMesh(): void {
+    const kept = this.mesh
+    if (kept && this.conn) {
+      kept.setMe(this.conn)
+      this.holdLinks(kept.linked)
+      this.forgetPeerState()
+      clearTimeout(this.p2pTimer)
+      kept.update(this.conns)
+      this.reportLinks()
+      this.armSyncTimer()
+      return
+    }
     this.mesh?.close()
     this.mesh = null
-    this.peerSynced.clear()
-    this.peerHave.clear()
-    this.snapParts.clear()
-    this.snapWanted.clear()
-    this.snapAsked.clear()
+    this.heldKeys.clear()
+    this.forgetPeerState()
     clearTimeout(this.p2pTimer)
     const canP2p = this.deps.p2p !== false && typeof (this.deps.RTC ?? globalThis.RTCPeerConnection) === 'function'
     if (!canP2p || !this.conn) { this.reportLinks(); return }
@@ -819,13 +833,54 @@ export class EncryptedRelayTransport implements BoardTransport {
       RTC: this.deps.RTC,
       signal: (to, kind, sdp) => this.enqueue(() => this.sendSignal(to, kind, sdp)),
       onOpen: (c) => this.enqueue(() => this.onPeerOpen(c)),
-      onClose: (c) => { this.peerSynced.delete(c); this.peerHave.delete(c); this.snapParts.delete(c); this.snapWanted.delete(c); this.snapAsked.delete(c); this.reportLinks() },
+      onClose: (c) => { this.forgetPeer(c); this.heldKeys.delete(c); this.reportLinks() },
       onReliable: (c, data) => this.onPeerData(c, data),
       onLive: (c, data) => this.onPeerData(c, data),
+      deferCall: (c) => this.heldKeys.size > 0 && !this.presence.has(c),
+      onHoldEnd: () => { this.mesh?.update(this.conns) },
     })
     this.mesh.update(this.conns)
     this.reportLinks()
     this.armSyncTimer()
+  }
+
+  private forgetPeer(c: string): void {
+    this.peerSynced.delete(c)
+    this.peerHave.delete(c)
+    this.snapParts.delete(c)
+    this.snapWanted.delete(c)
+    this.snapAsked.delete(c)
+  }
+
+  private forgetPeerState(): void {
+    this.peerSynced.clear()
+    this.peerHave.clear()
+    this.snapParts.clear()
+    this.snapWanted.clear()
+    this.snapAsked.clear()
+  }
+
+  /** Keeps the links of connections that left the room, when the session key they announced is known to match them later. */
+  private holdLinks(conns: readonly string[]): void {
+    for (const c of conns) {
+      const key = this.presence.get(c)?.key
+      if (key && this.mesh?.hold(c)) this.heldKeys.set(c, key)
+    }
+  }
+
+  /** A participant announced itself: if its session key is that of a held link, the link is its own, under the new id. */
+  private claimHeld(p: Presence): void {
+    if (!this.mesh || !this.heldKeys.size) return
+    const old = p.key ? [...this.heldKeys].find(([, key]) => key === p.key)?.[0] : undefined
+    if (old !== undefined && this.mesh.rekey(old, p.conn)) {
+      this.heldKeys.delete(old)
+      this.forgetPeer(old)
+      this.forgetPeer(p.conn)
+      this.enqueue(() => this.onPeerOpen(p.conn))
+      return
+    }
+    // A newcomer: its link can be set up now.
+    this.mesh.update(this.conns)
   }
 
   /** What the page shows: direct links when there are some (or nobody to link with), the relay otherwise. */
@@ -1039,6 +1094,8 @@ export class EncryptedRelayTransport implements BoardTransport {
       case 'peers': {
         const known = new Set(this.conns)
         this.conns = frame.peers
+        // A participant that reconnects leaves under one id and comes back under another: keep its links meanwhile.
+        this.holdLinks([...known].filter((c) => !frame.peers.includes(c)))
         for (const c of [...this.presence.keys()]) if (!frame.peers.includes(c)) this.presence.delete(c)
         for (const c of known) if (!frame.peers.includes(c)) this.handlers.onPeerLeft?.(c)
         this.mesh?.update(this.conns)
@@ -1249,9 +1306,7 @@ export class EncryptedRelayTransport implements BoardTransport {
       clearInterval(this.heartbeat)
       if (this.closed || this.ws !== ws) return
       clearTimeout(this.stableTimer)
-      // New connection id on reconnect: the mesh is rebuilt from the next welcome.
-      this.mesh?.close()
-      this.mesh = null
+      // The links outlive the socket: events keep flowing on them, and the next welcome re-keys them to the new connection ids.
       clearTimeout(this.p2pTimer)
       this.synced = false
       this.histDone = false
