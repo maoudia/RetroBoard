@@ -154,3 +154,9 @@ describe('a deliberately broken target fails the contract', () => {
     for (const check of [...contractChecks, ...faultChecks]) await check.run(broken('none'))
   }, 60_000)
 })
+
+describe('fault checks', () => {
+  it('fail on a harness that cannot provoke the fault, rather than pass without checking', async () => {
+    await expect(faultChecks[0]!.run({ target: createMemoryTarget() })).rejects.toThrow('no fault injection')
+  })
+})

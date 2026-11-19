@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
-import { COLUMN_ICONS, LIMITS , suggestTemplates, suggestThemeForDate , TEMPLATES  } from '@retroboard/domain'
+import { COLUMN_ICONS, LIMITS , localizeTemplate, suggestTemplates, suggestThemeForDate , TEMPLATES  } from '@retroboard/domain'
 
 const lucide = createRequire(import.meta.url)('@iconify-json/lucide/icons.json') as {
   icons: Record<string, unknown>
@@ -71,5 +71,22 @@ describe('votable columns by template (change column-voting-scope)', () => {
     for (const t of TEMPLATES) expect(t.columns.some((c) => c.votable !== false), t.id).toBe(true)
     const ssc = TEMPLATES.find((t) => t.id === 'start-stop-continue')!
     expect(ssc.columns.map((c) => c.votable !== false)).toEqual([true, true, false])
+  })
+})
+
+describe('localizing a template', () => {
+  const ssc = TEMPLATES.find((t) => t.id === 'start-stop-continue')!
+  it('keeps the French source for French, for no locale and for a format without an English text', () => {
+    expect(localizeTemplate(ssc, 'fr')).toBe(ssc)
+    expect(localizeTemplate(ssc, undefined)).toBe(ssc)
+    const custom = { ...ssc, id: 'custom-format' }
+    expect(localizeTemplate(custom, 'en')).toBe(custom)
+  })
+  it('keeps the French text of a column the English source does not describe', () => {
+    const extra = { title: 'Extra', subtitle: 'Sous-titre', icon: 'play' }
+    const en = localizeTemplate({ ...ssc, columns: [...ssc.columns, extra] }, 'en')
+    expect(en.name).toBe('Start / Stop / Continue')
+    expect(en.columns[0]!.title).toBe('Start')
+    expect(en.columns.at(-1)).toMatchObject({ title: 'Extra', subtitle: 'Sous-titre' })
   })
 })

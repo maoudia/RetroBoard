@@ -259,7 +259,7 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 |---|---|
 | Spec gate | `openspec validate --all --strict`; PR touching `apps/` or `packages/` must link a change or carry `no-spec` |
 | Static | ESLint (flat config), Stylelint, `vue-tsc`, `tsc -b` for packages, `dependency-cruiser` layer rules, `knip` dead code |
-| Unit | Vitest per package with coverage thresholds: domain 95%, application 90%, others 80% |
+| Unit | Vitest with coverage thresholds at 100% (statements, branches, functions, lines) over `packages/*/src` and `apps/relay/src` |
 | Mutation | Stryker on `packages/domain` (changed files on PR, full nightly) |
 | Protocol | Snapshot of wire schemas; backward-compatibility check for protocol versions |
 | E2E | Playwright sharded: Chromium, Firefox, WebKit; viewports phone, tablet, laptop, TV; multi-user scenarios against `wrangler dev` |

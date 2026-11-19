@@ -32,6 +32,28 @@ describe('the history of a cluster rename, exactly', () => {
   })
 })
 
+describe('the history of a cluster rename on a legacy cluster', () => {
+  const roomId = 'Ab3dEfGhIjKlMnOpQrStUv'
+  const FAC = 'f'.repeat(42) + 'A'
+  const eid = (n: number) => `01J${String(n).padStart(23, '0')}`
+  it('shows an empty text when the cluster had no title key and is renamed to nothing', () => {
+    const events: VerifiedEvent[] = [{ id: eid(1), at: 10, author: FAC, body: { t: 'genesis', roomId, facilitatorKey: FAC } }]
+    const add = (cmd: Command) => { events.push({ id: eid(events.length + 1), at: 10 + events.length * 100, author: FAC, body: { t: 'cmd', cmd, name: 'A', showName: true } }) }
+    add({ t: 'board.init', templateId: 'start-stop-continue', themeId: 'studio', title: 'T' })
+    const col = foldAll(emptyLedger(roomId), events).board.columns[0]!.id
+    add({ t: 'note.add', columnId: col, text: 'one' })
+    add({ t: 'note.add', columnId: col, text: 'two' })
+    const [one, two] = Object.values(foldAll(emptyLedger(roomId), events).board.notes).map((n) => n.id) as [string, string]
+    add({ t: 'note.group', id: two, ontoId: one })
+    const ledger = foldAll(emptyLedger(roomId), events)
+    const gid = ledger.board.notes[one]!.groupId!
+    const { title: _title, ...legacy } = ledger.board.groups[gid]!
+    const from = { ...ledger, board: { ...ledger.board, groups: { ...ledger.board.groups, [gid]: legacy as typeof ledger.board.groups[string] } } }
+    const tail: VerifiedEvent[] = [{ id: eid(99), at: 5000, author: FAC, body: { t: 'cmd', cmd: { t: 'group.rename', id: gid, title: '' }, name: 'A', showName: true } }]
+    expect(historyOf(roomId, tail, 50, from).at(-1)).toMatchObject({ kind: 'rename', text: '', columnId: col })
+  })
+})
+
 describe('restoring a board, exactly', () => {
   it('leaves an idea grouped with ideas written since, as grouped by others', () => {
     const { h, add } = fresh()

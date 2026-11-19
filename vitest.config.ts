@@ -24,18 +24,9 @@ export default defineConfig({
       provider: 'v8',
       include: ['apps/relay/src/**', 'packages/*/src/**'],
       reporter: ['text-summary', 'json-summary', 'html'],
-      // Ratchets: never lower them. Targets (docs/architecture.md 10.1): domain 95, application 90, others 80.
-      thresholds: {
-        'packages/domain/src/**': { lines: 95 },
-        'packages/application/src/**': { lines: 90 },
-        'packages/protocol/src/**': { lines: 90 },
-        'packages/exporters/src/**': { lines: 90 },
-        'packages/crypto/src/**': { lines: 95 },
-        'packages/sync/src/**': { lines: 95 },
-        'packages/i18n/src/**': { lines: 95 },
-        'packages/themes/src/**': { lines: 60 },
-        'apps/relay/src/**': { lines: 30 },
-      },
+      // Ratchet: every statement, branch, function and line of the sources is covered. Never lower it. A line that cannot be
+      // reached is dead code and is removed; nothing is excluded to hide a gap.
+      thresholds: { statements: 100, branches: 100, functions: 100, lines: 100 },
     },
   },
 })

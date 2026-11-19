@@ -21,6 +21,7 @@ describe('dictionaries', () => {
     expect(translate('en', 'votebar.votes', { n: 3 })).toBe('3 votes per person')
     expect(translate('fr', 'votebar.votes', { n: 0 })).toBe('0 vote par personne')
     expect(translate('fr', 'column.delete.msgNotes', { n: 2, title: 'X' })).toContain('2 post-its')
+    expect(translate('fr', 'history.restored.partial', { n: 2 })).toBe('Tableau restauré : 2 changements, {skipped} éléments laissés tels quels')
   })
 
   it('falls back to French, then to the key', () => {

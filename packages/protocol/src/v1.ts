@@ -151,10 +151,10 @@ export type { Command }
 
 // Compile-time guard: the wire schema and the domain command type must describe the same shapes.
 type Parsed = v.InferOutput<typeof CommandSchema>
-// Stryker disable next-line ArrowFunction: a compile-time check, the function is never called
-const _schemaMatchesDomain: (p: Parsed) => Command = (p) => p
-// Stryker disable next-line ArrowFunction: a compile-time check, the function is never called
-const _domainMatchesSchema: (c: Command) => Parsed = (c) => c
+// Stryker disable next-line BooleanLiteral: a compile-time check, the value is never read
+const _schemaMatchesDomain: [Parsed] extends [Command] ? true : never = true
+// Stryker disable next-line BooleanLiteral: a compile-time check, the value is never read
+const _domainMatchesSchema: [Command] extends [Parsed] ? true : never = true
 void _schemaMatchesDomain
 void _domainMatchesSchema
 

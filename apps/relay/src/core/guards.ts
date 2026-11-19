@@ -29,7 +29,7 @@ export function createLimiter(limit: number, windowMs: number) {
     const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs)
     recent.push(now)
     hits.set(key, recent)
-    if (hits.size > 5000) for (const [k, v] of hits) if (now - (v[v.length - 1] ?? 0) >= windowMs) hits.delete(k)
+    if (hits.size > 5000) for (const [k, v] of hits) if (now - v[v.length - 1]! >= windowMs) hits.delete(k)
     return recent.length <= limit
   }
 }

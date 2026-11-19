@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, derivedPairs, getTheme, mix, ringColors, stickyColor, tokensFor } from '../src'
+import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, derivedPairs, getTheme, luminance, mix, ringColors, stickyColor, themeText, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -133,5 +133,30 @@ describe('control border', () => {
   })
   it('falls back to the text colour when nothing fainter works', () => {
     expect(controlColor({ text: '#777777', bg: '#808080', bg2: '#808080', surface: '#808080', surface2: '#808080' })).toBe('#777777')
+  })
+})
+
+describe('theme fonts', () => {
+  it.each(THEMES.map((t) => [t.id, t] as const))('loads the fonts of %s', async (_id, t) => {
+    await expect(t.loadFonts()).resolves.toBeDefined()
+  })
+})
+
+describe('theme texts', () => {
+  it('serves the english texts when they exist, otherwise the french ones of the theme', () => {
+    const studio = getTheme('studio')
+    expect(themeText(studio, 'en').hero).not.toBe(studio.copy.hero)
+    expect(themeText(studio, 'fr')).toEqual({ tagline: studio.tagline, ...studio.copy })
+    const unknown = { ...studio, id: 'no-english-entry' }
+    expect(themeText(unknown, 'en')).toEqual({ tagline: studio.tagline, ...studio.copy })
+  })
+})
+
+describe('hex shorthand', () => {
+  it('expands #rgb in luminance and mix', () => {
+    expect(luminance('#fff')).toBeCloseTo(1, 5)
+    expect(luminance('#000')).toBe(0)
+    expect(mix('#fff', '#000', 1)).toBe('#ffffff')
+    expect(mix('#000000', '#fff', 0)).toBe('#ffffff')
   })
 })

@@ -56,6 +56,9 @@ describe('Google Sheets', () => {
     const tsv = toSheetsTsv(report(), t)
     expect(tsv.split('\n')[0]).toBe('export.csv.column\texport.csv.group\texport.csv.note\texport.csv.votes\texport.csv.author')
     expect(tsv).toContain(`Start\t\t'=HYPERLINK("x")\t0\t`)
+    const legacy = report()
+    const noVotes = { ...legacy, columns: legacy.columns.map((c) => ({ ...c, items: c.items.map((it) => (it.kind === 'note' ? { ...it, note: { ...it.note, votes: undefined } } : it)) })) } as unknown as typeof legacy
+    expect(toSheetsTsv(noVotes, t)).toContain(`Start\t\t'=HYPERLINK("x")\t0\t`)
     expect(toSheetsTsv(report(), t, { actionsOnly: true })).toBe('report.action\treport.owner\treport.status\treport.due\nCache <deps>\tAna\tactions.status.todo\t2026-11-01\n')
   })
 })

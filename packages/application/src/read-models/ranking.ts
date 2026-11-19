@@ -28,11 +28,11 @@ export function buildRanking(s: Pick<Snapshot, 'notes' | 'groups'> & { columns?:
     if (off.has(g.columnId)) continue
     const notes = s.notes.filter((n) => n.groupId === g.id)
     if (!notes.length) continue
-    items.push({ kind: 'cluster', id: g.id, title: groupTitle(g, notes), columnId: g.columnId, votes: g.votes ?? 0, rank: 0, size: notes.length, pos: order.get(notes[0]!.id) ?? 0 })
+    items.push({ kind: 'cluster', id: g.id, title: groupTitle(g, notes), columnId: g.columnId, votes: g.votes ?? 0, rank: 0, size: notes.length, pos: order.get(notes[0]!.id)! })
   }
   for (const n of s.notes) {
     if (n.groupId || off.has(n.columnId)) continue
-    items.push({ kind: 'note', id: n.id, title: n.text, columnId: n.columnId, votes: n.votes ?? 0, rank: 0, size: 1, pos: order.get(n.id) ?? 0 })
+    items.push({ kind: 'note', id: n.id, title: n.text, columnId: n.columnId, votes: n.votes ?? 0, rank: 0, size: 1, pos: order.get(n.id)! })
   }
   items.sort((a, b) => b.votes - a.votes || a.pos - b.pos)
   return items.map(({ pos: _pos, ...it }, i, all) => ({ ...it, rank: i > 0 && all[i - 1]!.votes === it.votes ? 0 : i + 1 }))

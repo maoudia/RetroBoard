@@ -226,6 +226,10 @@ describe('workspaces, exactly', () => {
     expect(next('Sprint 007')).toBe('Sprint 8')
     expect(next('No number')).toBeNull()
     expect(nextTitle(ws(), 't')).toBeNull()
+    const team = { id: 't', name: 'T', emoji: 'x', color: 'c' }
+    const withDefaults = (defaults: object) => ws({ teams: [{ ...team, defaults }] as Workspace['teams'], retros: [retro('1', 't', 5, { title: 'Sprint 1' })] })
+    expect(nextTitle(withDefaults({ title: 'Kickoff 7' }), 't')).toBe('Sprint 2')
+    expect(nextTitle(withDefaults({ title: 'Kickoff 7', at: 9 }), 't')).toBe('Kickoff 8')
     expect(nextTitle(ws({ retros: [retro('1', 't', 5, { title: 'Sprint 1' }), retro('2', 't', 9, { title: 'Sprint 5' }), retro('3', 'u', 99, { title: 'Sprint 50' })] }), 't')).toBe('Sprint 6')
   })
 })
