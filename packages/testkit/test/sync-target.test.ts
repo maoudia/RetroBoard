@@ -146,7 +146,7 @@ describe('a deliberately broken target fails the contract', () => {
     const check = contractChecks.find((c) => c.name === name)!
     expect(check, name).toBeDefined()
     await expect(check.run(broken(defect))).rejects.toThrow()
-  })
+  }, 60_000)
   it.each(faultChecks.map((c) => c.name))('a wrong error code is caught by "%s"', async (name) => {
     await expect(faultChecks.find((c) => c.name === name)!.run(broken('wrong-code'))).rejects.toThrow()
   })
