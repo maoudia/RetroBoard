@@ -2,6 +2,8 @@ import { type BrowserContext, type Page, expect, test } from '@playwright/test'
 import { axe, createBoard, enterName, noteByText, publishNote } from './helpers'
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
+/** The folder tests stub the picker with a folder of the origin private file system (see `stubPicker`). */
+const WEBKIT_NO_OPFS = "Playwright's WebKit has no origin private file system in its ephemeral contexts: navigator.storage.getDirectory() throws UnknownError there, so the folder stub has nothing to hand out"
 const PASSWORD = 'correct horse battery staple'
 const CANARIES = ['CANARY-title-7f3a', 'CANARY-note-91bc', 'CANARY-name-c04e']
 const [TITLE, NOTE, NAME] = CANARIES as [string, string, string]
@@ -82,7 +84,8 @@ async function startSync(page: Page) {
   await expect(status(page)).toHaveAttribute('data-status', 'synced', { timeout: 20_000 })
 }
 
-test('create a vault in a folder, see the recovery key and the warning, sync, lock after a reload, unlock, disconnect', async ({ page, context }) => {
+test('create a vault in a folder, see the recovery key and the warning, sync, lock after a reload, unlock, disconnect', async ({ page, context, browserName }) => {
+  test.skip(browserName === 'webkit', WEBKIT_NO_OPFS)
   await stubPicker(context)
   await createBoard(page, { template: 'start-stop-continue', name: NAME, title: TITLE })
   await publishNote(page, 0, NOTE)
@@ -166,7 +169,8 @@ test('create a vault in a folder, see the recovery key and the warning, sync, lo
   await expect(page.locator('[data-testid^="library-row-"]').filter({ hasText: TITLE })).toBeVisible()
 })
 
-test('a vault is not overwritten: the folder of an existing one asks for its password, and a recovery key opens it too', async ({ browser }) => {
+test('a vault is not overwritten: the folder of an existing one asks for its password, and a recovery key opens it too', async ({ browser, browserName }) => {
+  test.skip(browserName === 'webkit', WEBKIT_NO_OPFS)
   const ctxA = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const a = await ctxA.newPage()
   await stubPicker(ctxA)
@@ -211,7 +215,8 @@ async function newBoard(page: Page, title: string, name: string) {
   await expect(page.getByTestId('share-url')).toBeHidden()
 }
 
-test('two browsers: the library appears, a board opens with its events, a setting follows, and two offline edits merge', async ({ browser }) => {
+test('two browsers: the library appears, a board opens with its events, a setting follows, and two offline edits merge', async ({ browser, browserName }) => {
+  test.skip(browserName === 'webkit', WEBKIT_NO_OPFS)
   test.setTimeout(180_000)
   const ctxA = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'fr-FR' })
   const ctxB = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'fr-FR' })
@@ -298,7 +303,8 @@ test('a browser without the folder picker says so, and nothing else changes', as
   expect((await axe(page).withTags(WCAG).analyze()).violations).toEqual([])
 })
 
-test('the sync screens fit a 360 px phone and a wide screen without sideways scrolling, and the recovery key is reachable by keyboard', async ({ browser }) => {
+test('the sync screens fit a 360 px phone and a wide screen without sideways scrolling, and the recovery key is reachable by keyboard', async ({ browser, browserName }) => {
+  test.skip(browserName === 'webkit', WEBKIT_NO_OPFS)
   for (const [width, height] of [[360, 740], [2560, 1300]] as const) {
     const ctx = await browser.newContext({ viewport: { width, height } })
     await stubPicker(ctx)
