@@ -4,6 +4,8 @@ import { THEMES } from '@retroboard/themes'
 import { inviteFromHash } from '~/utils/invite'
 import { normalizeJoinCode } from '~/utils/join-code'
 const { t, locale } = useT()
+/** The source repository: AGPL section 13 offers it to every user of the service. */
+const REPO = 'https://github.com/maoudia/retroboard'
 const guideHref = computed(() => `/guide/${locale.value}/`)
 
 useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color', content: '#fbfbfd' }] })
@@ -83,7 +85,7 @@ onMounted(() => {
       <div class="nav-in">
         <NuxtLink to="/" class="brand" aria-label="RetroBoard"><span class="mark"><Icon name="lucide:layers" /></span>RetroBoard</NuxtLink>
         <nav class="links" :aria-label="t('landing.nav.label')">
-          <a href="#features">{{ t('landing.nav.features') }}</a><a href="#themes">{{ t('landing.nav.themes') }}</a><a href="#how">{{ t('landing.nav.how') }}</a><a href="#privacy">{{ t('landing.nav.privacy') }}</a>
+          <a href="#features">{{ t('landing.nav.features') }}</a><a href="#themes">{{ t('landing.nav.themes') }}</a><a href="#how">{{ t('landing.nav.how') }}</a><a href="#privacy">{{ t('landing.nav.privacy') }}</a><a href="#open">{{ t('landing.nav.open') }}</a>
         </nav>
         <div class="right">
           <LocaleSwitch />
@@ -156,6 +158,26 @@ onMounted(() => {
             <div class="vis v-suggest" aria-hidden="true"><span>Mad / Sad / Glad</span><span>4 Ls</span><span>Voilier</span></div>
             <h3>{{ t('landing.f.suggest.h') }}</h3><p>{{ t('landing.f.suggest.p') }}</p>
           </article>
+          <article class="card" data-reveal>
+            <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:list-checks" /></div>
+            <h3>{{ t('landing.f.agenda.h') }}</h3><p>{{ t('landing.f.agenda.p') }}</p>
+          </article>
+          <article class="card" data-reveal data-d="1">
+            <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:trophy" /></div>
+            <h3>{{ t('landing.f.podium.h') }}</h3><p>{{ t('landing.f.podium.p') }}</p>
+          </article>
+          <article class="card" data-reveal data-d="2">
+            <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:mouse-pointer-2" /></div>
+            <h3>{{ t('landing.f.cursors.h') }}</h3><p>{{ t('landing.f.cursors.p') }}</p>
+          </article>
+          <article class="card" data-reveal>
+            <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:download" /></div>
+            <h3>{{ t('landing.f.export.h') }}</h3><p>{{ t('landing.f.export.p') }}</p>
+          </article>
+          <article class="card wide" data-reveal data-d="1">
+            <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:bot" /></div>
+            <h3>{{ t('landing.f.agents.h') }}</h3><p>{{ t('landing.f.agents.p') }}</p>
+          </article>
         </div>
       </section>
 
@@ -188,6 +210,23 @@ onMounted(() => {
           <li data-reveal data-d="2"><Icon name="lucide:lock" /><strong>{{ t('landing.p.notrack.h') }}</strong><span>{{ t('landing.p.notrack.p') }}</span></li>
           <li data-reveal data-d="3"><Icon name="lucide:eye-off" /><strong>{{ t('landing.p.local.h') }}</strong><span>{{ t('landing.p.local.p') }}</span></li>
         </ul>
+      </section>
+
+      <section id="open" class="sec" data-testid="landing-open">
+        <h2 data-reveal>{{ t('landing.open.h') }}</h2>
+        <p class="lead" data-reveal data-d="1">{{ t('landing.open.lead') }}</p>
+        <ul class="open-grid">
+          <li class="card" data-reveal><Icon name="lucide:scale" /><h3>{{ t('landing.open.license.h') }}</h3><p>{{ t('landing.open.license.p') }}</p></li>
+          <li class="card" data-reveal data-d="1"><Icon name="lucide:server" /><h3>{{ t('landing.open.self.h') }}</h3><p>{{ t('landing.open.self.p') }}</p></li>
+          <li class="card" data-reveal data-d="2"><Icon name="lucide:handshake" /><h3>{{ t('landing.open.commercial.h') }}</h3><p>{{ t('landing.open.commercial.p') }}</p></li>
+          <li class="card" data-reveal data-d="3"><Icon name="lucide:shield-check" /><h3>{{ t('landing.open.notrack.h') }}</h3><p>{{ t('landing.open.notrack.p') }}</p></li>
+        </ul>
+        <p class="open-links" data-reveal>
+          <a :href="REPO" rel="noopener" target="_blank" data-testid="open-repo"><Icon name="lucide:code-xml" /> {{ t('landing.open.repo') }}</a>
+          <a :href="`${REPO}/blob/main/LICENSE`" rel="noopener" target="_blank" data-testid="open-license">{{ t('landing.open.licenseLink') }}</a>
+          <a :href="`${REPO}/blob/main/docs/self-hosting.md`" rel="noopener" target="_blank" data-testid="open-self-host">{{ t('landing.open.selfLink') }}</a>
+          <a href="https://www.maoudia.com" rel="noopener" target="_blank" data-testid="open-commercial">{{ t('landing.open.commercialLink') }}</a>
+        </p>
       </section>
 
       <section class="community" data-reveal data-testid="landing-community">
@@ -295,6 +334,12 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .v-suggest { flex-direction: column; gap: 6px; } .v-suggest span { padding: .35rem .9rem; border-radius: 999px; background: var(--fill); font-size: var(--fs-sm); font-weight: 600; animation: pickme 6s ease infinite; } .v-suggest span:nth-child(2) { animation-delay: 2s; } .v-suggest span:nth-child(3) { animation-delay: 4s; }
 @keyframes pickme { 0%, 30%, 100% { background: var(--fill); color: var(--ink); transform: none; } 8%, 24% { background: var(--blue); color: #fff; transform: scale(1.06); } }
 
+.v-icon { font-size: var(--fs-3xl); color: var(--blue); }
+.open-grid { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 3rem 0 0; padding: 0; text-align: left; }
+.open-grid .card :deep(svg) { font-size: var(--fs-2xl); color: var(--blue); }
+.open-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem 1.6rem; margin-top: 2rem; font-size: var(--fs-md); }
+.open-links a { display: inline-flex; align-items: center; gap: .4rem; color: var(--blue); font-weight: 600; text-decoration: none; } .open-links a:hover { text-decoration: underline; }
+
 .tabs { display: inline-flex; gap: 4px; margin-top: 1.6rem; padding: 4px; border-radius: 999px; background: #e8e8ed; }
 .tabs button { padding: .5rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: #48484c; font: inherit; font-weight: 600; cursor: pointer; transition: background .25s, color .25s, box-shadow .25s; }
 .tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgb(0 0 0 / .12); }
@@ -314,7 +359,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .final { display: grid; justify-items: center; gap: 1.8rem; padding: 7rem 1.25rem; text-align: center; }
 .foot { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; justify-content: space-between; max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; border-top: 1px solid var(--line); color: var(--ink2); font-size: var(--fs-sm); } .foot a { color: var(--ink2); }
 
-@media (max-width: 900px) { .links { display: none; } .bento { grid-template-columns: 1fr 1fr; } .card.wide { grid-column: span 2; } .stats { grid-template-columns: 1fr 1fr; row-gap: 2rem; } .steps { grid-template-columns: 1fr; } .privacy { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 900px) { .links { display: none; } .bento, .open-grid { grid-template-columns: 1fr 1fr; } .card.wide { grid-column: span 2; } .stats { grid-template-columns: 1fr 1fr; row-gap: 2rem; } .steps { grid-template-columns: 1fr; } .privacy { grid-template-columns: 1fr 1fr; } }
 /* Small phones: the header keeps every control inside the screen (Create was cut at 360 px). */
 /* Phones: "Start a retro" is a large centred button in the thumb zone, full width at the bottom of the screen, and joining is as easy to hit (change responsive-and-i18n-hardening). */
 @media (max-width: 480px) {
@@ -325,6 +370,6 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
   .cta.big { align-self: stretch; min-height: 3.25rem; }
 }
 @media (max-width: 420px) { .nav-in { gap: .5rem; padding: 0 .75rem; } .right { gap: .4rem; } .cta.sm { padding: .4rem .75rem; } .brand { gap: .4rem; } }
-@media (max-width: 600px) { .foot > span { flex-basis: 100%; } .bento { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
+@media (max-width: 600px) { .foot > span { flex-basis: 100%; } .bento, .open-grid { grid-template-columns: 1fr; } .card.wide { grid-column: auto; } .privacy { grid-template-columns: 1fr; } .hero { padding-top: 3rem; } }
 @media (prefers-reduced-motion: reduce) { [data-reveal], [data-reveal].wait { animation: none; opacity: 1; transform: none; filter: none; transition: none; } .tilt { transition: none; } }
 </style>
