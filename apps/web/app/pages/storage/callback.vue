@@ -21,7 +21,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ServicePage icon="lucide:refresh-cw" :title="t('sync.callback.title')" :lead="t('sync.callback.lead')" testid="storage-callback">
+  <ServicePage icon="lucide:refresh-cw" :title="t('sync.callback.title')" :lead="t('sync.callback.title')" testid="storage-callback">
     <p v-if="failed" class="fail" role="alert">{{ t('sync.error.signin') }}</p>
   </ServicePage>
 </template>
