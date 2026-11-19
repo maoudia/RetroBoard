@@ -11,7 +11,7 @@ import { createKdfWorker, installKdfWorker } from '~/adapters/sync/kdf-client'
 import { createLocalSealer } from '~/adapters/device-key'
 import { ONEDRIVE_FOLDER } from '~/adapters/sync/onedrive-config'
 import type { OnedriveConfig } from '~/adapters/sync/onedrive-protocol'
-import { type OnedriveSession, type SignInOutcome, createOnedriveSession } from '~/adapters/sync/onedrive-session'
+import type { OnedriveSession, SignInOutcome } from '~/adapters/sync/onedrive-session'
 import { type Connection, type SyncStateStore, createSyncStateStore } from '~/adapters/sync/sync-state'
 import { createVaultKit } from '~/adapters/sync/vault-kit'
 import { type SyncReason, createVaultScheduler, type VaultScheduler } from '~/utils/vault-scheduler'
@@ -120,16 +120,18 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   const providerNow = (): 'folder' | 'onedrive' | null => connection.value?.kind ?? pendingKind.value
 
   /** The OneDrive connection of this browser, made once its configuration is known. */
-  function ensureSession(): OnedriveSession | null {
+  async function ensureSession(): Promise<OnedriveSession | null> {
     if (session) return session
     const config = onedrive.value
     const store = ensureState()
     if (!config || !store) return null
-    return (session = createOnedriveSession({ config, state: store, sealer: createLocalSealer(), storage: sessionStorage, navigate: (url) => window.location.assign(url) }))
+    // A chunk of its own: nothing of the sign-in or the worker proxy is fetched unless OneDrive is used.
+    const { createOnedriveSession } = await import('~/adapters/sync/onedrive-session')
+    return (session ??= createOnedriveSession({ config, state: store, sealer: createLocalSealer(), storage: sessionStorage, navigate: (url) => window.location.assign(url) }))
   }
 
   async function targetFor(root: DirectoryHandleLike | null, create: boolean): Promise<SyncTargetPort | null> {
-    if (providerNow() === 'onedrive') return ensureSession()?.target ?? null
+    if (providerNow() === 'onedrive') return (await ensureSession())?.target ?? null
     return root ? createFolderTarget(await openVaultFolder(root, create)) : null
   }
 
@@ -161,7 +163,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
 
   /** A browser that connected OneDrive before: its sign-in is back in the worker, or it must be done again (24 hours at most). */
   async function initOnedrive() {
-    const current = ensureSession()
+    const current = await ensureSession()
     if (!current) { status.value = 'off'; return }
     step.value = 'unlock'
     const back = await current.restore().catch(() => 'sign-in-again' as const)
@@ -412,7 +414,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   /** "Sign in with Microsoft": the window goes to Microsoft and comes back to `/storage/callback`. */
   async function connectOnedrive(returnTo: string) {
     error.value = null
-    const current = ensureSession()
+    const current = await ensureSession()
     if (!current) { error.value = 'sync.error.target'; return }
     busy.value = true
     try { await current.start(returnTo, 'connect', 'select_account') } catch { error.value = 'sync.error.signin'; busy.value = false }
@@ -421,7 +423,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   /** The daily renewal: a silent attempt first, and the person's own sign-in when Microsoft has no session to reuse. */
   async function signInAgain(returnTo: string) {
     error.value = null
-    const current = ensureSession()
+    const current = await ensureSession()
     if (!current) return
     busy.value = true
     try { await current.start(returnTo, 'renew', 'none') } catch { error.value = 'sync.error.signin'; busy.value = false }
@@ -430,7 +432,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   /** The page of `/storage/callback` hands over what Microsoft brought back; the setup or the renewal goes on from here. */
   async function completeSignIn(search: string): Promise<SignInOutcome> {
     await init()
-    const current = ensureSession()
+    const current = await ensureSession()
     if (!current) return { kind: 'failed', returnTo: '/boards' }
     const outcome = await current.complete(search)
     if (outcome.kind === 'failed') error.value = 'sync.error.signin'
