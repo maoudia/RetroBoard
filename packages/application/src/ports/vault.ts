@@ -66,5 +66,7 @@ export interface VaultCryptoPort {
 export type VaultStatus =
   | 'unsupported' | 'off' | 'locked' | 'syncing' | 'synced' | 'offline'
   | 'allow-folder' | 'folder-not-found' | 'waiting-for-file' | 'needs-attention' | 'target-full'
+  /** A provider's sign-in ended (OneDrive: a refresh token lasts 24 hours): one click on "Sign in again". */
+  | 'sign-in-again'
 
 export type AttentionReason = 'newer-reader' | 'wrong-vault' | 'vault-missing' | 'auth-expired' | 'forbidden' | 'refused' | 'unexpected'

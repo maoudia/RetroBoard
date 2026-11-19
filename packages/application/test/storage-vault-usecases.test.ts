@@ -155,7 +155,7 @@ describe('statusOfError', () => {
     expect(code('target-full')).toEqual({ status: 'target-full' })
     expect(code('throttled', 5000)).toEqual({ status: 'offline', retryAfterMs: 5000 })
     expect(code('throttled')).toEqual({ status: 'offline' })
-    expect(code('auth-expired')).toEqual({ status: 'needs-attention', reason: 'auth-expired' })
+    expect(code('auth-expired')).toEqual({ status: 'sign-in-again' })
     expect(code('forbidden')).toEqual({ status: 'needs-attention', reason: 'forbidden' })
     for (const c of ['too-large', 'unsupported', 'precondition-failed'] as const) expect(code(c)).toEqual({ status: 'needs-attention', reason: 'refused' })
   })

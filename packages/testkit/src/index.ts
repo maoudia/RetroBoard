@@ -33,3 +33,4 @@ export function harness() {
 export * from './sync-target'
 export * from './contract'
 export * from './fake-directory'
+export * from './fake-graph'

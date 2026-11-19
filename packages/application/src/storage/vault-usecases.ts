@@ -35,7 +35,7 @@ export function statusOfError(error: unknown): SyncOutcome {
       case 'unreachable': return { status: 'offline' }
       case 'target-full': return { status: 'target-full' }
       case 'throttled': return { status: 'offline', ...(error.retryAfterMs === undefined ? {} : { retryAfterMs: error.retryAfterMs }) }
-      case 'auth-expired': return attention('auth-expired')
+      case 'auth-expired': return { status: 'sign-in-again' }
       case 'forbidden': return attention('forbidden')
       default: return attention('refused')
     }
