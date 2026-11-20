@@ -80,7 +80,7 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
 .vote { position: relative; display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: .2rem .55rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
 .vote.voted { background: var(--note-ink, currentColor); color: var(--c, #fff); border-color: var(--note-ink, currentColor); }
 .vote.off { opacity: .55; cursor: not-allowed; }
-.vote.gated { background: var(--gated-bg); border-style: dashed; }
+.vote.gated { background: var(--gated-bg); color: var(--text); border-style: dashed; } /* the note ink is dark on every note: on a dark surface the lock would vanish */
 .vote.open-now { min-width: 0; max-width: 100%; font-size: var(--fs-sm); font-weight: 600; }
 .vote.open-now > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* a long label ends in an ellipsis; the title carries the full text */
 .vote.undo { padding: .2rem .4rem; }
