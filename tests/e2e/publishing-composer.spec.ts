@@ -1,25 +1,25 @@
 import { expect, test } from '@playwright/test'
 import { addDraft, axe, column, columnId, createBoard, narrow, noteByText, publishNote, settle } from './helpers'
 
-/** Publishing UX (change publishing-ux-redesign, tasks 2.1 and 2.2): the composer at the top of each column, the tray of drafts, the toolbar counter, the phone sheet. */
+/** Publishing UX (change publishing-ux-redesign, tasks 2.1 and 2.2): the composer at the foot of each column (change writing-zone-at-column-bottom), the tray of drafts, the toolbar counter, the phone sheet. */
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 const problems = async (page: import('@playwright/test').Page) => (await axe(page).withTags(WCAG).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
 
 test.describe('wide screen', () => {
   test.skip(narrow, 'a phone writes in the bottom sheet (the 360 px describe below)')
-  test('the composer sits at the top of the column, above the notes, and says who sees what', async ({ page }) => {
+  test('the composer sits at the foot of the column, below the notes, and says who sees what', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await publishNote(page, 0, 'Already there')
     const col = column(page, 0)
     const head = (await col.locator('header').first().boundingBox())!
     const composer = (await col.locator('label.composer').boundingBox())!
     const note = (await noteByText(page, 'Already there').boundingBox())!
-    expect(composer.y).toBeGreaterThan(head.y)
-    expect(composer.y + composer.height).toBeLessThan(note.y)
+    expect(note.y).toBeGreaterThan(head.y + head.height - 1)
+    expect(composer.y).toBeGreaterThan(note.y + note.height - 1)
     await expect(col.getByTestId(`only-you-${await columnId(page, 0)}`)).toHaveText('Visible de toi seul jusqu\'à la publication.')
   })
 
-  test('drafts hang in a tray under the composer, tilted with a ribbon; the toolbar counts them and publishes them all', async ({ page }) => {
+  test('drafts stack in a tray above the composer, tilted with a ribbon; the toolbar counts them and publishes them all', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     await expect(page.getByTestId('publish-all')).toHaveCount(0)
     await addDraft(page, 0, 'Premier')
@@ -32,7 +32,8 @@ test.describe('wide screen', () => {
     const tray = col.getByTestId('drafts-tray')
     await expect(tray.locator('.ribbon')).toHaveText(['Brouillon', 'Brouillon'])
     const composer = (await col.locator('label.composer').boundingBox())!
-    expect((await tray.boundingBox())!.y).toBeGreaterThan(composer.y + composer.height - 1)
+    const trayBox = (await tray.boundingBox())!
+    expect(trayBox.y + trayBox.height).toBeLessThan(composer.y + 1)
     const tilts = await tray.locator('.draft').evaluateAll((els) => els.map((e) => getComputedStyle(e).rotate))
     expect(tilts.every((r) => r !== 'none' && r !== '0deg')).toBe(true)
     expect(new Set(tilts).size).toBe(2) // the papers do not all lean the same way
@@ -45,7 +46,7 @@ test.describe('wide screen', () => {
     await expect(page.locator('[data-draft-id]')).toHaveCount(0)
   })
 
-  test('the writing area folds up, and its handle brings it back at the top of the column', async ({ page }) => {
+  test('the writing area folds up, and its handle brings it back at the foot of the column', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     const id = await columnId(page, 0)
     const col = column(page, 0)
@@ -53,8 +54,8 @@ test.describe('wide screen', () => {
     await expect(col.getByTestId(`draft-${id}`)).toBeHidden()
     await settle(page)
     const handle = (await col.getByTestId(`write-handle-${id}`).boundingBox())!
-    const head = (await col.locator('header').first().boundingBox())!
-    expect(handle.y).toBeGreaterThanOrEqual(head.y + head.height - 1)
+    const notes = (await col.locator('.notes').boundingBox())!
+    expect(handle.y).toBeGreaterThanOrEqual(notes.y + notes.height - 1)
     await col.getByTestId(`write-handle-${id}`).click()
     await expect(col.getByTestId(`draft-${id}`)).toBeVisible()
   })

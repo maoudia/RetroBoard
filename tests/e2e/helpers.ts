@@ -91,7 +91,7 @@ export async function showChrome(page: Page) {
 
 /**
  * The writing field of a column. On a phone the field lives in the bottom sheet: the write button and the chip of the column
- * open it (close it with `closeCompose`); elsewhere it sits at the top of the column (change publishing-ux-redesign).
+ * open it (close it with `closeCompose`); elsewhere it sits at the foot of the column (changes publishing-ux-redesign, writing-zone-at-column-bottom).
  */
 export async function composeField(page: Page, colIndex: number) {
   const id = await columnId(page, colIndex)
@@ -114,7 +114,7 @@ export async function closeCompose(page: Page) {
 
 /**
  * Puts a private draft in a column. On a phone the composer is a bottom sheet (write button, chip of the column, field), closed
- * afterwards so the column is reachable again; elsewhere the field sits at the top of the column (change publishing-ux-redesign).
+ * afterwards so the column is reachable again; elsewhere the field sits at the foot of the column (changes publishing-ux-redesign, writing-zone-at-column-bottom).
  */
 export async function addDraft(page: Page, colIndex: number, text: string) {
   const id = await columnId(page, colIndex)
