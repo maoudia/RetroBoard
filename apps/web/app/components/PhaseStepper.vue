@@ -109,6 +109,8 @@ nav.stepper.stepper { display: flex; align-items: center; gap: .6rem; padding: 0
 .line .now { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .now { font-weight: 700; }
 .modebtn { display: inline-flex; align-items: center; min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+/* A flex button cannot show an ellipsis (its text is an anonymous item): a long phase line in a longer language was cut mid-word. */
+.line .modebtn { display: block; min-width: 0; line-height: 24px; text-align: start; }
 .modebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-xs); }
 .over { color: var(--ring-over); }
 .overtxt { color: var(--ring-over); }

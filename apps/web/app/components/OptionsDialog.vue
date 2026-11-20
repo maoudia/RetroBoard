@@ -189,11 +189,12 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
 h3 { font-size: var(--fs-md); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 .pick-seg button { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; }
 .pick-seg button:disabled { opacity: .5; cursor: default; }
-.line > .btn, .line > .seg { flex: none; white-space: nowrap; }
+.line > .btn { flex: none; white-space: nowrap; }
+.line > .seg { flex: 0 1 auto; min-width: 0; max-width: 100%; }
 .line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .line span:first-child { display: grid; gap: 2px; min-width: 0; }
 /* Narrow screens: a row with a wide control (language, light or dark) puts the control under its label instead of squeezing the text (change ux-irritants-wave-3). */
-@media (max-width: 600px) { .line:has(> .seg, > .pick-seg) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
+@media (max-width: 600px) { .line { flex-wrap: wrap; } .line:has(> .seg, > .pick-seg) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
 /* A segmented control wider than the dialog (three long labels) wraps its labels instead of widening the whole column. */
 @media (max-width: 600px) { .pick-seg { max-width: 100%; } .pick-seg button { min-width: 0; white-space: normal; } }
 .line small { font-size: var(--fs-sm); }
