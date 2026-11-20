@@ -1185,6 +1185,7 @@ export const fr = {
   'group.closeLabel': 'Fermer le groupe',
   'group.dissolve': 'Dissoudre le groupe',
 
+  'private.skip': "Aller à la zone d'écriture",
   'private.section': 'Section privée: {title}',
   'private.title': 'Privé',
   'private.publish': 'Publier',

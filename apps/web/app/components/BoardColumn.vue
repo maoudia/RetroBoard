@@ -64,6 +64,13 @@ const onSizeKey = (e: KeyboardEvent) => {
   const next = COLUMN_SIZES[Math.min(COLUMN_SIZES.length - 1, Math.max(0, i))]!
   ui.setColumnSize(board.roomId, props.column.id, next)
 }
+const isPhone = computed(() => layoutStore.cls === 'phone')
+/** The skip link: the field, or the handle that brings the folded zone back. */
+function goWrite() {
+  const root = colEl.value
+  const target = root?.querySelector<HTMLElement>(`[data-testid="draft-${props.column.id}"]`) ?? root?.querySelector<HTMLElement>(`[data-testid="write-handle-${props.column.id}"]`)
+  target?.focus()
+}
 const { over, bind } = useColumnDrop(() => props.column.id)
 
 const items = computed(() => filterItems(board.itemsFor(props.column.id, board.countsHidden && sort.value === 'votes' ? 'time' : sort.value), ui.filter))
@@ -124,9 +131,8 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
       <ColumnMenu :column="column" :index="index" :count="total" :note-count="noteCount" />
     </header>
 
-    <!-- The composer sits at the top of the column, under its title; the drafts tray hangs under it (change publishing-ux-redesign).
-         Presenter mode is shown to the room: my private drafts stay off screen. -->
-    <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
+    <!-- Skip link: the writing zone is the last block of the column, a keyboard user does not tab through every note to reach it (change writing-zone-at-column-bottom). -->
+    <button v-if="!ui.presenter && !isPhone" class="skip-write" type="button" :data-testid="`skip-write-${column.id}`" @click="goWrite">{{ t('private.skip') }}</button>
 
     <div class="notes">
       <TransitionGroup name="note" tag="div" class="grid" :style="display" :data-note-size="board.settings?.noteSize ?? 'normal'">
@@ -137,6 +143,10 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
       </TransitionGroup>
       <p v-if="!items.length" class="empty muted">{{ themeText(theme.theme).emptyColumn }}</p>
     </div>
+
+    <!-- The composer sits at the foot of the column, under the notes that scroll above it; the drafts tray stacks above its field (change writing-zone-at-column-bottom).
+         Presenter mode is shown to the room: my private drafts stay off screen. -->
+    <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
 
     <GroupPanel v-if="openGroup" :item="openGroup" />
     <span
@@ -186,5 +196,8 @@ h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-s
 .grid > :deep(*) { break-inside: avoid; margin-bottom: var(--dens-gap); }
 .empty { text-align: center; padding: 1.5rem .5rem; font-style: italic; }
 .width-seg { margin: .2rem; }
+/* Visually hidden until it takes the focus (WCAG 2.4.1): first stop after the column title. */
+.skip-write { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.skip-write:focus-visible { position: static; width: auto; height: auto; margin: 0 .8rem .4rem; padding: .35rem .75rem; clip-path: none; align-self: flex-start; border: 1px solid var(--accent); border-radius: var(--r-pill); background: var(--surface); color: var(--accent); font-size: var(--fs-sm); font-weight: 600; }
 
 </style>
