@@ -7,6 +7,10 @@ import { randomBytes } from 'node:crypto'
 import { pathToFileURL } from 'node:url'
 
 const WAIT_MS = 5000
+// A new version reaches the edge locations over a few seconds. The hashed files bypass the Worker (ADR-0034), so a location that
+// has not switched yet answers 404 for the new entry script while the landing page already names it (deploys of 2026-11-19 and 2026-11-20).
+const PROPAGATION_TRIES = 10
+const PROPAGATION_MS = 3000
 
 /** HTTP status of a WebSocket upgrade request carrying the given Origin (0 when nothing answered). */
 function upgradeStatus(base, room, origin) {
@@ -49,7 +53,7 @@ function connect(WS, url, origin, waitMs) {
 
 /** Runs every check against `base` and returns the failed messages. */
 export async function runSmoke(base, deps = {}) {
-  const { fetch: get = fetch, WebSocket: WS = WebSocket, upgrade = upgradeStatus, log = console.log, waitMs = WAIT_MS } = deps
+  const { fetch: get = fetch, WebSocket: WS = WebSocket, upgrade = upgradeStatus, log = console.log, waitMs = WAIT_MS, propagationMs = PROPAGATION_MS } = deps
   const failures = []
   const check = (ok, message) => { log(`${ok ? 'ok  ' : 'FAIL'} ${message}`); if (!ok) failures.push(message) }
 
@@ -78,11 +82,15 @@ export async function runSmoke(base, deps = {}) {
   const goneCache = gone.headers.get('cache-control') ?? ''
   check(gone.status === 404 && (goneCache === '' || /\bno-store\b/.test(goneCache)) && !(gone.headers.get('content-type') ?? '').includes('text/html'), 'a missing /_nuxt/ file answers an uncacheable 404')
   const entry = html.match(/\/_nuxt\/[\w.-]+\.js/)?.[0]
-  const script = entry ? await get(`${base}${entry}`) : null
-  check(
-    script?.status === 200 && /javascript/.test(script.headers.get('content-type') ?? '') && script.headers.get('x-content-type-options') === 'nosniff' && (script.headers.get('strict-transport-security') ?? '') !== '',
-    `the entry script ${entry ?? '(not found in the landing page)'} answers 200 as JavaScript with nosniff and HSTS`,
-  )
+  const servedWell = (res) => res?.status === 200 && /javascript/.test(res.headers.get('content-type') ?? '') && res.headers.get('x-content-type-options') === 'nosniff' && (res.headers.get('strict-transport-security') ?? '') !== ''
+  let script = null
+  for (let attempt = 1; entry && attempt <= PROPAGATION_TRIES; attempt++) {
+    script = await get(`${base}${entry}`)
+    if (servedWell(script)) break
+    log(`     attempt ${attempt}/${PROPAGATION_TRIES}: ${entry} answered ${script.status} ${script.headers.get('content-type') ?? '(no content-type)'}`)
+    if (attempt < PROPAGATION_TRIES) await new Promise((resolve) => setTimeout(resolve, propagationMs))
+  }
+  check(servedWell(script), `the entry script ${entry ?? '(not found in the landing page)'} answers 200 as JavaScript with nosniff and HSTS`)
 
   const board = await get(`${base}/boards`)
   check(board.ok, 'SPA fallback serves /boards')
