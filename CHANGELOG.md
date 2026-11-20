@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.58.0](https://github.com/maoudia/RetroBoard/compare/v1.57.0...v1.58.0) (2026-11-20)
+
+
+### Features
+
+* **web:** one page per retro format, a sitemap and the indexing switch (off) ([a68f74d](https://github.com/maoudia/RetroBoard/commit/a68f74d8fee07f53c54e67e15c40addd8d32a21f))
+
 ## [1.57.0](https://github.com/maoudia/RetroBoard/compare/v1.56.0...v1.57.0) (2026-11-19)
 
 
