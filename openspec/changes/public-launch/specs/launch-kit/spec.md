@@ -10,7 +10,7 @@ The repository SHALL keep the launch material under `docs/launch/`: one post per
 
 #### Scenario: Post content
 - **WHEN** the owner opens a launch post
-- **THEN** it says what the product does, that the code is AGPL-3.0, that nothing is stored and boards are end-to-end encrypted, links the landing, the repository and the user guide, and names no feature the landing does not name
+- **THEN** it says what the product does, that the code is built in public and source available under PolyForm Noncommercial 1.0.0 (never "open source"), that nothing is stored and boards are end-to-end encrypted, links the landing, the repository and the user guide, and names no feature the landing does not name
 
 ### Requirement: Launch material produced from the product
 The demo video and the screenshots SHALL be produced by one command from the generated site, on a demo board the command creates, the video being cut from the landing walkthrough; a check in `pnpm verify` SHALL fail when their sources changed and the material was not regenerated.
@@ -24,11 +24,7 @@ The demo video and the screenshots SHALL be produced by one command from the gen
 - **THEN** every board shown was created by the command with invented content, never opened from a real link
 
 ### Requirement: Launch gates
-The launch gates SHALL be: the nightly streak against its target, Lighthouse on the landing on mobile (performance and accessibility, median of three runs), axe without violation on the public pages, the CLA live (no draft notice in `docs/CLA.md`, the signatures branch present, the `CLA` status required on `main`), the brand and landing changes archived, and the user guide reachable from the app; their values SHALL be kept in one file that the roadmap quotes.
-
-#### Scenario: CLA still a draft
-- **WHEN** `docs/CLA.md` carries a draft notice
-- **THEN** the CLA gate fails and names the notice
+The launch gates SHALL be: the nightly streak against its target, Lighthouse on the landing on mobile (performance and accessibility, median of three runs), axe without violation on the public pages, the brand and landing changes archived, and the user guide reachable from the app; their values SHALL be kept in one file that the roadmap quotes.
 
 #### Scenario: Roadmap and gates disagree
 - **WHEN** `docs/roadmap.md` quotes a gate value different from the gates file

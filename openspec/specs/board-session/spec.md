@@ -38,11 +38,11 @@ The system SHALL offer a solo mode that runs entirely in the browser without con
 - **THEN** a local board opens and no WebSocket connection is made
 
 ### Requirement: Board lifetime
-The system SHALL keep a board only in participants' replicas and exported board files; a board SHALL disappear from the service as soon as no participant is connected and the relay is evicted, and SHALL disappear from a device when its local retention period ends.
+The system SHALL keep a board only in participants' replicas and exported board files; the relay SHALL discard its buffer as soon as no participant is connected, and a board SHALL disappear from a device when its local retention period ends.
 
 #### Scenario: Everyone left
-- **WHEN** all participants closed the board and the relay was evicted
-- **THEN** the service holds no trace of the board and only participants' replicas or board files can bring it back
+- **WHEN** the last participant closes the board
+- **THEN** the relay holds no envelope of the room, and only participants' replicas or board files can bring it back
 
 ### Requirement: Toolbar slides horizontally on small screens
 On narrow screens the toolbar tools SHALL stay on a single row that scrolls horizontally instead of wrapping, so that the columns keep their space.

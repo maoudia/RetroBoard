@@ -1,6 +1,6 @@
 ## Purpose
 
-Defines what the public landing page must communicate (value, openness of the code, pricing) and how its HTML product video behaves.
+Defines what the public landing page must communicate (value, openness of the code) and how its HTML product video behaves.
 
 ## ADDED Requirements
 
@@ -17,10 +17,3 @@ The landing page SHALL state that RetroBoard is built in public and source avail
 #### Scenario: Visitor checks the license
 - **WHEN** a visitor clicks the license link
 - **THEN** the repository's LICENSE file opens
-
-### Requirement: Pricing transparency
-The landing page SHALL list what is free and what each paid plan adds, with prices including taxes for EU visitors as provided by the payment provider.
-
-#### Scenario: Free plan
-- **WHEN** a visitor reads the pricing section
-- **THEN** the free plan lists agenda, voting, clusters, actions, exports and up to 15 participants
