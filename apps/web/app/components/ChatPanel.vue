@@ -200,7 +200,7 @@ const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
 
 <style scoped>
 .chat {
-  position: fixed; z-index: 45; top: calc(var(--toolbar-actual, 64px) + 12px); bottom: 12px; width: min(380px, calc(100vw - 16px)); display: flex; flex-direction: column;
+  position: fixed; z-index: 45; top: calc(var(--toolbar-actual, 64px) + 2.6rem); /* clears the agenda strip under the toolbar */ bottom: 12px; width: min(380px, calc(100vw - 16px)); display: flex; flex-direction: column;
   border: 1px solid var(--border); border-radius: calc(var(--r-card) + 4px); box-shadow: var(--shadow-2); overflow: hidden;
   background: var(--surface); /* opaque: the board must not show through (feedback-wave-4) */
 }
