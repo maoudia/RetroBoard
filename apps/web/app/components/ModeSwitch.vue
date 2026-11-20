@@ -16,6 +16,6 @@ const settings = useSettingsStore()
 
 <style scoped>
 /* Same segmented control as every other choice in the app (pick-seg in base.css): only its placement is local. */
-.mode { width: fit-content; max-width: 100%; align-self: center; justify-self: center; margin-inline: auto; }
+.mode { width: fit-content; max-width: 100%; align-self: center; justify-self: center; margin-inline: auto; margin-block: var(--sp-2); }
 .mode button { display: inline-flex; align-items: center; gap: .3rem; }
 </style>
