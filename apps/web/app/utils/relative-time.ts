@@ -14,3 +14,6 @@ export function lastOpenedLabel(at: number, now: number, locale: 'fr' | 'en'): s
   if (days < 7) return rtf.format(-days, 'day')
   return new Date(at).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'short' })
 }
+
+/** The time of day, "12:03": what the sync shield says when a press has synced (change sync-ux). */
+export const clockLabel = (at: number, locale: 'fr' | 'en'): string => new Date(at).toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-GB', { hour: '2-digit', minute: '2-digit' })

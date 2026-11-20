@@ -17,11 +17,14 @@ describe('folder support is a feature test', () => {
     const dir = createFakeDirectory('Docs')
     const calls: unknown[] = []
     const scope = { showDirectoryPicker: async (o: unknown) => { calls.push(o); return dir } }
-    expect(await pickFolder(scope)).toBe(dir)
+    expect(await pickFolder(scope)).toEqual({ kind: 'picked', handle: dir })
     expect(calls).toEqual([{ mode: 'readwrite', id: 'retroboard-sync' }])
-    expect(await pickFolder({ showDirectoryPicker: async () => { throw new DOMException('closed', 'AbortError') } })).toBeNull()
-    await expect(pickFolder({ showDirectoryPicker: async () => { throw new DOMException('no', 'SecurityError') } })).rejects.toThrow('no')
-    expect(await pickFolder({})).toBeNull()
+    expect(await pickFolder({})).toEqual({ kind: 'unavailable' })
+    await expect(pickFolder({ showDirectoryPicker: async () => { throw new DOMException('boom', 'DataError') } })).rejects.toThrow('boom')
+  })
+
+  it('a directory the browser refuses, or a picker that is closed, is "refused": the screen explains and suggests a subfolder', async () => {
+    for (const name of ['AbortError', 'SecurityError', 'NotAllowedError']) expect(await pickFolder({ showDirectoryPicker: async () => { throw new DOMException('no', name) } })).toEqual({ kind: 'refused' })
   })
 })
 

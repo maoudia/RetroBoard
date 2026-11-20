@@ -88,6 +88,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
         <small class="muted">{{ theme.theme.name }}</small>
       </button>
       <EncryptionBadge />
+      <SyncShield />
       <!-- Switch board: the recent boards of this device, one click away (change recent-boards-visible). -->
       <Dropdown align="start" width="260px">
         <template #trigger="{ toggle, open: menuOpen }">
@@ -150,7 +151,6 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
       >
         <Icon :name="theme.variant === 'dark' ? 'lucide:sun' : 'lucide:moon'" class="ico" />
       </button>
-      <SyncChip />
       <ProfileButton class="me" />
     </nav>
     <!-- The menus slide away and a chevron stays to bring them back: by hand, on scroll on phones, and by default in
@@ -211,6 +211,8 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
   .title { padding-inline: .25rem; }
   .title small { display: none; }
   .brand :deep(.boards-btn) { display: none; }
+  /* The two shields and the logo keep room for the title on the narrowest phones. */
+  .brand { gap: .15rem; }
 }
 .toolbar[data-folded] { row-gap: 0; }
 /* The chevron sits next to the board switch and stays when the menus are away. */
