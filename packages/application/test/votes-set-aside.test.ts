@@ -21,5 +21,8 @@ describe('votesSetAside', () => {
   it('is zero when every new column votes and null while counts are hidden', () => {
     expect(votesSetAside(view([2, 3], 4), [true, true, true])).toBe(0)
     expect(votesSetAside(view([null, 3]), [false, true, true])).toBeNull()
+    expect(votesSetAside(view([2, 3], null), [false, true, true])).toBeNull()
+    expect(votesSetAside(view([2, 3], 4), [false, true, true])).toBe(2)
+    expect(votesSetAside(view([]), [false, true, true])).toBe(0)
   })
 })
