@@ -295,6 +295,14 @@ main:focus { outline: none; }
   .tools .icon-btn > span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
+/* Touch screens: small controls keep their look and layout but answer to a 44 px square (WCAG 2.5.5 target size), by growing the hit area outwards. */
+@media (pointer: coarse) {
+  .mini-btn, .icon-btn, .tools .avatar, .logo, .go, .info, .ring, .votebar .btn, .state { position: relative; }
+  .mini-btn::after, .icon-btn::after, .tools .avatar::after, .logo::after, .go::after, .info::after, .ring::after, .votebar .btn::after, .state::after {
+    content: ''; position: absolute; inset-block: calc((100% - max(100%, 44px)) / 2); inset-inline: calc((100% - max(100%, 44px)) / 2);
+  }
+}
+
 /* TV and projector (change responsive-and-i18n-hardening, task 2.3): the note text never goes under 24 px, whatever text size the facilitator chose. */
 :root[data-screen="tv"] .note .text { font-size: clamp(1.5rem, 1em, 4rem); }
 
