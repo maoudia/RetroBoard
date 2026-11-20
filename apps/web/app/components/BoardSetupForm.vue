@@ -126,7 +126,7 @@ h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .go { align-self: flex-end; padding: .8rem 1.5rem; font-size: var(--fs-md); }
 /* Phones: the primary action is a large centred button in the thumb zone, full width and stuck to the bottom while the form scrolls (change responsive-and-i18n-hardening). */
 @media (max-width: 480px) {
-  .go { position: sticky; bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); z-index: 5; align-self: stretch; justify-content: center; min-height: 3rem; font-size: var(--fs-lg); box-shadow: var(--shadow-2); }
+  .go { position: sticky; bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); z-index: 5; align-self: stretch; justify-content: center; min-height: 3rem; font-size: var(--fs-lg); box-shadow: var(--shadow-2), 0 -.5rem .75rem .5rem color-mix(in oklab, var(--bg) 85%, transparent); }
 }
 .pass { display: grid; gap: .35rem; }
 .adv { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; align-items: start; }

@@ -93,7 +93,7 @@ watch(style, generate)
 
 <style scoped>
 .pass { display: grid; gap: .5rem; }
-.row { display: flex; gap: .4rem; align-items: stretch; }
+.row { display: flex; gap: .4rem; align-items: center; }
 .row .field { flex: 1; min-width: 0; letter-spacing: .04em; }
 .small { margin: 0; font-size: var(--fs-sm); }
 .meter { margin: 0; display: flex; align-items: center; gap: .6rem; font-size: var(--fs-sm); }
