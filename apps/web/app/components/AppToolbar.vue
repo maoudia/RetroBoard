@@ -29,6 +29,8 @@ const el = useTemplateRef<HTMLElement>('toolbarEl')
 const toolsEl = useTemplateRef<HTMLElement>('toolsEl')
 /** Room kept for the logo, a few letters of the board title, the shield and the board switch when the tools sit next to them. */
 const MIN_BRAND_PX = 170
+/** Under this width the board title is hidden: too few letters to read and too small to press. */
+const MIN_TITLE_PX = 48
 /** The toolbar padding (2 x 1rem) and its three column gaps (1rem each). */
 const BAR_SPACING_PX = 32 + 48
 const stacked = typeof window === 'undefined' ? null : window.matchMedia('(max-width: 1100px)')
@@ -42,6 +44,10 @@ function fit() {
   const tools = toolsEl.value
   if (!bar || !tools) return
   bar.removeAttribute('data-compact')
+  // The board title keeps its place while it can show a few letters; a squeezed button is no target (WCAG 2.5.8): it yields to the two shields and the clock, and Options still renames.
+  bar.removeAttribute('data-notitle')
+  const title = bar.querySelector<HTMLElement>('.title')
+  if (title && title.offsetWidth < MIN_TITLE_PX) bar.setAttribute('data-notitle', '')
   // At 1100 px and under the tools have their own row; above, they share the row with the brand and the clock.
   const room = stacked?.matches ? tools.clientWidth : bar.clientWidth - BAR_SPACING_PX - (bar.querySelector<HTMLElement>('.timer-slot')?.offsetWidth ?? 0) - (bar.querySelector<HTMLElement>('.chrome-toggle')?.offsetWidth ?? 0) - MIN_BRAND_PX
   const compact = tools.scrollWidth > room + 1
@@ -211,9 +217,8 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
   .title { padding-inline: .25rem; }
   .title small { display: none; }
   .brand :deep(.boards-btn) { display: none; }
-  /* The two shields and the logo keep room for the title on the narrowest phones. */
-  .brand { gap: .15rem; }
 }
+.toolbar[data-notitle] .title { display: none; }
 .toolbar[data-folded] { row-gap: 0; }
 /* The chevron sits next to the board switch and stays when the menus are away. */
 .chrome-toggle { flex: none; align-self: center; justify-self: end; }
