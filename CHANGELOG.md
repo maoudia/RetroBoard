@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.60.0](https://github.com/maoudia/RetroBoard/compare/v1.59.0...v1.60.0) (2026-11-20)
+
+
+### Features
+
+* **web:** a sync shield at the start of the toolbar, any folder, an onboarding sheet and a one-time nudge ([38bc8bd](https://github.com/maoudia/RetroBoard/commit/38bc8bddf22f1eec57e4faa53267b42e05e36433))
+
+
+### Bug Fixes
+
+* **voting:** an idea counts, shows and takes votes exactly when its column is votable ([1018497](https://github.com/maoudia/RetroBoard/commit/1018497df78fa52451294ecaa97387618b26c64f))
+* **web:** a menu scrolling on its own no longer folds the phone toolbar, keep the stack drag spec in view ([7114d0d](https://github.com/maoudia/RetroBoard/commit/7114d0d0f169d22be4b4d3bf187333b0ad24821a))
+* **web:** keep the phone menus and the drafts tray clear of a note scrolled into view ([0da7901](https://github.com/maoudia/RetroBoard/commit/0da790180a7d799d73581deb446e50f5ca697a08))
+* **web:** move the writing zone to the foot of its column, drafts above the field, skip link ([3881b2f](https://github.com/maoudia/RetroBoard/commit/3881b2f92d3a11b3b2fe340f9f3d7ad5f7eabfb2))
+* **web:** the board title yields to the shields on a phone toolbar so no target is squeezed ([127666a](https://github.com/maoudia/RetroBoard/commit/127666a98cf2fede056c8a92bb04d72c613af2ce))
+
+
+### Refactoring
+
+* **web:** load the sync sheet and the nudge on demand, and add the shield spec to the core gate ([f611676](https://github.com/maoudia/RetroBoard/commit/f6116765aef1a500793f3259eed8bf8869fec039))
+
 ## [1.59.0](https://github.com/maoudia/RetroBoard/compare/v1.58.0...v1.59.0) (2026-11-20)
 
 
