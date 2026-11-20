@@ -154,6 +154,8 @@ dialog.dlg {
   overflow: hidden;
 }
 dialog.dlg[open] { animation: dlg-in .22s cubic-bezier(.2,.9,.3,1.1); display: flex; flex-direction: column; }
+/* TV and projector: dialogs scale up 1.5x so their text is readable from the room; the viewport caps are divided by the zoom so they still fit the screen. */
+:root[data-screen="tv"] dialog.dlg { zoom: 1.5; width: min(calc(94vw / 1.5), var(--dlg-w, 520px)); max-height: calc(90dvh / 1.5); }
 dialog.dlg::backdrop { background: rgb(5 5 12 / .62); backdrop-filter: blur(3px); animation: fade-in .2s; }
 @keyframes dlg-in { from { opacity: 0; transform: translateY(12px) scale(.96); } }
 @keyframes fade-in { from { opacity: 0; } }
