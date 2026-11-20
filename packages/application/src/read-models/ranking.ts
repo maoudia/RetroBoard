@@ -1,4 +1,4 @@
-import type { Snapshot } from '@retroboard/domain'
+import { counted, type Snapshot } from '@retroboard/domain'
 import { groupTitle } from './column-items'
 
 export interface RankedItem {
@@ -20,18 +20,18 @@ export interface RankedItem {
 export function buildRanking(s: Pick<Snapshot, 'notes' | 'groups'> & { columns?: Pick<Snapshot['columns'][number], 'id' | 'votable'>[] }): RankedItem[] | null {
   if (s.notes.some((n) => n.votes === null) || s.groups.some((g) => g.votes === null)) return null
   const order = new Map(s.notes.map((n, i) => [n.id, i]))
-  // Ideas of a column where voting is off are not part of the ranking (change column-voting-scope).
+  // Ideas of a column where voting is off are not part of the ranking: the domain's one "counted" rule (change fix-votes-after-format-change).
   // Stryker disable next-line ArrayDeclaration: a string stand-in has no votable flag, so it filters out like an empty list
-  const off = new Set((s.columns ?? []).filter((c) => c.votable === false).map((c) => c.id))
+  const cols = { columns: (s.columns ?? []) as Snapshot['columns'] }
   const items: (RankedItem & { pos: number })[] = []
   for (const g of s.groups) {
-    if (off.has(g.columnId)) continue
+    if (!counted(cols, g)) continue
     const notes = s.notes.filter((n) => n.groupId === g.id)
     if (!notes.length) continue
     items.push({ kind: 'cluster', id: g.id, title: groupTitle(g, notes), columnId: g.columnId, votes: g.votes ?? 0, rank: 0, size: notes.length, pos: order.get(notes[0]!.id)! })
   }
   for (const n of s.notes) {
-    if (n.groupId || off.has(n.columnId)) continue
+    if (n.groupId || !counted(cols, n)) continue
     items.push({ kind: 'note', id: n.id, title: n.text, columnId: n.columnId, votes: n.votes ?? 0, rank: 0, size: 1, pos: order.get(n.id)! })
   }
   items.sort((a, b) => b.votes - a.votes || a.pos - b.pos)

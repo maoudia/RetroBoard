@@ -2,7 +2,7 @@ import type { AgendaState } from './facilitation/agenda'
 import type { BoardState, Peer, Snapshot, SnapshotGroup, SnapshotNote } from './shared/types'
 import { isFrozenNote } from './ideation/freeze'
 import { rotiSummary } from './facilitation/roti'
-import { clusterVoters, countOf, votability, votesUsedBy } from './voting/policy'
+import { clusterVoters, counted, countOf, votability, votesUsedBy } from './voting/policy'
 import { countsHidden } from './voting/sealed'
 
 export interface Viewer {
@@ -27,9 +27,10 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       // A facilitator rename shows on notes that already carry a name; it never unmasks an anonymous author.
       author: n.author ? (names[n.ownerCid] ?? n.author) : n.author,
       groupId: n.groupId,
-      votes: secret ? null : n.voters.length,
-      voted: n.voters.includes(viewer.cid),
-      myVotes: countOf(n.voters, viewer.cid),
+      // An idea whose column is not votable shows no count; its votes come back with the column.
+      votes: secret ? null : counted(state, n) ? n.voters.length : 0,
+      voted: counted(state, n) && n.voters.includes(viewer.cid),
+      myVotes: counted(state, n) ? countOf(n.voters, viewer.cid) : 0,
       // Stryker disable next-line StringLiteral: votability only tests for 'cluster', so any other kind reads as a note
       votable: votability(state, 'note', n.id) === null,
       mine: n.ownerCid === viewer.cid,
@@ -42,8 +43,8 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     const voters = clusterVoters(state, g.id)
     return {
       id: g.id, columnId: g.columnId, title: g.title,
-      votes: secret ? null : voters.length,
-      myVotes: countOf(g.voters, viewer.cid),
+      votes: secret ? null : counted(state, g) ? voters.length : 0,
+      myVotes: counted(state, g) ? countOf(g.voters, viewer.cid) : 0,
       votable: votability(state, 'cluster', g.id) === null,
       ...(g.frozen ? { frozen: true } : {}),
       ...(g.pinned ? { pinned: g.pinned } : {}),

@@ -51,3 +51,32 @@ test('the creation form lists the columns where people vote and a change is appl
   await expect(noteByText(page, 'Start idea').locator('[data-testid^="vote-"]')).toHaveCount(0)
   await expect(noteByText(page, 'Continue idea').locator('[data-testid^="vote-"]').first()).toBeVisible()
 })
+
+// Change fix-votes-after-format-change: counted, shown and votable agree after a format change.
+test('a format change into a column that does not vote sets the votes aside, and they come back with the column', async ({ page }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', autoAgenda: false })
+  await publishNote(page, 0, 'Try pairing')
+  const vote = noteByText(page, 'Try pairing').locator('[data-testid^="vote-"]').first()
+  await vote.click()
+  await expect(vote).toContainText('1')
+
+  await page.getByTestId('btn-options').click()
+  await page.getByTestId('opt-template').click()
+  await page.getByTestId('tab-all').click()
+  await page.getByTestId('template-went-well').click()
+  await page.getByTestId('template-apply').click()
+  await expect(page.getByTestId('template-votes-set-aside')).toContainText('1')
+  await page.getByTestId('template-migrate').click()
+
+  // Nothing is shown that the results do not include: no count, no vote control.
+  await expect(column(page, 0)).toContainText('Try pairing')
+  await expect(noteByText(page, 'Try pairing').locator('[data-testid^="vote-"]')).toHaveCount(0)
+  await expect(noteByText(page, 'Try pairing').locator('[data-testid^="unvote-"]')).toHaveCount(0)
+
+  // The column votes again: the idea is back with its vote.
+  await column(page, 0).locator('[data-testid^="col-menu-"]').click()
+  await page.getByTestId('col-rename').click()
+  await page.getByTestId('col-votable').check()
+  await page.getByTestId('col-save').click()
+  await expect(noteByText(page, 'Try pairing').locator('[data-testid^="unvote-"], [data-testid^="vote-"]').first()).toContainText('1')
+})
