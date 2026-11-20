@@ -9,13 +9,13 @@ import { column, columnId, createBoard, noteByText, settle } from './helpers'
 test.use({ trace: 'on', viewport: { width: 1280, height: 800 } })
 test.skip(({ isMobile }) => isMobile, 'a hardware keyboard scenario: on touch the return key adds a line')
 
-test('five steps to publish: write at the top, keep a draft, see the counter, publish all, undo a mistake', async ({ page }) => {
+test('five steps to publish: write at the foot of the column, keep a draft, see the counter, publish all, undo a mistake', async ({ page }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const first = column(page, 0)
   const second = column(page, 1)
   const field = first.locator('textarea')
 
-  await test.step('1. The composer is at the top of the column and says only I see it', async () => {
+  await test.step('1. The composer is at the foot of the column and says only I see it', async () => {
     await expect(first.getByTestId(`only-you-${await columnId(page, 0)}`)).toContainText('jusqu\'à la publication')
     await expect(field).toBeVisible()
   })
