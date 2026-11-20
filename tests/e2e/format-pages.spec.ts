@@ -22,7 +22,7 @@ for (const [lang, prefix] of [['fr', ''], ['en', '/en']] as const) {
       const other = lang === 'fr' ? '/en' : ''
       await expect(page.locator(`link[rel="alternate"][hreflang="${lang === 'fr' ? 'en' : 'fr'}"]`)).toHaveAttribute('href', new RegExp(`${other}/formats/${id}/$`))
       await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute('href', new RegExp(`(?<!/en)/formats/${id}/$`))
-      await expect(page).toHaveTitle(new RegExp(tpl.name.replace(/[/()]/g, '\\$&')))
+      expect(await page.title()).toContain(tpl.name)
     })
   }
 }
