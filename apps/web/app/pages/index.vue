@@ -287,11 +287,11 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .join { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .5rem; width: min(520px, 100%); justify-self: center; }
 .join input { flex: 1 1 260px; min-width: 0; padding: .7rem 1rem; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: var(--fs-sm); }
 .join input[aria-invalid="true"] { border-color: #b3261e; }
-.join .ghost { display: inline-flex; align-items: center; gap: .4rem; padding: .7rem 1.1rem; }
+.join .ghost, .join :deep(.ghost) { display: inline-flex; align-items: center; gap: .4rem; padding: .7rem 1.1rem; }
 .join-error { flex-basis: 100%; margin: 0; color: #b3261e; font-size: var(--fs-sm); text-align: center; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.ghost { padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .2s; }
-.ghost:hover { background: rgb(0 113 227 / .08); }
+.ghost, .join :deep(.ghost) { padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .2s; }
+.ghost:hover, .join :deep(.ghost:hover) { background: rgb(0 113 227 / .08); }
 
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 1.4rem; max-width: 1120px; margin: 0 auto; padding: 4.5rem 1.25rem 3rem; text-align: center; }
 .eyebrow { display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .9rem; border-radius: 999px; background: var(--fill); color: var(--ink2); font-size: var(--fs-sm); font-weight: 600; }
@@ -368,7 +368,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
   .actions { display: contents; }
   .actions .cta { position: fixed; z-index: 40; inset: auto var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom)); min-height: 3.25rem; font-size: var(--fs-lg); box-shadow: 0 12px 28px -8px color-mix(in srgb, var(--blue) 65%, transparent); }
   .lp { padding-bottom: 6rem; }
-  .join .ghost { flex: 1 0 100%; justify-content: center; min-height: 3rem; }
+  .join .ghost, .join :deep(.ghost) { flex: 1 0 100%; justify-content: center; min-height: 3rem; }
   .cta.big { align-self: stretch; min-height: 3.25rem; }
 }
 @media (max-width: 420px) { .nav-in { gap: .5rem; padding: 0 .75rem; } .right { gap: .4rem; } .cta.sm { padding: .4rem .75rem; } .brand { gap: .4rem; } }
