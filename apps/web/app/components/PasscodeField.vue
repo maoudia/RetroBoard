@@ -102,6 +102,7 @@ watch(style, generate)
 .meter[data-strength='weak'] .bar i { background: var(--danger, #c0392b); }
 .meter[data-strength='none'] .bar i { width: 0 !important; }
 .gen { display: grid; gap: .6rem; padding: .6rem .8rem; border: 1px solid var(--border); border-radius: var(--r-card, 12px); }
+.gen:not([open]) { gap: 0; } /* the closed content is a zero-height row: its gap would add blank space under the summary */
 .gen summary { cursor: pointer; font-weight: 700; }
 .opts { display: grid; gap: .4rem; }
 .line { display: flex; align-items: center; gap: .6rem; }
