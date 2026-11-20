@@ -15,6 +15,14 @@ const targets = computed(() => board.itemsFor(props.note.columnId, 'time').flatM
   return [{ key: i.group.id, onto: i.notes[0]!.id, label: t('note.groupWithGroup', { title: i.title }) }]
 }))
 const groupOpen = ref(false)
+const goBtn = ref<HTMLElement | null>(null)
+/** Opening the list brings its button into view: the panel may scroll, and the button sits under the list. */
+watch(groupOpen, async (open) => {
+  if (!open) return
+  await nextTick()
+  const panel = goBtn.value?.closest<HTMLElement>('.dd-panel')
+  if (panel) panel.scrollTop = panel.scrollHeight // to the very end: the bottom fade of the panel goes with it
+})
 const picks = ref(new Set<string>())
 function togglePick(key: string) {
   const next = new Set(picks.value)
@@ -77,14 +85,16 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           <Icon name="lucide:group" /> {{ t('note.groupWith') }}
         </button>
         <div v-if="groupOpen" class="gw-list" role="group" :aria-label="t('note.groupWithList')">
-          <!-- Tick several ideas, then group them all at once (change feedback-wave-6). -->
-          <button
-            v-for="g in targets" :key="g.key" class="dd-item gw-pick" type="button" role="menuitemcheckbox" :aria-checked="picks.has(g.key)"
-            :data-testid="`group-onto-${g.key}`" @click.stop="togglePick(g.key)"
-          >
-            <Icon :name="picks.has(g.key) ? 'lucide:square-check' : 'lucide:square'" /> <span>{{ clip(g.label) }}</span>
-          </button>
-          <button class="btn btn-sm btn-primary gw-go" type="button" role="menuitem" :disabled="!picks.size" data-testid="group-bulk-go" @click.stop="groupPicked(); close()">
+          <!-- Tick several ideas, then group them all at once (change feedback-wave-6). The rows scroll, the button stays below them (change fix-group-with-menu-layout). -->
+          <div class="gw-rows">
+            <button
+              v-for="g in targets" :key="g.key" class="dd-item gw-pick" type="button" role="menuitemcheckbox" :aria-checked="picks.has(g.key)"
+              :data-testid="`group-onto-${g.key}`" @click.stop="togglePick(g.key)"
+            >
+              <Icon :name="picks.has(g.key) ? 'lucide:square-check' : 'lucide:square'" /> <span>{{ clip(g.label) }}</span>
+            </button>
+          </div>
+          <button ref="goBtn" class="btn btn-sm btn-primary gw-go" type="button" role="menuitem" :disabled="!picks.size" data-testid="group-bulk-go" @click.stop="groupPicked(); close()">
             <Icon name="lucide:group" /> {{ t('note.groupN', { n: picks.size + 1 }) }}
           </button>
         </div>
@@ -113,9 +123,12 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform .15s; }
 .sw:hover { transform: scale(1.2); }
 .sw.on { border-color: var(--text); }
-.gw-list { display: grid; max-height: 11rem; overflow: auto; padding-left: .6rem; }
+.gw-list { display: grid; gap: 2px; padding-left: var(--sp-3); min-width: 0; }
+.gw-rows { display: grid; grid-auto-rows: max-content; gap: 2px; max-height: min(11rem, 32dvh); overflow-y: auto; overflow-x: hidden; min-width: 0; scrollbar-width: thin; }
 .lbl-sm { font-size: var(--fs-xs); font-weight: 700; padding: .3rem .65rem 0; text-transform: uppercase; letter-spacing: .05em; }
-.gw-pick { display: flex; align-items: flex-start; gap: .45rem; text-align: left; }
-.gw-pick span { overflow-wrap: anywhere; }
-.gw-go { margin: .3rem .5rem .2rem; width: calc(100% - 1rem); justify-content: center; }
+.gw-pick { display: flex; align-items: flex-start; gap: .45rem; text-align: left; border-radius: var(--r-sm); min-width: 0; }
+.gw-pick :deep(svg) { flex: none; margin-top: .2em; }
+.gw-pick[aria-checked="true"] { color: color-mix(in oklab, var(--accent) 80%, var(--text)); } /* accent on accent-soft fell under 4.5:1 */
+.gw-pick span { min-width: 0; overflow-wrap: anywhere; }
+.gw-go { margin: var(--sp-1) 0 0; width: 100%; justify-content: center; }
 </style>

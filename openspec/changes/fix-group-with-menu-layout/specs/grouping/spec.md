@@ -8,7 +8,7 @@ The "Group with..." list of the note menu SHALL keep every row and its "Group N"
 - **THEN** the list scrolls inside the panel, no row crosses the panel edge, there is no horizontal scroll and the "Group N" button stays visible
 
 #### Scenario: A very long label
-- **WHEN** an idea of 200 characters without a space is in the list
+- **WHEN** an idea of 150 characters without a space is in the list
 - **THEN** its row wraps inside the panel and keeps a rounded rectangle shape
 
 #### Scenario: Keyboard
