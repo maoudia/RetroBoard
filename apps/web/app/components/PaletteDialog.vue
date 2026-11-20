@@ -27,8 +27,12 @@ function onKey(e: KeyboardEvent, i: number) {
   const next = (i + step + count.value) % count.value
   group.value?.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus()
 }
-watch(open, (v) => { if (v) advanced.value = (current.value ?? 0) >= NOTE_COLOR_COUNT })
-watch(open, (v) => { if (v) void nextTick(() => group.value?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus()) })
+// Mounted at the first opening (lazy): start from the current shade and focus it.
+watch(open, (v) => {
+  if (!v) return
+  advanced.value = (current.value ?? 0) >= NOTE_COLOR_COUNT
+  void nextTick(() => group.value?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus())
+}, { immediate: true })
 </script>
 
 <template>

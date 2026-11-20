@@ -57,7 +57,9 @@ const OPT_IN = [/initializeWebModelContext/]
 // vault runtime (scheduler, engine wiring, folder access; marker: the Web Lock name), the Argon2id worker (marker: its failure code) and the
 // OneDrive sign-in with the page side of its worker (marker: the sessionStorage key of a pending sign-in). The Preferences > Sync screen, the
 // library and everything the entry imports statically stay counted.
-const OPT_IN_SMALL = [/retroboard:oauth:/, /retroboard-vault-/, /derivation-failed/]
+// 2026-11-20, group-colors-menu-and-scope: the colour palette dialog (marker: its "more shades" test id) is a lazy chunk fetched at the first opening;
+// the cluster panel (marker: its recolour test id) is lazy too, fetched when a cluster is first opened.
+const OPT_IN_SMALL = [/retroboard:oauth:/, /retroboard-vault-/, /derivation-failed/, /palette-more/, /cluster-recolor/]
 
 const assets = join(dir, '_nuxt')
 const html = readFileSync(join(dir, 'index.html'), 'utf8')

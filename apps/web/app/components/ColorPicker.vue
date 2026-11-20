@@ -16,9 +16,9 @@ const emit = defineEmits<{ pick: [color: number]; more: [] }>()
 </script>
 
 <template>
-  <div class="swatches" :role="menu ? 'group' : 'radiogroup'" :aria-label="t('note.color')">
+  <div class="swatches" role="group" :aria-label="t('note.color')">
     <button
-      v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: current === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
+      v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :style="{ background: `var(--note-${i - 1})` }"
       :role="menu ? 'menuitemradio' : 'radio'" :aria-checked="current === i - 1"
       :aria-label="t('note.colorN', { n: i })" :data-testid="swatchTestid && `${swatchTestid}-${i - 1}`" @click="emit('pick', i - 1)"
     />
@@ -30,5 +30,5 @@ const emit = defineEmits<{ pick: [color: number]; more: [] }>()
 .swatches { display: grid; grid-template-columns: repeat(8, minmax(24px, 1fr)); gap: 5px; padding: .35rem .4rem; }
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform .15s; }
 .sw:hover { transform: scale(1.2); }
-.sw.on { border-color: var(--text); }
+.sw[aria-checked="true"] { border-color: var(--text); }
 </style>
