@@ -8,8 +8,8 @@ defineProps<{
   current: number | null
   /** Inside a dropdown menu (menu roles) or inline in a panel (plain buttons). */
   menu?: boolean
-  /** Test id of a swatch, from its colour index. */
-  swatchTestid?: (i: number) => string
+  /** Test id prefix of the swatches (suffixed with the colour index). */
+  swatchTestid?: string
   moreTestid?: string
 }>()
 const emit = defineEmits<{ pick: [color: number]; more: [] }>()
@@ -20,7 +20,7 @@ const emit = defineEmits<{ pick: [color: number]; more: [] }>()
     <button
       v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: current === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
       :role="menu ? 'menuitemradio' : undefined" :aria-checked="menu ? current === i - 1 : undefined" :aria-pressed="menu ? undefined : current === i - 1"
-      :aria-label="t('note.colorN', { n: i })" :data-testid="swatchTestid?.(i - 1)" @click="emit('pick', i - 1)"
+      :aria-label="t('note.colorN', { n: i })" :data-testid="swatchTestid && `${swatchTestid}-${i - 1}`" @click="emit('pick', i - 1)"
     />
   </div>
   <button class="dd-item" type="button" :role="menu ? 'menuitem' : undefined" :data-testid="moreTestid" @click="emit('more')"><Icon name="lucide:palette" /> {{ t('note.palette') }}</button>
