@@ -981,6 +981,7 @@ export const fr = {
   'template.choice.mapping': 'Où vont les post-its',
   'template.choice.empty': 'Nouvelle colonne vide',
   'template.choice.migrate': 'Changer et garder les post-its',
+  'template.choice.setAside': '{n} vote(s) sont mis de côté car leur colonne ne se vote pas dans ce format. Ils reviennent si la colonne redevient votable.',
 
   'column.options': 'Options de la colonne',
   'column.colourAll': 'Colorer toutes les idées',

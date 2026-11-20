@@ -9,6 +9,7 @@ const ui = useUiStore()
 const over = ref(false)
 const fromHere = computed(() => board.actionsBySource.get(props.item.group.id)?.length ?? 0)
 const dock = computed(() => !props.expanded && (fromHere.value > 0 || (!!props.item.group.votable && board.votingEnabled)))
+const columnVotes = computed(() => board.columns.find((c) => c.id === props.item.group.columnId)?.votable !== false)
 const top = computed(() => props.item.notes[0]!)
 // Snap (change postit-visual-system, task 3.1): a note joining the cluster makes the stack click into place; reduced motion skips the class.
 const snapped = ref(false)
@@ -105,7 +106,7 @@ const touch = useTouchDrag(stackEl, {
         <span class="count"><Icon name="lucide:layers" /> {{ item.notes.length }}</span>
         <span v-if="item.group.pinned" class="count pin" :data-testid="`pinned-${item.group.id}`"><Icon name="lucide:pin" /> {{ t('note.pinned') }}</span>
         <span v-if="item.group.frozen" class="count" :title="t('error.frozen')" :data-testid="`frozen-${item.group.id}`"><Icon name="lucide:snowflake" /> {{ t('note.frozen') }}</span>
-        <span v-if="!secret && !item.group.votable" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
+        <span v-if="!secret && !item.group.votable && columnVotes" class="votes mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
       </span>
     </span>
   </button>

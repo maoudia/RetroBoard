@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getTemplate, localizeTemplate } from '@retroboard/domain'
-import { templateMapping } from '@retroboard/application'
+import { templateMapping, votesSetAside } from '@retroboard/application'
 const { t, locale } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
@@ -27,6 +27,13 @@ const mapping = computed(() => {
   if (!tpl) return []
   return templateMapping(board.columns.map((c) => c.title), localizeTemplate(tpl, locale.value).columns.map((c) => c.title))
 })
+/** Votes the new format would set aside because the new column does not vote. */
+const setAside = computed(() => {
+  const tpl = picked.value ? getTemplate(picked.value) : undefined
+  const snap = board.snapshot
+  if (!tpl || !snap) return 0
+  return votesSetAside(snap, tpl.columns.map((c) => c.votable !== false)) ?? 0
+})
 </script>
 
 <template>
@@ -38,6 +45,7 @@ const mapping = computed(() => {
     </template>
     <BaseDialog v-model:open="confirm" :title="t('template.choice.title')" width="520px">
       <p class="muted">{{ t('template.choice.msg') }}</p>
+      <p v-if="setAside > 0" class="muted" role="status" data-testid="template-votes-set-aside">{{ t('template.choice.setAside', { n: setAside }) }}</p>
       <ul class="map" data-testid="template-mapping" :aria-label="t('template.choice.mapping')">
         <li v-for="r in mapping" :key="r.to">
           <span class="from">{{ r.from.length ? r.from.join(' + ') : t('template.choice.empty') }}</span>

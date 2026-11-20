@@ -4,11 +4,20 @@ import type { BoardState, ErrorCode, SealedBallot } from '../shared/types'
 /** The sealed ballots of the round, in log order (none before the first). */
 export const ballotsOf = (s: BoardState): readonly SealedBallot[] => s.sealed ?? []
 
-/** Votes cast by one person across the board (notes and clusters, repeats included). */
+/** Does this column take votes? Absent flag: votable, like boards created before. */
+export const columnVotable = (s: Pick<BoardState, 'columns'>, columnId: string): boolean => s.columns.find((c) => c.id === columnId)?.votable !== false
+
+/**
+ * The one rule behind "counted, shown and votable agree": an idea counts exactly when its column is
+ * votable. The votes of an idea that does not count stay in the log and count again with the column.
+ */
+export const counted = (s: Pick<BoardState, 'columns'>, idea: { columnId: string }): boolean => columnVotable(s, idea.columnId)
+
+/** Votes cast by one person across the board (counted notes and clusters, repeats included). */
 export function votesUsedBy(s: BoardState, cid: string): number {
   let n = 0
-  for (const note of Object.values(s.notes)) for (const v of note.voters) if (v === cid) n++
-  for (const g of Object.values(s.groups)) for (const v of g.voters) if (v === cid) n++
+  for (const note of Object.values(s.notes)) if (counted(s, note)) for (const v of note.voters) if (v === cid) n++
+  for (const g of Object.values(s.groups)) if (counted(s, g)) for (const v of g.voters) if (v === cid) n++
   for (const b of ballotsOf(s)) if (b.cid === cid) n++
   return n
 }
@@ -18,16 +27,15 @@ export const countOf = (voters: readonly string[], cid: string): number => voter
 /** Can this item take votes under the board's policy? Null when it can, else the reason. */
 export function votability(s: BoardState, kind: VotableKind, id: string): ErrorCode | null {
   const { votable } = s.settings
-  const columnVotable = (columnId: string) => s.columns.find((c) => c.id === columnId)?.votable !== false
   if (kind === 'cluster') {
     const g = s.groups[id]
     if (!g) return 'not-found'
-    if (!columnVotable(g.columnId)) return 'not-votable'
+    if (!counted(s, g)) return 'not-votable'
     return votable === 'notes' ? 'not-votable' : null
   }
   const note = s.notes[id]
   if (!note) return 'not-found'
-  if (!columnVotable(note.columnId)) return 'not-votable'
+  if (!counted(s, note)) return 'not-votable'
   if (votable === 'clusters' && !note.groupId) return 'not-votable'
   // A note inside a cluster is voted through its cluster when clusters are votable.
   if (note.groupId && votable !== 'notes') return 'not-votable'

@@ -982,6 +982,7 @@ export const en: Record<keyof typeof fr, string> = {
   'template.choice.mapping': 'Where the notes go',
   'template.choice.empty': 'New empty column',
   'template.choice.migrate': 'Change and keep notes',
+  'template.choice.setAside': '{n} vote(s) are set aside because their column is not votable in this format. They come back if the column becomes votable again.',
 
   'column.options': 'Column options',
   'column.colourAll': 'Colour every idea',
