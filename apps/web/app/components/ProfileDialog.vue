@@ -250,6 +250,7 @@ async function wipe() {
 
 <style scoped>
 .intro { display: flex; gap: .5rem; align-items: center; font-size: var(--fs-sm); }
+.intro :deep(.iconify) { flex: none; }
 .grp { display: grid; gap: .8rem; padding-top: .9rem; border-top: 1px solid var(--border); }
 h3 { font-size: var(--fs-sm); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--f-body); font-weight: 800; }
 h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
