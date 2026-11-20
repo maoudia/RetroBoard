@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.61.1](https://github.com/maoudia/RetroBoard/compare/v1.61.0...v1.61.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **web:** dialogs scale up on TV and still fit (change fix-tv-dialog-scale) ([109231d](https://github.com/maoudia/RetroBoard/commit/109231d21ad484951ea5603c383aa006ebcd9ae8))
+* **web:** the closed password generator box has no blank band under its summary ([c51fecd](https://github.com/maoudia/RetroBoard/commit/c51fecdb67073ba5b2853c0b5e07e24dd15415cf))
+* **web:** the lock of a gated vote stays visible on dark themes ([b83f615](https://github.com/maoudia/RetroBoard/commit/b83f6159c468aac039e78e6a4fe3952a0b8c4b72))
+* **web:** the phone column header keeps more of its title (change fix-gated-lock-and-phone-column-header) ([6c63622](https://github.com/maoudia/RetroBoard/commit/6c6362289ecbb5637dc087357c6e77d7f23a67d1))
+
 ## [1.61.0](https://github.com/maoudia/RetroBoard/compare/v1.60.0...v1.61.0) (2026-11-20)
 
 
