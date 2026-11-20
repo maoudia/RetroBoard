@@ -84,8 +84,8 @@ export const useUiStore = defineStore('ui', () => {
 
   const open = (name: Exclude<DialogName, null>) => { dialog.value = name }
   const close = () => { dialog.value = null }
-  /** Note whose colour is being picked in the palette sheet. */
-  const paletteNoteId = ref<string | null>(null)
+  /** Note or cluster whose colour is being picked in the palette sheet. */
+  const paletteTarget = ref<{ kind: 'note' | 'group'; id: string } | null>(null)
   /** Note the keyboard asked to edit (Enter on a focused note). */
   const editNoteId = ref<string | null>(null)
   /** Phones: toolbar, phase bar and voting bar folded away while reading the board (change mobile-board-space). */
@@ -98,12 +98,12 @@ export const useUiStore = defineStore('ui', () => {
   /** Source note or group whose actions the actions panel highlights. */
   const focusSource = ref<string | null>(null)
   function openActionsFor(sourceId: string) { focusSource.value = sourceId; dialog.value = 'actions' }
-  function openPalette(noteId: string) { paletteNoteId.value = noteId; dialog.value = 'palette' }
+  function openPalette(noteId: string, kind: 'note' | 'group' = 'note') { paletteTarget.value = { kind, id: noteId }; dialog.value = 'palette' }
   function editColumn(id: string | null) { editingColumnId.value = id; dialog.value = 'column' }
   /** Phones: the column whose composer sheet is open, null when closed (change publishing-ux-redesign). Local to this tab. */
   const composeColumn = ref<string | null>(null)
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
+  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
 })

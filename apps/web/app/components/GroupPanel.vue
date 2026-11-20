@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS, NOTE_COLOR_COUNT } from '@retroboard/domain'
+import { LIMITS } from '@retroboard/domain'
 import { type ColumnItem, suggestClusterTitles } from '@retroboard/application'
 const { t } = useT()
 
@@ -9,6 +9,8 @@ const ui = useUiStore()
 const title = ref(props.item.group.title ?? '')
 watch(() => props.item.group.title, (t) => { title.value = t ?? '' })
 
+/** Colour the next recolour starts from: the first note it reaches (a frozen note keeps its own). */
+const color = computed(() => props.item.notes.find((n) => !n.frozen)?.color ?? null)
 const closeNow = () => { ui.openGroupId = null }
 
 // Spring open and close (change cluster-reveal-motion): the panel grows out of the stack and shrinks back
@@ -56,7 +58,7 @@ function moveTo(columnId: string) { board.commands.moveGroup(props.item.group.id
 const gate = computed(() => board.availability('action.add'))
 function toAction() { const id = props.item.group.id; const text = props.item.title; closeNow(); ui.openActionFrom({ sourceId: id, text, owner: '' }) }
 function dissolve() { board.commands.dissolveGroup(props.item.group.id); closeNow() }
-const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !ui.dialog) close() } // a dialog opened from the panel (the palette) takes its own Escape
 onMounted(() => document.addEventListener('keydown', onKey))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 </script>
@@ -96,12 +98,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         </details>
         <details v-if="!board.locked && !item.group.frozen" class="merge">
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-recolor"><Icon name="lucide:palette" /> {{ t('cluster.recolor') }}</summary>
-          <div class="swatches" role="group" :aria-label="t('cluster.recolor')">
-            <button
-              v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :style="{ background: `var(--note-${i - 1})` }"
-              :aria-label="t('note.colorN', { n: i })" :data-testid="`cluster-color-${i - 1}`" @click="board.commands.recolorGroup(item.group.id, i - 1)"
-            />
-          </div>
+          <ColorPicker
+            :current="color" :swatch-testid="(i) => `cluster-color-${i}`" more-testid="cluster-palette"
+            @pick="board.commands.recolorGroup(item.group.id, $event)" @more="ui.openPalette(item.group.id, 'group')"
+          />
         </details>
         <button class="btn btn-sm btn-ghost" type="button" :disabled="!gate.allowed" data-testid="group-create-action" @click="toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>
         <button v-if="board.access.canSteer" class="btn btn-sm btn-ghost" type="button" data-testid="group-pin" @click="board.commands[item.group.pinned ? 'unpin' : 'pin'](item.group.id)">
@@ -135,9 +135,6 @@ footer :deep(.btn) { white-space: normal; text-align: start; justify-content: fl
 .merge summary { list-style: none; cursor: pointer; }
 .merge summary::-webkit-details-marker { display: none; }
 .merge-list { display: grid; gap: 2px; margin-top: .35rem; }
-.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(26px, 1fr)); gap: .35rem; margin-top: .35rem; max-width: 14rem; }
-.sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; transition: transform .15s; }
-.sw:hover { transform: scale(1.2); }
 .chip { padding: .2rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface2); color: var(--text); cursor: pointer; font: inherit; font-size: var(--fs-sm); }
 .chip:hover { border-color: var(--accent); }
 </style>

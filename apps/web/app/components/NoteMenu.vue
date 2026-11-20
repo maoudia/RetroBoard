@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 import type { SnapshotNote } from '@retroboard/domain'
 const { t } = useT()
 
@@ -60,13 +59,10 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
       </button>
     </template>
     <template #default="{ close }">
-      <div class="swatches" role="group" :aria-label="t('note.color')">
-        <button
-          v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" role="menuitemradio" :aria-checked="note.color === i - 1" class="sw" :class="{ on: note.color === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
-          :aria-label="t('note.colorN', { n: i })" @click="board.commands.recolorNote(note.id, i - 1); close()"
-        />
-      </div>
-      <button class="dd-item" type="button" role="menuitem" :data-testid="`palette-open-${note.id}`" @click="ui.openPalette(note.id); close()"><Icon name="lucide:palette" /> {{ t('note.palette') }}</button>
+      <ColorPicker
+        menu :current="note.color" :more-testid="`palette-open-${note.id}`"
+        @pick="board.commands.recolorNote(note.id, $event); close()" @more="ui.openPalette(note.id); close()"
+      />
       <button class="dd-item" type="button" role="menuitem" :disabled="!gate.allowed" :title="gate.allowed ? undefined : t('gated.actions.closed', { phase: gate.closedBy ? t(`agenda.phase.${gate.closedBy}` as never) : '' })" :data-testid="`create-action-${note.id}`" @click="toAction(); close()">
         <Icon name="lucide:list-checks" /> {{ t('note.toAction') }}
       </button>
@@ -119,10 +115,6 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
 </template>
 
 <style scoped>
-.swatches { display: grid; grid-template-columns: repeat(8, minmax(24px, 1fr)); gap: 5px; padding: .35rem .4rem; }
-.sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform .15s; }
-.sw:hover { transform: scale(1.2); }
-.sw.on { border-color: var(--text); }
 .gw-list { display: grid; gap: 2px; padding-left: var(--sp-3); min-width: 0; }
 .gw-rows { display: grid; grid-auto-rows: max-content; gap: 2px; max-height: min(11rem, 32dvh); overflow-y: auto; overflow-x: hidden; min-width: 0; scrollbar-width: thin; }
 .lbl-sm { font-size: var(--fs-xs); font-weight: 700; padding: .3rem .65rem 0; text-transform: uppercase; letter-spacing: .05em; }

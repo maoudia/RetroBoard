@@ -4,14 +4,21 @@ const { t } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
 const open = computed({ get: () => ui.dialog === 'palette', set: (v) => { if (!v && ui.dialog === 'palette') ui.close() } })
-const note = computed(() => (ui.paletteNoteId ? board.noteById(ui.paletteNoteId) : undefined) ?? null)
+/** Colour of the note, or of the first notes of the cluster that a recolour reaches (the frozen ones keep theirs). */
+const current = computed<number | null>(() => {
+  const target = ui.paletteTarget
+  if (!target) return null
+  if (target.kind === 'note') return board.noteById(target.id)?.color ?? null
+  return board.snapshot?.notes.find((n) => n.groupId === target.id && !n.frozen)?.color ?? null
+})
 const group = ref<HTMLElement | null>(null)
 /** Advanced mode: tints and shades of the theme colours (no free colour). Opens by itself on a note already in one. */
 const advanced = ref(false)
 const count = computed(() => (advanced.value ? NOTE_COLOR_EXTENDED : NOTE_COLOR_COUNT))
 
 function pick(i: number) {
-  if (note.value) board.commands.recolorNote(note.value.id, i)
+  const target = ui.paletteTarget
+  if (target) board.commands[target.kind === 'note' ? 'recolorNote' : 'recolorGroup'](target.id, i)
   ui.close()
 }
 /** Arrow keys move through the swatches (radio group), Enter/Space picks. */
@@ -22,7 +29,7 @@ function onKey(e: KeyboardEvent, i: number) {
   const next = (i + step + count.value) % count.value
   group.value?.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus()
 }
-watch(open, (v) => { if (v) advanced.value = (note.value?.color ?? 0) >= NOTE_COLOR_COUNT })
+watch(open, (v) => { if (v) advanced.value = (current.value ?? 0) >= NOTE_COLOR_COUNT })
 watch(open, (v) => { if (v) void nextTick(() => group.value?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus()) })
 </script>
 
@@ -30,12 +37,12 @@ watch(open, (v) => { if (v) void nextTick(() => group.value?.querySelector<HTMLE
   <BaseDialog v-model:open="open" :title="t('note.palette')" width="420px">
     <div ref="group" class="grid" role="radiogroup" :aria-label="t('note.color')" data-testid="palette">
       <button
-        v-for="i in count" :key="i" type="button" role="radio" class="sw" :class="{ on: note?.color === i - 1 }"
-        :aria-checked="note?.color === i - 1" :tabindex="note?.color === i - 1 || (note == null && i === 1) ? 0 : -1"
+        v-for="i in count" :key="i" type="button" role="radio" class="sw" :class="{ on: current === i - 1 }"
+        :aria-checked="current === i - 1" :tabindex="current === i - 1 || (current == null && i === 1) ? 0 : -1"
         :style="{ background: `var(--note-${i - 1})` }" :aria-label="t('note.colorN', { n: i })" :data-testid="`palette-${i - 1}`"
         @click="pick(i - 1)" @keydown="onKey($event, i - 1)"
       >
-        <Icon v-if="note?.color === i - 1" name="lucide:check" />
+        <Icon v-if="current === i - 1" name="lucide:check" />
       </button>
     </div>
     <button class="more" type="button" :aria-pressed="advanced" data-testid="palette-more" @click="advanced = !advanced">
