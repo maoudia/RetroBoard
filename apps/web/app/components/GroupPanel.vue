@@ -99,7 +99,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         <details v-if="!board.locked && !item.group.frozen" class="merge">
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-recolor"><Icon name="lucide:palette" /> {{ t('cluster.recolor') }}</summary>
           <ColorPicker
-            :current="color" :swatch-testid="(i) => `cluster-color-${i}`" more-testid="cluster-palette"
+            :current="color" swatch-testid="cluster-color" more-testid="cluster-palette"
             @pick="board.commands.recolorGroup(item.group.id, $event)" @more="ui.openPalette(item.group.id, 'group')"
           />
         </details>
