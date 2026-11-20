@@ -90,6 +90,8 @@ export const useUiStore = defineStore('ui', () => {
   const editNoteId = ref<string | null>(null)
   /** Phones: toolbar, phase bar and voting bar folded away while reading the board (change mobile-board-space). */
   const chromeHidden = ref(false)
+  /** A scroll the app makes itself (a new note brought into view) must not fold the phone menus until this time (change writing-zone-at-column-bottom). */
+  const quietScrollUntil = ref(0)
   /** Action form to prefill when the actions panel opens (from a note or group menu). */
   const actionFrom = ref<{ sourceId: string; text: string; owner: string } | null>(null)
   function openActionFrom(source: { sourceId: string; text: string; owner: string }) { actionFrom.value = source; dialog.value = 'actions' }
@@ -103,5 +105,5 @@ export const useUiStore = defineStore('ui', () => {
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
+  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteNoteId, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
 })

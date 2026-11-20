@@ -135,6 +135,22 @@ test.describe('360 px phone', () => {
     expect(tray.y).toBeGreaterThanOrEqual(note.y + note.height - 1)
     const colBox = (await col.boundingBox())!
     expect(tray.y + tray.height).toBeLessThanOrEqual(colBox.y + colBox.height + 1)
+    // The write button floats over the foot of the column: the tray's own actions stay clear of it and tappable.
+    const hit = await col.getByTestId('drafts-tray').locator('[data-testid^="draft-dismiss-"]').evaluate((b) => {
+      const r = b.getBoundingClientRect()
+      return b.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))
+    })
+    expect(hit).toBe(true)
     expect(await problems(page)).toEqual([])
+  })
+
+  test('bringing a new note into view does not fold the menus away', async ({ page }) => {
+    await createBoard(page, { template: 'start-stop-continue' })
+    for (let i = 0; i < 6; i++) await addDraft(page, 0, `Idea ${i} ${'long text '.repeat(6)}`)
+    await column(page, 0).locator('[data-testid^="publish-"]').click()
+    await expect(noteByText(page, 'Idea 5 ')).toBeVisible()
+    await settle(page)
+    expect(await column(page, 0).locator('.notes').evaluate((e) => e.scrollHeight > e.clientHeight)).toBe(true)
+    await expect(page.locator('nav.tools')).toBeVisible()
   })
 })

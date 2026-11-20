@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, publishNote } from './helpers'
+import { createBoard, publishNote, scrollNotes } from './helpers'
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
@@ -10,6 +10,7 @@ test('scrolling a column on a phone folds the menus away and gives the board roo
   const before = (await board.boundingBox())!.height
   const notes = page.locator('.notes').first()
   expect(await notes.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
+  await scrollNotes(page, 0, 'top') // a new note scrolls the list to its end: start from the top to read down
   await notes.hover()
   await notes.evaluate((el) => el.scrollBy(0, 400)) // mouse.wheel is not supported in mobile WebKit
   await expect(page.locator('nav.tools')).toBeHidden()
