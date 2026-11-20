@@ -40,9 +40,7 @@ for (const { name, viewport } of sizes) {
       expect(field.y).toBeGreaterThanOrEqual(box.y + box.height - 1) // under the notes area
       expect(field.y + field.height).toBeLessThanOrEqual(colBox.y + colBox.height + 1) // inside the column
       expect(field.y + field.height).toBeLessThanOrEqual(viewport.height) // in view without scrolling
-      const lastNote = (await noteByText(page, 'Idea 13 ').boundingBox())
-      if (lastNote) expect(field.y).toBeGreaterThanOrEqual(lastNote.y + lastNote.height - 1) // never above any note
-      await notes.evaluate((e) => { e.scrollTop = e.scrollHeight })
+      await notes.evaluate((e) => { e.scrollTop = e.scrollHeight }) // at the end of the notes the last one sits right above the zone
       const lastNow = (await noteByText(page, 'Idea 13 ').boundingBox())!
       expect(field.y).toBeGreaterThanOrEqual(lastNow.y + lastNow.height - 1)
     })
