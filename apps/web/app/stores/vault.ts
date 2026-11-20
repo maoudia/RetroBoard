@@ -2,7 +2,7 @@ import type { AttentionReason, RecoveryKeyView, VaultDevice, VaultStatus } from 
 import type { Connection } from '~/adapters/sync/sync-state'
 import { onedriveConfig } from '~/adapters/sync/onedrive-config'
 import type { OnedriveConfig } from '~/adapters/sync/onedrive-protocol'
-import type { SetupError, SetupStep, VaultRuntime } from '~/adapters/sync/vault-runtime'
+import type { FolderChoice, SetupError, SetupStep, VaultRuntime } from '~/adapters/sync/vault-runtime'
 import { folderPickerSupported } from '~/adapters/sync/folder-handle'
 import { SYNC_FLAG } from '~/utils/sync-status'
 import { safeStorage } from '~/utils/storage'
@@ -31,6 +31,7 @@ export const useVaultStore = defineStore('vault', () => {
   const error = ref<SetupError>(null)
   const busy = ref(false)
   const pendingFolder = ref('')
+  const choice = ref<FolderChoice | null>(null)
   const unlocked = ref(false)
   const connected = computed(() => connection.value !== null)
   const folderName = computed(() => connection.value?.folderName ?? pendingFolder.value)
@@ -39,7 +40,7 @@ export const useVaultStore = defineStore('vault', () => {
 
   let runtime: Promise<VaultRuntime> | null = null
   const load = (): Promise<VaultRuntime> => (runtime ??= import('~/adapters/sync/vault-runtime').then((m) => m.createVaultRuntime({
-    state: { connection, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, pendingFolder, unlocked, onedrive, pendingKind },
+    state: { connection, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, pendingFolder, unlocked, onedrive, pendingKind, choice },
     supported: () => supported.value,
     library: useLibraryStore(),
     settings: useSettingsStore(),
@@ -69,9 +70,13 @@ export const useVaultStore = defineStore('vault', () => {
   }
 
   return {
-    supported, folderSupported, onedrive, provider, loadProviders, connection, connected, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, folderName, unlocked,
+    supported, folderSupported, onedrive, provider, loadProviders, connection, connected, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, folderName, unlocked, choice,
     init,
     chooseFolder: async () => (await load()).chooseFolder(),
+    useFolderVault: async () => (await load()).useFolderVault(),
+    createVaultHere: async () => (await load()).createVaultHere(),
+    copyVaultHere: async () => (await load()).copyVaultHere(),
+    cancelChoice: () => { if (runtime) void runtime.then((r) => r.cancelChoice()); choice.value = null },
     requestAccess: async () => (await load()).requestAccess(),
     create: async (password: string) => (await load()).create(password),
     unlock: async (secret: Parameters<VaultRuntime['unlock']>[0]) => (await load()).unlock(secret),

@@ -4,8 +4,9 @@ import {
   type AttentionReason, type DirectoryHandleLike, type Library, type RecoveryKeyView, type StampedMap, type SyncOutcome, type SyncTargetPort, type UnlockSecret, type UnlockedVault, type VaultDevice, type VaultStatus,
   type ReplicaStorePort, type WorkspaceDoc, createVault, disconnectAndForget, libraryCodec, stampedCodec, syncVault, unlockVault, workspaceCodec,
 } from '@retroboard/application'
-import { type BoardEvent, type EngineMemory, type StreamCodec, type VaultLocal, boardCodec, boardStream, isBoardStream, mergeEvents } from '@retroboard/sync'
-import { type FolderAccess, folderAccess, openVaultFolder, pickFolder, requestFolderAccess } from '~/adapters/sync/folder-handle'
+import { type BoardEvent, type EngineMemory, type InfoDoc, type StreamCodec, type VaultLocal, boardCodec, boardStream, isBoardStream, mergeEvents, parseInfo } from '@retroboard/sync'
+import { type FolderAccess, SUGGESTED_SUBFOLDER, folderAccess, openVaultFolder, pickFolder, requestFolderAccess } from '~/adapters/sync/folder-handle'
+import { classifyFolder, copyVault, inspectFolder } from '~/adapters/sync/folder-choice'
 import { createFolderTarget } from '~/adapters/sync/folder-target'
 import { createKdfWorker, installKdfWorker } from '~/adapters/sync/kdf-client'
 import { createLocalSealer } from '~/adapters/device-key'
@@ -21,8 +22,10 @@ import { SYNC_FLAG } from '~/utils/sync-status'
 import { safeStorage } from '~/utils/storage'
 
 export type SetupStep = 'idle' | 'create' | 'unlock' | 'recovery' | 'ready'
+/** A picked folder that needs the person's word before anything moves: it holds another vault, or nothing at all (change sync-ux, group 2). */
+export interface FolderChoice { readonly kind: 'other' | 'empty'; readonly folder: string }
 /** The i18n key of what went wrong in the last action, or null. */
-export type SetupError = 'sync.error.signin' | 'sync.error.wrong' | 'sync.error.key' | 'sync.error.wrongKey' | 'sync.error.exists' | 'sync.error.otherVault' | 'sync.error.none' | 'sync.error.unreadable' | 'sync.error.newer' | 'sync.error.target' | null
+export type SetupError = 'sync.error.signin' | 'sync.error.wrong' | 'sync.error.key' | 'sync.error.wrongKey' | 'sync.error.exists' | 'sync.error.otherVault' | 'sync.error.none' | 'sync.error.unreadable' | 'sync.error.newer' | 'sync.error.target' | 'sync.error.refused' | null
 
 const deviceName = (): string => {
   const platform = (navigator as { userAgentData?: { platform?: string } }).userAgentData?.platform ?? navigator.platform ?? ''
@@ -48,6 +51,8 @@ export interface VaultState {
   onedrive: Ref<OnedriveConfig | null>
   /** The provider a setup in progress is for (a connection carries its own). */
   pendingKind: Ref<'folder' | 'onedrive' | null>
+  /** A folder picked to move the vault to, waiting for the person's answer. */
+  choice: Ref<FolderChoice | null>
 }
 
 export interface VaultRuntimeContext {
@@ -69,7 +74,7 @@ export interface VaultRuntimeContext {
  */
 export function createVaultRuntime(ctx: VaultRuntimeContext) {
   const { library, settings, identity, team } = ctx
-  const { connection, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, pendingFolder, unlocked, onedrive, pendingKind } = ctx.state
+  const { connection, status, reason, lastSyncAt, devices, step, recoveryKey, recoveryMode, error, busy, pendingFolder, unlocked, onedrive, pendingKind, choice } = ctx.state
 
   let state: SyncStateStore | null = null
   let handle: DirectoryHandleLike | null = null
@@ -183,36 +188,78 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
     return access
   }
 
+  const vaultIdOf = (bytes: Uint8Array): string | null => parseInfo<InfoDoc>(new TextDecoder().decode(bytes))?.vaultId ?? null
+
+  /** A folder of a vault that is not connected yet: its password, or a new vault in it. */
+  async function startSetupIn(dir: DirectoryHandleLike, label: string) {
+    const content = await inspectFolder(dir, vaultIdOf)
+    pending = dir
+    pendingFolder.value = label
+    pendingKind.value = 'folder'
+    step.value = content.kind === 'vault' ? 'unlock' : 'create'
+  }
+
+  /** Re-points the connected vault at `picked` (the same vault id): sync goes on from there. */
+  async function repoint(picked: DirectoryHandleLike) {
+    handle = picked
+    connection.value = { ...connection.value!, folderName: picked.name }
+    await remember()
+    scheduler?.resume()
+    status.value = unlocked.value ? 'syncing' : 'locked'
+    if (unlocked.value) void scheduler?.trigger('manual'); else step.value = 'unlock'
+  }
+
   async function chooseFolder() {
     error.value = null
-    const picked = await pickFolder()
-    if (!picked) return
+    choice.value = null
+    const pick = await pickFolder()
+    if (pick.kind === 'unavailable') return
+    if (pick.kind === 'refused') { error.value = 'sync.error.refused'; return }
+    const picked = pick.handle
     busy.value = true
     try {
-      let hasVault = false
-      let vaultDir: DirectoryHandleLike | null = null
-      try { vaultDir = await openVaultFolder(picked, false) } catch { /* no RetroBoard folder yet */ }
-      const probe = vaultDir ? createFolderTarget(vaultDir) : null
-      const info = probe ? await probe.get('info.json') : null
-      hasVault = info !== null
-      if (connection.value) {
-        // The same vault, wherever the folder is now: the vault id decides.
-        const parsed = info ? createVaultKit({ target: probe!, local, memory: memory(), device, deviceName: deviceName() }).parseInfo(info.bytes) : null
-        if (!parsed || parsed.vaultId !== connection.value.vaultId) { error.value = 'sync.error.otherVault'; return }
-        handle = picked
-        connection.value = { ...connection.value, folderName: picked.name }
-        await remember()
-        scheduler?.resume()
-        status.value = unlocked.value ? 'syncing' : 'locked'
-        if (unlocked.value) void scheduler?.trigger('manual'); else step.value = 'unlock'
-        return
-      }
-      pending = picked
-      pendingFolder.value = picked.name
-      pendingKind.value = 'folder'
-      step.value = hasVault ? 'unlock' : 'create'
+      const content = await inspectFolder(picked, vaultIdOf)
+      const move = classifyFolder(content, connection.value?.vaultId ?? null)
+      if (move === 'same') { await repoint(picked); return }
+      if (move === 'other' || move === 'empty') { pending = picked; choice.value = { kind: move, folder: picked.name }; return }
+      await startSetupIn(picked, picked.name)
     } catch { error.value = 'sync.error.target' } finally { busy.value = false }
   }
+
+  /** "Use this vault": this browser leaves the vault it had and opens the one in the folder. Its password is asked next; nothing is merged without it. */
+  async function useFolderVault() {
+    const picked = pending
+    if (!picked || choice.value?.kind !== 'other') return
+    busy.value = true
+    try { choice.value = null; await clearLocal(); await startSetupIn(picked, picked.name) } catch { error.value = 'sync.error.target' } finally { busy.value = false }
+  }
+
+  /** "Create a new one here": a new vault in a subfolder of the picked folder, so the one that is there is left untouched. */
+  async function createVaultHere() {
+    const picked = pending
+    if (!picked || choice.value?.kind !== 'other') return
+    busy.value = true
+    try {
+      const sub = await picked.getDirectoryHandle(SUGGESTED_SUBFOLDER, { create: true })
+      choice.value = null
+      await clearLocal()
+      await startSetupIn(sub, `${picked.name}/${SUGGESTED_SUBFOLDER}`)
+    } catch { error.value = 'sync.error.target' } finally { busy.value = false }
+  }
+
+  /** "Copy the vault here": the sealed files of the connected vault are copied into the empty folder, which then carries it. */
+  async function copyVaultHere() {
+    const picked = pending
+    if (!picked || choice.value?.kind !== 'empty' || !handle) return
+    busy.value = true
+    try {
+      await copyVault(createFolderTarget(await openVaultFolder(handle, false)), createFolderTarget(await openVaultFolder(picked, true)))
+      choice.value = null
+      await repoint(picked)
+    } catch { error.value = 'sync.error.target' } finally { busy.value = false }
+  }
+
+  function cancelChoice() { choice.value = null; if (connection.value) pending = null }
 
   async function requestAccess() {
     if (!handle) return
@@ -455,7 +502,7 @@ export function createVaultRuntime(ctx: VaultRuntimeContext) {
   }
 
   return {
-    init, chooseFolder, requestAccess, create, unlock, acknowledge, reissueRecoveryKey, syncNow, fetchBoard, forgetBoardStream, disconnect, forgetConnection, cancelSetup,
+    init, chooseFolder, useFolderVault, createVaultHere, copyVaultHere, cancelChoice, requestAccess, create, unlock, acknowledge, reissueRecoveryKey, syncNow, fetchBoard, forgetBoardStream, disconnect, forgetConnection, cancelSetup,
     connectOnedrive, signInAgain, completeSignIn,
   }
 }

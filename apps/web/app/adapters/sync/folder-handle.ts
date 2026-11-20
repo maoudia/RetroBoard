@@ -17,14 +17,24 @@ export const folderPickerSupported = (scope: object = globalThis): boolean => 's
 
 type Picker = (options: { mode: 'readwrite'; id: string }) => Promise<DirectoryHandleLike>
 
-/** Opens the browser's folder picker. `null` when the person closes it without choosing. */
-export async function pickFolder(scope: object = globalThis): Promise<DirectoryHandleLike | null> {
+/**
+ * What the picker gave back (change sync-ux, "Any folder"). Chromium refuses the roots of well-known system folders (Documents, Desktop,
+ * Downloads, a drive root) and reports it as an abort or a security error, the same abort as a person closing the picker: both come back
+ * as `refused`, and the screen explains and proposes a subfolder.
+ */
+export type FolderPick = { readonly kind: 'picked'; readonly handle: DirectoryHandleLike } | { readonly kind: 'refused' } | { readonly kind: 'unavailable' }
+
+/** The name suggested when a folder is refused: a subfolder the person makes first, inside the one they wanted. */
+export const SUGGESTED_SUBFOLDER = 'RetroBoard Sync'
+
+/** Opens the browser's folder picker. */
+export async function pickFolder(scope: object = globalThis): Promise<FolderPick> {
   const pick = (scope as { showDirectoryPicker?: Picker }).showDirectoryPicker
-  if (!pick) return null
+  if (!pick) return { kind: 'unavailable' }
   try {
-    return await pick.call(scope, { mode: 'readwrite', id: 'retroboard-sync' })
+    return { kind: 'picked', handle: await pick.call(scope, { mode: 'readwrite', id: 'retroboard-sync' }) }
   } catch (e) {
-    if ((e as { name?: string } | null)?.name === 'AbortError') return null
+    if (['AbortError', 'SecurityError', 'NotAllowedError'].includes((e as { name?: string } | null)?.name ?? '')) return { kind: 'refused' }
     throw e
   }
 }

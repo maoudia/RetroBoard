@@ -2,7 +2,7 @@
 import { acceptablePassword, passwordStrength } from '@retroboard/crypto'
 import { MICROSOFT_APP_ACCESS_URL } from '~/adapters/sync/onedrive-config'
 import { lastOpenedLabel } from '~/utils/relative-time'
-import { syncStatusIcon } from '~/utils/sync-status'
+import { signInReturnTo } from '~/utils/sync-status'
 
 /**
  * Preferences > Sync (change user-drive-storage, "Preferences > Sync (UX)"): choose a folder or sign in with Microsoft, create or unlock the vault,
@@ -13,13 +13,14 @@ const { t, locale } = useT()
 const vault = useVaultStore()
 const { $ports } = useNuxtApp()
 const { push } = useToasts()
+const ui = useUiStore()
 const route = useRoute()
 
 // OneDrive is offered only where the deployment configured it; the section reads that once it is on screen.
 onMounted(() => { void vault.loadProviders() })
 const onedrive = computed(() => vault.provider === 'onedrive')
 /** The page to come back to after the redirect: a path only, never a board link (its key stays out of the tab's storage). */
-const returnTo = () => (['/board', '/new', '/storage/callback'].includes(route.path) ? '/boards' : route.path)
+const returnTo = () => signInReturnTo(route.path)
 
 const password = ref('')
 const again = ref('')
@@ -84,11 +85,31 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
       <div v-if="vault.status === 'sign-in-again' && vault.step !== 'recovery'" class="stack" data-testid="sync-signin-again-panel">
         <p class="muted">{{ folderLine }}</p>
         <p class="status" role="status" aria-live="polite" :data-status="vault.status" data-testid="sync-status">
-          <Icon :name="syncStatusIcon(vault.status)" /> <span>{{ statusText }}</span>
+          <IconSyncShield :status="vault.status" /> <span>{{ statusText }}</span>
         </p>
         <p class="muted small">{{ t('sync.onedrive.again.hint') }}</p>
         <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
         <div><button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-signin-again" @click="vault.signInAgain(returnTo())"><Icon name="lucide:log-in" /> {{ t('sync.onedrive.again') }}</button></div>
+      </div>
+
+      <!-- A picked folder that holds another vault, or nothing: nothing moves until the person says so, and two vaults are never merged. -->
+      <div v-else-if="vault.choice" class="stack" data-testid="sync-choice">
+        <template v-if="vault.choice.kind === 'other'">
+          <h4>{{ t('sync.choice.other.title') }}</h4>
+          <p class="muted">{{ t('sync.choice.other.lead', { folder: vault.choice.folder }) }}</p>
+          <div class="row">
+            <button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-choice-use" @click="vault.useFolderVault()"><Icon name="lucide:folder-check" /> {{ t('sync.choice.other.use') }}</button>
+            <button class="btn" type="button" :disabled="vault.busy" data-testid="sync-choice-new" @click="vault.createVaultHere()"><Icon name="lucide:folder-plus" /> {{ t('sync.choice.other.new') }}</button>
+          </div>
+          <p class="muted small">{{ t('sync.choice.other.use.hint') }} {{ t('sync.choice.other.new.hint') }}</p>
+        </template>
+        <template v-else>
+          <h4>{{ t('sync.choice.empty.title') }}</h4>
+          <p class="muted">{{ t('sync.choice.empty.lead', { folder: vault.choice.folder }) }}</p>
+          <div class="row"><button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-choice-copy" @click="vault.copyVaultHere()"><Icon name="lucide:copy" /> {{ t('sync.choice.empty.copy') }}</button></div>
+        </template>
+        <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>
+        <div><button class="btn btn-ghost btn-sm" type="button" data-testid="sync-choice-cancel" @click="vault.cancelChoice()"><Icon name="lucide:x" /> {{ t('common.cancel') }}</button></div>
       </div>
 
       <!-- No provider chosen yet. -->
@@ -99,6 +120,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
           <button class="btn btn-primary" type="button" :disabled="vault.busy" data-testid="sync-choose" @click="vault.chooseFolder()"><Icon name="lucide:folder-open" /> {{ t('sync.folder.choose') }}</button>
         </template>
         <p v-else-if="vault.onedrive" class="muted" data-testid="sync-folder-unsupported">{{ t('sync.folder.unsupported') }}</p>
+        <div><button v-if="ui.dialog !== 'sync'" class="btn btn-sm" type="button" data-testid="sync-open-sheet" @click="ui.open('sync')"><Icon name="lucide:shield" /> {{ t('sync.sheet.open') }}</button></div>
         <section v-if="vault.onedrive" class="stack" data-testid="sync-onedrive">
           <h4>{{ t('sync.onedrive.title') }}</h4>
           <p class="muted">{{ t('sync.onedrive.lead') }}</p>
@@ -172,7 +194,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
       <div v-else class="stack">
         <p class="muted">{{ folderLine }}</p>
         <p class="status" role="status" aria-live="polite" :data-status="vault.status" data-testid="sync-status">
-          <Icon :name="syncStatusIcon(vault.status)" /> <span>{{ statusText }}</span>
+          <IconSyncShield :status="vault.status" /> <span>{{ statusText }}</span>
         </p>
         <p v-if="reasonText" class="small warn">{{ reasonText }}</p>
         <p class="muted small" data-testid="sync-last">{{ lastSync }}</p>
@@ -180,6 +202,7 @@ const canDisconnect = computed(() => !vault.busy && (!deleteFiles.value || delet
           <button class="btn btn-sm" type="button" data-testid="sync-now" :disabled="vault.status === 'syncing' || !vault.unlocked" @click="vault.syncNow()"><Icon name="lucide:refresh-cw" /> {{ t('sync.now') }}</button>
           <button v-if="vault.status === 'allow-folder'" class="btn btn-sm btn-primary" type="button" data-testid="sync-allow" @click="vault.requestAccess()"><Icon name="lucide:folder" /> {{ t('sync.allow') }}</button>
           <button v-if="vault.status === 'folder-not-found'" class="btn btn-sm btn-primary" type="button" data-testid="sync-rechoose" @click="vault.chooseFolder()"><Icon name="lucide:folder-open" /> {{ t('sync.folder.again') }}</button>
+          <button v-else-if="!onedrive && vault.folderSupported" class="btn btn-sm" type="button" :disabled="vault.busy" data-testid="sync-move" @click="vault.chooseFolder()"><Icon name="lucide:folder-open" /> {{ t('sync.folder.another') }}</button>
         </div>
         <p v-if="vault.status === 'allow-folder'" class="muted small">{{ t('sync.allow.hint') }}</p>
         <p v-if="errorText" class="small warn" role="alert" data-testid="sync-error">{{ errorText }}</p>

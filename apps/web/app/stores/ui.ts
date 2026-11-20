@@ -5,7 +5,7 @@ export type ColumnSize = 'narrow' | 'normal' | 'wide' | 'full'
 export type WriteSize = 'small' | 'normal' | 'large'
 export const WRITE_SIZES: readonly WriteSize[] = ['small', 'normal', 'large']
 export const COLUMN_SIZES: readonly ColumnSize[] = ['narrow', 'normal', 'wide', 'full']
-export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | 'help' | 'toClose' | null
+export type DialogName = 'share' | 'options' | 'name' | 'template' | 'actions' | 'theme' | 'column' | 'profile' | 'ranking' | 'report' | 'export' | 'palette' | 'destroy' | 'help' | 'toClose' | 'sync' | null
 
 /** Purely visual state shared by components. */
 export const useUiStore = defineStore('ui', () => {

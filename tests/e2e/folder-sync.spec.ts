@@ -140,8 +140,8 @@ test('create a vault in a folder, see the recovery key and the warning, sync, lo
   // After a reload the vault is locked: the key lives in memory only.
   await page.keyboard.press('Escape')
   await page.reload()
-  await expect(page.getByTestId('sync-chip')).toHaveAttribute('data-status', 'locked', { timeout: 15_000 })
-  await page.getByTestId('sync-chip').click()
+  await expect(page.getByTestId('sync-shield')).toHaveAttribute('data-status', 'locked', { timeout: 15_000 })
+  await page.getByTestId('sync-shield').click()
   await expect(page.getByTestId('sync-unlock-form')).toBeVisible()
   await page.getByTestId('sync-unlock-secret').fill('not the right password')
   await page.getByTestId('sync-unlock').click()
@@ -154,15 +154,15 @@ test('create a vault in a folder, see the recovery key and the warning, sync, lo
   // "Sync now" is there, and the chip shows the state in words.
   await page.getByTestId('sync-now').click()
   await expect(status(page)).toHaveAttribute('data-status', 'synced')
-  await expect(page.getByTestId('sync-chip')).toContainText(/Synchronisé|Synced/)
+  await expect(page.getByTestId('sync-shield')).toHaveAttribute('aria-label', /Synchronisé|Synced/)
 
   // Disconnect and forget, with the vault files: the folder keeps nothing of the vault, the boards stay.
   await page.getByTestId('sync-delete-files').check()
   await page.getByTestId('sync-delete-password').fill(PASSWORD)
   await page.getByTestId('sync-disconnect').click()
   await page.getByTestId('confirm').click()
-  await expect(page.getByTestId('sync-choose')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByTestId('sync-chip')).toHaveCount(0)
+  await expect(page.getByTestId('sync-path-folder')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByTestId('sync-shield')).toHaveAttribute('data-connected', 'false')
   expect((await readFolder(page)).map((f) => f.path)).toEqual([])
   await page.keyboard.press('Escape')
   await page.goto('/boards')

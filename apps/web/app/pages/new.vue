@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NUDGE_KEY } from '~/utils/sync-nudge'
 import { type ImportedAction, presetPhases } from '@retroboard/domain'
 import type { AgendaDraft } from '~/components/AgendaEditor.vue'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
@@ -87,6 +88,8 @@ async function create({ passcode, ...form }: SetupResult) {
     ...(setup.agenda ? { agenda: setup.agenda } : {}),
   })
   try { sessionStorage.setItem(`retroboard:init:${ring.roomId}`, JSON.stringify(setup)) } catch { /* the board page will ask for the passcode */ }
+  // This tab made the board: the sync nudge may follow it (change sync-ux, group 3).
+  try { sessionStorage.setItem(`${NUDGE_KEY}:${ring.roomId}`, '1') } catch { /* no nudge */ }
   // The board page reads the passcode from the sealed device vault, never from a clear-text hand-off.
   if (passcode && !soloMode.value) { try { await $ports.vault.set(ring.roomId, passcode) } catch { /* the board page will ask for the passcode */ } }
   const hash = boardHash({ kind: 'encrypted', ring }, 'facilitator')
