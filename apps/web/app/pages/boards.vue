@@ -150,6 +150,8 @@ const lastTop = new WeakMap<EventTarget, number>()
 function onBoardScroll(e: Event) {
   const el = e.target as HTMLElement
   if (!phone?.matches || !(el instanceof HTMLElement)) return
+  // A menu or sheet scrolling on its own (the Group with list) is not the board being read: it must not fold the menus away.
+  if (el.closest('[popover]')) return
   const top = el.scrollTop
   const before = lastTop.get(el) ?? 0
   lastTop.set(el, top)
