@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.61.0](https://github.com/maoudia/RetroBoard/compare/v1.60.0...v1.61.0) (2026-11-20)
+
+
+### Features
+
+* **web:** one ColorPicker for notes and clusters, palette dialog works for a cluster too ([4678ce5](https://github.com/maoudia/RetroBoard/commit/4678ce56a881d8c53cf0cf416783c548e9a0ca34))
+
+
+### Bug Fixes
+
+* **smoke:** wait for the new entry script to reach every edge location before failing the deploy ([4e2a8f6](https://github.com/maoudia/RetroBoard/commit/4e2a8f6c3209e6fd0becc20221b94b0b7e537d10))
+* **web:** dialog and touch polish, 44 px segmented choices (change fix-setup-and-landing-polish) ([826d56b](https://github.com/maoudia/RetroBoard/commit/826d56b60d5e5ea4f0dc5b1b66911c0b89be7b3f))
+* **web:** focus the current shade once the lazy palette sheet is drawn ([a4b9d0a](https://github.com/maoudia/RetroBoard/commit/a4b9d0aa9c9921a3be58c00e287e1bf0f7fc3c17))
+* **web:** setup form on a phone, fade behind the create button, passcode row and mode bar centred ([c34d082](https://github.com/maoudia/RetroBoard/commit/c34d082d82344fd18636373e23f25f40833d52fc))
+* **web:** the landing scan button wears the ghost button style ([65cc29a](https://github.com/maoudia/RetroBoard/commit/65cc29adadf152d23997c9f66ac2ae528a17753e))
+* **web:** the lock icon of the profile intro keeps its size ([4630389](https://github.com/maoudia/RetroBoard/commit/46303895859261b7887100026090226acabdd0db))
+* **web:** touch targets answer to a 44 px square on coarse pointers without changing the layout ([b5057d0](https://github.com/maoudia/RetroBoard/commit/b5057d043a888abb196c507fdefe370a5535c138))
+
+
+### Performance
+
+* **web:** lazy-load the palette dialog and the cluster panel, count them as on-demand chunks ([42f6759](https://github.com/maoudia/RetroBoard/commit/42f675903a7cbdcf687af4f55c11401b7a8dfd53))
+
+
+### Refactoring
+
+* **web:** simplify picker roles and palette lookup ([c35ede4](https://github.com/maoudia/RetroBoard/commit/c35ede49beb71a95e01e2a680d5844189b46c805))
+* **web:** swatch test id as a prefix ([f91771d](https://github.com/maoudia/RetroBoard/commit/f91771d20c390f09f7e979ff2671aa9118773960))
+
 ## [1.60.0](https://github.com/maoudia/RetroBoard/compare/v1.59.0...v1.60.0) (2026-11-20)
 
 
