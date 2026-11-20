@@ -16,6 +16,7 @@ const recents = useRecentsStore()
 /** Simple keeps identity, language, theme variant, retention, cursor sharing and the boards list (change simple-advanced-mode). */
 const advanced = computed(() => settings.s.uiMode === 'advanced')
 const board = useBoardStore()
+const persistence = usePersistenceStore()
 const { push } = useToasts()
 
 const open = computed({ get: () => ui.dialog === 'profile', set: (v) => { if (!v && ui.dialog === 'profile') ui.close() } })
@@ -175,6 +176,13 @@ async function wipe() {
             {{ d === -1 ? t('profile.retention.forever') : t('profile.retention.days', { n: d }) }}
           </button>
         </span>
+      </div>
+      <div v-if="persistence.persisted !== null" class="line" data-testid="durability">
+        <span>
+          <strong>{{ t('profile.durability') }}</strong>
+          <small class="muted" :data-testid="persistence.persisted ? 'durability-protected' : 'durability-volatile'">{{ persistence.persisted ? t('profile.durability.protected') : t('profile.durability.volatile') }}</small>
+        </span>
+        <button v-if="!persistence.persisted && board.canUseBoardFile()" type="button" class="btn btn-sm" data-testid="durability-save" @click="ui.open('export')"><Icon name="lucide:file-lock" /> {{ t('profile.durability.save') }}</button>
       </div>
       <ToggleSwitch plain :label="t('profile.shareCursor')" :hint="t('profile.shareCursor.hint')" :model-value="settings.s.shareCursor" data-testid="set-share-cursor" @update:model-value="(on: boolean) => set({ shareCursor: on })" />
       <ToggleSwitch v-if="advanced" plain :label="t('profile.p2p')" :hint="t('profile.p2p.hint')" :model-value="settings.s.p2p" data-testid="set-p2p" @update:model-value="(on: boolean) => set({ p2p: on })" />

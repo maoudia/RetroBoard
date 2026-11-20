@@ -14,7 +14,7 @@ function setup(start: Library = EMPTY_LIBRARY) {
 const input = { boardId: 'room-1', title: 'Sprint 12', role: 'facilitator', origin: 'created', fragment: '#k=1', hasPasscode: true } as const
 const replicaWith = (records: ReplicaRecord[]) => {
   const deleted: string[] = []
-  const replica: ReplicaStorePort = { load: async () => records, append: async () => {}, purge: async () => 0, delete: async (id) => { deleted.push(id) } }
+  const replica: ReplicaStorePort = { load: async () => records, append: async () => {}, purge: async () => [], delete: async (id) => { deleted.push(id) } }
   return { replica, deleted }
 }
 

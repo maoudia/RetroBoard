@@ -13,6 +13,8 @@ const board = useBoardStore()
 const identity = useIdentityStore()
 const drafts = useDraftsStore()
 const recents = useRecentsStore()
+const persistence = usePersistenceStore()
+const vault = useVaultStore()
 const theme = useThemeStore()
 const ui = useUiStore()
 const layoutStore = useLayoutStore()
@@ -54,6 +56,19 @@ watch(() => board.lastNotice, (n) => {
   const phase = n.phase ? t(`agenda.phase.${n.phase}` as never) : ''
   push(t(`notice.${n.kind}` as never, { name: n.by ?? t('notice.someone'), column: n.column ?? '', phase } as never), 'info', 5000)
 })
+/**
+ * Nobody else holds this board, no folder mirrors it and the browser may clear it: a board file is proposed once per board,
+ * after a quiet moment so it never lands on the first notes (the delay is lowered by the e2e suite).
+ */
+let proposeTimer: ReturnType<typeof setTimeout> | undefined
+watch(() => [persistence.persisted, board.ready, board.noteCount > 0, board.peers.length <= 1, vault.connected, board.canUseBoardFile(), roomId.value] as const, ([persisted, ready, content, alone, synced, exportable, room]) => {
+  clearTimeout(proposeTimer)
+  if (persisted !== false || !ready || !content || !alone || synced || !exportable || !room) return
+  proposeTimer = setTimeout(() => {
+    if (persistence.propose(room)) push(t('durability.propose'), 'info', 15_000, { label: t('profile.durability.save'), run: () => ui.open('export'), testid: 'durability-propose-save' })
+  }, safeStorage.get('retroboard:durability-delay', 20_000))
+}, { immediate: true })
+onBeforeUnmount(() => clearTimeout(proposeTimer))
 watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal(ui.moving) }, { immediate: true })
 
 /** Removed by the facilitator: this tab leaves the board and its copy is gone (change facilitator-moderation). */

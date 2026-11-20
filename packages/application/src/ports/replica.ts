@@ -18,7 +18,7 @@ export interface ReplicaStorePort {
   stage?(roomId: string, records: readonly ReplicaRecord[]): void
   /** Adds records (ignores ids already stored) and marks the room as used now. */
   append(roomId: string, records: readonly ReplicaRecord[]): Promise<void>
-  /** Deletes rooms not used since `before` (epoch ms). Returns how many rooms were deleted. */
-  purge(before: number): Promise<number>
+  /** Deletes rooms not used since `before` (epoch ms). Returns the ids of the rooms deleted. */
+  purge(before: number): Promise<string[]>
   delete(roomId: string): Promise<void>
 }
