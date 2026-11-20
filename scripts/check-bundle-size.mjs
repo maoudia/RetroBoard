@@ -48,7 +48,9 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // tasks 2.1 and 2.3): 26 fr/en strings, +1.8 kB measured over 359.5 (361.3 kB after). The entry stays at 50.2 kB.
 // 2026-11-19: entry raised from 51 to 52 kB for OneDrive sync (user-drive-storage, group 3): its English strings and the sign-in route are in the
 // entry (51.9 kB measured, 50.8 before). The total stays at the owner's 400 kB cap.
-const BUDGET = { entryKb: 52, totalKb: 400 }
+// 2026-11-20: entry raised from 52 to 56 kB for the format pages (public-launch, group 1): four prerendered routes (/formats/, /formats/<id>/ and their
+// /en twins) and the shared pieces they pull into the entry (55.2 kB measured, 51.9 before); the total stays far under the owner's 400 kB cap (387.3 kB).
+const BUDGET = { entryKb: 56, totalKb: 400 }
 const OPT_IN = [/initializeWebModelContext/]
 // A small chunk is opt-in only by an exact marker (the size guard below protects the big ones from a stray match). 2026-11-19, user-drive-storage:
 // the chunks that load only once a person connects a sync target are opt-in like the WebMCP polyfill, so they are reported and not counted: the

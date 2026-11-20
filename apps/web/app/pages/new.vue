@@ -2,7 +2,7 @@
 import { type ImportedAction, presetPhases } from '@retroboard/domain'
 import type { AgendaDraft } from '~/components/AgendaEditor.vue'
 import type { SetupResult } from '~/components/BoardSetupForm.vue'
-import { suggestThemeForDate } from '@retroboard/domain'
+import { getTemplate, suggestThemeForDate } from '@retroboard/domain'
 import { markSolo } from '~/utils/solo'
 import { boardHash, newKeyRing } from '~/utils/invite'
 import type { CloneSpec } from '@retroboard/application'
@@ -43,9 +43,12 @@ const newTeamName = ref('')
 const project = ref('')
 const projectName = computed(() => project.value.trim() || null)
 /** A team starts its next board like its last one: format and series title go to the form, theme and agenda here (change team-workspaces). */
+/** `?format=<id>` (the "Start this format" link of a format page, change public-launch) wins over the team's default format. */
+const linkedFormat = computed(() => { const f = String(route.query.format ?? ''); return getTemplate(f) ? f : null })
 const prefill = computed(() => {
   const d = team.defaultsOf(teamChoice.value)
-  return { key: teamChoice.value, ...(d?.templateId ? { templateId: d.templateId } : {}), title: team.suggestTitle(teamChoice.value) }
+  const templateId = linkedFormat.value ?? d?.templateId
+  return { key: teamChoice.value, ...(templateId ? { templateId } : {}), ...(linkedFormat.value ? { linked: true } : {}), title: team.suggestTitle(teamChoice.value) }
 })
 function applyTeamLook() {
   const d = team.defaultsOf(teamChoice.value)

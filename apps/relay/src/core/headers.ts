@@ -1,3 +1,5 @@
+import { type Indexing, isPrivatePath, parseIndexing } from '@retroboard/protocol'
+
 /** The static files of the site, whatever serves them (the Cloudflare asset layer, a file reader on Node). */
 export interface AssetsPort {
   fetch(request: Request | string): Promise<Response>
@@ -88,7 +90,26 @@ export function httpsRedirect(url: URL, selfHosted = false): Response | null {
   return new Response(null, { status: 308, headers: { Location: target.toString(), 'Cache-Control': 'no-store' } })
 }
 
-export function withSecurityHeaders(res: Response, csp: string, originTrial: string | null = null, workerPolicy: string | null = null): Response {
+/** The indexing switch of the deployed site, written next to the hashes by apps/web/scripts/robots.mjs; "none" when the file is missing. */
+const indexingCache = new WeakMap<AssetsPort, Promise<Indexing>>()
+export function loadIndexing(assets: AssetsPort): Promise<Indexing> {
+  let hit = indexingCache.get(assets)
+  if (!hit) {
+    hit = assets
+      .fetch('https://assets.invalid/_site.json')
+      .then(async (r) => (r.ok ? parseIndexing(((await r.json()) as { indexing?: unknown }).indexing) : 'none'))
+      .catch(() => 'none' as const)
+    indexingCache.set(assets, hit)
+  }
+  return hit
+}
+
+/** A page a crawler may index: the switch is on and the route is not private. Everything else keeps `X-Robots-Tag: noindex, nofollow`. */
+export function isIndexable(indexing: Indexing, pathname: string): boolean {
+  return indexing === 'public' && !isPrivatePath(pathname)
+}
+
+export function withSecurityHeaders(res: Response, csp: string, originTrial: string | null = null, workerPolicy: string | null = null, indexable = false): Response {
   const out = new Response(res.body, res)
   const type = out.headers.get('content-type') ?? ''
   if (type.includes('text/html')) {
@@ -106,6 +127,6 @@ export function withSecurityHeaders(res: Response, csp: string, originTrial: str
   out.headers.set('Referrer-Policy', 'no-referrer')
   out.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
   out.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=(), interest-cohort=()')
-  out.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  if (!indexable) out.headers.set('X-Robots-Tag', 'noindex, nofollow')
   return out
 }

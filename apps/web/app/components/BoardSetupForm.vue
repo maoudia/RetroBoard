@@ -9,7 +9,7 @@ const { t, locale } = useT()
 const appSettings = useSettingsStore()
 const advanced = computed(() => appSettings.s.uiMode === 'advanced')
 /** withPasscode: only on /new (the passcode is fixed at creation, it derives the content key). */
-const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean; /** A cloned board proposes its title (change feedback-wave-7). */ cloneTitle?: string; /** The chosen team's way of starting a board (change team-workspaces): its format and the next title of its series. */ prefill?: { key: string; templateId?: string; title?: string | null } }>()
+const props = defineProps<{ themeId: string; submitLabel: string; withPasscode?: boolean; /** A cloned board proposes its title (change feedback-wave-7). */ cloneTitle?: string; /** The chosen team's way of starting a board (change team-workspaces): its format and the next title of its series. */ prefill?: { key: string; templateId?: string; /** The format comes from a link, not from the team: show it selected in the full list. */ linked?: boolean; title?: string | null } }>()
 const emit = defineEmits<{ 'update:themeId': [id: string]; submit: [result: SetupResult]; 'update:minutes': [minutes: number] }>()
 
 const d = new Date()
@@ -80,7 +80,7 @@ function onSubmit() {
 
     <section class="block">
       <h3><span class="n">2</span> {{ t('setup.step2') }}</h3>
-      <TemplatePicker v-model="templateId" :theme-id="themeId" @update:minutes="emit('update:minutes', $event)" />
+      <TemplatePicker v-model="templateId" :theme-id="themeId" :show-all="prefill?.linked" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
     <div v-if="advanced" class="adv" data-testid="setup-advanced">

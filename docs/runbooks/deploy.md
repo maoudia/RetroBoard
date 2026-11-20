@@ -20,6 +20,19 @@ version of each pull request and comments its URL. Both are dormant until you do
 3. Cloudflare Workers Builds is already off (do not turn it on again: every push would deploy twice).
 4. Set the repository variable `CLOUDFLARE_DEPLOY` to `true`.
 
+## Search indexing (the switch)
+
+`apps/web/site.json` holds `indexing`: `"none"` (the default, also for self-hosting) keeps every page out of search engines, `"public"` lets the
+public pages in. One value drives three channels, written at `pnpm generate`: `robots.txt` (`apps/web/scripts/robots.mjs`: `Disallow: /` while off, the
+allow list and the `Sitemap:` line once on), the `robots` meta of every page (`nuxt.config.ts` and `plugins/robots.ts`) and the `X-Robots-Tag` header of
+the Worker (`_site.json`, read by `apps/relay/src/core/headers.ts`). The private routes (`/boards`, `/board`, `/check`, `/offline`, `/dev`, `/storage`, listed
+in `packages/protocol/src/routes.ts`) stay `noindex, nofollow` on all three channels whatever the value. `sitemap.xml` is built from the generated pages
+(`apps/web/scripts/sitemap.mjs`: the public pages and the format pages in both languages).
+
+To switch indexing on, open a one-line pull request that sets `"indexing": "public"` in `apps/web/site.json` and deploy; to switch it off, set it back to
+`"none"` and deploy, then remove the sitemap from any search console it was submitted to. Check after the deploy: `curl -sI https://<site>/` has no
+`X-Robots-Tag`, `curl -sI https://<site>/boards` still has `noindex, nofollow`, `/robots.txt` names the sitemap.
+
 ## What a deploy does to a live board
 
 A deploy restarts the Durable Object: every WebSocket closes and the relay forgets its buffer. Boards in progress carry on: the direct links between participants stay open and re-key themselves when the relay is back (`docs/architecture.md` section 5.3), so notes and votes keep flowing and nobody re-syncs. A tab on an older version keeps unknown events and offers a reload. Deploying during a retro is therefore safe; the relay only sees participants reconnect.

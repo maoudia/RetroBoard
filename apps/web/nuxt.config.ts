@@ -1,12 +1,21 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { COLUMN_ICONS } from '@retroboard/domain'
+import { COLUMN_ICONS, TEMPLATES } from '@retroboard/domain'
+import { formatPath, parseIndexing } from '@retroboard/protocol'
 
 const appVersion = (JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string }).version
 
 /** Every page is a prerendered file (ADR-0034): the Worker never has to serve a shell for an app route. */
-const pageRoutes = () => readdirSync(new URL('./app/pages', import.meta.url), { recursive: true, encoding: 'utf8' })
-  .filter((f) => f.endsWith('.vue'))
-  .map((f) => `/${f.replace(/\.vue$/, '').replace(/(^|\/)index$/, '')}`)
+const pageRoutes = () => [
+  ...readdirSync(new URL('./app/pages', import.meta.url), { recursive: true, encoding: 'utf8' })
+    .filter((f) => f.endsWith('.vue') && !f.includes('[') && !/(^|\/)formats\//.test(f)) // the format pages are listed below, with their trailing slash
+    .map((f) => `/${f.replace(/\.vue$/, '').replace(/(^|\/)index$/, '')}`),
+  // One page per retro format and language, from the catalogue (change public-launch): a new format needs no page.
+  ...(['fr', 'en'] as const).flatMap((lang) => [formatPath(null, lang), ...TEMPLATES.map((x) => formatPath(x.id, lang))]),
+]
+
+/** `none` keeps every page out of the index (before the launch, self-hosting); `public` indexes the public pages only, private routes add noindex themselves (plugins/robots.ts). */
+const site = JSON.parse(readFileSync(new URL('./site.json', import.meta.url), 'utf8')) as { indexing?: unknown }
+const robots = parseIndexing(site.indexing) === 'public' ? 'index, follow' : 'noindex, nofollow'
 
 // Icons that are picked at runtime (columns, templates) cannot be found by the static scan.
 const dynamicIcons = [
@@ -25,7 +34,7 @@ export default defineNuxtConfig({
   // prerendered with its content (ADR-0038) so the first paint comes from the HTML, before any script; every
   // other route stays a client-rendered shell (a board needs the browser: crypto, storage, sockets).
   ssr: true,
-  routeRules: { '/**': { ssr: false }, '/': { ssr: true } },
+  routeRules: { '/**': { ssr: false }, '/': { ssr: true }, '/formats/**': { ssr: true }, '/en/formats/**': { ssr: true } },
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', '@nuxt/icon', '@nuxt/eslint'],
   css: ['~/assets/css/base.css', '~/assets/css/motion.css'],
@@ -41,7 +50,7 @@ export default defineNuxtConfig({
       ],
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
-        { name: 'robots', content: 'noindex, nofollow' },
+        { name: 'robots', content: robots },
         { name: 'referrer', content: 'no-referrer' },
         { name: 'description', content: 'Retrospectives en temps reel, anonymes, avec des themes.' },
       ],

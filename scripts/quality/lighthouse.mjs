@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Lighthouse (mobile profile, simulated 4G) on 4 pages in light and dark against quality/lighthouse-budgets.json (change quality-gates-v2;
+// Lighthouse (mobile profile, simulated 4G) on 5 pages in light and dark against quality/lighthouse-budgets.json (change quality-gates-v2;
 // the landing has its own, higher minimums: the R2 launch gate, change landing-speed-and-accessibility).
 // Needs `pnpm generate` and a running site: `pnpm dev:worker` (http://127.0.0.1:8787). Usage: pnpm lighthouse [baseUrl]
 // LIGHTHOUSE_RUNS=n scores each page n times and keeps the median (the nightly job uses 5: a shared runner swings a single score by 30 points).
@@ -14,7 +14,11 @@ const base = process.argv[2] ?? 'http://127.0.0.1:8787'
 const runs = Math.max(1, Number(process.env.LIGHTHOUSE_RUNS ?? 1))
 const extraRuns = Math.max(0, Number(process.env.LIGHTHOUSE_EXTRA_RUNS ?? 10))
 const budgets = JSON.parse(readFileSync(new URL('../../quality/lighthouse-budgets.json', import.meta.url), 'utf8'))
-const PAGES = [['landing', '/'], ['new', '/new'], ['accessibility', '/accessibility'], ['privacy', '/privacy']]
+// SEO is scored on every page but gated only once the owner switches indexing on (apps/web/site.json): while the site is noindex the crawlable audit
+// fails by design. From then on a format page must score 100 (change public-launch).
+const site = JSON.parse(readFileSync(new URL('../../apps/web/site.json', import.meta.url), 'utf8'))
+budgets.pages.format.seo = site.indexing === 'public' ? 1 : 0
+const PAGES = [['landing', '/'], ['new', '/new'], ['accessibility', '/accessibility'], ['privacy', '/privacy'], ['format', '/formats/starfish/']]
 // The Lighthouse 13 mobile defaults, pinned so an upgrade cannot move the measurement: simulated 4G, 4x CPU slowdown.
 const SETTINGS = {
   formFactor: 'mobile',

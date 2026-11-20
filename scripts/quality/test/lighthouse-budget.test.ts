@@ -17,6 +17,12 @@ describe('lighthouse budgets', () => {
   it('fails when a category is missing', () => {
     expect(evaluate([{ page: 'x', variant: 'light', scores: { performance: 1 } }], budgets)).toHaveLength(1)
   })
+  it('a page can add a category of its own (the format page: SEO), and every run scores it', () => {
+    const withSeo = { ...budgets, pages: { format: { performance: 0.95, seo: 0.9 } } }
+    expect(categories(withSeo)).toEqual(['performance', 'accessibility', 'seo'])
+    expect(budgetFor(withSeo, 'format')).toEqual({ performance: 0.95, accessibility: 0.95, seo: 0.9 })
+    expect(evaluate([{ page: 'format', variant: 'light', scores: { performance: 1, accessibility: 1, seo: 0.5 } }], withSeo)).toEqual([{ page: 'format', variant: 'light', category: 'seo', score: 0.5, min: 0.9 }])
+  })
   it('a page can raise its own minimums (the landing: the launch gate), the other pages keep the global ones', () => {
     const withPages = { ...budgets, pages: { landing: { performance: 0.95 } } }
     expect(categories(withPages)).toEqual(['performance', 'accessibility'])

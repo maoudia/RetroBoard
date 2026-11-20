@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "node scripts/build-sync-workers.mjs && nuxt dev",
     "prepare": "nuxt prepare",
-    "generate": "node scripts/build-sync-workers.mjs && nuxt generate && node scripts/csp-hashes.mjs && node scripts/asset-headers.mjs && node scripts/security-txt.mjs",
+    "generate": "node scripts/build-sync-workers.mjs && nuxt generate && node scripts/csp-hashes.mjs && node scripts/asset-headers.mjs && node scripts/security-txt.mjs && node scripts/robots.mjs && node scripts/sitemap.mjs",
     "typecheck": "nuxt prepare && vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

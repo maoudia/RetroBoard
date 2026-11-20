@@ -1,3 +1,5 @@
+import { isFormatPath } from '@retroboard/protocol'
+
 /** Paths the single-page app answers. Anything else under the SPA fallback is a real 404. */
 export const APP_ROUTES: ReadonlySet<string> = new Set(["/", "/new", '/board', '/boards', '/check', '/offline', '/unsupported', '/maintenance', '/busy', '/legal', '/privacy', '/terms', '/accessibility', '/storage/callback'])
 
@@ -10,6 +12,8 @@ export function isUnknownAppPath(pathname: string, response: Response): boolean 
   if (!(response.headers.get('content-type') ?? '').includes('text/html')) return false
   // The static user guide (pages generated into /guide/) is HTML that is not an app route.
   if (pathname.startsWith('/guide/')) return false
+  // The format pages are prerendered files too (change public-launch); a format that does not exist is a 404 from the asset layer.
+  if (isFormatPath(pathname)) return false
   return !APP_ROUTES.has(normalizePath(pathname))
 }
 
