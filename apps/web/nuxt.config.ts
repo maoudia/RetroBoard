@@ -1,8 +1,14 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { COLUMN_ICONS, TEMPLATES } from '@retroboard/domain'
 import { formatPath, parseIndexing } from '@retroboard/protocol'
+import { parseChangelog } from './app/utils/changelog'
 
 const appVersion = (JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string }).version
+
+/** The latest releases of CHANGELOG.md, read once at build time for the What's new page (nothing is fetched at runtime); no file, no notes. */
+const releaseNotes = (() => {
+  try { return parseChangelog(readFileSync(new URL('../../CHANGELOG.md', import.meta.url), 'utf8')) } catch { return [] }
+})()
 
 /** Every page is a prerendered file (ADR-0034): the Worker never has to serve a shell for an app route. */
 const pageRoutes = () => [
@@ -34,7 +40,7 @@ export default defineNuxtConfig({
   // prerendered with its content (ADR-0038) so the first paint comes from the HTML, before any script; every
   // other route stays a client-rendered shell (a board needs the browser: crypto, storage, sockets).
   ssr: true,
-  routeRules: { '/**': { ssr: false }, '/': { ssr: true }, '/formats/**': { ssr: true }, '/en/formats/**': { ssr: true } },
+  routeRules: { '/**': { ssr: false }, '/': { ssr: true }, '/formats/**': { ssr: true }, '/en/formats/**': { ssr: true }, '/whats-new': { ssr: true }, '/en/whats-new': { ssr: true } },
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', '@nuxt/icon', '@nuxt/eslint'],
   css: ['~/assets/css/base.css', '~/assets/css/motion.css'],
@@ -97,5 +103,5 @@ export default defineNuxtConfig({
   // client-shell route rule it came out as HTML).
   experimental: { payloadExtraction: false },
   typescript: { strict: true },
-  vite: { build: { sourcemap: false } },
+  vite: { build: { sourcemap: false }, define: { __RELEASE_NOTES__: JSON.stringify(releaseNotes) } },
 })

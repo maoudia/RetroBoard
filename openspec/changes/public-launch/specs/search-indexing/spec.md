@@ -52,3 +52,18 @@ The site SHALL serve one page per retro format of the catalogue, in French and i
 #### Scenario: Format changed in the catalogue
 - **WHEN** the name or the columns of a format change in the catalogue
 - **THEN** its pages show the new text at the next generation without a change to the pages
+
+### Requirement: What's new page
+The site SHALL serve a static What's new page in French and in English at their own URLs, generated at build time from the latest releases of `CHANGELOG.md` (version, date, changes by section), linked from the landing footer and listed in the sitemap; it SHALL say the project is built in public and source available under PolyForm Noncommercial (never "open source"), SHALL collect nothing and SHALL add no runtime dependency.
+
+#### Scenario: A release ships
+- **WHEN** release-please adds a release to `CHANGELOG.md` and the site is generated
+- **THEN** both pages list it at the top without a change to the pages
+
+#### Scenario: Visitor opens the page from the landing
+- **WHEN** a visitor chooses "What's new" in the landing footer
+- **THEN** the page opens in the visitor's language with the releases in the HTML as served, and no request leaves the site origin
+
+#### Scenario: Indexing is off
+- **WHEN** the indexing switch is `none`
+- **THEN** both pages say `noindex, nofollow` like every other page and the sitemap is not advertised

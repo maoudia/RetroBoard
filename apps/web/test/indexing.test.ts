@@ -54,7 +54,7 @@ describe('indexing switch', () => {
 })
 
 describe('sitemap', () => {
-  const files = ['index.html', 'new.html', 'privacy.html', 'boards.html', 'board.html', 'check.html', 'offline.html', 'dev/service-pages.html', 'storage/callback.html', '404.html', '200.html', 'busy.html', 'maintenance.html', 'unsupported.html', 'formats/index.html', 'formats/starfish/index.html', 'en/formats/index.html', 'en/formats/starfish/index.html', 'guide/en/index.html', 'guide/en/create.html', '_nuxt/x.html']
+  const files = ['index.html', 'new.html', 'privacy.html', 'boards.html', 'board.html', 'check.html', 'offline.html', 'dev/service-pages.html', 'storage/callback.html', '404.html', '200.html', 'busy.html', 'maintenance.html', 'unsupported.html', 'formats/index.html', 'formats/starfish/index.html', 'en/formats/index.html', 'en/formats/starfish/index.html', 'guide/en/index.html', 'guide/en/create.html', 'whats-new.html', 'en/whats-new.html', '_nuxt/x.html']
 
   it('maps files to URLs', () => {
     expect([pathOf('index.html'), pathOf('new.html'), pathOf('formats/starfish/index.html'), pathOf('guide/en/create.html')]).toEqual(['/', '/new', '/formats/starfish/', '/guide/en/create'])
@@ -62,7 +62,7 @@ describe('sitemap', () => {
 
   it('lists the public pages and no private, error or service URL', () => {
     const paths = publicPaths(files) as string[]
-    expect(paths).toEqual(['/', '/en/formats/', '/en/formats/starfish/', '/formats/', '/formats/starfish/', '/guide/en/', '/guide/en/create', '/new', '/privacy'])
+    expect(paths).toEqual(['/', '/en/formats/', '/en/formats/starfish/', '/en/whats-new', '/formats/', '/formats/starfish/', '/guide/en/', '/guide/en/create', '/new', '/privacy', '/whats-new'])
     for (const p of paths) expect(p).not.toMatch(/^\/(boards?|check|offline|dev|storage|404|200|busy|maintenance|unsupported|_)/)
   })
 
