@@ -34,7 +34,7 @@ describe('session replica (private modes)', () => {
     await s.append('old', [{ id: 'a', data: '1' }])
     clock.t = 50_000
     await s.append('fresh', [{ id: 'a', data: '1' }])
-    expect(await s.purge(10_000)).toBe(1)
+    expect(await s.purge(10_000)).toEqual(['old'])
     expect(await s.load('old')).toEqual([])
     expect(await s.load('fresh')).toHaveLength(1)
   })

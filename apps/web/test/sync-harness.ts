@@ -296,7 +296,7 @@ export class MemoryReplica implements ReplicaStorePort {
     for (const r of records) { room.set(r.id, r.data); this.appended++ }
     this.rows.set(roomId, room)
   }
-  async purge(): Promise<number> { return 0 }
+  async purge(): Promise<string[]> { return [] }
   async delete(roomId: string): Promise<void> { this.rows.delete(roomId) }
   count(roomId: string): number { return this.rows.get(roomId)?.size ?? 0 }
 }

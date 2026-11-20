@@ -1,13 +1,14 @@
 import type { ChannelFactory, ClipboardPort, FilePort, NotifierPort, ReplicaStorePort } from '@retroboard/application'
 import { deriveContentKey, fromBase64Url } from '@retroboard/crypto'
 import type { KeyRing } from '@retroboard/domain'
-import { createIdbReplicaStore, openReplicaDb, requestPersistence } from '~/adapters/replica-idb'
+import { createIdbReplicaStore, openReplicaDb } from '~/adapters/replica-idb'
 import { withJournal } from '~/adapters/replica-journal'
 import { createSessionReplicaStore, withSessionFallback } from '~/adapters/replica-session'
 import { createIdbVault, createSessionVault, createVault, openVaultDb, type PasscodeVault } from '~/adapters/passcode-vault'
 import { createSessionAgreement, createSessionSigner, ed25519Verifier, signerFor } from '~/adapters/signing'
 import { LocalRelaySocket } from '~/transport/local-relay'
 import { buildWs2Url, EncryptedRelayTransport } from '~/transport/encrypted'
+import { forgetDrafts } from '~/adapters/sealed-storage'
 import { download } from '~/utils/export'
 
 export interface Ports {
@@ -41,7 +42,10 @@ export default defineNuxtPlugin(() => {
   // The durable copy is always kept (minimum one day): a board must reopen from this browser even when nobody else is online.
   const replicaFor = (): ReplicaStorePort | null => replica
   // Retention sweep, deferred: the board being opened marks its room as live first, so it is never swept while it opens.
-  const sweep = () => { if (settings.s.retentionDays > 0) void replica?.purge(Date.now() - settings.s.retentionDays * 86_400_000).catch(() => {}) }
+  // The drafts and typed text of a purged board go with it (they are sealed, but have no use without the board).
+  const sweep = () => {
+    if (settings.s.retentionDays > 0) void replica?.purge(Date.now() - settings.s.retentionDays * 86_400_000).then(forgetDrafts).catch(() => {})
+  }
   let durableVault: PasscodeVault | null
   try { durableVault = typeof indexedDB === 'undefined' || !crypto?.subtle ? null : createIdbVault(openVaultDb()) } catch { durableVault = null }
   let tabVault: PasscodeVault
@@ -49,7 +53,7 @@ export default defineNuxtPlugin(() => {
   const vault = createVault(durableVault, tabVault, () => false)
   const sweepVault = () => { if (settings.s.retentionDays > 0) void vault.purge(Date.now() - settings.s.retentionDays * 86_400_000) }
   setTimeout(() => { sweep(); sweepVault() }, 20_000)
-  if (durable) void requestPersistence()
+  if (durable) void usePersistenceStore().request()
   /** Test hook: the e2e suite lowers the snapshot threshold (ADR-0037) to cover it without thousands of events. */
   const snapshotSettings = (): { snapshot?: { every: number; lagMs: number } } => {
     try {

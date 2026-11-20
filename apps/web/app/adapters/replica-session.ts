@@ -24,14 +24,14 @@ export function createSessionReplicaStore(storage: Storage, now: () => number = 
     stage(roomId, records) { try { write(roomId, records) } catch { /* best effort: append reports failures */ } },
     async append(roomId, records) { write(roomId, records) },
     async purge(before) {
-      let n = 0
+      const purged: string[] = []
       for (let i = storage.length - 1; i >= 0; i--) {
         const key = storage.key(i)
         if (!key?.startsWith(USED)) continue
         const room = key.slice(USED.length)
-        if (Number(storage.getItem(key)) < before) { storage.removeItem(PREFIX + room); storage.removeItem(key); n++ }
+        if (Number(storage.getItem(key)) < before) { storage.removeItem(PREFIX + room); storage.removeItem(key); purged.push(room) }
       }
-      return n
+      return purged
     },
     async delete(roomId) { storage.removeItem(PREFIX + roomId); storage.removeItem(USED + roomId) },
   }
@@ -55,8 +55,8 @@ export function withSessionFallback(primary: ReplicaStorePort | null, session: R
       try { await primary.append(roomId, records) } catch { await session.append(roomId, records) }
     },
     async purge(before) {
-      const [a, b] = await Promise.all([primary.purge(before).catch(() => 0), session.purge(before).catch(() => 0)])
-      return a + b
+      const [a, b] = await Promise.all([primary.purge(before).catch(() => [] as string[]), session.purge(before).catch(() => [] as string[])])
+      return [...new Set([...a, ...b])]
     },
     async delete(roomId) { await Promise.all([primary.delete(roomId).catch(() => undefined), session.delete(roomId).catch(() => undefined)]) },
   }

@@ -51,7 +51,7 @@ export function createIdbReplicaStore(db: Promise<IDBDatabase>, now: () => numbe
       const rooms = await req(d.transaction('rooms', 'readonly').objectStore('rooms').getAll()) as { room: string; usedAt: number }[]
       const stale = rooms.filter((r) => r.usedAt < before && !live.has(r.room)).map((r) => r.room)
       for (const room of stale) await this.delete(room)
-      return stale.length
+      return stale
     },
     async delete(roomId) {
       const d = await db

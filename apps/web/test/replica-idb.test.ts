@@ -25,7 +25,7 @@ describe('IndexedDB replica store', () => {
     await before.append('fresh', [{ id: '1', data: 'y' }])
     // A later tab (start-up sweep): nothing it opened yet is in use.
     const store = createIdbReplicaStore(db, () => clock.t)
-    expect(await store.purge(10_000)).toBe(1)
+    expect(await store.purge(10_000)).toEqual(['old'])
     expect(await store.load('old')).toEqual([])
     expect(await store.load('fresh')).toHaveLength(1)
     await store.delete('fresh')
@@ -44,8 +44,8 @@ describe('IndexedDB replica store', () => {
     // "Until I leave" sweeps everything at start-up, but not what this tab is opening.
     const sweeper = createIdbReplicaStore(db, () => clock.t)
     await sweeper.load('opening-now')
-    expect(await sweeper.purge(10_000)).toBe(0)
-    expect(await sweeper.purge(Number.MAX_SAFE_INTEGER)).toBe(1)
+    expect(await sweeper.purge(10_000)).toEqual([])
+    expect(await sweeper.purge(Number.MAX_SAFE_INTEGER)).toEqual(['read-often'])
     expect(await tab.load('opening-now')).toHaveLength(1)
   })
 })

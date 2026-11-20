@@ -143,6 +143,14 @@ export const CHAPTERS: readonly Chapter[] = [
       { id: 'onedrive', caption: t('Là où le site le propose, « Se connecter avec Microsoft » garde le coffre chiffré dans le dossier OneDrive de RetroBoard, sans client de synchronisation.', 'Where the site offers it, "Sign in with Microsoft" keeps the encrypted vault in RetroBoard\'s own OneDrive folder, with no sync client.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-onedrive', 'sync-onedrive-signin'], shoot: 'sync-onedrive' },
     ],
   },
+  {
+    id: 'keep',
+    title: t('Garder ses boards', 'Keep your boards'),
+    intro: t('Le service ne garde rien: la copie de ton navigateur est parfois la seule. Voici comment la protéger.', 'The service stores nothing: the copy in your browser is sometimes the only one. Here is how to protect it.'),
+    steps: [
+      { id: 'protected', caption: t('Dans le profil, la ligne « Boards sur cet appareil » dit si le navigateur les conserve ou peut les effacer.', 'In the profile, the "Boards on this device" row says whether the browser keeps them or may clear them.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['durability'], shoot: 'durability' },
+    ],
+  },
 ]
 
 /** Every anchor the tour needs, once each, in first-use order. */

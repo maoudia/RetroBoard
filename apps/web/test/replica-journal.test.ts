@@ -42,7 +42,7 @@ describe('replica write-ahead journal', () => {
     const storage = new MemStorage()
     const failing: ReplicaStorePort = {
       load: async () => [{ id: 'a', data: '1' }], append: () => Promise.reject(new Error('quota')),
-      purge: async () => 0, delete: async () => {},
+      purge: async () => [], delete: async () => {},
     }
     const store = withJournal(failing, storage)
     store.stage?.('room', [{ id: 'a', data: '1' }, { id: 'b', data: '2' }])
