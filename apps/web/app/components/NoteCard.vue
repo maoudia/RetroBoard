@@ -22,7 +22,7 @@ const tilt = computed(() => `${((hashId(props.note.id) % 30) - 15) / 10}deg`)
 function hashId(s: string) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
 
 // The writing zone is at the foot of the column and a new note lands at the end of the list: bring it into view before the flight measures where it ends (change writing-zone-at-column-bottom).
-onMounted(() => { if (flightFrom && el.value) { el.value.scrollIntoView({ block: 'nearest', inline: 'nearest' }); flights.fly(el.value, flightFrom) } })
+onMounted(() => { if (flightFrom && el.value) { ui.quietScrollUntil = performance.now() + 250; el.value.scrollIntoView({ block: 'nearest', inline: 'nearest' }); flights.fly(el.value, flightFrom) } })
 
 
 watch(() => ui.editNoteId, (id) => {

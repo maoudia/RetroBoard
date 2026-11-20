@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { column, createBoard, join, noteByText, phoneLayout, publishNote, settle } from './helpers'
+import { column, createBoard, join, noteByText, phoneLayout, publishNote, scrollNotes, settle } from './helpers'
 
 async function shareLink(page: import('@playwright/test').Page) {
   if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
@@ -113,8 +113,12 @@ test.describe('clusters as merged ideas', () => {
   test('merge two clusters from the menu (touch-friendly); the target keeps its title', async ({ page }) => {
     await createBoard(page, { template: 'start-stop-continue' })
     for (const t of ['B1', 'B2', 'C1', 'C2']) await publishNote(page, 0, t)
+    await scrollNotes(page, 0, 'top') // a drop target must be in view: the list is scrolled down after a publication
     await noteByText(page, 'B2').dragTo(noteByText(page, 'B1'))
     await settle(page)
+    await scrollNotes(page, 0, 'end')
+    await settle(page)
+    await scrollNotes(page, 0, 'end') // the list re-flows while the new cluster settles
     await noteByText(page, 'C2').dragTo(noteByText(page, 'C1'))
     await settle(page)
     await expect(clusters(page)).toHaveCount(2)

@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { addDraft, column, columnId as colId, createBoard, join, noteByText, publishNote, settle } from './helpers'
+import { addDraft, column, columnId as colId, createBoard, join, noteByText, publishNote, scrollNotes, settle } from './helpers'
 
 /**
  * Note motion (change postit-visual-system, task 3.1): peel on hover, stick on publish, flutter when a note lands, snap when notes are
@@ -70,6 +70,7 @@ test.describe('note motion', () => {
     await publishNote(page, 0, 'Two')
     await publishNote(page, 0, 'Three')
     await watchAnimations(page)
+    await scrollNotes(page, 0, 'top') // a drop target must be in view: the list is scrolled down after a publication
     await noteByText(page, 'Two').dragTo(noteByText(page, 'One'))
     await expect(page.locator('.cluster .stack')).toBeVisible()
     await settle(page)

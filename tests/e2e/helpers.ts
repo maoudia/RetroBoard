@@ -237,3 +237,8 @@ export async function saveFile(page: Page, buttonTestId: string): Promise<void> 
   await page.getByTestId(buttonTestId).click()
   await page.getByTestId('file-preview-save').click()
 }
+
+/** Scrolls the notes of a column to its top or its end: the writing zone is at the foot, so a note just published has scrolled the list down (change writing-zone-at-column-bottom). */
+export async function scrollNotes(page: Page, colIndex: number, where: 'top' | 'end') {
+  await column(page, colIndex).locator('.notes').evaluate((e, to) => { e.scrollTop = to === 'top' ? 0 : e.scrollHeight }, where)
+}

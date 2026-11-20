@@ -329,6 +329,8 @@ header > .title { margin-inline-end: auto; }
 .act-publish:hover:not(:disabled) { background: var(--accent-soft); }
 .act-add { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .act-add:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 88%, #000); }
+/* Phones: the write button floats over the foot of the column (and the tab bar sits under it): the tray keeps clear of it so its actions stay tappable (change writing-zone-at-column-bottom). */
+@media (max-width: 600px) { .priv { padding-bottom: calc(56px + var(--sp-3) + var(--sp-2)); } }
 /* Phones: add and publish are thumb-sized (48 px high), the primary action of the writing area (change responsive-and-i18n-hardening). */
 @media (max-width: 600px) {
   .act { width: 56px; min-height: 48px; }

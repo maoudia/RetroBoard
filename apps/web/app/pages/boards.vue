@@ -154,6 +154,7 @@ function onBoardScroll(e: Event) {
   const before = lastTop.get(el) ?? 0
   lastTop.set(el, top)
   if (el.scrollHeight <= el.clientHeight) return
+  if (performance.now() < ui.quietScrollUntil) return
   const dy = top - before
   // Folding changes the column height, which moves scrollTop by itself: ignore the scrolls that follow a toggle.
   if (performance.now() < settleUntil) return
