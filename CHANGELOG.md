@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.59.0](https://github.com/maoudia/RetroBoard/compare/v1.58.0...v1.59.0) (2026-11-20)
+
+
+### Features
+
+* **storage:** seal private drafts with the device key and show whether the browser keeps the boards ([705b692](https://github.com/maoudia/RetroBoard/commit/705b69275866888aaf35287259d7327b572b3dc4))
+
+
+### Bug Fixes
+
+* **storage:** short action label on the board file proposal so the toast fits a 360 px screen ([510bdc3](https://github.com/maoudia/RetroBoard/commit/510bdc364607b6a31c87e4840a264f2f8d96e354))
+* **web:** keep the Group with list inside its menu, rounded rows, the button below a scrolling list ([536fd64](https://github.com/maoudia/RetroBoard/commit/536fd640a073ea6ba62de6a4983e7a2eb9807f53))
+
 ## [1.58.0](https://github.com/maoudia/RetroBoard/compare/v1.57.0...v1.58.0) (2026-11-20)
 
 
