@@ -183,6 +183,8 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
 .col:hover .col-grip::after, .col-grip:focus-visible::after, .col-grip:active::after { opacity: 1; background: var(--accent); }
 .col.over { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-1); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
 header { display: flex; align-items: center; gap: .5rem; padding: .8rem .8rem .5rem; }
+/* Phones: five controls share the header with the title, which was cut to two letters. */
+@media (max-width: 600px) { header { gap: .3rem; padding-inline: .6rem; } }
 .badge-ico { display: grid; place-items: center; width: 38px; height: 38px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--col); color: var(--note-ink); }
 .titles { flex: 1; min-width: 0; display: grid; }
 h2 { font-size: var(--fs-xl); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
