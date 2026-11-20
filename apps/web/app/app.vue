@@ -2,7 +2,11 @@
   <SkipLink />
   <NuxtPage />
   <ProfileDialog />
-  <SyncSheet />
+  <LazySyncSheet v-if="ui.dialog === 'sync'" />
   <ToastHost />
   <AgentConfirmDialog />
 </template>
+
+<script setup lang="ts">
+const ui = useUiStore()
+</script>
