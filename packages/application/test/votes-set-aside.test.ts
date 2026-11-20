@@ -24,5 +24,7 @@ describe('votesSetAside', () => {
     expect(votesSetAside(view([2, 3], null), [false, true, true])).toBeNull()
     expect(votesSetAside(view([2, 3], 4), [false, true, true])).toBe(2)
     expect(votesSetAside(view([]), [false, true, true])).toBe(0)
+    const two = view([2], 1)
+    expect(votesSetAside({ ...two, groups: [...two.groups, { ...two.groups[0]!, id: 'h', votes: null }] }, [true, true, true])).toBeNull()
   })
 })
