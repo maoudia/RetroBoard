@@ -271,6 +271,10 @@ main:focus { outline: none; }
 .pick-seg { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--r-pill); overflow: hidden; }
 .pick-seg button { padding: .4rem .75rem; border: 0; border-right: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
 .pick-seg button:last-child { border-right: 0; }
+/* A longer language never pushes the choices past their container: the buttons share the width and wrap their label. */
+.pick-seg { max-width: 100%; }
+.pick-seg button { min-width: 24px; flex: 1 1 auto; white-space: normal; text-align: center; }
+@media (max-width: 420px) { .pick-seg button { padding-inline: .45rem; } }
 .pick-seg button.on { background: var(--accent); color: var(--accent-ink); }
 /* Icon-only size controls (change feedback-wave-7): outlined rectangles, the selected one is filled with the accent on a tinted button.
    Same look for the writing size and the column width, readable in every theme (no ink-on-accent mix, no shadow). */
