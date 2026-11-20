@@ -16,10 +16,10 @@ const emit = defineEmits<{ pick: [color: number]; more: [] }>()
 </script>
 
 <template>
-  <div class="swatches" role="group" :aria-label="t('note.color')">
+  <div class="swatches" :role="menu ? 'group' : 'radiogroup'" :aria-label="t('note.color')">
     <button
       v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: current === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
-      :role="menu ? 'menuitemradio' : undefined" :aria-checked="menu ? current === i - 1 : undefined" :aria-pressed="menu ? undefined : current === i - 1"
+      :role="menu ? 'menuitemradio' : 'radio'" :aria-checked="current === i - 1"
       :aria-label="t('note.colorN', { n: i })" :data-testid="swatchTestid && `${swatchTestid}-${i - 1}`" @click="emit('pick', i - 1)"
     />
   </div>
