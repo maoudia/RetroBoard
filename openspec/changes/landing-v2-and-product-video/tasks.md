@@ -8,6 +8,5 @@
 
 ## 2. Content
 
-- [ ] 2.1 "Open code, fair business" section with license and repository links; verify e2e link targets
-- [ ] 2.2 Pricing section bound to the plan definitions from `licensing-and-monetization`; verify unit test that landing prices match plan config
-- [ ] 2.3 Feature sections refresh and pseudo-locale overflow check; verify visual regression
+- [ ] 2.1 "Built in public, source available" section with PolyForm Noncommercial license and repository links; verify e2e link targets
+- [ ] 2.2 Feature sections refresh and pseudo-locale overflow check; verify visual regression

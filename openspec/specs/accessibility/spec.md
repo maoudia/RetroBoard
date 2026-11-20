@@ -10,7 +10,7 @@ The site SHALL target WCAG 2.2 level AA on every page and dialog, in every theme
 
 #### Scenario: Automated gate
 - **WHEN** a pull request changes the web app
-- **THEN** axe with WCAG 2.2 A and AA rules runs on every route and dialog and any violation fails the build
+- **THEN** axe with WCAG 2.2 A and AA rules runs on Chromium on every route and dialog in the push gate, and any violation fails the build
 
 #### Scenario: Theme contrast
 - **WHEN** a theme token makes text on a note colour fall below 4.5:1
