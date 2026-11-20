@@ -54,7 +54,8 @@ onMounted(() => input.value?.focus())
 .field { min-width: 0; flex: 1 1 12rem; border-radius: 999px; min-height: 40px; }
 .sel { flex: 0 1 12rem; }
 .swatches { display: inline-flex; gap: 4px; }
-.sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; }
+.sw { position: relative; width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; }
+@media (pointer: coarse) { .sw::after { content: ''; position: absolute; inset: -10px -2px; } }
 .sw[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface); }
 .count { font-size: var(--fs-sm); min-width: 4rem; }
 .c-0 { --c: var(--note-0); } .c-1 { --c: var(--note-1); } .c-2 { --c: var(--note-2); } .c-3 { --c: var(--note-3); }

@@ -265,7 +265,7 @@ h3 .n { text-transform: none; letter-spacing: 0; font-weight: 500; }
 /* Narrow screens: a row with a wide control (language, light or dark) puts the control under its label instead of squeezing the text (change ux-irritants-wave-3). */
 @media (max-width: 600px) { .line:has(> .seg, > .pick-seg) { flex-direction: column; align-items: stretch; gap: .4rem; } .line:has(> .seg, > .pick-seg) > :not(:first-child) { align-self: flex-start; max-width: 100%; } }
 .line small { font-size: var(--fs-sm); }
-.sel { width: auto; min-width: 170px; }
+.sel { flex: none; width: auto; min-width: 170px; max-width: 60%; }
 .mine { display: grid; gap: .4rem; padding: .7rem; border-radius: var(--r-control); background: var(--surface2); }
 .lbl-sm { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; }

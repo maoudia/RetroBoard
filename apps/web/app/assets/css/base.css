@@ -298,6 +298,7 @@ main:focus { outline: none; }
 /* Touch screens: small controls keep their look and layout but answer to a 44 px square (WCAG 2.5.5 target size), by growing the hit area outwards. */
 @media (pointer: coarse) {
   .mini-btn, .icon-btn, .tools .avatar, .logo, .go, .info, .ring, .votebar .btn, .state { position: relative; }
+  .pick-seg button { min-block-size: 44px; }
   .mini-btn::after, .icon-btn::after, .tools .avatar::after, .logo::after, .go::after, .info::after, .ring::after, .votebar .btn::after, .state::after {
     content: ''; position: absolute; inset-block: calc((100% - max(100%, 44px)) / 2); inset-inline: calc((100% - max(100%, 44px)) / 2);
   }
