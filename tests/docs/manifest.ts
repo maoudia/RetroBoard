@@ -136,10 +136,11 @@ export const CHAPTERS: readonly Chapter[] = [
   },
   {
     id: 'sync',
-    title: t('Synchroniser avec un dossier', 'Sync with a folder'),
-    intro: t('Garde tes boards et tes préférences sur tes autres ordinateurs, dans des fichiers chiffrés que seul toi peux lire.', 'Keep your boards and preferences on your other computers, in encrypted files only you can read.'),
+    title: t('Garder ses boards partout', 'Keep your boards everywhere'),
+    intro: t('Garde tes boards et tes préférences sur tous tes appareils, dans une copie chiffrée que seul toi peux lire, sans compte.', 'Keep your boards and preferences on all your devices, in an encrypted copy only you can read, with no account.'),
     steps: [
-      { id: 'folder', caption: t('Dans le profil, la section Synchronisation te laisse choisir un dossier déjà synchronisé par OneDrive, Dropbox, Google Drive, iCloud, Syncthing ou Nextcloud.', 'In the profile, the Sync section lets you pick a folder that OneDrive, Dropbox, Google Drive, iCloud, Syncthing or Nextcloud already syncs.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-section', 'sync-choose'], shoot: 'sync-card' },
+      { id: 'shield', caption: t('Le bouclier au début de la barre d\'outils est le bouton de synchronisation : il synchronise d\'un appui, et la première fois il ouvre cette fiche qui explique tout en trois phrases.', 'The shield at the start of the toolbar is the sync button: one press syncs, and the first time it opens this sheet that explains it in three sentences.'), ops: [{ press: 'Escape' }, { click: 'sync-shield' }], anchors: ['sync-sheet', 'sync-path-folder'], shoot: 'sync-sheet' },
+      { id: 'folder', caption: t('Dans le profil, la section Synchronisation te laisse choisir n\'importe quel dossier : ce qui le transporte d\'un appareil à l\'autre est ton affaire.', 'In the profile, the Sync section lets you pick any folder: what carries it from one device to another is up to you.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-section', 'sync-choose'], shoot: 'sync-card' },
       { id: 'onedrive', caption: t('Là où le site le propose, « Se connecter avec Microsoft » garde le coffre chiffré dans le dossier OneDrive de RetroBoard, sans client de synchronisation.', 'Where the site offers it, "Sign in with Microsoft" keeps the encrypted vault in RetroBoard\'s own OneDrive folder, with no sync client.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['sync-onedrive', 'sync-onedrive-signin'], shoot: 'sync-onedrive' },
     ],
   },
