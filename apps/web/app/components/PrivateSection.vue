@@ -186,10 +186,21 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
         <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
         <SizePicker :model-value="ui.writeSizeOf(column.id)" :options="WRITE_SIZES" :label="t('private.area')" :option-label="(z) => t(`private.area.${z}` as never)" :testid="(z) => `area-${z}-${column.id}`" @update:model-value="setSize" />
         <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
-        <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-up" /></button>
+        <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-down" /></button>
       </template>
     </header>
 
+    <!-- The drafts tray: notes held in hand, tilted, each with its "draft" ribbon, until they are published. It stacks above the field so the field keeps its place at the foot of the column (change writing-zone-at-column-bottom). -->
+    <ul v-if="mine.length" class="drafts" :aria-label="t('private.tray')" data-testid="drafts-tray">
+      <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
+        <span class="ribbon">{{ t('private.ribbon') }}</span>
+        <p>{{ d.text }}</p>
+        <span class="acts">
+          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" :data-testid="`draft-publish-${d.id}`" @click="publish([d.id])"><Icon name="lucide:send" /></button>
+          <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" :data-testid="`draft-dismiss-${d.id}`" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
+        </span>
+      </li>
+    </ul>
     <Teleport to="body" :disabled="!sheeted">
     <div v-if="!phone || sheeted" class="compose-root" :data-sheet="sheeted ? '' : undefined" :style="sheeted && inset ? { paddingBottom: `${inset}px` } : undefined" @click.self="sheeted && ui.closeCompose()" @keydown.esc="sheeted && ui.closeCompose()">
     <div class="compose" :class="{ sheet: sheeted }" :role="sheeted ? 'dialog' : undefined" :aria-label="sheeted ? t('compose.sheet') : undefined" :data-testid="sheeted ? 'compose-sheet' : undefined">
@@ -252,27 +263,16 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
     </div>
     </Teleport>
 
-    <!-- The drafts tray: notes held in hand, tilted, each with its "draft" ribbon, until they are published. -->
-    <ul v-if="mine.length" class="drafts" :aria-label="t('private.tray')" data-testid="drafts-tray">
-      <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
-        <span class="ribbon">{{ t('private.ribbon') }}</span>
-        <p>{{ d.text }}</p>
-        <span class="acts">
-          <button class="mini-btn" type="button" :aria-label="t('private.publishOne')" :disabled="board.locked || closed" :data-testid="`draft-publish-${d.id}`" @click="publish([d.id])"><Icon name="lucide:send" /></button>
-          <button class="mini-btn" type="button" :aria-label="t('private.deleteDraft')" :data-testid="`draft-dismiss-${d.id}`" @click="drafts.remove(d.id)"><Icon name="lucide:trash" /></button>
-        </span>
-      </li>
-    </ul>
   </section>
     </div>
     <button v-if="folded" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
-      <Icon name="lucide:chevrons-down" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
+      <Icon name="lucide:chevrons-up" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
     </button>
   </div>
 </template>
 
 <style scoped>
-.priv { display: grid; gap: .6rem; padding: .75rem; border-bottom: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); }
+.priv { display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); }
 /* Privacy mark on the left, then everything else pushed to the right with the chevron last (smoother than a centred icon). */
 header { display: flex; align-items: center; gap: .35rem; min-height: 30px; }
 header > .title { margin-inline-end: auto; }
@@ -283,7 +283,7 @@ header > .title { margin-inline-end: auto; }
 .priv-wrap[data-folded] { grid-template-rows: 0fr; }
 .priv-clip { min-height: 0; overflow: hidden; }
 .priv-wrap[data-folded] .priv-clip { visibility: hidden; transition: visibility 0s .3s; }
-.priv-handle { display: flex; align-items: center; justify-content: flex-end; padding-inline: .9rem; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-bottom: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.priv-handle { display: flex; align-items: center; justify-content: flex-end; padding-inline: .9rem; gap: .4rem; width: 100%; min-height: 40px; border: 0; border-top: 1px dashed var(--border); background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
 .priv-handle:hover { color: var(--accent); background: var(--accent-soft); }
 /* The tray: notes held in hand. Each draft is a tilted paper in its colour with a "draft" ribbon on top; the room cannot see any of them. */
 .drafts { list-style: none; margin: 0; padding: .6rem .25rem .25rem; display: grid; gap: .8rem; max-height: 22vh; overflow: auto; }

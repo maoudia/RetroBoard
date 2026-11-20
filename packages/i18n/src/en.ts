@@ -1186,6 +1186,7 @@ export const en: Record<keyof typeof fr, string> = {
   'group.closeLabel': 'Close group',
   'group.dissolve': 'Dissolve group',
 
+  'private.skip': 'Go to the writing area',
   'private.section': 'Private section: {title}',
   'private.title': 'Private',
   'private.publish': 'Publish',
