@@ -3,7 +3,7 @@
 The roadmap lives in GitHub: release milestones in the repository and the organisation project
 [RetroBoard roadmap](https://github.com/orgs/maoudia/projects/7). Each OpenSpec change is one epic issue in one
 release; each task group of a change is one sub-issue (one pull request). Target dates are planning targets,
-reviewed at each release. Plan of 2026-11-04: stabilise first, launch in December, then teams, revenue and agents. Re-planned 2026-11-12 (owner decisions): R2 is cut to the launch path, the nightly gate allows retries and a shrinking quarantine and leaves WebKit out, and the Cloudflare-independence changes are placed.
+reviewed at each release. Plan of 2026-11-04: stabilise first, launch in December, then teams, revenue and agents. Re-planned 2026-11-12 (owner decisions): R2 is cut to the launch path, the nightly gate allows retries and a shrinking quarantine and leaves WebKit out, and the Cloudflare-independence changes are placed. Extended 2026-11-20 with the owner's product notes (section "Owner notes of 2026-11-20" below): feature freeze on 2026-12-09, so only the two bug fixes and the first three groups of `sync-ux` may ship before the launch.
 
 Priority (owner rule, 2026-10-29): bugs first (`priority:1-urgent`, standalone `bug` issues), then the design value
 users see first (`priority:2-design`), then CI/CD quality (`priority:3-quality`), then the rest (`priority:4-later`).
@@ -56,6 +56,8 @@ Anything not on this list slipped to R3.
 * Landing and launch kit: `landing-v2-and-product-video` ([proposal](../openspec/changes/landing-v2-and-product-video/proposal.md)), then `public-launch` ([proposal](../openspec/changes/public-launch/proposal.md)): indexing of the public pages, one page per retro format, the launch kit and `pnpm launch:check`, the readiness check of the gate above.
 * Encrypted sync of boards and preferences to a folder the user picks: `user-drive-storage` ([proposal](../openspec/changes/user-drive-storage/proposal.md)), priority 1 (`priority:1-urgent`), task groups 1 (the `SyncTarget` interface, the browser adapter, local encryption, the board library, the contract tests and the in-memory fake) and 2 (the vault engine with its merge rules, the folder adapter and Preferences > Sync: automatic push and pull, status, disconnect and forget). It is Joplin's "File system" target: the user's own sync client (OneDrive, Drive, Dropbox, iCloud, Syncthing, Nextcloud) carries the encrypted files, so R2 needs no sign-in, no Microsoft registration and no CSP change. Chromium desktop only in R2. Groups 3 to 10 (OneDrive through Graph first, then GitHub, Google Drive, Dropbox, WebDAV, S3, generic HTTP, device pairing) sit in R3 as sub-issues of the same epic.
   The R2 scope grew by this item on 2026-11-14 at the owner's request. Estimate: two groups, one PR each, about 14 agent sessions of two hours in all (about 6 and 8), on top of the launch-path items above and under the limit of 3 changes in progress; smaller than the OneDrive-first plan (about 16 sessions plus the owner's Entra registration) because there is no OAuth, registration or CSP work. The 2026-12-13 target holds if group 1 is merged by 2026-11-27 and group 2 by 2026-12-08; the owner's only task is a live check with a folder carried by their own sync client. If group 2 is late, R2 keeps group 1 (the local library and the encrypted vault format, no sync yet) and group 2 ships right after the launch; the owner decides at the 2026-12-04 review.
+* Sync UX, the product around the sync engine (owner notes 2026-11-20): `sync-ux` ([proposal](../openspec/changes/sync-ux/proposal.md)), priority 1. Groups 1 to 3 are R2 and small: the shield button (press to sync now), any folder, the onboarding sheet and its once-only nudge. They can ship before the 2026-12-09 freeze (about 5 sessions in all, one pull request each); if capacity is short they ship right after the launch, never at the cost of the launch-path items. Groups 4 to 6 (sealed vault file, pairing without a platform, phones) are R3.
+* Two bugs from the owner's notes of 2026-11-20, both small and both allowed before the freeze: `fix-group-with-menu-layout` ([proposal](../openspec/changes/fix-group-with-menu-layout/proposal.md)) and `fix-votes-after-format-change` ([proposal](../openspec/changes/fix-votes-after-format-change/proposal.md)).
 * Brand identity: `brand-identity` ([proposal](../openspec/changes/brand-identity/proposal.md)): charter, logo, icon kit, share images and press kit; the mark and the signature wait for the owner's approval.
 * License: the project is source available under PolyForm Noncommercial 1.0.0 and closed to outside contributions ([ADR-0040](adr/0040-polyform-noncommercial-source-available-license.md)), so the launch path has no CLA, pricing or sponsorware decision.
 * Archived, owner check left: `p2p-presence-and-cursors` ([proposal](../openspec/changes/archive/2026-11-12-p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/archive/2026-11-12-webmcp-browser-agents/proposal.md)) are delivered; only the owner checks in [owner-checks.md](owner-checks.md) remain.
@@ -100,6 +102,12 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 * `phase-transition-guidance` ([proposal](../openspec/changes/phase-transition-guidance/proposal.md))
 * `simple-mode-ux-pass` ([proposal](../openspec/changes/simple-mode-ux-pass/proposal.md))
 * `join-code-drop-fallback` ([proposal](../openspec/changes/join-code-drop-fallback/proposal.md))
+* `phase-controls` ([proposal](../openspec/changes/phase-controls/proposal.md)), per-phase capability switches in advanced mode and the lock on post-its (owner notes 2026-11-20)
+* `creation-team-first` ([proposal](../openspec/changes/creation-team-first/proposal.md)), team and project at the top of board creation, in both modes
+* `cursors-off-for-now` ([proposal](../openspec/changes/cursors-off-for-now/proposal.md)), shared pointers paused behind a flag
+* `publish-announcements` ([proposal](../openspec/changes/publish-announcements/proposal.md)), "Alex published 4 ideas to Wish List"
+* `done-celebration` ([proposal](../openspec/changes/done-celebration/proposal.md)), a per-theme animation when an idea is done
+* `export-consolidation` ([proposal](../openspec/changes/export-consolidation/proposal.md)), three doors for data leaving the app
 * `local-data-durability` ([proposal](../openspec/changes/local-data-durability/proposal.md)), the browser is the only copy of a board: persistence status, sealed drafts
 * Delivered and archived: `portable-relay-core` ([proposal](../openspec/changes/archive/2026-11-14-portable-relay-core/proposal.md)), see Cloudflare independence below
 
@@ -109,6 +117,8 @@ Licensing, offers, sponsors, marketplace, services, premium themes. Gate: first 
 
 * `licensing-and-monetization` ([proposal](../openspec/changes/licensing-and-monetization/proposal.md)): shelved on 2026-11-19, see ADR-0040
 * `themes-pop-culture` ([proposal](../openspec/changes/themes-pop-culture/proposal.md))
+* `scrum-poker` ([proposal](../openspec/changes/scrum-poker/proposal.md)), **epic**: planning poker rooms, the growth item of R4 now that monetisation is shelved; it can move to R3 if R3 shrinks
+* `jira-estimation-import` ([proposal](../openspec/changes/jira-estimation-import/proposal.md)): Jira stories in by paste and CSV, estimates back, after `scrum-poker`
 * `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)): shelved on 2026-11-19, see ADR-0040 (no CLA, sponsorware, offers or prices)
 
 ## R5 Agents (target 2027-05-02)
@@ -120,6 +130,29 @@ MCP server, agent sessions, local AI companion. Gate: an agent runs a retro end 
 * `funny-local-companion` ([proposal](../openspec/changes/funny-local-companion/proposal.md))
 * `agent-feedback-and-timeboxed-sessions` ([proposal](../openspec/changes/agent-feedback-and-timeboxed-sessions/proposal.md))
 * `agents-first-class` ([proposal](../openspec/changes/agents-first-class/proposal.md))
+
+## Owner notes of 2026-11-20
+
+Fifteen notes became eleven changes (note 9, desktop mode works well, is information only). Sizes: S is one agent session of about two hours, M is three to five, L is six or more. The sizes are planning estimates, not measurements.
+
+| Note | Change | Release | Size | Why there |
+|---|---|---|---|---|
+| 3 | `fix-group-with-menu-layout` | R2, before the freeze | S | A visible bug in a daily menu; a geometry test keeps it fixed |
+| 4 | `fix-votes-after-format-change` | R2, before the freeze | S | Votes shown but not counted is a trust bug; one rule fixes it |
+| 12, 13, 14 | `sync-ux` groups 1 to 3 | R2, before the freeze if capacity allows | S, S, M | Encrypted sync is priority 1 and unusable if nobody finds it; small, no new infrastructure |
+| 12, 13, 14 | `sync-ux` groups 4 to 6 | R3 | M, L, M | Sealed vault file, pairing and phone fixes need a spike, a protocol check and real-device tests (owner's Microsoft app registration, an iPhone and an Android phone) |
+| 8 | `cursors-off-for-now` | R3 (can ride before the freeze) | S | Removes an unreliable feature; a flag, not a deletion; low risk if capacity appears |
+| 7 | `creation-team-first` | R3 | S | Reorders creation and adds team and project to simple mode; precursor of the `board-creation-v2` stepper |
+| 5, 6 | `phase-controls` | R3 | L | A domain change (phase policy) with a compatibility rule; not a launch item |
+| 2 | `publish-announcements` | R3 | M | A derived toast and a setting; no relay traffic |
+| 1 | `done-celebration` | R3 | M | Eleven themed effects and an off switch; a polish item |
+| 15 | `export-consolidation` | R3 | M | Sits after `export-hub`; shapes where `export-destinations-v2` and the vault file land |
+| 10 | `scrum-poker` | R4, explicit epic | L (about 16 to 20 sessions) | Largest item; starts with an architecture spike and an ADR; after the launch and the sync work |
+| 11 | `jira-estimation-import` | R4 | M | Needs the poker room; paste and CSV first, because a token or a secret of ours is refused |
+
+Dependencies and cross-links: `sync-ux` extends `user-drive-storage` (its group 10, pairing, is replaced by `sync-ux` group 5) and shares the `.rbv` file with `local-data-durability` and `export-destinations-v2`; `export-consolidation` relates to `export-hub` and `export-destinations-v2`; `scrum-poker` reuses sealed voting and the export doors; `jira-estimation-import` needs `scrum-poker`. Three ADRs are proposed with these changes: [0041](adr/0041-sync-without-a-platform-the-sealed-vault-file-and-device-pai.md), [0042](adr/0042-a-poker-room-is-a-second-room-kind-on-the-same-transport.md) and [0043](adr/0043-jira-estimates-come-in-by-paste-and-csv-never-by-a-token.md).
+
+Before the 2026-12-09 freeze the work-in-progress ceiling still applies (`pnpm wip`): the new changes have no ticked task, so they add nothing to it until a group is started, and no more than three of them should be in progress at once. The GitHub issues for these changes are created from `scripts/github/sync-issues.mjs` and are not yet applied.
 
 ## Cloudflare independence
 
