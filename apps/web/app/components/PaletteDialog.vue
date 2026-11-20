@@ -10,6 +10,7 @@ const current = computed<number | null>(() => {
   const note = target?.kind === 'group' ? board.snapshot?.notes.find((n) => n.groupId === target.id && !n.frozen) : target && board.noteById(target.id)
   return note?.color ?? null
 })
+const group = ref<HTMLElement | null>(null)
 /** Advanced mode: tints and shades of the theme colours (no free colour). Opens by itself on a note already in one. */
 const advanced = ref(false)
 const count = computed(() => (advanced.value ? NOTE_COLOR_EXTENDED : NOTE_COLOR_COUNT))
@@ -27,12 +28,9 @@ function onKey(e: KeyboardEvent, i: number) {
   const next = (i + step + count.value) % count.value
   group.value?.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus()
 }
-// Mounted at the first opening (lazy): start from the current shade and focus it.
-watch(open, (v) => {
-  if (!v) return
-  advanced.value = (current.value ?? 0) >= NOTE_COLOR_COUNT
-  void nextTick(() => group.value?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus())
-}, { immediate: true })
+// Mounted at the first opening (lazy): start from the current shade, and focus it once the sheet is drawn.
+watch(open, (v) => { if (v) advanced.value = (current.value ?? 0) >= NOTE_COLOR_COUNT }, { immediate: true })
+watch(group, (el) => el?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus(), { flush: 'post' })
 </script>
 
 <template>
