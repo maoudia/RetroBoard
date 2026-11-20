@@ -7,11 +7,9 @@ const open = computed({ get: () => ui.dialog === 'palette', set: (v) => { if (!v
 /** Colour of the note, or of the first notes of the cluster that a recolour reaches (the frozen ones keep theirs). */
 const current = computed<number | null>(() => {
   const target = ui.paletteTarget
-  if (!target) return null
-  if (target.kind === 'note') return board.noteById(target.id)?.color ?? null
-  return board.snapshot?.notes.find((n) => n.groupId === target.id && !n.frozen)?.color ?? null
+  const note = target?.kind === 'group' ? board.snapshot?.notes.find((n) => n.groupId === target.id && !n.frozen) : target && board.noteById(target.id)
+  return note?.color ?? null
 })
-const group = ref<HTMLElement | null>(null)
 /** Advanced mode: tints and shades of the theme colours (no free colour). Opens by itself on a note already in one. */
 const advanced = ref(false)
 const count = computed(() => (advanced.value ? NOTE_COLOR_EXTENDED : NOTE_COLOR_COUNT))
