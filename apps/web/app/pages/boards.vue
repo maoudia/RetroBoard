@@ -65,7 +65,7 @@ watch(() => [persistence.persisted, board.ready, board.noteCount > 0, board.peer
   clearTimeout(proposeTimer)
   if (persisted !== false || !ready || !content || !alone || synced || !exportable || !room) return
   proposeTimer = setTimeout(() => {
-    if (persistence.propose(room)) push(t('durability.propose'), 'info', 15_000, { label: t('profile.durability.save'), run: () => ui.open('export'), testid: 'durability-propose-save' })
+    if (persistence.propose(room)) push(t('durability.propose'), 'info', 15_000, { label: t('durability.propose.save'), run: () => ui.open('export'), testid: 'durability-propose-save' })
   }, safeStorage.get('retroboard:durability-delay', 20_000))
 }, { immediate: true })
 onBeforeUnmount(() => clearTimeout(proposeTimer))

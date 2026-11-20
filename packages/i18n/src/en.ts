@@ -1380,6 +1380,7 @@ export const en: Record<keyof typeof fr, string> = {
   'profile.durability.protected': 'Protected: the browser keeps them',
   'profile.durability.volatile': 'May be cleared by the browser',
   'profile.durability.save': 'Save a board file',
+  'durability.propose.save': 'Save file',
   'durability.propose': 'Only this browser holds this board, and it may clear it. Save a board file to keep a copy.',
   'profile.retention': 'Keep boards on this device',
   'profile.retention.hint': 'An encrypted copy lets a board reopen even when nobody else is online. It never leaves this browser.',

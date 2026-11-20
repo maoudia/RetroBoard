@@ -1379,6 +1379,7 @@ export const fr = {
   'profile.durability.protected': 'Protégés : le navigateur les conserve',
   'profile.durability.volatile': 'Le navigateur peut les effacer',
   'profile.durability.save': 'Enregistrer un fichier de board',
+  'durability.propose.save': 'Enregistrer',
   'durability.propose': 'Seul ce navigateur détient ce board, et il peut l\'effacer. Enregistrez un fichier de board pour en garder une copie.',
   'profile.retention': 'Garder les boards sur cet appareil',
   'profile.retention.hint': 'Une copie chiffrée permet de rouvrir un board même quand personne d\'autre n\'est en ligne. Elle ne quitte jamais ce navigateur.',
