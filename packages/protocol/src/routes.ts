@@ -3,7 +3,7 @@ export const PRIVATE_PREFIXES = ['/boards', '/board', '/check', '/offline', '/de
 
 /** True for a private route whatever the indexing switch says; `/boardsfoo` is not `/boards`, `/boards/x` is. */
 export function isPrivatePath(pathname: string): boolean {
-  const path = pathname.length > 1 ? pathname.replace(/\.html$/, '') : pathname
+  const path = pathname.replace(/\.html$/, '')
   return PRIVATE_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))
 }
 

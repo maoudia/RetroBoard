@@ -8,7 +8,7 @@ describe('private routes', () => {
   })
 
   it('leaves the public pages alone, including look-alikes', () => {
-    for (const p of ['/', '/new', '/privacy', '/formats/', '/en/formats/starfish/', '/guide/en/', '/boardroom', '/checklist', '/devices']) expect(isPrivatePath(p), p).toBe(false)
+    for (const p of ['/', '/new', '/privacy', '/formats/', '/en/formats/starfish/', '/guide/en/', '/boardroom', '/checklist', '/devices', '/boardsxhtml', '/boards.html/x', '/boards.htmlx']) expect(isPrivatePath(p), p).toBe(false)
   })
 })
 
