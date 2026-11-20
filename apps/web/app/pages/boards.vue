@@ -502,7 +502,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <TemplateDialog />
       <ConfirmDialog :open="ui.dialog === 'toClose'" confirm-icon="lucide:flag" :title="t('agenda.toClose.title')" :message="t('agenda.toClose.msg')" :confirm-label="t('agenda.toClose.ok')" @update:open="(v: boolean) => { if (!v && ui.dialog === 'toClose') ui.close() }" @confirm="board.commands.goToClosing()" />
       <ColumnEditorDialog />
-      <PaletteDialog />
+      <LazyPaletteDialog v-if="ui.paletteTarget" />
       <DestroyDialog />
       <ShortcutsDialog />
       <BoardSetupDialog :open="setupOpen" @submit="sendSetup" />

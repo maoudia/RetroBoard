@@ -148,7 +148,7 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
          Presenter mode is shown to the room: my private drafts stay off screen. -->
     <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
 
-    <GroupPanel v-if="openGroup" :item="openGroup" />
+    <LazyGroupPanel v-if="openGroup" :item="openGroup" />
     <span
       class="col-grip" role="separator" aria-orientation="vertical" tabindex="0" :aria-label="t('column.resize', { title: column.title })"
       :aria-valuenow="Math.round(customW ?? colEl?.getBoundingClientRect().width ?? 340)" aria-valuemin="200" aria-valuemax="1400" :data-testid="`col-grip-${column.id}`"

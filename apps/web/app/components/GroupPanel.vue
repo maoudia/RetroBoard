@@ -9,8 +9,6 @@ const ui = useUiStore()
 const title = ref(props.item.group.title ?? '')
 watch(() => props.item.group.title, (t) => { title.value = t ?? '' })
 
-/** Colour the next recolour starts from: the first note it reaches (a frozen note keeps its own). */
-const color = computed(() => props.item.notes.find((n) => !n.frozen)?.color ?? null)
 const closeNow = () => { ui.openGroupId = null }
 
 // Spring open and close (change cluster-reveal-motion): the panel grows out of the stack and shrinks back
@@ -99,7 +97,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         <details v-if="!board.locked && !item.group.frozen" class="merge">
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-recolor"><Icon name="lucide:palette" /> {{ t('cluster.recolor') }}</summary>
           <ColorPicker
-            :current="color" swatch-testid="cluster-color" more-testid="cluster-palette"
+            :current="null" swatch-testid="cluster-color" more-testid="cluster-palette"
             @pick="board.commands.recolorGroup(item.group.id, $event)" @more="ui.openPalette(item.group.id, 'group')"
           />
         </details>
