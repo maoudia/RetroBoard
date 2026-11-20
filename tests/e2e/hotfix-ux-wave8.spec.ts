@@ -83,6 +83,8 @@ test('the column width menu uses equal cells like the writing size', async ({ pa
 })
 
 test('a stack previews up to eight notes then says how many more', async ({ page }) => {
+  // Ten notes in one column with the writing zone at its foot: a tall window keeps the stack and the note dragged onto it both in view (change writing-zone-at-column-bottom).
+  await page.setViewportSize({ width: page.viewportSize()!.width, height: 2400 })
   await createBoard(page, { template: 'start-stop-continue' })
   const texts = 'ABCDEFGHIJ'.split('').map((c) => `Idea ${c}${c}${c}`)
   for (const t of texts) await publishNote(page, 0, t)

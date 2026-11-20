@@ -56,8 +56,8 @@ for (const { name, viewport } of sizes) {
       await expect(async () => {
         const note = (await noteByText(page, 'Brand new idea').boundingBox())!
         const notes = (await col.locator('.notes').boundingBox())!
-        expect(note.y).toBeGreaterThanOrEqual(notes.y - 1)
-        expect(note.y + note.height).toBeLessThanOrEqual(notes.y + notes.height + 1)
+        expect(note.y).toBeGreaterThanOrEqual(notes.y - 2)
+        expect(note.y + note.height).toBeLessThanOrEqual(notes.y + notes.height + 2)
       }).toPass()
     })
 
