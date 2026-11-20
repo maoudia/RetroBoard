@@ -304,6 +304,7 @@ For `retroboard.maoudia.com`, the hosted deployment. A self-hosted instance has 
 - No Turnstile (ADR-0019): one rate-limiting rule on `/ws2`, Bot Fight Mode and relay budgets instead (`docs/runbooks/edge.md`).
 - Worker: existing strict CSP, COOP/CORP, Permissions-Policy, origin checks, per-IP connection caps (in the Durable Object), Workers rate limiting binding if available on Free (to verify: <https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/>).
 - `/.well-known/security.txt`, privacy page, legal notice (mentions legales).
+- Search indexing is one switch (`apps/web/site.json`, off by default): `robots.txt`, the `robots` meta and `X-Robots-Tag` agree, boards stay `noindex` whatever it says, and `sitemap.xml` is built from the generated pages (`docs/runbooks/deploy.md`).
 - Observability: Workers Logs (already on), traces on, no content in logs.
 
 ## 12. Roadmap, epics and parallelisation for agents

@@ -1,7 +1,7 @@
 import type { ClientIpSettings } from './client-ip'
 import { isUnknownAppPath, pickErrorResponse, wantsHtml } from './errors'
 import { createLimiter, isMaintenance, maintenanceAction, RETRY_AFTER_SECONDS } from './guards'
-import { type AssetsPort, buildCsp, httpsRedirect, loadCspHashes, originTrialToken, withSecurityHeaders, workerCsp } from './headers'
+import { type AssetsPort, buildCsp, httpsRedirect, isIndexable, loadCspHashes, loadIndexing, originTrialToken, withSecurityHeaders, workerCsp } from './headers'
 import { consoleLogger, roomHash } from './logger'
 import { operatorResponse, type OperatorSettings } from './operator'
 import { admitUpgrade } from './origin'
@@ -86,5 +86,5 @@ export async function handleHttp(request: Request, deps: HttpDeps): Promise<Resp
     res = pickErrorResponse(request, 404, shell.ok ? shell : null, 'Not found')
   }
   const fake = (settings.FAKE_PROVIDER_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
-  return withSecurityHeaders(res, buildCsp(hashes, extra), originTrialToken(url.host, settings.ORIGIN_TRIAL_TOKENS), workerCsp(url.pathname, fake))
+  return withSecurityHeaders(res, buildCsp(hashes, extra), originTrialToken(url.host, settings.ORIGIN_TRIAL_TOKENS), workerCsp(url.pathname, fake), isIndexable(await loadIndexing(deps.assets), url.pathname) && res.status === 200)
 }

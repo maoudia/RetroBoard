@@ -11,7 +11,7 @@ export type Text = Readonly<Record<Locale, string>>
 
 /** What the tour does before the photo. `anchor` ops name a `data-testid`; `demoBoard` creates the seeded board once. */
 export type Op =
-  | { readonly goto: string }
+  | { readonly goto: string | Text }
   | { readonly demoBoard: true }
   | { readonly click: string }
   | { readonly press: string }
@@ -47,6 +47,15 @@ export const CHAPTERS: readonly Chapter[] = [
     steps: [
       { id: 'form', caption: t('Donne un titre au board et choisis un format de rétro.', 'Give the board a title and pick a retro format.'), ops: [{ goto: '/new' }, { fill: ['setup-title', t('Sprint 24', 'Sprint 24')] }], anchors: ['setup-title', 'setup-submit'] },
       { id: 'theme', caption: t('Le thème est choisi par le facilitateur et vaut pour toute l’équipe.', 'The facilitator picks the theme and the whole team sees it.'), ops: [], anchors: ['theme-studio'], shoot: 'setup-form' },
+    ],
+  },
+  {
+    id: 'formats',
+    title: t('Les pages des formats', 'The format pages'),
+    intro: t('Chaque format de rétro a sa page publique, avec ses colonnes et un bouton pour le démarrer.', 'Every retro format has its own public page, with its columns and a button to start it.'),
+    steps: [
+      { id: 'page', caption: t('La page d’un format montre ses colonnes, les objectifs qu’il sert et sa durée.', 'A format page shows its columns, the goals it suits and how long it takes.'), ops: [{ goto: t('/formats/starfish/', '/en/formats/starfish/') }], anchors: ['format-name', 'format-column', 'format-start'] },
+      { id: 'start', caption: t('« Démarrer ce format » ouvre la création d’un board avec ce format déjà choisi.', '"Start this format" opens the board setup with that format already selected.'), ops: [{ click: 'format-start' }], anchors: ['template-starfish', 'setup-submit'] },
     ],
   },
   {

@@ -46,7 +46,7 @@ export function demoRunner(page: Page, browser: Browser, locale: Locale) {
   let sam: { close(): Promise<void> } | null = null
 
   async function run(op: Op) {
-    if ('goto' in op) await page.goto(op.goto)
+    if ('goto' in op) await page.goto(text(op.goto, locale))
     else if ('demoBoard' in op) {
       await createBoard(page, { template: 'start-stop-continue', name: demo.alex, title: text('Sprint 24', locale), keepShare: true })
       const link = await page.getByTestId('share-url').inputValue()

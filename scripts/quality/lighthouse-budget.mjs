@@ -1,7 +1,8 @@
 // Lighthouse budgets (change quality-gates-v2). Pure evaluator: scores in [0,1] against minimums.
-/** The score categories of a budget file: every key but the per-page overrides. */
+/** The score categories of a budget file: the global keys and any category a page adds (the per-page overrides). */
 export function categories(budgets) {
-  return Object.keys(budgets).filter((k) => k !== 'pages')
+  const { pages = {}, ...global } = budgets
+  return [...new Set([...Object.keys(global), ...Object.values(pages).flatMap((p) => Object.keys(p))])]
 }
 
 /** The middle score of each category over several runs of one page: one slow run on a shared runner does not fail the budget. */

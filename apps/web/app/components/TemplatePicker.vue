@@ -3,10 +3,10 @@ import { TEMPLATES, type Goal, type Reason, suggestTemplates  } from '@retroboar
 import { GOAL_DEFS, MOOD_VALUES, goalHint, goalLabel, moodLabel, reasonLabel } from '~/utils/labels'
 const { t } = useT()
 
-const props = defineProps<{ modelValue: string | null; themeId?: string }>()
+const props = defineProps<{ modelValue: string | null; themeId?: string; /** Opens the full list: a format chosen elsewhere (a format page) must be seen selected. */ showAll?: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [id: string]; 'update:minutes': [minutes: number] }>()
 
-const tab = ref<'suggest' | 'all'>('suggest')
+const tab = ref<'suggest' | 'all'>(props.showAll ? 'all' : 'suggest')
 const goal = ref<Goal>('fix')
 const mood = ref(3)
 const minutes = ref(30)

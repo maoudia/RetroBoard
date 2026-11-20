@@ -115,3 +115,34 @@ describe('handleHttp', () => {
     expect((await handleHttp(html('/boards'), b)).status).toBe(200)
   })
 })
+
+describe('indexing switch (change public-launch)', () => {
+  const site = (indexing: string | null): HttpDeps['assets'] => ({
+    fetch: async (r) => {
+      const path = new URL(typeof r === 'string' ? r : r.url).pathname
+      if (path === '/_site.json') return indexing === null ? new Response('gone', { status: 404 }) : Response.json({ indexing })
+      if (path === '/_csp.json') return Response.json({ scripts: [], styles: [] })
+      return new Response(`<p>${path}</p>`, { headers: { 'Content-Type': 'text/html' } })
+    },
+  })
+  const robots = async (indexing: string | null, path: string) => (await handleHttp(html(path), deps({ assets: site(indexing) }).d)).headers.get('X-Robots-Tag')
+
+  it('keeps every page noindex while the switch is off, missing or unreadable', async () => {
+    for (const indexing of ['none', null, 'maybe']) for (const path of ['/', '/new', '/formats/starfish/', '/boards', '/check']) expect(await robots(indexing, path), `${indexing} ${path}`).toBe('noindex, nofollow')
+  })
+
+  it('lets the public pages through once it is on, and never the private ones', async () => {
+    for (const path of ['/', '/new', '/privacy', '/formats/starfish/', '/en/formats/']) expect(await robots('public', path), path).toBeNull()
+    for (const path of ['/boards', '/boards/', '/board', '/check', '/offline', '/dev/service-pages', '/storage/callback']) expect(await robots('public', path), path).toBe('noindex, nofollow')
+  })
+
+  it('keeps the error pages out of the index even when it is on', async () => {
+    const res = await handleHttp(html('/missing'), deps({ assets: { fetch: async (r) => (new URL(typeof r === 'string' ? r : r.url).pathname === '/_site.json' ? Response.json({ indexing: 'public' }) : new Response('gone', { status: 404 })) } }).d)
+    expect([res.status, res.headers.get('X-Robots-Tag')]).toEqual([404, 'noindex, nofollow'])
+  })
+
+  it('serves the format pages as pages, not as an unknown route', async () => {
+    const res = await handleHttp(html('/en/formats/starfish/'), deps({ assets: site('none') }).d)
+    expect(res.status).toBe(200)
+  })
+})
