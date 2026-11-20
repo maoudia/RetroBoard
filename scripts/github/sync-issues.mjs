@@ -170,10 +170,22 @@ const PLAN = {
   'open-source-business': ['P13', 'A', []],
   // Cloudflare-independence report 2026-11-11: the relay core and the Node adapter.
   'portable-relay-core': ['P14', 'A', []],
+  // Owner notes 2026-11-20: sync UX, two bugs, per-theme celebration, publish broadcast, phase controls, creation order, cursors paused, exports, Scrum Poker and Jira.
+  'sync-ux': ['P15', 'A', []],
+  'fix-group-with-menu-layout': ['P15', 'B', []],
+  'fix-votes-after-format-change': ['P15', 'A', []],
+  'done-celebration': ['P15', 'C', []],
+  'publish-announcements': ['P15', 'B', []],
+  'phase-controls': ['P15', 'A', []],
+  'creation-team-first': ['P15', 'B', []],
+  'cursors-off-for-now': ['P15', 'B', []],
+  'export-consolidation': ['P15', 'C', ['export-hub']],
+  'scrum-poker': ['P15', 'A', []],
+  'jira-estimation-import': ['P15', 'A', ['scrum-poker']],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
-  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02', P11: 'P11 Live retro feedback 2026-11-02', P12: 'P12 Ideas backlog 2026-11-03', P13: 'P13 Roadmap 2026-11-04', P14: 'P14 Owner feedback 2026-11-08',
+  P4: 'P4 Outputs', P5: 'P5 Agents', P6: 'P6 Growth', P7: 'P7 Owner feedback 2026-10-25', P8: 'P8 Owner feedback 2026-10-29', P9: 'P9 Owner feedback 2026-11-01', P10: 'P10 Owner feedback 2026-11-02', P11: 'P11 Live retro feedback 2026-11-02', P12: 'P12 Ideas backlog 2026-11-03', P13: 'P13 Roadmap 2026-11-04', P14: 'P14 Owner feedback 2026-11-08', P15: 'P15 Owner feedback 2026-11-20',
 }
 // Roadmap: every change belongs to one release milestone (the GitHub roadmap is built from these).
 // Target dates are planning targets, revisited at each release review.
@@ -261,6 +273,19 @@ const ROADMAP = {
   'public-launch': 'R2',
   'open-source-business': 'R4',
   'portable-relay-core': 'R3',
+  // Owner notes 2026-11-20. R2: sync UX (groups 1 to 3, see GROUP_OVERRIDES for the R3 groups) and the two bugs; the Dec 9 feature freeze applies, so the bugs and sync-ux groups 1 to 3 are the only ones that may ship before launch.
+  'sync-ux': 'R2',
+  'fix-group-with-menu-layout': 'R2',
+  'fix-votes-after-format-change': 'R2',
+  'done-celebration': 'R3',
+  'publish-announcements': 'R3',
+  'phase-controls': 'R3',
+  'creation-team-first': 'R3',
+  'cursors-off-for-now': 'R3',
+  'export-consolidation': 'R3',
+  // Epic: Scrum Poker is the growth item of R4 (monetisation is shelved, ADR-0040); the Jira importer follows it.
+  'scrum-poker': 'R4',
+  'jira-estimation-import': 'R4',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
 // Bugs are standalone `bug` issues labelled priority:1-urgent; every change gets one of the other levels.
@@ -339,6 +364,17 @@ const PRIORITY = {
   'code-health-for-agents': 3,
   'public-launch': 2,
   'open-source-business': 4,
+  'sync-ux': 1,
+  'fix-group-with-menu-layout': 1,
+  'fix-votes-after-format-change': 1,
+  'done-celebration': 4,
+  'publish-announcements': 4,
+  'phase-controls': 2,
+  'creation-team-first': 2,
+  'cursors-off-for-now': 2,
+  'export-consolidation': 4,
+  'scrum-poker': 4,
+  'jira-estimation-import': 4,
 }
 // A task group can sit in another release or priority than its change (plan 2026-11-04): key `change:group number`.
 const GROUP_OVERRIDES = {
@@ -356,6 +392,10 @@ const GROUP_OVERRIDES = {
   'user-drive-storage:8': { release: 'R3', priority: 4 },
   'user-drive-storage:9': { release: 'R3', priority: 4 },
   'user-drive-storage:10': { release: 'R3', priority: 4 },
+  // Owner notes 2026-11-20: the shield button, any folder and the onboarding (groups 1 to 3) can ship before the 2026-12-09 freeze; the file, pairing and phone groups follow in R3.
+  'sync-ux:4': { release: 'R3', priority: 2 },
+  'sync-ux:5': { release: 'R3', priority: 2 },
+  'sync-ux:6': { release: 'R3', priority: 2 },
 }
 // A change with every task ticked needs no priority (its issues only wait to be closed).
 const prioLabels = (c, g) => {
