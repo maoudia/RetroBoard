@@ -1,6 +1,6 @@
 {
-  "manifest": "10b79765",
-  "sources": "7835a3835dfc",
+  "manifest": "fac2a3b6",
+  "sources": "44365047901d",
   "chapters": [
     "create",
     "formats",
@@ -13,7 +13,8 @@
     "present",
     "export",
     "options",
-    "sync"
+    "sync",
+    "keep"
   ],
   "locales": [
     "fr",
