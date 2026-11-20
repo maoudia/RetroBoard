@@ -59,6 +59,14 @@ export const CHAPTERS: readonly Chapter[] = [
     ],
   },
   {
+    id: 'whats-new',
+    title: t('Les nouveautés', 'What\u2019s new'),
+    intro: t('Une page publique liste les dernières versions, tirées du journal des changements du projet.', 'A public page lists the latest releases, taken from the project changelog.'),
+    steps: [
+      { id: 'page', caption: t('La page Nouveautés liste les dernières versions avec leur date et leurs changements.', 'The What\u2019s new page lists the latest releases with their date and their changes.'), ops: [{ goto: t('/whats-new', '/en/whats-new') }], anchors: ['whats-new', 'release'] },
+    ],
+  },
+  {
     id: 'invite',
     title: t('Inviter l’équipe', 'Invite the team'),
     intro: t('Le lien du board contient la clé de chiffrement: partage-le, c’est tout.', 'The board link carries the encryption key: share it, that is all.'),

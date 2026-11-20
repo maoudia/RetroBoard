@@ -1,9 +1,10 @@
 {
-  "manifest": "70c8b63d",
-  "sources": "5c56e2f86256",
+  "manifest": "10b79765",
+  "sources": "7835a3835dfc",
   "chapters": [
     "create",
     "formats",
+    "whats-new",
     "invite",
     "write",
     "agenda",

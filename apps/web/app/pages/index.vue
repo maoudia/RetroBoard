@@ -7,6 +7,7 @@ const { t, locale } = useT()
 /** The source repository: RetroBoard is built in public, every user may read it. */
 const REPO = 'https://github.com/maoudia/retroboard'
 const guideHref = computed(() => `/guide/${locale.value}/`)
+const whatsNewHref = computed(() => (locale.value === 'en' ? '/en/whats-new' : '/whats-new'))
 
 useHead({ title: computed(() => t('landing.title')), meta: [{ name: 'theme-color', content: '#fbfbfd' }] })
 const router = useRouter()
@@ -243,6 +244,7 @@ onMounted(() => {
     <footer class="foot">
       <span>{{ t('landing.footer') }}</span>
       <a :href="guideHref" data-testid="link-guide">{{ t('guide.open') }}</a>
+      <a :href="whatsNewHref" data-testid="link-whats-new">{{ t('landing.whatsNew') }}</a>
       <NuxtLink to="/check" data-testid="link-check">{{ t('landing.check') }}</NuxtLink>
       <a href="https://github.com/maoudia/retroboard" rel="noopener" target="_blank">GitHub</a>
       <a href="https://github.com/maoudia/retroboard/issues/new/choose" rel="noopener" target="_blank" data-testid="link-feedback">{{ t('feedback.bug') }}</a>

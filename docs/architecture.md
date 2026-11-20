@@ -305,6 +305,7 @@ For `retroboard.maoudia.com`, the hosted deployment. A self-hosted instance has 
 - Worker: existing strict CSP, COOP/CORP, Permissions-Policy, origin checks, per-IP connection caps (in the Durable Object), Workers rate limiting binding if available on Free (to verify: <https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/>).
 - `/.well-known/security.txt`, privacy page, legal notice (mentions legales).
 - Search indexing is one switch (`apps/web/site.json`, off by default): `robots.txt`, the `robots` meta and `X-Robots-Tag` agree, boards stay `noindex` whatever it says, and `sitemap.xml` is built from the generated pages (`docs/runbooks/deploy.md`).
+- The What's new page (`/whats-new`, `/en/whats-new`) is prerendered from `CHANGELOG.md`: `nuxt.config.ts` parses the latest releases once at build time (`apps/web/app/utils/changelog.ts`) and inlines them into the page, so nothing is fetched or collected at runtime and no dependency is added.
 - Observability: Workers Logs (already on), traces on, no content in logs.
 
 ## 12. Roadmap, epics and parallelisation for agents

@@ -27,7 +27,7 @@ public pages in. One value drives three channels, written at `pnpm generate`: `r
 allow list and the `Sitemap:` line once on), the `robots` meta of every page (`nuxt.config.ts` and `plugins/robots.ts`) and the `X-Robots-Tag` header of
 the Worker (`_site.json`, read by `apps/relay/src/core/headers.ts`). The private routes (`/boards`, `/board`, `/check`, `/offline`, `/dev`, `/storage`, listed
 in `packages/protocol/src/routes.ts`) stay `noindex, nofollow` on all three channels whatever the value. `sitemap.xml` is built from the generated pages
-(`apps/web/scripts/sitemap.mjs`: the public pages and the format pages in both languages).
+(`apps/web/scripts/sitemap.mjs`: the public pages, the format pages and the What's new page in both languages).
 
 To switch indexing on, open a one-line pull request that sets `"indexing": "public"` in `apps/web/site.json` and deploy; to switch it off, set it back to
 `"none"` and deploy, then remove the sitemap from any search console it was submitted to. Check after the deploy: `curl -sI https://<site>/` has no

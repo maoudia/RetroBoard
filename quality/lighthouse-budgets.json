@@ -4,6 +4,7 @@
   "best-practices": 0.9,
   "pages": {
     "landing": { "performance": 0.95, "accessibility": 1 },
-    "format": { "performance": 0.95, "accessibility": 1 }
+    "format": { "performance": 0.95, "accessibility": 1 },
+    "whatsnew": { "performance": 0.95, "accessibility": 1 }
   }
 }
