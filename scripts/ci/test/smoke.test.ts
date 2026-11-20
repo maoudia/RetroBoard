@@ -48,6 +48,7 @@ function fakeSite(relay: { present: boolean; foreign: number; crosses: boolean }
     upgrade: async () => relay.foreign,
     log: () => {},
     waitMs: 50,
+    propagationMs: 1,
   }
 }
 
@@ -84,6 +85,32 @@ describe('the smoke test', () => {
     const live = { present: true, foreign: 403, crosses: true }
     const selfHost = { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } }
     expect(await runSmoke(BASE, fakeSite(live, { missing: selfHost }))).toEqual([])
+  })
+
+  it('waits for the entry script to reach every edge location after a deploy (a 404 that turns into the file)', async () => {
+    const site = fakeSite({ present: true, foreign: 403, crosses: true })
+    let hits = 0
+    const fetchEntry = site.fetch
+    site.fetch = async (url: string) => {
+      if (!url.endsWith('/_nuxt/abc123.js')) return fetchEntry(url)
+      hits++
+      return hits < 3
+        ? { ok: false, status: 404, headers: new Headers({ 'x-content-type-options': 'nosniff' }), text: async () => '' }
+        : fetchEntry(url)
+    }
+    expect(await runSmoke(BASE, site)).toEqual([])
+    expect(hits).toBe(3)
+  })
+
+  it('still fails when the entry script never appears, after a bounded number of tries', async () => {
+    const live = { present: true, foreign: 403, crosses: true }
+    const site = fakeSite(live, { script: { status: 404, headers: {} } })
+    let hits = 0
+    const fetchEntry = site.fetch
+    site.fetch = async (url: string) => { if (url.endsWith('/_nuxt/abc123.js')) hits++; return fetchEntry(url) }
+    const failures = await runSmoke(BASE, site) as string[]
+    expect(failures).toHaveLength(1)
+    expect(hits).toBe(10)
   })
 
   it('fails when the entry script loses its security headers', async () => {
