@@ -40,7 +40,7 @@ Measured on the generated site of release 1.64.0 (`before/README.md`). "Fix" nam
 | D24 | Tablet and desktop use the same single 44 rem column; at 1280x800 with six voters the hand starts at y=764 and its buttons at y=924 of 800 (`desktop-6-before-light`); on the 2560 px TV the column is 704 px wide and the rest is empty | No table, wasted screen, and scrolling on a laptop to reach the hand | K3 and K8: layouts by screen class |
 | D25 | Nothing scales on the TV: text and cards keep their phone sizes (`--type-scale` 1.5 is unused) although the room is read from the other side of a table | Unreadable at distance; breaks "TV scales the content, not the chrome" | K8: content sizes come from the type scale, the chrome stays |
 | D26 | The flip lasts the whole `--dur-slow` (400 ms) where the rule is under 400 ms; the face holds only the value, no corner values | At the limit, and flat | K4: 280 ms with a total stagger of at most 60 ms |
-| D27 | Start page: "Team colours" opens a sentence saying the feature will come later | A promise is not a feature and it costs a tap | K10: real swatches, or nothing |
+| D27 | Start page: "Team colours" opens a sentence saying the feature will come later | A promise is not a feature and it costs a tap | K10: nothing (amended: no colour picker; the theme gives the colours) |
 | D28 | Start page: two long muted paragraphs under the button (privacy in three lines, beta in two) although the BETA tag says it; the button is not fixed at the foot of a short screen | More text than the choice above it | K10: one muted line, Beta said once, the button fixed at the bottom of a phone |
 | D29 | Start page: the typed list shows the whole deck in a long field (cut at the coffee card), then the same deck again as round chips; a lead, a legend and a label stack above the chips | The deck is said twice, and four text levels come before the first choice | K10: the round chips are the deck; the field shows only for Custom |
 | D30 | The pseudo-locale check passes without testing the poker pages: `pt()` ignores `?lang=pseudo` (`phone-pseudo-start-light`: the button still says "Create the room", only the shared BETA tag is lengthened) | The overflow guard of the product does not reach this page | K12: `pt()` goes through `pseudolocalize`; the overflow spec covers the poker routes |
@@ -243,7 +243,6 @@ Phone, 390 px
 |                                      |
 |  [ 1, 2, 4, 8, ?              ]      |   typed list: only when Custom is chosen
 |                                      |
-|  > Card colours                      |   collapsed
 |                                      |
 |  Encrypted in your browser. No       |   one muted line
 |  account.                            |
@@ -252,9 +251,9 @@ Phone, 390 px
 +--------------------------------------+
 ```
 
-- Laptop and up: the same content in a 36 rem column, centred; Create is in the flow, under the colours section, 56 px.
+- Laptop and up: the same content in a 36 rem column, centred; Create is in the flow, under the deck, 56 px.
 - Choosing a chip fills the round chips; choosing Custom shows the field with the current deck as its start; a typed list is checked as today (2 to 24 cards of at most 6 characters, no duplicate) and a problem is said under the field with `role="alert"`. The long field of D29 no longer exists for a preset.
-- "Card colours" opens a row of eight round swatches (the eight hues of the profile avatar picker) and a "Theme" swatch, as a radio group, with a live card back beside them. It sets the hue of the card backs for the whole room, written by the moderator (`settings.update { hue }`, task 5.3); until then the section is not shown (D27). The theme itself is not chosen here: the facilitator's theme rule of `scrum-poker` (task 5.2) is unchanged.
+- There is no colour picker in poker (amended after group 5, on the owner's direction): the cards, the seats, the table and the results take their colours from the active theme like a board. A team colour, if it is wanted later, comes from the theme system, not from a picker. `settings.update` keeps an optional `hue` in its wire body only so that an event of the first version still folds; it is ignored.
 - The lead line replaces the lead, the legend and the label; the privacy line replaces both paragraphs. Beta is the tag only; the "Suggest an idea" link is with the feedback links of the profile dialog (amended: the bar of the application replaces the overflow menu).
 - Name step (room link opened, no name yet). Same look as the start page, the table not drawn behind it:
 
@@ -549,7 +548,7 @@ The same layout as the laptop, with the table, cards, avatars, numbers and resul
 | `PokerCard`, `PokerSeat`, `PokerTable` (grid and oval), `PokerHand`, `PokerDock`, `PokerResults` with `ConsensusMeter` and `CardDistribution`, `RoomBar`, `InviteSheet`; the start page and the name step | `apps/web/app/components/poker/`, `apps/web/app/pages/poker/` (UI only; Vue and CSS) |
 | Strings fr and en | `apps/web/app/poker/strings.ts` (lazy, with the poker pages) |
 | `consensusLevel(stats)` (the four words), `outliers(stats, picks)` (lowest and highest cards that are not the most chosen, with their voters) | `packages/application/src/estimation/` (pure, next to `statistics.ts`) |
-| `estimate.decide { round, card }` and `settings.update { hue }`, `Round.decided`, the privilege check, the replay | `packages/domain/src/estimation/poker.ts`; the wire bodies in `packages/protocol/` (an older client keeps and forwards an unknown body, as the poker body already does) |
+| `estimate.decide { round, card }` `Round.decided`, the privilege check, the replay | `packages/domain/src/estimation/poker.ts`; the wire bodies in `packages/protocol/` (an older client keeps and forwards an unknown body, as the poker body already does) |
 | The view model (`SeatView`, `RoundView`, the outliers, the decision) | `apps/web/app/poker/client.ts` |
 | The pseudo-locale in `pt()` | `apps/web/app/poker/strings.ts`, using `pseudolocalize` of `@retroboard/i18n` |
 
@@ -557,11 +556,11 @@ No new package, no new dependency: the oval, the flip, the lattice and the distr
 
 ## Security and privacy note
 
-The change removes a leak: the invite link, whose fragment holds the room key, no longer sits in a text field on every room page and on every shared or projected screen (D33); it is shown only in the Invite sheet, as a QR code and through Copy, as the board's share dialog already does. The seat renders no value before the reveal (the DOM holds the face only after it), so the interface cannot show a card early, and a stuck animation cannot either. What the relay sees does not change: the two new events (`estimate.decide`, `settings.update { hue }`) are sealed envelopes of five fields like the others, one per round and one per room. Nothing new is stored on the device beyond the settings that exist (language, variant). No third party, no analytics, no remote font or image: the card backs are CSS gradients.
+The change removes a leak: the invite link, whose fragment holds the room key, no longer sits in a text field on every room page and on every shared or projected screen (D33); it is shown only in the Invite sheet, as a QR code and through Copy, as the board's share dialog already does. The seat renders no value before the reveal (the DOM holds the face only after it), so the interface cannot show a card early, and a stuck animation cannot either. What the relay sees does not change: the new event (`estimate.decide`) is a sealed envelope of five fields like the others, one per round. Nothing new is stored on the device beyond the settings that exist (language, variant). No third party, no analytics, no remote font or image: the card backs are CSS gradients.
 
 ## Impact on the free plan
 
-Two small events more: `estimate.decide` (at most one per round) and `settings.update { hue }` (at most one per room). A 20-voter hour of about 1,170 events grows by the number of rounds (tens). The budget of ADR-0042 is not affected.
+One small event more: `estimate.decide` (at most one per round). A 20-voter hour of about 1,170 events grows by the number of rounds (tens). The budget of ADR-0042 is not affected.
 
 ## Risks and open points
 

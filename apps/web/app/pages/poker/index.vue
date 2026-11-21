@@ -3,11 +3,9 @@
 // for it. One decision, the deck, then one button. No account, no name yet: the room asks for the name.
 import { type DeckError, DEFAULT_PRESET, parseCustomDeck, PRESETS, type PresetId, presetCards } from '@retroboard/application'
 import { randomBytes, toBase64Url } from '@retroboard/crypto'
-import { CARD_HUES, formatInvite } from '@retroboard/domain'
-import PokerCard from '~/components/poker/PokerCard.vue'
+import { formatInvite } from '@retroboard/domain'
 import PokerStep from '~/components/poker/PokerStep.vue'
-import { backColour } from '~/poker/card'
-import { pt, type PokerKey } from '~/poker/strings'
+import { pt } from '~/poker/strings'
 
 // Kept out of every index whatever the switch says, as before the launch: the public page of the product is task 7.1 of the change.
 useHead({ title: computed(() => pt('poker.pageTitle')), meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
@@ -21,14 +19,9 @@ const deck = computed(() => parseCustomDeck(typed.value))
 const picked = ref<PresetId>(DEFAULT_PRESET)
 const chosen = computed<PresetId | 'custom'>(() => (custom.value ? 'custom' : picked.value))
 const problem = computed(() => (deck.value.ok ? '' : pt(`poker.deck.error.${deck.value.error}` as `poker.deck.error.${DeckError}`)))
-/** The hue of the card backs of the room, or null for the colours of the theme. */
-const hue = ref<number | null>(null)
 // The avatar of the bar is the profile of this browser, as on every page.
 onMounted(() => useIdentityStore().load())
-const back = computed(() => backColour(hue.value))
 
-/** The word for a hue, or for the theme's own colours. */
-const hueName = (h: number | null) => pt(h === null ? 'poker.colours.theme' : (`poker.colours.hue.${h}` as PokerKey))
 const label = (id: PresetId) => pt(`poker.deck.${id}` as const)
 function pickPreset(id: PresetId) { picked.value = id; custom.value = false; typed.value = presetCards(id).join(', ') }
 async function pickCustom() { custom.value = true; await nextTick(); field.value?.focus() }
@@ -38,11 +31,8 @@ function start() {
   if (!deck.value.ok) return
   const part = () => toBase64Url(randomBytes(16))
   const ring = { roomId: part(), roomKey: part(), facilitatorSecret: part() }
-  // The deck and the hue wait in this tab for the room page: the moderator writes them into the room before the first round.
-  try {
-    sessionStorage.setItem(`retroboard:poker:deck:${ring.roomId}`, JSON.stringify(deck.value.cards))
-    if (hue.value !== null) sessionStorage.setItem(`retroboard:poker:hue:${ring.roomId}`, JSON.stringify(hue.value))
-  } catch { /* the room starts with the default deck and the colours of the theme */ }
+  // The deck waits in this tab for the room page: the moderator writes it into the room before the first round.
+  try { sessionStorage.setItem(`retroboard:poker:deck:${ring.roomId}`, JSON.stringify(deck.value.cards)) } catch { /* the room starts with the default deck */ }
   void navigateTo({ path: '/poker/room', hash: `#${formatInvite(ring, 'facilitator')}` })
 }
 </script>
@@ -77,29 +67,6 @@ function start() {
         </template>
       </fieldset>
 
-      <details class="colours" data-testid="poker-colours">
-        <summary>{{ pt('poker.colours.title') }}</summary>
-        <div class="swatches">
-          <div class="pick">
-            <fieldset class="hues">
-              <legend class="sr-only">{{ pt('poker.colours.group') }}</legend>
-              <label class="dot" :class="{ on: hue === null }" :title="hueName(null)">
-                <input type="radio" name="poker-hue" :checked="hue === null" :aria-label="hueName(null)" data-testid="poker-hue-theme" @change="hue = null">
-                <span class="disc theme" />
-              </label>
-              <label v-for="h in CARD_HUES" :key="h" class="dot" :class="{ on: hue === h }" :title="hueName(h)">
-                <input type="radio" name="poker-hue" :checked="hue === h" :aria-label="hueName(h)" :data-testid="`poker-hue-${h}`" @change="hue = h">
-                <span class="disc" :style="{ background: backColour(h)! }" />
-              </label>
-            </fieldset>
-            <p class="picked" data-testid="poker-hue-name">{{ hueName(hue) }}</p>
-          </div>
-          <span class="preview" role="img" :aria-label="pt('poker.colours.preview')" data-testid="poker-hue-preview" :data-hue="hue ?? 'theme'">
-            <PokerCard variant="back" :style="back ? { '--poker-back': back } : undefined" />
-          </span>
-        </div>
-      </details>
-
       <p class="private">{{ pt('poker.start.private') }}</p>
 
       <template #foot>
@@ -122,19 +89,4 @@ h1 { margin: 0; font-size: var(--fs-3xl); line-height: 1.1; }
 .problem { margin: 0; font-size: var(--fs-sm); color: var(--danger); }
 .round-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .round-chip { display: grid; place-items: center; min-width: 2.5rem; height: 2.5rem; padding: 0 var(--sp-2); border: 2px solid var(--border); border-radius: 999px; background: var(--surface); font-weight: 700; font-variant-numeric: tabular-nums; }
-.colours { border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--sp-1) var(--sp-3); }
-.colours summary { display: flex; align-items: center; min-block-size: 44px; cursor: pointer; font-weight: 600; }
-.swatches { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding-block: var(--sp-2) var(--sp-3); }
-.pick { display: grid; gap: var(--sp-1); }
-.hues { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; grid-template-columns: repeat(3, 44px); gap: var(--sp-2); }
-.picked { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
-.dot { position: relative; display: inline-grid; place-items: center; min-block-size: 44px; min-inline-size: 44px; border-radius: 999px; cursor: pointer; }
-.dot input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.disc { inline-size: 28px; block-size: 28px; border-radius: 50%; }
-/* The Theme swatch is half the accent and half the surface of the page: the colours the card back has when nobody picks a hue. */
-.disc.theme { background: linear-gradient(135deg, var(--accent) 50%, var(--surface) 50%); border: 2px solid var(--muted); box-sizing: border-box; }
-.dot.on { box-shadow: 0 0 0 2px var(--text); }
-.dot:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
-.preview { flex: none; padding: var(--sp-1); --poker-card-w: 56px; }
-@media (forced-colors: active) { .dot.on { outline: 2px solid Highlight; } .disc { forced-color-adjust: none; } }
 </style>

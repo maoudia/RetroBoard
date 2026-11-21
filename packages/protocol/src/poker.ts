@@ -8,7 +8,7 @@ const Text = v.string()
 
 export const PokerCommandSchema = v.variant('t', [
   v.strictObject({ t: v.literal('seat.join'), name: Text }),
-  v.strictObject({ t: v.literal('settings.update'), deck: v.optional(v.array(Text)), autoReveal: v.optional(v.boolean()), hue: v.optional(v.number()) }),
+  v.strictObject({ t: v.literal('settings.update'), deck: v.optional(v.array(Text)), autoReveal: v.optional(v.boolean()), hue: v.optional(v.number()) /* ignored: sent by the first version of the card colours */ }),
   v.strictObject({ t: v.literal('round.start'), round: Text, pub: Text, revote: v.optional(v.boolean()) }),
   v.strictObject({ t: v.literal('vote.seal'), round: Text, sealed: Text }),
   v.strictObject({ t: v.literal('round.reveal'), round: Text, key: Text }),

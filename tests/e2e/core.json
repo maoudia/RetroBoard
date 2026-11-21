@@ -27,7 +27,8 @@
     "onedrive-sync",
     "onedrive-worker-csp",
     "sync-shield",
-    "poker"
+    "poker",
+    "poker-themes"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",
