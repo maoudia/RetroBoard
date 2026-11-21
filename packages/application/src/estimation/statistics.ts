@@ -91,3 +91,31 @@ function nearestCard(deck: readonly string[], value: number): string {
   const numeric = deck.flatMap((card) => { const v = cardValue(card); return v === null ? [] : [{ card, v }] })
   return numeric.sort((a, b) => Math.abs(a.v - value) - Math.abs(b.v - value) || b.v - a.v)[0]!.card
 }
+
+/** The four words of the consensus meter (change poker-design-v2, K7), from the share of the cards cast on the most chosen card. */
+export type ConsensusLevel = 'all' | 'strong' | 'some' | 'none'
+
+/** 100% is everyone, 75% and above is strong, 50% and above is some, anything under is none; a round with no card has no verdict. */
+export function consensusLevel(stats: Pick<Statistics, 'cast' | 'consensus'>): ConsensusLevel | null {
+  if (stats.cast === 0) return null
+  if (stats.consensus >= 1) return 'all'
+  if (stats.consensus >= 0.75) return 'strong'
+  return stats.consensus >= 0.5 ? 'some' : 'none'
+}
+
+/** A card far from the others and the people who played it, in the order they sit. */
+export interface Outlier { readonly card: string; readonly voters: readonly string[] }
+export interface Outliers { readonly lowest: Outlier | null; readonly highest: Outlier | null }
+const noOutliers: Outliers = { lowest: null, highest: null }
+
+/**
+ * The lowest and the highest card that are not the most chosen, when the spread is more than one step of the deck (change poker-design-v2, K7).
+ * `played` is every card cast with its voter, in seat order; special cards never count (they are not on the scale). With one voter, a
+ * unanimous round or two neighbouring cards there are none. On a tie for the most chosen card, each tied card is a most chosen card.
+ */
+export function outliers(stats: Statistics, played: readonly { readonly voter: string; readonly card: string }[]): Outliers {
+  const { spread } = stats
+  if (!spread || spread.steps <= 1) return noOutliers
+  const of = (card: string): Outlier | null => (stats.mode.includes(card) ? null : { card, voters: played.filter((p) => p.card === card).map((p) => p.voter) })
+  return { lowest: of(spread.low), highest: of(spread.high) }
+}

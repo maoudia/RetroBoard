@@ -33,11 +33,13 @@ export type PokerCommand =
   | { readonly t: 'round.start'; readonly round: string; readonly pub: string; readonly revote?: boolean }
   | { readonly t: 'vote.seal'; readonly round: string; readonly sealed: string }
   | { readonly t: 'round.reveal'; readonly round: string; readonly key: string }
+  /** The moderator's estimate of a revealed round: one card of the deck, once per round (change poker-design-v2, "Use 5"). */
+  | { readonly t: 'estimate.decide'; readonly round: string; readonly card: string }
 
 export type PokerCommandType = PokerCommand['t']
 
 /** Moderator commands; seating and voting are open to everyone. */
-export const POKER_PRIVILEGED: ReadonlySet<PokerCommandType> = new Set<PokerCommandType>(['settings.update', 'round.start', 'round.reveal'])
+export const POKER_PRIVILEGED: ReadonlySet<PokerCommandType> = new Set<PokerCommandType>(['settings.update', 'round.start', 'round.reveal', 'estimate.decide'])
 
 export interface Seat {
   readonly key: string
@@ -60,6 +62,8 @@ export interface Round {
   readonly ballots: Readonly<Record<string, string>>
   /** Private half of the round key, published at the reveal; its presence is what "revealed" means. */
   readonly revealKey: string | null
+  /** The card the moderator kept as the estimate of the revealed round, or null: the next round starts without one. */
+  readonly decided: string | null
 }
 
 export interface PokerState {
@@ -120,7 +124,7 @@ export function reducePoker(s: PokerState, cmd: PokerCommand, actor: PokerActor)
     case 'round.start': {
       if (cmd.revote !== undefined && typeof cmd.revote !== 'boolean') return no
       if (!ROUND_ID_RE.test(cmd.round) || !KEY_RE.test(cmd.pub) || s.rounds.length >= MAX_ROUNDS || s.rounds.some((r) => r.id === cmd.round)) return no
-      return yes({ ...s, rounds: [...s.rounds, { id: cmd.round, opener: actor.key, pub: cmd.pub, revote: cmd.revote === true && s.rounds.length > 0, deck: s.deck, ballots: {}, revealKey: null }] })
+      return yes({ ...s, rounds: [...s.rounds, { id: cmd.round, opener: actor.key, pub: cmd.pub, revote: cmd.revote === true && s.rounds.length > 0, deck: s.deck, ballots: {}, revealKey: null, decided: null }] })
     }
     case 'vote.seal': {
       // Nothing counts after the reveal, for an older round, from an observer or from a stranger.
@@ -136,6 +140,12 @@ export function reducePoker(s: PokerState, cmd: PokerCommand, actor: PokerActor)
       if (round.opener !== actor.key || Object.keys(round.ballots).length === 0) return no
       if (s.autoReveal && !everyoneVoted(s, round)) return no
       return yes(replaceCurrent(s, { ...round, revealKey: cmd.key }))
+    }
+    case 'estimate.decide': {
+      // Only a revealed round that has no estimate yet, only for a card of its deck: a second decision, an older round and a stranger's card are ignored.
+      const round = current(s)
+      if (!round || round.revealKey === null || round.decided !== null || cmd.round !== round.id || !round.deck.includes(cmd.card)) return no
+      return yes(replaceCurrent(s, { ...round, decided: cmd.card }))
     }
   }
 }

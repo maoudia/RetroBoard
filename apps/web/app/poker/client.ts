@@ -4,7 +4,7 @@
  * folded by the replica log (kind `poker`), the cards are opened with the estimation read model and the statistics are the application's.
  * It does not use the mesh: the room goes through the relay only until task 2.1 moves it onto the shared transport.
  */
-import { EventLog, openRound, type OpenedRound, roundStatistics, type SignedEvent, type SignerPort, signEvent, type Statistics, verifyEvent } from '@retroboard/application'
+import { type ConsensusLevel, consensusLevel, EventLog, openRound, type OpenedRound, outliers as outliersOf, type Outliers, roundStatistics, type SignedEvent, type SignerPort, signEvent, type Statistics, verifyEvent } from '@retroboard/application'
 import { deriveContentKey, deriveFacilitatorSeed, fromBase64Url, fromUtf8, open, openCard, randomBytes, roundKeyPair, seal, sealCard, sign, signingKeyPair, toBase64Url, utf8 } from '@retroboard/crypto'
 import { currentRound, type EventBody, type KeyRing, type Ledger, type PokerCommand, type Round, signingRoom } from '@retroboard/domain'
 import { type Envelope, envelopeAad, parseEnvelope, parseEventOrUnknown, parseRelayFrame, PROTOCOL_VERSION } from '@retroboard/protocol'
@@ -20,8 +20,14 @@ export interface SeatView {
   readonly voted: boolean
   /** The card, once the round is revealed and the ballot opens; never before. */
   readonly card: string | null
+  /** Far from the others in a revealed round: the highest or the lowest card that is not the most chosen (K7). */
+  readonly outlier: 'highest' | 'lowest' | null
 }
-export interface RoundView { readonly n: number; readonly revealed: boolean; readonly revote: boolean; readonly voted: number; readonly voters: number; readonly deck: readonly string[] }
+export interface RoundView {
+  readonly n: number; readonly revealed: boolean; readonly revote: boolean; readonly voted: number; readonly voters: number; readonly deck: readonly string[]
+  /** The estimate the moderator kept for this round ("Use 5"), shown to everybody; null until then. */
+  readonly decided: string | null
+}
 export interface PokerView {
   readonly status: PokerStatus
   readonly moderator: boolean
@@ -35,6 +41,10 @@ export interface PokerView {
   readonly voter: boolean
   /** Statistics of the revealed round; null before the reveal. */
   readonly stats: Statistics | null
+  /** The consensus verdict of the revealed round (the four words of the meter); null before the reveal. */
+  readonly verdict: ConsensusLevel | null
+  /** The lowest and the highest card that are not the most chosen, with who played them; null before the reveal. */
+  readonly outliers: Outliers | null
   /** Voters whose card did not open (a wrong key): a new round repairs it. */
   readonly unreadable: number
 }
@@ -130,6 +140,13 @@ export class PokerClient {
     const round = this.round
     if (!round || round.revealKey !== null || !this.secret || round.opener !== this.me) return
     this.enqueue(async () => this.send_({ t: 'round.reveal', round: round.id, key: toBase64Url((await roundKeyPair(this.secret!, this.o.ring.roomId, round.id)).privateKey) }))
+  }
+
+  /** Moderator: keeps a card of the deck as the estimate of the revealed round, once. The ledger refuses a second one and every other replica ignores a non-moderator. */
+  decide(card: string): void {
+    const round = this.round
+    if (!round || round.revealKey === null || round.decided !== null || !this.secret || this.me !== this.ledger.lead || !round.deck.includes(card)) return
+    this.enqueue(async () => this.send_({ t: 'estimate.decide', round: round.id, card }))
   }
 
   /** Moderator: a new round with its own key; `revote` votes again on the same item. */
@@ -273,10 +290,13 @@ export class PokerClient {
     const { poker, kind, lead } = this.ledger
     const round = this.round
     const cards = round ? this.opened.get(round.id)?.cards : undefined
-    const seats: SeatView[] = (poker?.seats ?? []).map((s) => {
-      const index = cards?.picks[s.key]
-      return { key: s.key, name: s.name, me: s.key === this.me, moderator: s.key === lead, voter: s.voter, voted: !!round && s.key in round.ballots, card: index === undefined ? null : (round!.deck[index] ?? null) }
-    })
+    const played = (poker?.seats ?? []).map((s) => { const index = cards?.picks[s.key]; return { seat: s, card: index === undefined ? null : (round!.deck[index] ?? null) } })
+    const stats = round && round.revealKey !== null && cards ? roundStatistics(round.deck, Object.values(cards.picks)) : null
+    const far = stats ? outliersOf(stats, played.flatMap((p) => (p.card === null ? [] : [{ voter: p.seat.name, card: p.card }]))) : null
+    const seats: SeatView[] = played.map(({ seat: s, card }) => ({
+      key: s.key, name: s.name, me: s.key === this.me, moderator: s.key === lead, voter: s.voter, voted: !!round && s.key in round.ballots, card,
+      outlier: card !== null && far?.highest?.card === card ? 'highest' : card !== null && far?.lowest?.card === card ? 'lowest' : null,
+    }))
     const voters = seats.filter((s) => s.voter).length
     const revealed = !!round && round.revealKey !== null
     const status: PokerStatus = this.ledger.facilitatorKey !== null && kind !== 'poker' ? 'board'
@@ -284,8 +304,8 @@ export class PokerClient {
     this.o.onChange({
       status, moderator: !!this.secret && this.me === lead, canReveal: !!round && !revealed && !!this.secret && round.opener === this.me,
       seats, mine: round && this.mine?.round === round.id ? this.mine.index : null, voter: !!this.seat?.voter, unreadable: cards?.unreadable.length ?? 0,
-      round: round ? { n: poker!.rounds.length, revealed, revote: round.revote, voted: Object.keys(round.ballots).length, voters, deck: round.deck } : null,
-      stats: round && revealed && cards ? roundStatistics(round.deck, Object.values(cards.picks)) : null,
+      round: round ? { n: poker!.rounds.length, revealed, revote: round.revote, voted: Object.keys(round.ballots).length, voters, deck: round.deck, decided: round.decided } : null,
+      stats, verdict: stats ? consensusLevel(stats) : null, outliers: far,
     })
   }
 }

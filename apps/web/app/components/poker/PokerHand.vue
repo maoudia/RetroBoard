@@ -5,7 +5,7 @@ import { cardKey, matchTyped, TYPED_MAX, TYPED_RESET_MS } from '@retroboard/appl
 import { scrolls } from '~/poker/card'
 import { cardLabel, pt } from '~/poker/strings'
 
-const props = defineProps<{ deck: readonly string[]; mine: number | null }>()
+const props = defineProps<{ deck: readonly string[]; mine: number | null; /** The hand comes back after a reveal: it rises a little, in 150 ms. */ rise?: boolean }>()
 const emit = defineEmits<{ pick: [index: number] }>()
 
 const row = computed(() => scrolls(props.deck.length))
@@ -45,7 +45,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); forget() }
 </script>
 
 <template>
-  <section class="hand-wrap" :aria-label="pt('poker.hand.title')">
+  <section class="hand-wrap" :class="{ rise }" :aria-label="pt('poker.hand.title')">
     <fieldset ref="strip" class="hand" :class="{ row }" data-testid="poker-hand">
       <legend class="sr-only">{{ pt('poker.hand.pick') }}</legend>
       <label v-for="(card, i) in deck" :key="card" class="pick">
@@ -59,6 +59,8 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); forget() }
 
 <style scoped>
 .hand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); min-width: 0; }
+.hand-wrap.rise { animation: rise var(--dur-fast) ease-out; }
+@keyframes rise { from { transform: translateY(12px); } }
 /* Phone: 46 px cards (44 on a 360 px screen so that seven fit a row), 6 px apart; the rows are 16 px apart and the first has 16 px above it for the lift of the chosen card. */
 .hand {
   --poker-card-w: clamp(44px, calc((100vw - 52px) / 7), 46px);
@@ -75,5 +77,6 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); forget() }
 @media not (pointer: fine) { .keys { display: none; } }
 [data-screen="tablet"] .hand { --poker-card-w: 60px; --poker-card-k: .5; }
 [data-screen="laptop"] .hand, [data-screen="wide"] .hand, [data-screen="tv"] .hand { --poker-card-w: calc(72px * var(--type-scale)); --poker-card-k: .6; }
-@media (prefers-reduced-motion: reduce) { .pick { transition: none; } .pick:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pick { transition: none; } .pick:hover { transform: none; } .hand-wrap.rise { animation: none; } }
+:root[data-motion="reduced"] .hand-wrap.rise { animation: none; }
 </style>

@@ -1,45 +1,65 @@
 <script setup lang="ts">
-// The results line of a revealed round (change scrum-poker): every figure is a word and a number, nothing is told by colour alone.
-import type { Statistics } from '@retroboard/application'
+// The results of a revealed round (change poker-design-v2, K7): the average and the median as two large numbers, the consensus meter with its
+// words, the distribution, the outliers as lines with an icon and words, and the suggested card, an action for the moderator ("Use 5").
+// Every figure is a word and a number: nothing is told by colour alone, and no number appears twice.
+import type { ConsensusLevel, Outliers, Statistics } from '@retroboard/application'
+import CardDistribution from '~/components/poker/CardDistribution.vue'
+import ConsensusMeter from '~/components/poker/ConsensusMeter.vue'
+import { figure } from '~/poker/room-view'
 import { pt } from '~/poker/strings'
 
-const props = defineProps<{ stats: Statistics; unreadable: number }>()
+const props = defineProps<{
+  stats: Statistics; verdict: ConsensusLevel | null; outliers: Outliers | null; unreadable: number
+  /** The estimate the moderator kept, shown to everybody. */
+  decided: string | null
+  /** The moderator can keep the suggestion; a voter reads it as text. */
+  moderator: boolean
+}>()
+const emit = defineEmits<{ use: [card: string] }>()
 
-/** A figure with at most two decimals and no trailing zero: 5.25, 5, 3.67. */
-const num = (n: number) => String(Math.round(n * 100) / 100)
 const share = computed(() => Math.round(props.stats.consensus * 100))
+/** An ordinal deck has no average: its median is a card, the one the room suggests. */
+const median = computed(() => (props.stats.median !== null ? figure(props.stats.median) : props.stats.ordinal ? props.stats.suggestion : null))
+const far = computed(() => [
+  { kind: 'highest', icon: 'lucide:arrow-up-to-line', key: 'poker.results.highest', found: props.outliers?.highest },
+  { kind: 'lowest', icon: 'lucide:arrow-down-to-line', key: 'poker.results.lowest', found: props.outliers?.lowest },
+] as const)
 </script>
 
 <template>
-  <section class="results" aria-labelledby="poker-results-title" data-testid="poker-results">
-    <h2 id="poker-results-title" class="sr-only">{{ pt('poker.results.title') }}</h2>
-    <dl v-if="stats.counted > 0" class="line">
-      <div v-if="stats.average !== null"><dt>{{ pt('poker.results.average') }}</dt><dd data-testid="poker-average">{{ num(stats.average) }}</dd></div>
-      <div v-if="stats.median !== null"><dt>{{ pt('poker.results.median') }}</dt><dd data-testid="poker-median">{{ num(stats.median) }}</dd></div>
-      <div><dt>{{ pt('poker.results.mode') }}</dt><dd data-testid="poker-mode">{{ stats.mode.join(', ') }}</dd></div>
-      <div v-if="stats.spread"><dt>{{ pt('poker.results.spread') }}</dt><dd data-testid="poker-spread">{{ pt('poker.results.spreadValue', { low: stats.spread.low, high: stats.spread.high }) }}</dd></div>
-      <div>
-        <dt>{{ pt('poker.results.agreement') }}</dt>
-        <dd data-testid="poker-agreement">{{ pt('poker.results.agreementValue', { share }) }}<template v-if="stats.unanimous"> ({{ pt('poker.results.unanimous') }})</template></dd>
-      </div>
-      <div v-if="stats.suggestion"><dt>{{ pt('poker.results.suggestion') }}</dt><dd class="suggest" data-testid="poker-suggestion">{{ stats.suggestion }}</dd></div>
+  <section class="results" :aria-label="pt('poker.results.title')" data-testid="poker-results">
+    <dl v-if="stats.counted > 0" class="numbers">
+      <div v-if="stats.average !== null"><dt>{{ pt('poker.results.average') }}</dt><dd data-testid="poker-average">{{ figure(stats.average) }}</dd></div>
+      <div v-if="median !== null"><dt>{{ pt('poker.results.median') }}</dt><dd data-testid="poker-median">{{ median }}</dd></div>
     </dl>
-    <p v-else class="hint" data-testid="poker-no-numbers">{{ pt('poker.results.noNumbers') }}</p>
-    <p class="counts" data-testid="poker-counts"><span class="label">{{ pt('poker.results.counts') }}</span> <span v-for="c in stats.counts" :key="c.card" class="count">{{ c.card }} &times; {{ c.votes }}</span></p>
-    <p v-if="unreadable > 0" class="hint" role="status" data-testid="poker-unreadable">{{ pt('poker.results.unreadable') }}</p>
+    <p v-else class="muted" data-testid="poker-no-numbers">{{ pt('poker.results.noNumbers') }}</p>
+    <ConsensusMeter v-if="verdict" :level="verdict" :share="share" />
+    <CardDistribution :counts="stats.counts" />
+    <ul v-if="outliers && (outliers.highest || outliers.lowest)" class="far">
+      <template v-for="o in far" :key="o.kind">
+        <li v-if="o.found" :data-testid="`poker-outlier-${o.kind}`"><Icon :name="o.icon" /> {{ pt(o.key, { card: o.found.card, names: o.found.voters.join(', ') }) }}</li>
+      </template>
+    </ul>
+    <p v-if="decided !== null" class="estimate" data-testid="poker-estimate"><Icon name="lucide:check" /> {{ pt('poker.results.estimate', { card: decided }) }}</p>
+    <template v-else-if="stats.suggestion">
+      <button v-if="moderator" type="button" class="btn use" data-testid="poker-use" @click="emit('use', stats.suggestion)">
+        <Icon name="lucide:check" /> {{ pt('poker.results.use', { card: stats.suggestion }) }}
+      </button>
+      <p v-else class="muted" data-testid="poker-suggestion">{{ pt('poker.results.suggested', { card: stats.suggestion }) }}</p>
+    </template>
+    <p v-if="unreadable > 0" class="muted" role="status" data-testid="poker-unreadable">{{ pt('poker.results.unreadable') }}</p>
   </section>
 </template>
 
 <style scoped>
-.results { display: grid; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); }
-h2 { margin: 0; font-size: var(--fs-lg); }
-.line { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
-.line div { display: grid; gap: 0; }
-dt { font-size: var(--fs-sm); color: var(--muted); }
-dd { margin: 0; font-size: var(--fs-xl); font-weight: 700; font-variant-numeric: tabular-nums; }
-.suggest { padding: 0 var(--sp-2); border: 2px solid var(--accent); border-radius: var(--r-sm); }
-.counts { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); font-size: var(--fs-sm); }
-.label { color: var(--muted); }
-.count { font-variant-numeric: tabular-nums; }
-.hint { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+.results { display: grid; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-1); }
+.numbers { margin: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--sp-3); text-align: center; }
+.numbers div { display: grid; gap: 0; }
+dt { font-size: var(--fs-sm); color: var(--muted); line-height: 1.2; }
+dd { margin: 0; font-family: var(--f-display); font-size: var(--fluid-3xl); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.far { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: var(--fs-sm); }
+.far li { display: flex; align-items: center; gap: var(--sp-1); min-inline-size: 0; overflow-wrap: anywhere; }
+.estimate { margin: 0; display: flex; align-items: center; justify-content: center; gap: var(--sp-1); min-block-size: 44px; font-weight: 700; }
+.use { justify-self: center; min-block-size: 44px; }
+.muted { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
 </style>

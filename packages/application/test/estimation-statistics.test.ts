@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Round } from '@retroboard/domain'
-import { cardValue, isNumericDeck, openRound, presetCards, roundStatistics } from '../src'
+import { cardValue, consensusLevel, isNumericDeck, openRound, outliers, presetCards, roundStatistics } from '../src'
 
 const fib = presetCards('fibonacci')
 const modified = presetCards('modified')
@@ -129,7 +129,7 @@ describe('ordinal decks (T-shirt sizes)', () => {
 })
 
 describe('opening a revealed round', () => {
-  const round = (over: Partial<Round>): Round => ({ id: 'r1', opener: 'o', pub: 'p', revote: false, deck: fib, ballots: { a: 'sa', b: 'sb', c: 'sc' }, revealKey: 'k', ...over })
+  const round = (over: Partial<Round>): Round => ({ id: 'r1', opener: 'o', pub: 'p', revote: false, deck: fib, ballots: { a: 'sa', b: 'sb', c: 'sc' }, revealKey: 'k', decided: null, ...over })
 
   it('opens every ballot with the key of the reveal and lists the ones that do not open', async () => {
     const seen: string[] = []
@@ -149,5 +149,72 @@ describe('opening a revealed round', () => {
     const out = await openRound(round({ revealKey: null }), async () => { called = true; return 1 })
     expect(out).toEqual({ round: 'r1', picks: {}, unreadable: [] })
     expect(called).toBe(false)
+  })
+})
+
+describe('the consensus verdict and the outliers (poker-design-v2)', () => {
+  const stats = (deck: readonly string[], ...cards: string[]) => roundStatistics(deck, pick(deck, ...cards))
+  const verdict = (...cards: string[]) => consensusLevel(stats(fib, ...cards))
+
+  it('says everyone at 100%, strong from 75%, some from 50% and none under', () => {
+    expect(verdict('8')).toBe('all')
+    expect(verdict('5', '5', '5')).toBe('all')
+    expect(verdict('5', '5', '5', '8')).toBe('strong')
+    expect(verdict('5', '5', '5', '8', '8', '13', '13', '3')).toBe('none')
+    expect(verdict('5', '5', '5', '5', '8', '8', '13', '3')).toBe('some')
+    expect(verdict('5', '5', '8', '13')).toBe('some')
+    expect(verdict('5', '8', '13')).toBe('none')
+    expect(verdict('5', '5', '8', '8', '13')).toBe('none')
+    expect(verdict('5', '5', '5', '5', '5', '5', '5', '8', '8', '8', '8', '8')).toBe('some')
+    expect(verdict('5', '5', '5', '5', '5', '5', '5', '5', '5', '8', '8', '8')).toBe('strong')
+  })
+
+  it('counts the special cards in the share (the question mark is a card cast), and has no verdict without a card', () => {
+    expect(verdict('8', '5', '5', '13', '5', '?')).toBe('some')
+    expect(verdict('?', '?')).toBe('all')
+    expect(verdict('?', '?', '?', '5')).toBe('strong')
+    expect(consensusLevel(stats(fib))).toBeNull()
+    expect(consensusLevel({ cast: 4, consensus: 0.5 })).toBe('some')
+    expect(consensusLevel({ cast: 4, consensus: 0.75 })).toBe('strong')
+    expect(consensusLevel({ cast: 4, consensus: 0.4999 })).toBe('none')
+    expect(consensusLevel({ cast: 4, consensus: 0.7499 })).toBe('some')
+  })
+
+  const played = (...entries: [string, string][]) => entries.map(([voter, card]) => ({ voter, card }))
+
+  it('marks the highest card of 8, 5, 5, 13, 5, ? and not the lowest, which is the most chosen', () => {
+    const cards = played(['Malaka', '8'], ['Ann', '5'], ['Bob', '5'], ['Cy', '13'], ['Dee', '5'], ['Eli', '?'])
+    const s = stats(fib, ...cards.map((c) => c.card))
+    expect(outliers(s, cards)).toEqual({ lowest: null, highest: { card: '13', voters: ['Cy'] } })
+  })
+
+  it('marks both ends with every person who played them, in seat order', () => {
+    const cards = played(['Ann', '8'], ['Bob', '3'], ['Cy', '8'], ['Dee', '8'], ['Eli', '3'], ['Fay', '13'], ['Gus', '8'])
+    expect(outliers(stats(fib, ...cards.map((c) => c.card)), cards)).toEqual({ lowest: { card: '3', voters: ['Bob', 'Eli'] }, highest: { card: '13', voters: ['Fay'] } })
+  })
+
+  it('has none for one voter, a unanimous round, neighbouring cards, only special cards, a tie of the ends and an empty round', () => {
+    const none = { lowest: null, highest: null }
+    const check = (...cards: [string, string][]) => { const c = played(...cards); return outliers(stats(fib, ...c.map((x) => x.card)), c) }
+    expect(check(['Ann', '8'])).toEqual(none)
+    expect(check(['Ann', '8'], ['Bob', '8'])).toEqual(none)
+    expect(check(['Ann', '5'], ['Bob', '8'], ['Cy', '8'])).toEqual(none)
+    expect(check(['Ann', '?'], ['Bob', '?'])).toEqual(none)
+    expect(check(['Ann', '3'], ['Bob', '13'])).toEqual(none)
+    expect(check(['Ann', '3'], ['Bob', '3'], ['Cy', '13'], ['Dee', '13'])).toEqual(none)
+    expect(outliers(stats(fib), [])).toEqual(none)
+  })
+
+  it('needs more than one step between the ends: 3 and 8 are two steps apart, 3 and 5 one', () => {
+    const cards = played(['Ann', '3'], ['Bob', '5'], ['Cy', '5'], ['Dee', '8'])
+    expect(outliers(stats(fib, '3', '5', '5', '8'), cards)).toEqual({ lowest: { card: '3', voters: ['Ann'] }, highest: { card: '8', voters: ['Dee'] } })
+    expect(outliers(stats(fib, '3', '5', '5'), cards.slice(0, 3))).toEqual({ lowest: null, highest: null })
+  })
+
+  it('works on an ordinal deck by the place of the cards: S, M, M, L has none, XS, M, M, XL has two', () => {
+    const t = (...cs: string[]) => { const c = cs.map((card, i) => ({ voter: `v${i}`, card })); return outliers(stats(tshirt, ...cs), c) }
+    expect(t('S', 'M', 'M', 'L')).toEqual({ lowest: { card: 'S', voters: ['v0'] }, highest: { card: 'L', voters: ['v3'] } })
+    expect(t('M', 'M', 'L')).toEqual({ lowest: null, highest: null })
+    expect(t('XS', 'M', 'M', 'XL')).toEqual({ lowest: { card: 'XS', voters: ['v0'] }, highest: { card: 'XL', voters: ['v3'] } })
   })
 })

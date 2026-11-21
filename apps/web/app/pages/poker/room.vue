@@ -12,7 +12,7 @@ import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
 import RoomBar from '~/components/poker/RoomBar.vue'
 import { PokerClient, type PokerView } from '~/poker/client'
-import { dockOf, hintOf, type Say, statusOf } from '~/poker/room-view'
+import { announceOf, dockOf, hintOf, primaryOf, type Say, statusOf } from '~/poker/room-view'
 import { pt } from '~/poker/strings'
 
 // A room is never indexed, whatever the indexing switch says (and `/poker/room` is a private prefix of the shell and of the Worker).
@@ -70,11 +70,22 @@ watch(inviteOpen, async (open) => {
 })
 
 const say = (line: Say) => pt(line.key, line.params)
+/** What a screen reader hears when the room changes: the voted count, the reveal with its figures, the new round. One region, polite, once each. */
+const announcement = ref('')
+watch(view, (now, before) => {
+  const line = now ? announceOf(before, now, say) : null
+  if (line) announcement.value = say(line)
+})
+/** The hand returns with a short rise after a reveal (the next round), not when a person first sits down. */
+const rise = ref(false)
 const round = computed(() => view.value?.round ?? null)
 const live = computed(() => !!view.value && view.value.status !== 'board')
 const status = computed(() => { const line = view.value ? statusOf(view.value) : null; return line ? say(line) : '' })
 const hint = computed(() => { const line = view.value ? hintOf(view.value, say) : null; return line ? say(line) : '' })
 const dock = computed(() => (view.value ? dockOf(view.value) : 'none'))
+watch(dock, (d) => { if (d === 'revealed') rise.value = true })
+/** After the reveal the filled button is the likely next step: Next round when the room agrees, Vote again when it does not (K9). */
+const primary = computed(() => primaryOf(view.value?.verdict ?? null))
 const title = computed(() => pt(round.value?.revote ? 'poker.round.revote' : 'poker.round', { n: round.value?.n ?? 1 }))
 const boardHref = computed(() => `/boards${location.hash}`)
 /** The moderator's filled button while a round is open: Invite when alone and nobody has voted, Reveal as soon as a card is in. */
@@ -90,12 +101,16 @@ const action = computed<'invite' | 'reveal' | null>(() => {
   <main id="main" class="room" :class="{ live }" data-testid="poker-room">
     <template v-if="live && view">
       <RoomBar :title="title" :status="status" :state="view.status" @invite="openInvite" />
+      <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="poker-live">{{ announcement }}</div>
       <div class="region" data-testid="poker-region">
         <section class="table" :aria-label="pt('poker.table.title')">
           <PokerTable :seats="view.seats" :revealed="!!round?.revealed" @invite="openInvite" />
           <p v-if="hint && dock !== 'revealed'" class="hint" data-testid="poker-hint">{{ hint }}</p>
         </section>
-        <PokerResults v-if="view.stats" :stats="view.stats" :unreadable="view.unreadable" />
+        <PokerResults
+          v-if="view.stats" :stats="view.stats" :verdict="view.verdict" :outliers="view.outliers" :unreadable="view.unreadable" :decided="round?.decided ?? null" :moderator="view.moderator"
+          @use="client?.decide($event)"
+        />
       </div>
       <PokerDock v-if="dock !== 'none' && round">
         <template v-if="dock === 'hand'">
@@ -105,13 +120,13 @@ const action = computed<'invite' | 'reveal' | null>(() => {
           <button v-else-if="action === 'invite'" type="button" class="btn btn-primary act" data-testid="poker-invite-cta" @click="openInvite">
             <Icon name="lucide:user-plus" /> {{ pt('poker.invite.cta') }}
           </button>
-          <PokerHand :deck="round.deck" :mine="view.mine" @pick="client?.vote($event)" />
+          <PokerHand :deck="round.deck" :mine="view.mine" :rise="rise" @pick="client?.vote($event)" />
         </template>
-        <div v-else-if="view.moderator" class="acts">
-          <button type="button" class="btn btn-primary act" data-testid="poker-revote" @click="client?.nextRound(true)">
+        <div v-else-if="view.moderator" class="acts" data-testid="poker-acts">
+          <button type="button" class="btn act" :class="{ 'btn-primary': primary === 'revote' }" data-testid="poker-revote" @click="client?.nextRound(true)">
             <Icon name="lucide:rotate-ccw" /> {{ pt('poker.revote') }}
           </button>
-          <button type="button" class="btn act" data-testid="poker-next" @click="client?.nextRound()">
+          <button type="button" class="btn act" :class="{ 'btn-primary': primary === 'next' }" data-testid="poker-next" @click="client?.nextRound()">
             <Icon name="lucide:skip-forward" /> {{ pt('poker.next') }}
           </button>
         </div>
@@ -149,10 +164,11 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 .name .hint { text-align: start; }
 /* In the room: the bar, the middle region and the dock over the dynamic viewport. The middle region is the only thing that scrolls. */
 .room.live { max-width: none; margin: 0; padding: 0; gap: 0; height: 100dvh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; align-content: stretch; }
-.region { min-height: 0; overflow-y: auto; padding: var(--sp-3) max(var(--sp-3), calc((100% - 44rem) / 2)); display: grid; gap: var(--sp-3); align-content: start; }
+.region { min-height: 0; overflow-y: auto; padding: var(--sp-2) max(var(--sp-3), calc((100% - 44rem) / 2)); display: grid; gap: var(--sp-2); align-content: start; }
 .table { display: grid; gap: var(--sp-2); }
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
-/* The primary action of a phone is 48 px high; the buttons of the dock are never smaller than a thumb. */
+/* The primary action of a phone is 48 px high; the buttons of the dock are never smaller than a thumb. The filled one has the quiet shadow of a card, no glow. */
 .act { min-block-size: 48px; }
+.act.btn-primary { box-shadow: var(--shadow-1); }
 @media (min-width: 600px) { .act { min-block-size: 44px; justify-self: center; min-inline-size: 12rem; } .acts { grid-template-columns: repeat(2, minmax(10rem, 14rem)); justify-content: center; } }
 </style>

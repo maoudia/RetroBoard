@@ -47,9 +47,9 @@ const tier = computed<ValueTier>(() => valueTier(props.value ?? ''))
 .br { inset: auto 3px 2px auto; transform: rotate(180deg); }
 /* On a small card (a seat) the corners would touch the value: the value alone is enough. */
 .compact .corner { display: none; }
-.compact .value { font-size: var(--fs-lg); }
-.compact.t-lg .value { font-size: var(--fs-md); }
-.compact.t-md .value, .compact.t-sm .value { font-size: var(--fs-xs); }
+.compact .value { font-size: calc(min(var(--fs-lg), var(--w) * .5)); }
+.compact.t-lg .value { font-size: calc(min(var(--fs-md), var(--w) * .4)); }
+.compact.t-md .value, .compact.t-sm .value { font-size: calc(min(var(--fs-xs), var(--w) * .3)); }
 
 /* Back: a diamond lattice made of the accent and a mix of the accent and the surface, framed by the surface. No text, no image. */
 .back { background: var(--surface); }

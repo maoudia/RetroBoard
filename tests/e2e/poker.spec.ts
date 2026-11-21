@@ -23,6 +23,8 @@ const noViolation = async (page: Page, where: string) => {
 }
 /** The participant link of a room, from the moderator's address (the first 44 characters of the key part): the room page never prints it. */
 const participantLink = (page: Page) => page.url().replace(/(#c=[A-Za-z0-9_-]{44})[A-Za-z0-9_-]+$/, '$1')
+/** The columns of the distribution, in the order of the page: the card and its count (both text on the page). */
+const columns = (page: Page) => page.getByTestId('poker-distribution-item').evaluateAll((els) => els.map((e) => [e.getAttribute('data-card'), e.getAttribute('data-votes')]))
 const cardsOf = (page: Page) => page.getByTestId('poker-deck-cards').locator('li')
 
 test('the start page offers deck chips and a typed list, shown as round chips', async ({ page }) => {
@@ -121,10 +123,13 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
     await expect(page.locator('[data-testid="poker-seat"] .pcard[data-variant="face"] .value')).toHaveText(['2', '8', '4'])
     await expect(page.getByTestId('poker-average')).toHaveText('4.67')
     await expect(page.getByTestId('poker-median')).toHaveText('4')
-    await expect(page.getByTestId('poker-mode')).toHaveText('2, 4, 8')
-    await expect(page.getByTestId('poker-spread')).toContainText(/2 (à|to) 8/)
-    await expect(page.getByTestId('poker-agreement')).toHaveText(/^33 ?%$/)
-    await expect(page.getByTestId('poker-suggestion')).toHaveText('4')
+    // Three different cards: a third on the most chosen, so no agreement yet; one card each in the distribution, in deck order.
+    await expect(page.getByTestId('poker-meter')).toHaveAttribute('aria-valuenow', '33')
+    await expect(page.getByTestId('poker-meter')).toContainText(/No agreement yet|Pas encore d’accord/)
+    expect(await columns(page)).toEqual([['2', '1'], ['4', '1'], ['8', '1']])
+    // The moderator can keep the suggestion, a voter reads it.
+    if (page === a) await expect(page.getByTestId('poker-use')).toHaveText(/(Use|Utiliser) 4/)
+    else await expect(page.getByTestId('poker-suggestion')).toHaveText(/(Suggested|Suggestion) ?: 4/)
     // The hand leaves at the reveal (it does not fade): the dock offers a voter one line and no control.
     await expect(page.getByTestId('poker-hand')).toHaveCount(0)
   }
@@ -146,8 +151,8 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
   await a!.getByTestId('poker-card-1').check({ force: true })
   await b!.getByTestId('poker-card-1').check({ force: true })
   await a!.getByTestId('poker-reveal').click()
-  await expect(a!.getByTestId('poker-agreement')).toContainText('100')
-  await expect(a!.getByTestId('poker-agreement')).toContainText(/unanimi/i)
+  await expect(a!.getByTestId('poker-meter')).toHaveAttribute('aria-valuenow', '100')
+  await expect(a!.getByTestId('poker-meter')).toContainText(/Everyone agrees|Tout le monde est d’accord/)
   // Cy did not vote: two cards, the other seat stays empty.
   await expect(a!.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(2)
 
@@ -356,6 +361,8 @@ for (const viewport of PHONES) {
     await page.getByTestId('poker-next').click()
     await expect(page.getByTestId('poker-hand')).toBeVisible()
     await expect(page.locator('.pcard.chosen')).toHaveCount(0)
+    // The hand rises back in 150 ms (change poker-design-v2, 3.4): its box is where it was once the rise is over.
+    await page.waitForFunction(() => document.getAnimations().length === 0)
     expect(await place()).toEqual(before)
     expect(errors).toEqual([])
     await ctx.close()
@@ -562,9 +569,11 @@ for (const viewport of PHONES) {
     await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(8)
     await expect(page.getByTestId('poker-hint')).toHaveCount(0)
     await fits(page, 'everyone voted')
-    // Revealed: the page itself does not scroll (the results card of this release is taller than its successor: the middle region may).
+    // Revealed: still one viewport, with the results card (numbers, meter, distribution, outliers, Use) and the two buttons of the dock.
     await page.getByTestId('poker-reveal').click()
     await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(8)
+    await expect(page.getByTestId('poker-results')).toBeVisible()
+    await fits(page, 'revealed')
     const after = await page.evaluate(() => [document.documentElement.scrollHeight <= innerHeight, document.documentElement.scrollWidth <= innerWidth])
     expect(after).toEqual([true, true])
     const dock = (await page.getByTestId('poker-dock').boundingBox())!
@@ -596,7 +605,8 @@ test('the same room in French on a 360x640 phone: lobby, voting and waiting fit,
   await fits(page, 'everyone voted, fr')
   await page.getByTestId('poker-reveal').click()
   await expect(page.getByTestId('poker-status')).toHaveText('Révélé')
-  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true)
+  await expect(page.getByTestId('poker-results')).toBeVisible()
+  await fits(page, 'revealed, fr')
   await close()
 })
 
@@ -786,4 +796,334 @@ test('a seat: avatar with a ring for you, a crown for the moderator, a back with
   expect(await mine.evaluate((el) => el.getBoundingClientRect().height)).toBeCloseTo(await other.evaluate((el) => el.getBoundingClientRect().height), 0)
   await noViolation(page, 'seats')
   await close()
+})
+
+/**
+ * Change poker-design-v2, group 3: reveal and results. The flip, the results card (two numbers, the consensus meter with its words, the
+ * distribution, the outliers), "Use 5", the one filled button and the announcements, on rooms of real tabs and the real relay.
+ */
+const FIB = ['0', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '?', '☕']
+/** Plays a card of the default deck by its face. */
+const pick = (page: Page, card: string) => page.getByTestId(`poker-card-${FIB.indexOf(card)}`).check({ force: true })
+/** Everybody plays (the moderator first), and the moderator reveals once every seat shows its card back. */
+const playRound = async (mod: Page, others: readonly Page[], cards: readonly string[]) => {
+  await pick(mod, cards[0]!)
+  for (const [i, p] of others.entries()) await pick(p, cards[i + 1]!)
+  await expect(mod.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(cards.length)
+  await mod.getByTestId('poker-reveal').click()
+  await expect(mod.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(cards.length)
+}
+/** Filled buttons that a person can see: a voter has none, the moderator at most one. */
+const filled = (page: Page) => page.locator('button.btn-primary:visible, a.btn-primary:visible').count()
+/** Starts recording the flips of the table: every transition on a card of a seat, with its timing, and when one was last running. */
+const recordFlips = (page: Page) => page.evaluate(() => {
+  const w = window as unknown as { __flips: { seen: { duration: number; delay: number; start: number }[]; first: number; lastRunning: number } }
+  w.__flips = { seen: [], first: 0, lastRunning: 0 }
+  const known = new WeakSet<Animation>()
+  const loop = (now: number) => {
+    for (const a of document.getAnimations()) {
+      const target = (a.effect as KeyframeEffect | null)?.target
+      if (!(target instanceof HTMLElement) || !target.classList.contains('flip')) continue
+      if (!known.has(a)) {
+        known.add(a)
+        const t = a.effect!.getTiming()
+        w.__flips.seen.push({ duration: Number(t.duration), delay: Number(t.delay), start: Number(a.startTime) })
+        if (!w.__flips.first) w.__flips.first = now
+      }
+      if (a.playState === 'running' || a.playState === 'pending') w.__flips.lastRunning = now
+    }
+    requestAnimationFrame(loop)
+  }
+  requestAnimationFrame(loop)
+})
+const flips = (page: Page) => page.evaluate(() => (window as unknown as { __flips: { seen: { duration: number; delay: number; start: number }[]; first: number; lastRunning: number } }).__flips)
+
+test('the reveal flips every card in 280 ms, all within 60 ms of each other, none running at 400 ms, and none at all under reduced motion', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  test.setTimeout(150_000)
+  const names = ['Ann', 'Bob', 'Cy', 'Dee', 'Eli', 'Fay', 'Gus', 'Hal']
+  const { page, others, close } = await room(browser, names)
+  const cards = ['8', '5', '5', '13', '5', '?', '5', '8']
+  await pick(page, cards[0]!)
+  for (const [i, p] of others.entries()) await pick(p, cards[i + 1]!)
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(8)
+
+  // Nothing of any card is in the page while the round is open: not in the text of the table, not in any attribute of its seats.
+  const table = page.getByTestId('poker-seats')
+  expect(await table.innerText()).not.toMatch(/\b(5|8|13)\b|\?/)
+  const attributes = await table.evaluate((el) => [el, ...el.querySelectorAll('*')].flatMap((e) => [...e.attributes]).filter((a) => !/^(data-v-|class$|style$)/.test(a.name)).map((a) => a.value))
+  expect(attributes.filter((v) => ['5', '8', '13', '?'].includes(v) || /\b(Card|Carte) (5|8|13)\b/.test(v))).toEqual([])
+  await expect(table.locator('.value')).toHaveCount(0)
+
+  // Motion allowed: eight transitions of 280 ms, the stagger of 10 ms capped at 60 ms, the last one done well before 400 ms.
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await recordFlips(page)
+  await page.getByTestId('poker-reveal').click()
+  await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(8)
+  await page.waitForTimeout(700)
+  const run = await flips(page)
+  expect(run.seen.map((f) => f.duration)).toEqual(Array(8).fill(280))
+  expect(run.seen.map((f) => f.delay).sort((a, b) => a - b)).toEqual([0, 10, 20, 30, 40, 50, 60, 60])
+  const starts = run.seen.map((f) => f.start + f.delay)
+  expect(Math.max(...starts) - Math.min(...starts), 'the last flip starts within 60 ms of the first').toBeLessThanOrEqual(60)
+  expect(Math.max(...run.seen.map((f) => f.start + f.delay + f.duration)) - Math.min(...starts), 'every flip is over 400 ms after the reveal').toBeLessThan(400)
+  expect(run.lastRunning - run.first, 'none is running 400 ms after the first').toBeLessThan(400)
+
+  // Reduced motion, from the system: a new round, the same reveal, no transition at all and the faces are there at once.
+  await page.getByTestId('poker-next').click()
+  await expect(page.getByTestId('poker-round')).toHaveText('Round 2')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await pick(page, '5')
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+  await recordFlips(page)
+  await page.getByTestId('poker-reveal').click()
+  await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(1)
+  await expect(page.locator('[data-testid="poker-seats"] .pcard[data-variant="face"] .value')).toHaveText(['5'])
+  await page.waitForTimeout(500)
+  expect((await flips(page)).seen).toEqual([])
+
+  // Reduced motion, from the application's own setting.
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.evaluate(() => { document.documentElement.dataset.motion = 'reduced' })
+  await page.getByTestId('poker-next').click()
+  await expect(page.getByTestId('poker-round')).toHaveText('Round 3')
+  await pick(page, '8')
+  await recordFlips(page)
+  await page.getByTestId('poker-reveal').click()
+  await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(1)
+  await page.waitForTimeout(500)
+  expect((await flips(page)).seen).toEqual([])
+  await close()
+})
+
+for (const [locale, viewport] of [['en-US', PHONES[0]], ['fr-FR', PHONES[1]]] as const) {
+  test(`a revealed round of six on a ${viewport.width}x${viewport.height} phone in ${locale.slice(0, 2)}: two numbers, the meter in words, the distribution, the outlier, no scrolling`, async ({ browser, browserName }) => {
+    test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+    test.setTimeout(150_000)
+    const fr = locale === 'fr-FR'
+    const { page, others, close } = await room(browser, ['Malaka', 'Ann', 'Bob', 'Cy', 'Dee', 'Eli'], undefined, locale)
+    await page.setViewportSize(viewport)
+    // Six voters play 8, 5, 5, 13, 5 and ?.
+    await playRound(page, others, ['8', '5', '5', '13', '5', '?'])
+    const results = page.getByTestId('poker-results')
+    await expect(results).toBeVisible()
+    // Two large numbers, then the verdict in words and its share, as a meter.
+    await expect(page.getByTestId('poker-average')).toHaveText('7.2')
+    await expect(page.getByTestId('poker-median')).toHaveText('5')
+    const meter = page.getByTestId('poker-meter')
+    await expect(meter).toHaveAttribute('role', 'meter')
+    await expect(meter).toHaveAttribute('aria-valuenow', '50')
+    await expect(meter).toHaveAttribute('aria-valuetext', fr ? 'Accord partiel, 50 %' : 'Some agreement, 50%')
+    await expect(meter).toContainText(fr ? 'Accord partiel' : 'Some agreement')
+    // One column per card played, in deck order, its count as text; the question mark is counted and drawn.
+    expect(await columns(page)).toEqual([['5', '3'], ['8', '1'], ['13', '1'], ['?', '1']])
+    await expect(page.getByTestId('poker-distribution')).toHaveJSProperty('tagName', 'UL')
+    await expect(page.getByTestId('poker-distribution-item').first()).toContainText(fr ? '5 : 3 voix' : '5: 3 votes')
+    expect(await page.getByTestId('poker-distribution-item').first().locator('.n').textContent()).toBe('3')
+    // The highest card is marked on its seat and in the results, with words; the lowest is not, because 5 is the most chosen card.
+    await expect(page.getByTestId('poker-outlier-highest')).toHaveText(fr ? 'Plus haute : 13 (Cy)' : 'Highest: 13 (Cy)')
+    await expect(page.getByTestId('poker-outlier-lowest')).toHaveCount(0)
+    const seat = (name: string) => page.getByTestId('poker-seat').filter({ hasText: name })
+    await expect(seat('Cy').getByTestId('poker-outlier')).toHaveCount(1)
+    await expect(page.getByTestId('poker-outlier')).toHaveCount(1)
+    expect(await said(seat('Cy'))).toBe(fr ? 'Cy, Carte 13, carte la plus haute' : 'Cy, Card 13, highest card')
+    // Nothing is said twice: the most chosen card and the spread are not facts of their own any more, and there is no heading to read.
+    await expect(results.getByText(/Most chosen|Spread|Le plus choisi|Écart/)).toHaveCount(0)
+    await expect(page.locator('main h2:visible, main h3:visible')).toHaveCount(0)
+    // One viewport, the buttons are in the dock, and the suggestion is a quiet button.
+    await fits(page, 'revealed six')
+    await expect(page.getByTestId('poker-use')).toHaveText(fr ? 'Utiliser 5' : 'Use 5')
+    await noViolation(page, 'results')
+    await close()
+  })
+}
+
+test('"Use 5" is the moderator\'s alone and shows to everybody; the next round clears it; at most one filled button, none for a voter, Vote again left and Next round right', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  test.setTimeout(150_000)
+  const { page: ann, others: [bob, cy], close } = await room(browser, ['Ann', 'Bob', 'Cy'])
+  const everyone = [ann, bob!, cy!]
+  const voters = [bob!, cy!]
+  // At most one filled button for the moderator and none for a voter, in every state; labelled buttons have an icon and 44 px.
+  const checkButtons = async (where: string) => {
+    expect(await filled(ann), `${where}: the moderator`).toBeLessThanOrEqual(1)
+    for (const v of voters) expect(await filled(v), `${where}: a voter`).toBe(0)
+    for (const p of everyone) {
+      for (const b of await p.locator('main button.btn:visible, main a.btn:visible').all()) {
+        const box = (await b.boundingBox())!
+        expect(box.height, `${where}: ${await b.innerText()}`).toBeGreaterThanOrEqual(44)
+        if ((await b.innerText()).trim()) await expect(b.locator('svg, .iconify, [class*="i-"]').first(), `${where}: an icon`).toBeVisible()
+      }
+    }
+  }
+  await checkButtons('lobby')
+  // Round 1: everyone plays 5, so the room agrees: Next round is the filled button, Vote again and Use 5 are quiet.
+  await playRound(ann, voters, ['5', '5', '5'])
+  await checkButtons('revealed, agreement')
+  await expect(ann.getByTestId('poker-next')).toHaveClass(/btn-primary/)
+  await expect(ann.getByTestId('poker-revote')).not.toHaveClass(/btn-primary/)
+  await expect(ann.getByTestId('poker-use')).not.toHaveClass(/btn-primary/)
+  const places = async () => ({ revote: (await ann.getByTestId('poker-revote').boundingBox())!, next: (await ann.getByTestId('poker-next').boundingBox())! })
+  const agree = await places()
+  expect(agree.revote.x, 'Vote again is on the left').toBeLessThan(agree.next.x)
+  await expect(ann.getByTestId('poker-meter')).toContainText('Everyone agrees')
+  // A voter sees the suggestion as text, no button and no way to keep it.
+  for (const v of voters) {
+    await expect(v.getByTestId('poker-suggestion')).toHaveText('Suggested: 5')
+    await expect(v.getByTestId('poker-use')).toHaveCount(0)
+    await expect(v.getByTestId('poker-estimate')).toHaveCount(0)
+  }
+  // The moderator keeps it: everybody reads "Estimate 5" with a check, and the button is gone.
+  await ann.getByTestId('poker-use').click()
+  for (const p of everyone) {
+    await expect(p.getByTestId('poker-estimate')).toHaveText('Estimate 5')
+    await expect(p.getByTestId('poker-estimate').locator('svg, .iconify, [class*="i-"]').first()).toBeVisible()
+    await expect(p.getByTestId('poker-use')).toHaveCount(0)
+    await expect(p.getByTestId('poker-suggestion')).toHaveCount(0)
+  }
+  await checkButtons('estimate kept')
+  await noViolation(bob!, 'estimate')
+
+  // The next round clears the estimate, and the results with it.
+  await ann.getByTestId('poker-next').click()
+  for (const p of everyone) {
+    await expect(p.getByTestId('poker-round')).toHaveText('Round 2')
+    await expect(p.getByTestId('poker-estimate')).toHaveCount(0)
+    await expect(p.getByTestId('poker-results')).toHaveCount(0)
+  }
+  await checkButtons('round 2, hand')
+  // Round 2 disagrees (3, 8, 13): Vote again is filled, Next round quiet, each in the place it had.
+  await playRound(ann, voters, ['3', '8', '13'])
+  await checkButtons('revealed, disagreement')
+  await expect(ann.getByTestId('poker-revote')).toHaveClass(/btn-primary/)
+  await expect(ann.getByTestId('poker-next')).not.toHaveClass(/btn-primary/)
+  await expect(ann.getByTestId('poker-meter')).toContainText('No agreement yet')
+  const split = await places()
+  expect(split).toEqual(agree)
+  // Neither glows: the filled one has the quiet shadow of a card.
+  expect(await ann.getByTestId('poker-revote').evaluate((el) => getComputedStyle(el).boxShadow)).not.toMatch(/22px/)
+  await close()
+})
+
+test('the room announces politely, once each, in order: the voted count, the reveal with its figures and verdict, the new round; the hand rises back and is reachable by keyboard', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  test.setTimeout(150_000)
+  const { page: ann, others: [bob, cy], close } = await room(browser, ['Ann', 'Bob', 'Cy'])
+  const everyone = [ann, bob!, cy!]
+  const live = (p: Page) => p.getByTestId('poker-live')
+  // Every change of the live region of every tab, in order (no filtering: a sentence set twice would show twice).
+  for (const p of everyone) {
+    await p.evaluate(() => {
+      const w = window as unknown as { __said: string[] }
+      w.__said = []
+      const region = document.querySelector('[data-testid="poker-live"]')!
+      new MutationObserver(() => { const t = region.textContent!.trim(); if (t) w.__said.push(t) }).observe(region, { childList: true, characterData: true, subtree: true })
+    })
+    await expect(live(p)).toHaveAttribute('aria-live', 'polite')
+  }
+  const heard = (p: Page) => p.evaluate(() => (window as unknown as { __said: string[] }).__said)
+  // The count, one voter at a time (each tab has read a count before the next card comes).
+  const counts = ['1 of 3 voted', '2 of 3 voted', '3 of 3 voted']
+  for (const [i, [p, card]] of ([[ann, '5'], [bob!, '5'], [cy!, '13']] as const).entries()) {
+    await pick(p, card)
+    for (const q of everyone) await expect(live(q)).toHaveText(counts[i]!)
+  }
+  await ann.getByTestId('poker-reveal').click()
+  const reveal = 'Cards revealed. Average 7.67, median 5. Some agreement.'
+  for (const p of everyone) await expect(live(p)).toHaveText(reveal)
+  // The hand comes back with a short rise after a reveal: 150 ms, and none under reduced motion (Cy's tab asks for it).
+  await cy!.emulateMedia({ reducedMotion: 'reduce' })
+  for (const p of [ann, bob!]) await p.emulateMedia({ reducedMotion: 'no-preference' })
+  for (const p of [ann, bob!, cy!]) {
+    await p.evaluate(() => {
+      const w = window as unknown as { __rise: { name: string; duration: number }[] }
+      w.__rise = []
+      const known = new WeakSet<Animation>()
+      const loop = () => { for (const a of document.getAnimations()) if (a instanceof CSSAnimation && /^rise/.test(a.animationName) && !known.has(a)) { known.add(a); w.__rise.push({ name: 'rise', duration: Number(a.effect!.getTiming().duration) }) } requestAnimationFrame(loop) }
+      requestAnimationFrame(loop)
+    })
+  }
+  await ann.getByTestId('poker-revote').click()
+  const revote = 'Round 2, vote again. Pick a card.'
+  for (const p of everyone) await expect(live(p)).toHaveText(revote)
+  for (const p of everyone) {
+    // The new round: seats back to empty slots, results and estimate gone, the hand back with nothing chosen.
+    await expect(p.getByTestId('poker-round')).toHaveText('Round 2, vote again')
+    await expect(p.getByTestId('poker-results')).toHaveCount(0)
+    await expect(p.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(0)
+    await expect(p.locator('[data-testid="poker-seat"] .pcard[data-variant="slot"]')).toHaveCount(3)
+    await expect(p.locator('input[name="poker-card"]:checked')).toHaveCount(0)
+  }
+  const rises = async (p: Page) => (await p.evaluate(() => (window as unknown as { __rise: { duration: number }[] }).__rise)).map((r) => r.duration)
+  expect(await rises(ann)).toEqual([150])
+  expect(await rises(bob!)).toEqual([150])
+  expect(await rises(cy!)).toEqual([])
+  // The hand is reachable by the keyboard in the new round: Tab reaches the radio group, a typed name picks a card.
+  await bob!.locator('body').click({ position: { x: 1, y: 1 } })
+  let landed = false
+  for (let i = 0; i < 30 && !landed; i++) {
+    await bob!.keyboard.press('Tab')
+    landed = await bob!.evaluate(() => (document.activeElement as HTMLInputElement | null)?.name === 'poker-card')
+  }
+  expect(landed, 'Tab reaches the hand').toBe(true)
+  await bob!.keyboard.press('3')
+  await expect(bob!.getByTestId('poker-card-3')).toBeChecked()
+  await expect(live(ann)).toHaveText('1 of 3 voted')
+  // A second reveal and a plain next round: "Round 3. Pick a card.", announced to the people who vote.
+  await pick(ann, '5')
+  for (const q of everyone) await expect(live(q)).toHaveText('2 of 3 voted')
+  await pick(cy!, '5')
+  for (const q of everyone) await expect(live(q)).toHaveText('3 of 3 voted')
+  await ann.getByTestId('poker-reveal').click()
+  for (const p of everyone) await expect(live(p)).toHaveText(/^Cards revealed\. Average 4\.33, median 5\. Some agreement\.$/)
+  await ann.getByTestId('poker-next').click()
+  for (const p of everyone) await expect(live(p)).toHaveText('Round 3. Pick a card.')
+  const expected = [...counts, reveal, revote, '1 of 3 voted', '2 of 3 voted', '3 of 3 voted', 'Cards revealed. Average 4.33, median 5. Some agreement.', 'Round 3. Pick a card.']
+  for (const p of everyone) expect(await heard(p), 'every sentence once, in order').toEqual(expected)
+  await noViolation(ann, 'between rounds')
+  await close()
+})
+
+for (const viewport of PHONES) {
+  test(`the worst revealed round of eight on a ${viewport.width}x${viewport.height} phone, with both outliers and 24-character names, still fits one viewport`, async ({ browser, browserName }) => {
+    test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+    test.setTimeout(150_000)
+    const names = [longName(0), ...Array.from({ length: 7 }, (_, i) => longName(i + 1))]
+    const { page, others, close } = await room(browser, names)
+    await page.setViewportSize(viewport)
+    // The moderator plays 3, one voter 13 and the six others 5: the lowest and the highest card are both outliers, and their lines hold a long name.
+    await playRound(page, others, ['3', '5', '5', '5', '5', '5', '5', '13'])
+    await expect(page.getByTestId('poker-outlier-lowest')).toContainText(`3 (${names[0]})`)
+    await expect(page.getByTestId('poker-outlier-highest')).toContainText(`13 (${names[7]})`)
+    await expect(page.getByTestId('poker-outlier')).toHaveCount(2)
+    await expect(page.getByTestId('poker-meter')).toContainText('Strong agreement')
+    await fits(page, 'revealed, both outliers')
+    await expect(page.getByTestId('poker-next')).toHaveClass(/btn-primary/)
+    await close()
+  })
+}
+
+test('a round of question marks has one column and no number; a T-shirt round shows the median card and no average', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  test.setTimeout(150_000)
+  const marks = await room(browser, ['Ann', 'Bob'])
+  await playRound(marks.page, marks.others, ['?', '?'])
+  expect(await columns(marks.page)).toEqual([['?', '2']])
+  await expect(marks.page.getByTestId('poker-no-numbers')).toHaveText('No numbered card in this round')
+  for (const id of ['poker-average', 'poker-median', 'poker-use', 'poker-suggestion']) await expect(marks.page.getByTestId(id)).toHaveCount(0)
+  await expect(marks.page.getByTestId('poker-meter')).toContainText('Everyone agrees')
+  await expect(marks.page.getByTestId('poker-outlier')).toHaveCount(0)
+  await marks.close()
+
+  const shirts = await room(browser, ['Ann', 'Bob', 'Cy', 'Dee'], 'XS, S, M, L, XL')
+  for (const [p, i] of [[shirts.page, 1], [shirts.others[0]!, 2], [shirts.others[1]!, 2], [shirts.others[2]!, 3]] as const) await p.getByTestId(`poker-card-${i}`).check({ force: true })
+  await expect(shirts.page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(4)
+  await shirts.page.getByTestId('poker-reveal').click()
+  await expect(shirts.page.getByTestId('poker-results')).toBeVisible()
+  await expect(shirts.page.getByTestId('poker-median')).toHaveText('M')
+  await expect(shirts.page.getByTestId('poker-average')).toHaveCount(0)
+  await expect(shirts.page.getByTestId('poker-meter')).toContainText('Some agreement')
+  expect(await columns(shirts.page)).toEqual([['S', '1'], ['M', '2'], ['L', '1']])
+  await expect(shirts.page.getByTestId('poker-use')).toHaveText('Use M')
+  await shirts.close()
 })

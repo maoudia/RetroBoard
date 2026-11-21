@@ -6,7 +6,7 @@ import type { SeatView } from '~/poker/client'
 import { cardLabel, pt } from '~/poker/strings'
 import { hueBg, nameHue } from '~/utils/avatar'
 
-const props = defineProps<{ seat: SeatView; revealed: boolean }>()
+const props = defineProps<{ seat: SeatView; revealed: boolean; /** Place in join order: the cards of a table turn one after the other, 10 ms apart. */ index?: number }>()
 
 const initial = computed(() => [...props.seat.name.trim()][0]?.toUpperCase() ?? '?')
 /** What the seat is, for the words and the icon: a card face, nothing played in a revealed round, a card back, an empty slot, or a watcher. */
@@ -15,14 +15,16 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
 </script>
 
 <template>
-  <li class="seat" :class="{ me: seat.me }" data-testid="poker-seat" :data-voted="seat.voted" :data-revealed="seat.card !== null" :data-watching="!seat.voter" :title="seat.name">
+  <li class="seat" :class="{ me: seat.me }" :style="{ '--i': index ?? 0 }" data-testid="poker-seat" :data-voted="seat.voted" :data-revealed="seat.card !== null" :data-watching="!seat.voter" :data-outlier="seat.outlier ?? undefined" :title="seat.name">
     <span class="name">{{ seat.name }}</span>
     <span v-if="seat.me" class="sr-only">, {{ pt('poker.seat.you') }}</span>
     <span class="top">
       <span class="av" aria-hidden="true" :style="hueBg(nameHue(seat.name))">{{ initial }}</span>
       <span v-if="seat.moderator" class="crown"><Icon name="lucide:crown" /><span class="sr-only">, {{ pt('poker.seat.moderator') }}</span></span>
+      <Icon v-if="seat.outlier" class="far" :name="seat.outlier === 'highest' ? 'lucide:arrow-up-to-line' : 'lucide:arrow-down-to-line'" aria-hidden="true" data-testid="poker-outlier" />
     </span>
     <span class="sr-only" data-testid="poker-seat-state">, {{ word }}</span>
+    <span v-if="seat.outlier" class="sr-only">, {{ pt(`poker.seat.${seat.outlier}`) }}</span>
     <span class="slot" aria-hidden="true">
       <Icon v-if="kind === 'watching'" class="eye" name="lucide:eye" />
       <span v-else class="face">
@@ -39,10 +41,10 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
 <style scoped>
 .seat {
   --av: 20px;
-  display: grid; grid-template-areas: "top" "slot" "name"; justify-items: center; align-content: start; gap: var(--sp-1); min-width: 0;
-  padding: var(--sp-1); border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface);
+  display: grid; grid-template-areas: "top" "slot" "name"; justify-items: center; align-content: start; gap: 2px; min-width: 0;
+  padding: 2px var(--sp-1); border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface);
 }
-.name { grid-area: name; max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); line-height: 1.3; }
+.name { grid-area: name; max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); line-height: 1.2; }
 .top { grid-area: top; display: flex; align-items: center; gap: var(--sp-1); }
 .av {
   display: grid; place-items: center; inline-size: var(--av); block-size: var(--av); border-radius: 50%;
@@ -50,10 +52,11 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
 }
 /* "You": a ring of the accent around the avatar, with a gap, plus the hidden word. */
 .me .av { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
-.crown { display: grid; place-items: center; color: var(--text); font-size: var(--fs-sm); }
+.crown, .far { display: grid; place-items: center; color: var(--text); font-size: var(--fs-sm); }
 .slot { grid-area: slot; position: relative; display: grid; place-items: center; --poker-card-w: 36px; inline-size: var(--poker-card-w); aspect-ratio: 5 / 7; }
 .face { perspective: 600px; inline-size: 100%; block-size: 100%; }
-.flip { position: relative; display: block; inline-size: 100%; block-size: 100%; transform-style: preserve-3d; transition: transform var(--dur-slow) ease; }
+/* The flip: 280 ms, eased out, the cards of a table starting 10 ms apart up to 60 ms, so the last one lands at 340 ms, before 400. Its own constant: no token is this long. */
+.flip { --flip: 280ms; position: relative; display: block; inline-size: 100%; block-size: 100%; transform-style: preserve-3d; transition: transform var(--flip) ease-out calc(min(var(--i, 0) * 10ms, 60ms)); }
 .seat[data-revealed="true"] .flip { transform: rotateY(180deg); }
 .side { position: absolute; inset: 0; backface-visibility: hidden; }
 .front { transform: rotateY(180deg); }
@@ -65,4 +68,5 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
 [data-screen="tablet"] .seat, [data-screen="laptop"] .seat, [data-screen="wide"] .seat, [data-screen="tv"] .seat { --av: 24px; }
 @media (forced-colors: active) { .seat { border-color: CanvasText; } .av { border: 1px solid CanvasText; forced-color-adjust: none; } .tick { forced-color-adjust: none; background: Highlight; color: HighlightText; } }
 @media (prefers-reduced-motion: reduce) { .flip { transition: none; } }
+:root[data-motion="reduced"] .flip { transition: none; }
 </style>

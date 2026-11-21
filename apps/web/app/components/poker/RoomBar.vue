@@ -18,7 +18,7 @@ const variant = () => (import.meta.client && document.documentElement.dataset.va
     <NuxtLink to="/" class="btn btn-ghost round" :aria-label="pt('poker.home')" :title="pt('poker.home')" data-testid="poker-home"><Icon name="lucide:arrow-left" /></NuxtLink>
     <div class="titles">
       <h1 data-testid="poker-round">{{ title }}</h1>
-      <p class="status" role="status" data-testid="poker-status" :data-status="state">{{ status }}</p>
+      <p class="status" data-testid="poker-status" :data-status="state">{{ status }}</p>
     </div>
     <button type="button" class="btn btn-ghost invite" :aria-label="pt('poker.invite')" :title="pt('poker.invite')" data-testid="poker-invite" @click="emit('invite', $event)">
       <Icon name="lucide:user-plus" /><span class="label">{{ pt('poker.invite') }}</span>
