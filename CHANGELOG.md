@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.65.0](https://github.com/maoudia/RetroBoard/compare/v1.64.0...v1.65.0) (2026-11-21)
+
+
+### Features
+
+* **web:** playing cards and a hand in the thumb zone for the Scrum Poker room ([f5e0767](https://github.com/maoudia/RetroBoard/commit/f5e076788f564d817d79b1a7cde1ea2d34f54879))
+
 ## [1.64.0](https://github.com/maoudia/RetroBoard/compare/v1.63.0...v1.64.0) (2026-11-21)
 
 
