@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.63.0](https://github.com/maoudia/RetroBoard/compare/v1.62.0...v1.63.0) (2026-11-21)
+
+
+### Features
+
+* **web:** playable Scrum Poker room on the real estimation domain (change scrum-poker) ([2244fb4](https://github.com/maoudia/RetroBoard/commit/2244fb42563f54be55c5ed857721369b48cfbe36))
+
 ## [1.62.0](https://github.com/maoudia/RetroBoard/compare/v1.61.1...v1.62.0) (2026-11-21)
 
 
