@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.67.0](https://github.com/maoudia/RetroBoard/compare/v1.66.0...v1.67.0) (2026-11-21)
+
+
+### Features
+
+* **web:** the Scrum Poker table is an oval on larger screens (change poker-design-v2, group 4) ([71a9cd0](https://github.com/maoudia/RetroBoard/commit/71a9cd0cd0f40c709e966e2b822a320de9d4c6bb))
+
+
+### Bug Fixes
+
+* **web:** the poker table region is a flex layout so WebKit does not keep a stale row, and the pictures and count follow ([367b985](https://github.com/maoudia/RetroBoard/commit/367b98596b49a4519aec500b6e110498f1b2a99b))
+
 ## [1.66.0](https://github.com/maoudia/RetroBoard/compare/v1.65.0...v1.66.0) (2026-11-21)
 
 
