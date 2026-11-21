@@ -226,6 +226,20 @@ describe('RoomCore frames', () => {
     expect(a.closed).toBeNull()
   })
 
+  it('carries no room kind: an envelope with a field beyond the five is refused on every path and nothing is kept (ADR-0042)', () => {
+    const h = harness()
+    const a = h.join()
+    const b = h.join()
+    const nb = b.out.length
+    h.say(a, { t: 'pub', envs: [{ ...env(1), kind: 'poker' }] })
+    h.say(a, { t: 'eph', env: { ...env(2), kind: 'poker' } })
+    h.say(a, { t: 'sig', to: 'conn0002', env: { ...env(3), kind: 'poker' } })
+    expect(a.out.filter((f) => f.t === 'err')).toEqual(Array(3).fill({ t: 'err', code: 'invalid' }))
+    expect(a.closed).toBeNull()
+    expect(b.out.length).toBe(nb)
+    expect(h.join().out[1]).toEqual({ t: 'hist', envs: [], done: true })
+  })
+
   it('ignores a message on a socket without an attachment', () => {
     const h = harness()
     const ghost = h.socket()
