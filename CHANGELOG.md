@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.68.0](https://github.com/maoudia/RetroBoard/compare/v1.67.0...v1.68.0) (2026-11-21)
+
+
+### Features
+
+* **web:** the Scrum Poker start page and name step are one calm decision, with card colours (poker-design-v2 group 5) ([d613183](https://github.com/maoudia/RetroBoard/commit/d613183548da6a2142857c7fd197b538ac3f625f))
+
+
+### Bug Fixes
+
+* **web:** the card colour swatches keep a 44 px target in WebKit; the core gate counts 228 tests ([bc4adff](https://github.com/maoudia/RetroBoard/commit/bc4adffc81845b0674ab7369a4511b5f98889f40))
+
 ## [1.67.0](https://github.com/maoudia/RetroBoard/compare/v1.66.0...v1.67.0) (2026-11-21)
 
 
