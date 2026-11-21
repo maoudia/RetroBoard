@@ -1,5 +1,5 @@
 /** Decks of a poker room (change scrum-poker, task 1.3): the presets of the start page and the typed list, validated by the domain's rules. */
-import { CARD_MAX, DECK_MAX, DECK_MIN, DEFAULT_DECK, isValidDeck } from '@retroboard/domain'
+import { DECK_MAX, DECK_MIN, DEFAULT_DECK, isValidDeck } from '@retroboard/domain'
 
 const COFFEE = '☕'
 
@@ -32,9 +32,8 @@ export function parseCustomDeck(text: string): CustomDeck {
   const cards = splitCards(text)
   if (cards.length < DECK_MIN) return { ok: false, error: 'too-few' }
   if (cards.length > DECK_MAX) return { ok: false, error: 'too-many' }
-  if (cards.some((c) => [...c].length > CARD_MAX)) return { ok: false, error: 'too-long' }
   if (new Set(cards).size !== cards.length) return { ok: false, error: 'duplicate' }
-  // The domain is the judge of what a deck is (a control character is the one case left): the fold would ignore anything else.
+  // The domain is the judge of what a deck is: a card of more than 6 characters or with a control character is "too long" for the screen.
   return isValidDeck(cards) ? { ok: true, cards } : { ok: false, error: 'too-long' }
 }
 

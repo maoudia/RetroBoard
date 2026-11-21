@@ -13,8 +13,11 @@ describe('card values', () => {
   it('reads numbers and one half, and nothing else', () => {
     expect(cardValue('13')).toBe(13)
     expect(cardValue('0.5')).toBe(0.5)
+    expect(cardValue('0.25')).toBe(0.25)
+    expect(cardValue('100.125')).toBe(100.125)
+    expect(cardValue('007')).toBe(7)
     expect(cardValue('½')).toBe(0.5)
-    for (const c of ['?', '☕', 'XL', '', '1,5', '-1', '1e3']) expect(cardValue(c)).toBeNull()
+    for (const c of ['?', '☕', 'XL', '', '1,5', '-1', '1e3', 'x1', '1x', '1.', '.5', '1.5.5', '1.5x', 'a1.5']) expect(cardValue(c)).toBeNull()
   })
 
   it('numeric decks are the ones whose plain cards are all numbers', () => {
@@ -78,6 +81,25 @@ describe('numeric decks', () => {
     expect(roundStatistics(fib, pick(fib, '?', '?'))).toMatchObject({ unanimous: true, consensus: 1, suggestion: null })
   })
 
+  it('the suggestion is the nearest numeric card whatever the order of the deck or the cards before it', () => {
+    expect(roundStatistics(['?', '0', '1'], [1]).suggestion).toBe('0')
+    expect(roundStatistics(['3', '1'], [0, 1]).suggestion).toBe('3')
+    expect(roundStatistics(['1', '10'], [0, 0, 1]).suggestion).toBe('1')
+    expect(roundStatistics(['\u00bd', '0.5'], [0]).suggestion).toBe('\u00bd')
+    expect(roundStatistics(['1', '2', '3'], [2, 2, 1]).suggestion).toBe('3')
+  })
+
+  it('the spread counts the steps of the deck between the low and the high card, special cards left out, in any order of the deck', () => {
+    expect(roundStatistics(['1', '?', '3'], [0, 2]).spread).toEqual({ low: '1', high: '3', steps: 1 })
+    expect(roundStatistics(['8', '1'], [0, 1]).spread).toEqual({ low: '1', high: '8', steps: 1 })
+    expect(roundStatistics(['S', '?', 'L'], [0, 2]).spread).toEqual({ low: 'S', high: 'L', steps: 1 })
+  })
+
+  it('an index just past the deck is not a card', () => {
+    expect(roundStatistics(fib, [fib.length])).toMatchObject({ cast: 0 })
+    expect(roundStatistics(fib, [fib.length, 0]).cast).toBe(1)
+  })
+
   it('an empty round, or indexes outside the deck, give nothing', () => {
     expect(roundStatistics(fib, [])).toMatchObject({ cast: 0, counts: [], average: null, consensus: 0, unanimous: false, suggestion: null })
     expect(roundStatistics(fib, [-1, 99, 1.5])).toMatchObject({ cast: 0 })
@@ -114,6 +136,12 @@ describe('opening a revealed round', () => {
     const out = await openRound(round({}), async (r, voter, sealed) => { seen.push(`${r.id}:${voter}:${sealed}`); return voter === 'a' ? 3 : voter === 'b' ? null : 99 })
     expect(out).toEqual({ round: 'r1', picks: { a: 3 }, unreadable: ['b', 'c'] })
     expect(seen).toEqual(['r1:a:sa', 'r1:b:sb', 'r1:c:sc'])
+  })
+
+  it('a ballot that opens to the index just past the deck is unreadable', async () => {
+    const out = await openRound(round({ ballots: { a: 'sa' } }), async () => fib.length)
+    expect(out).toEqual({ round: 'r1', picks: {}, unreadable: ['a'] })
+    expect((await openRound(round({ ballots: { a: 'sa' } }), async () => fib.length - 1)).picks).toEqual({ a: fib.length - 1 })
   })
 
   it('opens nothing before the reveal', async () => {

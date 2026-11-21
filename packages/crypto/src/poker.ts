@@ -31,9 +31,8 @@ export async function openCard(roundPrivate: string, roundPublic: string, room: 
   const secret = fromBase64Url(roundPrivate)
   const bytes = fromBase64Url(sealed)
   if (!secret || secret.length !== 32 || !bytes) return null
-  const pair = await agreementKeyPair(secret)
-  if (toBase64Url(pair.publicKey) !== roundPublic) return null
-  const plain = await openFrom(pair, bytes, aadOf(room, voter, roundPublic))
+  // Another key than the round's opens nothing: the ballot was sealed to the round's public half, which is also in the AAD.
+  const plain = await openFrom(await agreementKeyPair(secret), bytes, aadOf(room, voter, roundPublic))
   if (plain?.length !== CARD_RECORD_BYTES) return null
   const index = /^c(\d{1,2}) *$/.exec(fromUtf8(plain))?.[1]
   return index === undefined ? null : Number(index)

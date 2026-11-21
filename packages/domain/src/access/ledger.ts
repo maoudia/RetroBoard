@@ -188,9 +188,6 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
     // A takeover is the facilitator link at work: signed by the capability key, never by a co-facilitator's session key.
     if (body.t === 'role.claim' && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
-  } else if (body.t === 'poker') {
-    // The moderator steers, anyone votes (the reducer reads the same capability).
-    if (isPrivileged(body) && !ledger.facilitators.includes(author)) return ignore(ledger, 'not-facilitator')
   } else if (body.t === 'cmd' && (body.cmd.t === 'board.destroy' || holdsSealedBallot(body.cmd)) && !ledger.facilitators.includes(author)) {
     // Closing the board and the sealed ballot are never delegated to "everyone": they need the facilitator capability even on an open board.
     return ignore(ledger, 'not-facilitator')

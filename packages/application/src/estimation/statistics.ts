@@ -46,27 +46,23 @@ export const isNumericDeck = (deck: readonly string[]): boolean => {
   return plain.length > 0 && plain.every((c) => cardValue(c) !== null)
 }
 
-const EMPTY: Statistics = { cast: 0, counted: 0, counts: [], ordinal: false, average: null, median: null, mode: [], spread: null, consensus: 0, unanimous: false, suggestion: null }
+const nothing = (ordinal: boolean): Statistics => ({ cast: 0, counted: 0, counts: [], ordinal, average: null, median: null, mode: [], spread: null, consensus: 0, unanimous: false, suggestion: null })
 
 /** `picks` are deck indexes (what a ballot opens to); an index outside the deck is not a card and is left out. */
 export function roundStatistics(deck: readonly string[], picks: readonly number[]): Statistics {
   const cards = picks.filter((i) => Number.isInteger(i) && i >= 0 && i < deck.length)
   const ordinal = !isNumericDeck(deck)
-  if (cards.length === 0) return { ...EMPTY, ordinal }
+  if (cards.length === 0) return nothing(ordinal)
   const tally = new Map<number, number>()
   for (const i of cards) tally.set(i, (tally.get(i) ?? 0) + 1)
   const counts = [...tally].sort(([a], [b]) => a - b).map(([i, votes]) => ({ card: deck[i]!, votes }))
   const top = Math.max(...tally.values())
 
-  // Ranks: the value of a numeric card, the place among the non-special cards of an ordinal deck. Special cards have none.
-  const plain = deck.map((card, i) => ({ card, i })).filter((c) => !isSpecialCard(c.card))
-  const rankOf = (i: number): number | null => {
-    if (isSpecialCard(deck[i]!)) return null
-    return ordinal ? plain.findIndex((c) => c.i === i) : cardValue(deck[i]!)
-  }
-  const ranked = cards.map((i) => ({ i, rank: rankOf(i) })).filter((c): c is { i: number; rank: number } => c.rank !== null).sort((a, b) => a.rank - b.rank || a.i - b.i)
+  // Ranks: the value of a numeric card, the place in the deck of a card of an ordinal deck. Special cards have none.
+  const rankOf = (i: number): number | null => (ordinal ? (isSpecialCard(deck[i]!) ? null : i) : cardValue(deck[i]!))
+  const ranked = cards.map((i) => ({ i, rank: rankOf(i) })).filter((c): c is { i: number; rank: number } => c.rank !== null).sort((a, b) => a.rank - b.rank)
   const base = { cast: cards.length, counts, ordinal, consensus: top / cards.length, unanimous: tally.size === 1 }
-  if (ranked.length === 0) return { ...EMPTY, ...base, counted: 0 }
+  if (ranked.length === 0) return { ...nothing(ordinal), ...base }
 
   const modeTop = Math.max(...[...tally].filter(([i]) => rankOf(i) !== null).map(([, n]) => n))
   const mode = [...tally].filter(([i, n]) => rankOf(i) !== null && n === modeTop).sort(([a], [b]) => a - b).map(([i]) => deck[i]!)
@@ -90,13 +86,8 @@ function stepsBetween(deck: readonly string[], from: number, to: number): number
   return deck.slice(Math.min(from, to) + 1, Math.max(from, to) + 1).filter((c) => !isSpecialCard(c)).length
 }
 
-/** The numeric card nearest to `value`; the higher one when two are as near. */
-function nearestCard(deck: readonly string[], value: number): string | null {
-  let best: { card: string; value: number } | null = null
-  for (const card of deck) {
-    const v = cardValue(card)
-    if (v === null) continue
-    if (!best || Math.abs(v - value) < Math.abs(best.value - value) || (Math.abs(v - value) === Math.abs(best.value - value) && v > best.value)) best = { card, value: v }
-  }
-  return best?.card ?? null
+/** The numeric card nearest to `value` (a deck with a counted numeric card has one); the higher one when two are as near, the first of the deck when they are the same number. */
+function nearestCard(deck: readonly string[], value: number): string {
+  const numeric = deck.flatMap((card) => { const v = cardValue(card); return v === null ? [] : [{ card, v }] })
+  return numeric.sort((a, b) => Math.abs(a.v - value) - Math.abs(b.v - value) || b.v - a.v)[0]!.card
 }

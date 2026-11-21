@@ -20,6 +20,8 @@ describe('preset decks', () => {
     expect(presetOf(presetCards('tshirt'))).toBe('tshirt')
     expect(presetOf(['1', '2', '3'])).toBeNull()
     expect(presetOf(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'X'])).toBeNull()
+    expect(presetOf([...presetCards('tshirt'), 'XXXL'])).toBeNull()
+    expect(presetOf(presetCards('tshirt').slice(0, 6))).toBeNull()
   })
 
   it('know the special cards', () => {
