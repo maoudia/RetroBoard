@@ -127,7 +127,7 @@ h1 { margin: 0; font-size: var(--fs-3xl); line-height: 1.1; }
 .hues { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; grid-template-columns: repeat(3, 44px); gap: var(--sp-2); }
 .picked { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
 .dot { position: relative; display: inline-grid; place-items: center; min-block-size: 44px; min-inline-size: 44px; border-radius: 999px; cursor: pointer; }
-.dot input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.dot input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .disc { inline-size: 28px; block-size: 28px; border-radius: 50%; }
 /* The Theme swatch is half the accent and half the surface of the page: the colours the card back has when nobody picks a hue. */
 .disc.theme { background: linear-gradient(135deg, var(--accent) 50%, var(--surface) 50%); border: 2px solid var(--muted); box-sizing: border-box; }
