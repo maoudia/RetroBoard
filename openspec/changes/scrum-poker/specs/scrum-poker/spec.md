@@ -12,11 +12,11 @@ A person SHALL be able to start a poker room with a name and a deck and no accou
 - **THEN** the relay carries only ciphertext, sizes and timing and keeps nothing after the last participant leaves
 
 ### Requirement: Sealed cards revealed together
-A voter's card SHALL stay hidden from everyone, including modified clients, until the moderator reveals the round, and the reveal SHALL show every card to everyone at once. The table SHALL show who has voted without showing the value.
+A voter's card SHALL stay hidden from every other participant, including a modified client, until the moderator reveals the round, and the reveal SHALL show every card to everyone at once. The table SHALL show who has voted without showing the value. The moderator's own device holds the key of the round and is trusted not to read cards early; the interface SHALL never show a card before the reveal and the help SHALL say who is trusted.
 
 #### Scenario: Before the reveal
 - **WHEN** three of four voters have chosen a card
-- **THEN** the table shows three face-down cards and one waiting seat, and no value is visible to anyone
+- **THEN** the table shows three face-down cards and one waiting seat, and no value is visible to anyone, and no voter's client can open another voter's card
 
 #### Scenario: Reload mid-round
 - **WHEN** a voter reloads the page after choosing a card
@@ -64,15 +64,19 @@ The room SHALL offer Fibonacci, modified Fibonacci, T-shirt sizes, powers of two
 - **THEN** it is refused with a message and the previous deck stays
 
 ### Requirement: Roles and limits
-The creator SHALL moderate by default and MAY transfer the role or let everyone moderate. Observers SHALL watch without a card. A room SHALL cap its voters at a documented number chosen so that the relay fallback stays inside its budgets.
+The creator SHALL moderate by default and MAY transfer the role or let everyone moderate. Observers SHALL watch without a card. A room SHALL cap its voters at 20 (the figure of ADR-0042, chosen inside the 30 connections of a room so that the relay fallback stays inside its budgets), and every replica SHALL apply the cap the same way.
 
 #### Scenario: A voter cannot reveal
 - **WHEN** a voter tries to reveal or decide while one moderator is set
 - **THEN** the action is refused
 
 #### Scenario: Room full
-- **WHEN** a voter joins a room at its cap
-- **THEN** they are offered to join as an observer
+- **WHEN** a voter joins a room that already has 20 voters
+- **THEN** they are offered to join as an observer, and a card they send anyway is ignored by every participant
+
+#### Scenario: Moderator changes in the middle of a round
+- **WHEN** the moderator role is transferred while cards are sealed and not yet revealed
+- **THEN** the round starts again with the new moderator and the voters choose again
 
 ### Requirement: Accessible and themed table
 The hand SHALL be operable by keyboard with the digit keys, the table and results SHALL meet WCAG 2.2 AA, motion SHALL respect reduced-motion settings, and the cards and table SHALL use the retro themes.
