@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.62.0](https://github.com/maoudia/RetroBoard/compare/v1.61.1...v1.62.0) (2026-11-21)
+
+
+### Features
+
+* **web:** Scrum Poker demo behind a build flag, off by default (change scrum-poker) ([856b63f](https://github.com/maoudia/RetroBoard/commit/856b63fe0649a38e935fbddce3ed0705fe47cd39))
+
+
+### Bug Fixes
+
+* **web:** long strings stay inside dialogs and the phase line ends in an ellipsis (change fix-long-strings-layout) ([9dfbffb](https://github.com/maoudia/RetroBoard/commit/9dfbffb379d77d3293108ea87736ec18c0cb6d92))
+* **web:** the chat dock leaves the agenda strip visible (change fix-chat-dock-over-agenda-strip) ([610b050](https://github.com/maoudia/RetroBoard/commit/610b050003b7cc2fe91d19c3876e5132525f33db))
+
 ## [1.61.1](https://github.com/maoudia/RetroBoard/compare/v1.61.0...v1.61.1) (2026-11-20)
 
 
