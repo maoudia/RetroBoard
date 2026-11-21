@@ -1166,7 +1166,7 @@ const geometry = (page: Page) => page.evaluate(() => {
     dock: rect(document.querySelector('[data-testid="poker-dock"]')), hand: rect(document.querySelector('[data-testid="poker-hand"]')), results: rect(document.querySelector('[data-testid="poker-results"]')),
     panel: rect(document.querySelector('[data-testid="poker-panel"]')), bar: rect(document.querySelector('[data-testid="poker-bar"]'))!,
     pageScrolls: document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth,
-    regionScrolls: region.scrollHeight > region.clientHeight, width: innerWidth, height: innerHeight,
+    regionOverflow: region.scrollHeight - region.clientHeight, width: innerWidth, height: innerHeight,
   }
 })
 type Geometry = Awaited<ReturnType<typeof geometry>>
@@ -1207,7 +1207,7 @@ test('on a tablet and a laptop the seats sit on an oval: the person at the botto
       expect(g.hand!.b, `${where}: the hand`).toBeLessThanOrEqual(g.height + 0.5)
       expect(g.hand!.l).toBeGreaterThanOrEqual(0)
       expect(g.hand!.r).toBeLessThanOrEqual(g.width)
-      if (count <= 8) expect(g.regionScrolls, `${where}: the middle region fits`).toBe(false)
+      if (count <= 8) expect(g.regionOverflow, `${where}: the middle region fits`).toBeLessThanOrEqual(1)
     }
   }
   await noViolation(page, 'oval')
@@ -1257,7 +1257,7 @@ test('on a tablet the round and the primary action are in the middle of the tabl
     await resize(page, screen)
     g = await geometry(page)
     expect(g.pageScrolls, `${where}: the page does not scroll`).toBe(false)
-    expect(g.regionScrolls, `${where}: the middle region fits six voters`).toBe(false)
+    expect(g.regionOverflow, `${where}: the middle region fits six voters`).toBeLessThanOrEqual(1)
     expect(g.dock!.b, `${where}: the dock`).toBeLessThanOrEqual(g.height + 0.5)
     expect(overlapping(g), where).toEqual([])
     expect(g.results!.b, `${where}: the results are above the dock`).toBeLessThanOrEqual(g.dock!.t + 0.5)

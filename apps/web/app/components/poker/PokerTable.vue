@@ -57,7 +57,7 @@ const size = computed(() => (places.value <= 8 ? 'l' : places.value <= 14 ? 'm' 
     .stage {
       --scale: var(--type-scale, 1);
       --seat-w: calc(96px * var(--scale)); --seat-h: calc(120px * var(--scale)); --stage-min: calc(480px * var(--scale));
-      position: relative; inline-size: 100%; block-size: 100%; min-block-size: var(--stage-min);
+      position: relative; inline-size: 100%; min-block-size: var(--stage-min);
     }
     .stage[data-size="m"] { --seat-w: calc(80px * var(--scale)); --seat-h: calc(104px * var(--scale)); --stage-min: calc(660px * var(--scale)); }
     .stage[data-size="s"] { --seat-w: calc(64px * var(--scale)); --seat-h: calc(92px * var(--scale)); --stage-min: calc(800px * var(--scale)); }

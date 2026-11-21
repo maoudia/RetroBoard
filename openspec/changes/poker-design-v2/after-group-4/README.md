@@ -45,20 +45,20 @@ For rooms of 3, 6, 8, 14 and 20 people with 24-character names, voting and revea
 | 8 | revealed | 1600x900 | 108x131 | 54 | 0 | 0 | yes | no | no | in |
 | 8 | revealed | 2560x1440 | 144x172 | 72 | 0 | 0 | yes | no | no | in |
 | 14 | voting | 768x1024 | 80x107 | 40 | 0 | 0 | yes | no | no | in |
-| 14 | voting | 1280x800 | 80x107 | 40 | 0 | 0 | yes | no | 102 | in |
-| 14 | voting | 1600x900 | 90x119 | 45 | 0 | 0 | yes | no | 98 | in |
+| 14 | voting | 1280x800 | 80x107 | 40 | 0 | 0 | yes | no | 94 | in |
+| 14 | voting | 1600x900 | 90x119 | 45 | 0 | 0 | yes | no | 90 | in |
 | 14 | voting | 2560x1440 | 120x155 | 60 | 0 | 0 | yes | no | no | in |
 | 14 | revealed | 768x1024 | 80x107 | 40 | 0 | 0 | yes | no | no | in |
 | 14 | revealed | 1280x800 | 80x107 | 40 | 0 | 0 | yes | no | no | in |
 | 14 | revealed | 1600x900 | 90x119 | 45 | 0 | 0 | yes | no | no | in |
 | 14 | revealed | 2560x1440 | 120x155 | 60 | 0 | 0 | yes | no | no | in |
-| 20 | voting | 768x1024 | 64x93 | 32 | 0 | 0 | yes | no | 109 | in |
-| 20 | voting | 1280x800 | 64x93 | 32 | 0 | 0 | yes | no | 242 | in |
-| 20 | voting | 1600x900 | 72x104 | 36 | 0 | 0 | yes | no | 255 | in |
-| 20 | voting | 2560x1440 | 96x135 | 48 | 0 | 0 | yes | no | 52 | in |
-| 20 | revealed | 768x1024 | 64x93 | 32 | 0 | 0 | yes | no | 140 | in |
-| 20 | revealed | 1280x800 | 64x93 | 32 | 0 | 0 | yes | no | 141 | in |
-| 20 | revealed | 1600x900 | 72x104 | 36 | 0 | 0 | yes | no | 141 | in |
+| 20 | voting | 768x1024 | 64x93 | 32 | 0 | 0 | yes | no | 93 | in |
+| 20 | voting | 1280x800 | 64x93 | 32 | 0 | 0 | yes | no | 234 | in |
+| 20 | voting | 1600x900 | 72x104 | 36 | 0 | 0 | yes | no | 247 | in |
+| 20 | voting | 2560x1440 | 96x135 | 48 | 0 | 0 | yes | no | 44 | in |
+| 20 | revealed | 768x1024 | 64x93 | 32 | 0 | 0 | yes | no | 132 | in |
+| 20 | revealed | 1280x800 | 64x93 | 32 | 0 | 0 | yes | no | 133 | in |
+| 20 | revealed | 1600x900 | 72x104 | 36 | 0 | 0 | yes | no | 133 | in |
 | 20 | revealed | 2560x1440 | 96x135 | 48 | 0 | 0 | yes | no | no | in |
 
 No pair of seats overlaps and none leaves the stage in any of the 40 rows; the page never scrolls; the hand and the dock are always inside the viewport. The middle region scrolls for 9 or more people on some screens (the stage keeps the minimum height its seat count needs, 480, 660 and 800 px, times the type scale), never for up to 8 on a tablet or a laptop.
