@@ -338,12 +338,14 @@ test('a visitor finds Scrum Poker from the landing page and the library, marked 
   await expect(page.getByTestId('poker-start')).toBeVisible()
   await expect(page.getByTestId('poker-start').getByTestId('beta-tag')).toBeVisible()
 
-  // The language is one tap away on the page itself.
-  await page.getByTestId('poker-lang-en').click()
+  // The language is in the profile dialog behind the avatar, as on every page of the application.
+  await page.getByTestId('btn-profile').click()
+  await page.getByTestId('pref-lang-en').click()
   await expect(page.getByTestId('poker-start-action')).toHaveText(/Create the room/)
-  await page.getByTestId('poker-lang-fr').click()
+  await page.getByTestId('pref-lang-fr').click()
   await expect(page.getByTestId('poker-start-action')).toHaveText(/Créer la salle/)
-  await page.getByTestId('poker-home').click()
+  await page.keyboard.press('Escape')
+  await page.getByTestId('app-home').click()
   await expect(page.getByTestId('hero-title')).toBeVisible()
 
   // The library page lists it too.
@@ -777,7 +779,7 @@ test('twenty voters: only the middle region scrolls, the bar and the dock stay w
   await close()
 })
 
-test('the bar of a phone: back, the round with one status line, Invite and a menu, each a 44 px target; Reveal is 48 px', async ({ browser, browserName }) => {
+test('the bar of a phone: the mark, the round with one status line, Invite, light or dark and the profile; Reveal is 48 px', async ({ browser, browserName }) => {
   test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
   const ctx = await english(browser)
   const page = await ctx.newPage()
@@ -789,16 +791,19 @@ test('the bar of a phone: back, the round with one status line, Invite and a men
   // No "Connected", no visible heading for the table, no printed link, no language pair on the page.
   await expect(page.getByTestId('poker-room')).not.toContainText(/Connected|Connecté/)
   await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0)
-  await expect(page.locator('input[readonly], [data-testid="poker-lang-en"]:visible, [data-testid="poker-qr-toggle"]')).toHaveCount(0)
+  await expect(page.locator('input[readonly], [data-testid="pref-lang-en"]:visible, [data-testid="poker-qr-toggle"]')).toHaveCount(0)
   expect((await page.getByTestId('poker-bar').boundingBox())!.height).toBeGreaterThanOrEqual(56)
-  for (const id of ['poker-home', 'poker-invite', 'poker-menu']) {
+  // The bar is the application's bar: the mark that leads home, Invite first of the tools, light or dark and the profile. The tools are 44 px;
+  // the mark and the avatar are the sizes they have on a board (a phone: 34 and 38 px, over the 24 px of WCAG 2.5.8).
+  for (const [id, least] of [['app-home', 34], ['poker-invite', 44], ['btn-variant', 44], ['btn-profile', 38]] as const) {
     const b = (await page.getByTestId(id).boundingBox())!
-    expect(b.width, id).toBeGreaterThanOrEqual(44)
-    expect(b.height, id).toBeGreaterThanOrEqual(44)
+    expect(b.width, id).toBeGreaterThanOrEqual(least)
+    expect(b.height, id).toBeGreaterThanOrEqual(least)
   }
+  expect(await page.getByTestId('poker-bar').locator('nav.tools > *').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')))).toEqual(['poker-invite', 'btn-variant', 'btn-profile'])
   // The label of Invite is for a tablet and up: on a phone its name comes from the aria-label.
   await expect(page.getByTestId('poker-invite')).toHaveAccessibleName('Invite')
-  await expect(page.getByTestId('poker-invite').locator('.label')).toBeHidden()
+  expect((await page.getByTestId('poker-invite').locator('.label').boundingBox())!.width).toBeLessThanOrEqual(1)
   // The primary of a phone is 48 px: Invite while alone, Reveal with the first card.
   expect((await page.getByTestId('poker-invite-cta').boundingBox())!.height).toBeGreaterThanOrEqual(48)
   await page.locator('.pick').nth(5).tap()
@@ -811,35 +816,52 @@ test('the bar of a phone: back, the round with one status line, Invite and a men
   await ctx.close()
 })
 
-test('the overflow menu holds the language, light or dark and the way back; the choice of light or dark persists', async ({ browser, browserName }) => {
+test('the poker pages have the bar of the application: the profile dialog holds the name, the language, the theme and the help; light or dark persists', async ({ browser, browserName }) => {
   test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
   const ctx = await english(browser)
   const page = await ctx.newPage()
+  await page.addInitScript(() => { try { localStorage.setItem('retroboard:identity', JSON.stringify({ cid: 'c'.repeat(16), name: 'Malaka', showName: true, named: true })) } catch { /* ignore */ } })
   await soloRoom(page)
   await page.emulateMedia({ colorScheme: 'light' })
   await page.evaluate(() => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ uiMode: 'advanced', variant: 'light' })) } catch { /* ignore */ } })
   await page.reload()
   await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
   await expect(page.locator('html')).toHaveAttribute('data-variant', 'light')
-  await page.getByTestId('poker-menu').click()
-  for (const id of ['poker-lang-en', 'poker-lang-fr', 'poker-variant', 'poker-menu-idea', 'poker-menu-home']) {
-    await expect(page.getByTestId(id)).toBeVisible()
-    expect((await page.getByTestId(id).boundingBox())!.height, id).toBeGreaterThanOrEqual(48)
-  }
-  await expect(page.getByTestId('poker-lang-en')).toHaveAttribute('aria-checked', 'true')
-  await noViolation(page, 'menu')
-  await page.getByTestId('poker-variant').click()
+  // The avatar is the profile of this browser, and the dialog behind it is the one of every page: name, language, theme, settings, the guide of the page and the ways to give feedback.
+  await expect(page.getByTestId('btn-profile')).toHaveText('M')
+  await page.getByTestId('btn-profile').click()
+  await expect(page.getByTestId('profile-name')).toHaveValue('Malaka')
+  await expect(page.getByTestId('pref-lang-en')).toBeVisible()
+  await expect(page.getByTestId('guide-link-poker')).toHaveAttribute('href', /\/guide\/en\/poker\.html$/)
+  await expect(page.getByTestId('feedback-idea')).toBeVisible()
+  await noViolation(page, 'profile')
+  await page.getByTestId('pref-lang-fr').click()
+  await expect(page.getByTestId('poker-round')).toHaveText('Tour 1')
+  await page.keyboard.press('Escape')
+  // Light or dark is one press and is kept on this device.
+  await page.getByTestId('btn-variant').click()
   await expect(page.locator('html')).toHaveAttribute('data-variant', 'dark')
-  // The choice is kept on this device: after a reload the room is dark again; the language follows the menu too.
   await page.reload()
   await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
   await expect(page.locator('html')).toHaveAttribute('data-variant', 'dark')
-  await page.getByTestId('poker-menu').click()
-  await page.getByTestId('poker-lang-fr').click()
-  await expect(page.getByTestId('poker-round')).toHaveText('Tour 1')
-  await page.getByTestId('poker-menu').click()
-  await page.getByTestId('poker-menu-home').click()
+  await page.getByTestId('app-home').click()
   await expect(page).toHaveURL(/\/$/)
+  await ctx.close()
+})
+
+test('the name typed on the name step is the name of this browser: the avatar and the profile follow it', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const ctx = await english(browser)
+  const page = await ctx.newPage()
+  await page.goto('/poker')
+  await expect(page.getByTestId('btn-profile')).toHaveText('?')
+  await page.getByTestId('poker-start-action').click()
+  await page.getByTestId('poker-name').fill('Zoe')
+  await page.getByTestId('poker-name-join').click()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(page.getByTestId('btn-profile')).toHaveText('Z')
+  await page.getByTestId('btn-profile').click()
+  await expect(page.getByTestId('profile-name')).toHaveValue('Zoe')
   await ctx.close()
 })
 
@@ -1429,7 +1451,7 @@ test('on a TV the content grows with the type scale and the chrome does not; a p
   const measure = () => page.evaluate(() => {
     const box = (sel: string) => { const r = document.querySelector(sel)!.getBoundingClientRect(); return { w: r.width, h: r.height } }
     const font = (sel: string) => parseFloat(getComputedStyle(document.querySelector(sel)!).fontSize)
-    return { card: box('[data-testid="poker-seat"] .pcard'), seat: box('[data-testid="poker-seat"]'), bar: box('[data-testid="poker-bar"]'), reveal: box('[data-testid="poker-reveal"]'), name: font('[data-testid="poker-seat"] .name'), round: font('[data-testid="poker-felt"] .round'), menu: box('[data-testid="poker-menu"]') }
+    return { card: box('[data-testid="poker-seat"] .pcard'), seat: box('[data-testid="poker-seat"]'), bar: box('[data-testid="poker-bar"]'), reveal: box('[data-testid="poker-reveal"]'), name: font('[data-testid="poker-seat"] .name'), round: font('[data-testid="poker-felt"] .round'), menu: box('[data-testid="btn-variant"]') }
   })
   const laptop = await measure()
   await resize(page, TV)

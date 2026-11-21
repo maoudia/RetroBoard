@@ -244,6 +244,7 @@ async function wipe() {
       </div>
     </section>
     <ConfirmDialog v-model:open="wipeAsk" danger :title="t('profile.wipe.title')" :confirm-label="t('profile.wipeBtn')" :message="t('profile.wipe.msg')" @confirm="wipe" />
+    <LazyProfileHelp />
     <LegalLinks class="legal" />
   </BaseDialog>
 </template>

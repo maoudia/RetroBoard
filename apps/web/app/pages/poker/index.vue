@@ -23,6 +23,8 @@ const chosen = computed<PresetId | 'custom'>(() => (custom.value ? 'custom' : pi
 const problem = computed(() => (deck.value.ok ? '' : pt(`poker.deck.error.${deck.value.error}` as `poker.deck.error.${DeckError}`)))
 /** The hue of the card backs of the room, or null for the colours of the theme. */
 const hue = ref<number | null>(null)
+// The avatar of the bar is the profile of this browser, as on every page.
+onMounted(() => useIdentityStore().load())
 const back = computed(() => backColour(hue.value))
 
 /** The word for a hue, or for the theme's own colours. */

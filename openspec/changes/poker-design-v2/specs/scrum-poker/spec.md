@@ -199,15 +199,19 @@ Every replica SHALL accept the decision of an estimate only from the moderator, 
 - **THEN** every replica ignores it
 
 ### Requirement: At most one filled button
-A person SHALL see at most one filled button in the room, and a voter none. Every labelled button SHALL have an icon at its left and a height of at least 44 px, 48 px for the primary on a phone. Language, light or dark and the way back to RetroBoard SHALL be in the overflow menu, not in the dock or the page.
+A person SHALL see at most one filled button in the room, and a voter none. Every labelled button SHALL have an icon at its left and a height of at least 44 px, 48 px for the primary on a phone. Language, theme, settings, help and the way back to RetroBoard SHALL be in the bar of the application (its profile dialog and its mark), not in the dock or the page.
 
 #### Scenario: Count of filled buttons
 - **WHEN** any state is shown to any role
 - **THEN** it has at most one filled button and every labelled button has an icon and at least 44 px
 
-#### Scenario: The overflow menu
-- **WHEN** a person opens the overflow menu
-- **THEN** it offers the language, light or dark and the way back, and the choice of light or dark persists on this device
+#### Scenario: The bar of the application
+- **WHEN** a person opens the start page, the name step or a room
+- **THEN** the bar is the one of a board (the mark of RetroBoard that leads home, the tools at the right with Invite first as Share is on a board, the light or dark button and the avatar last), the avatar opens the profile dialog of every page (name, language, theme, settings, the guide of the page and the ways to give feedback), and the choice of light or dark persists on this device
+
+#### Scenario: The same profile
+- **WHEN** a person types a name on the name step
+- **THEN** that name is the name of this browser: the avatar of the bar and the profile dialog show it, as they do after a name is typed on a board
 
 ### Requirement: The moderator's filled button follows the state
 The moderator's filled button SHALL be Invite when alone and no card is in, Reveal once a card is in and the round is not revealed, and after the reveal Next round when the agreement is strong or full and Vote again when it is some or none. Vote again SHALL stay on the left and Next round on the right, the other being quiet, and neither SHALL glow.

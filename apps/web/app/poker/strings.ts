@@ -8,8 +8,6 @@ import { currentLocale } from '~/i18n'
 
 export const pokerFr = {
   'poker.pageTitle': 'Scrum Poker',
-  'poker.home': 'Retour à RetroBoard',
-  'poker.language': 'Langue',
   'poker.name.hint': 'Un simple nom. Pas de compte.',
   'poker.start.title': 'Scrum Poker',
   'poker.start.lead': 'Estimez ensemble. Personne ne voit une carte avant la révélation.',
@@ -96,8 +94,8 @@ export const pokerFr = {
   'poker.board.open': 'Ouvrir le tableau',
   'poker.error.link': 'Ce lien ne correspond à aucune salle.',
   'poker.back': 'Retour',
-  'poker.menu': 'Menu',
   'poker.invite': 'Inviter',
+  'poker.tools': 'Outils de la salle',
   'poker.invite.cta': 'Inviter votre équipe',
   'poker.invite.copy': 'Copier le lien',
   'poker.invite.copied': 'Lien copié',
@@ -122,8 +120,6 @@ export type PokerKey = keyof typeof pokerFr
 
 export const pokerEn: Record<PokerKey, string> = {
   'poker.pageTitle': 'Scrum Poker',
-  'poker.home': 'Back to RetroBoard',
-  'poker.language': 'Language',
   'poker.name.hint': 'Only a name. No account.',
   'poker.start.title': 'Scrum Poker',
   'poker.start.lead': 'Estimate together. Nobody sees a card until the reveal.',
@@ -210,8 +206,8 @@ export const pokerEn: Record<PokerKey, string> = {
   'poker.board.open': 'Open the board',
   'poker.error.link': 'This link does not match any room.',
   'poker.back': 'Back',
-  'poker.menu': 'Menu',
   'poker.invite': 'Invite',
+  'poker.tools': 'Room tools',
   'poker.invite.cta': 'Invite your team',
   'poker.invite.copy': 'Copy link',
   'poker.invite.copied': 'Link copied',

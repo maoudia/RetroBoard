@@ -58,7 +58,11 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // router table, the redirect of a poker link opened as a board (a notice of the board transport and store) and nothing else (56.3 kB measured, 56.0 before).
 // The poker pages, their strings, decks and statistics are lazy chunks counted in the total (414.2 kB of 500 with them); the landing page chunk carries the
 // three entry labels. Raise it only on purpose.
-const BUDGET = { entryKb: 56.5, totalKb: 500 }
+// 2026-11-21: entry raised from 56.5 to 56.6 kB (56.5 measured at the limit before) for the help of the profile dialog (change poker-design-v2, the shell of the
+// poker pages): the dialog that every page shares gets the guide of the page and the feedback links, and the entry carries only the lazy wrapper of that
+// component (about 0.1 kB; the component, the guide link and the feedback links are a lazy chunk). The poker bar reuses the toolbar's mark, its light or dark
+// button (which reads the variant from the root, so that the theme store does not move into the entry) and the avatar.
+const BUDGET = { entryKb: 56.6, totalKb: 500 }
 const OPT_IN = [/initializeWebModelContext/]
 // A small chunk is opt-in only by an exact marker (the size guard below protects the big ones from a stray match). 2026-11-19, user-drive-storage:
 // the chunks that load only once a person connects a sync target are opt-in like the WebMCP polyfill, so they are reported and not counted: the
