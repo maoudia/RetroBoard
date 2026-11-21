@@ -116,6 +116,8 @@ The spike ran as two Chromium contexts against `wrangler dev` (the Worker and th
 
 At the owner's request the proof became a runnable demo behind a flag that is off by default (`NUXT_PUBLIC_POKER_DEMO=1` at build time; `docs/DEVELOPMENT.md` has the commands and what to click). It is the same protocol as the spike client, one card per voter per round, in `apps/web/app/poker/`, with its own unit tests (`apps/web/test/poker-demo.test.ts`: sealing, the fold, two clients through a relay stand-in, the cap of 20) and a two-tab e2e spec (`tests/e2e/poker-demo.spec.ts`, skipped on a normal build). Without the flag the routes, the code and the strings are not in the build.
 
+Update, release 1.63 (ADR-0044): the flag was removed; the pages are in every build as lazy routes, marked beta, and the spec runs on every build.
+
 Not verified, to be covered by the next groups: the WebRTC mesh path (the specs that need it run only in CI), the real transport class with a poker fold (the seam above is read, not built; the demo has its own relay-only client), 20 real browsers, the hibernation delay in production, and the figures of the budget model that are assumptions (stories an hour, vote changes, 2 re-seed frames a join, 2 to 4 page requests a person).
 
 ### Constraints handed to the next groups
