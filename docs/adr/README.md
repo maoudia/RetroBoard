@@ -55,3 +55,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0042](0042-a-poker-room-is-a-second-room-kind-on-the-same-transport.md) | A poker room is a second room kind on the same transport | accepted | 2026-11-21 |
 | [0043](0043-jira-estimates-come-in-by-paste-and-csv-never-by-a-token.md) | Jira estimates come in by paste and CSV, never by a token we hold | proposed | 2026-11-20 |
 | [0044](0044-scrum-poker-ships-in-every-build-lazy-and-marked-beta.md) | Scrum Poker ships in every build, lazy and marked beta | accepted | 2026-11-21 |
+| [0045](0045-a-board-can-host-the-estimation-rounds-of-a-phase-in-its-own-ledger.md) | A board can host the estimation rounds of a phase in its own ledger | proposed | 2026-11-21 |
