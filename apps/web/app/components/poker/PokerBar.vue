@@ -1,29 +1,32 @@
 <script setup lang="ts">
-// The top line of the pages that come before a room (change poker-design-v2, K10): the start page (the way back and the language, as the pill of the
-// landing page) and the name step (the way back, the name of the page and the overflow menu of the room). Same height as the bar of a room.
-import PokerMenu from '~/components/poker/PokerMenu.vue'
+// The bar of every Scrum Poker page (change poker-design-v2): the application's own bar (`AppBar`, the one of a board) with the poker tools in the place
+// the board puts its equivalent: Invite is the first tool, as Share is on a board. A room shows the round with one status line; the start page and the
+// name step show the name of the page. Language, theme, settings, help and guide links are in the profile dialog of the avatar, as everywhere.
 import { pt } from '~/poker/strings'
 
-/** With a title the bar is the one of a step in a room (the name step, a bad link); without one it is the one of the start page. */
-defineProps<{ title?: string }>()
+/** `status` and `state` make it the bar of a room (the round is the page's heading); without them it is the name of the page. `invite` adds the Invite tool. */
+defineProps<{ title: string; status?: string; state?: string; invite?: boolean }>()
+const emit = defineEmits<{ invite: [event: Event] }>()
 </script>
 
 <template>
-  <header class="top" data-testid="poker-bar">
-    <NuxtLink v-if="title" to="/" class="btn btn-ghost round" :aria-label="pt('poker.home')" :title="pt('poker.home')" data-testid="poker-home"><Icon name="lucide:arrow-left" /></NuxtLink>
-    <NuxtLink v-else to="/" class="btn btn-sm back" :aria-label="pt('poker.home')" :title="pt('poker.home')" data-testid="poker-home"><Icon name="lucide:arrow-left" /> RetroBoard</NuxtLink>
-    <p v-if="title" class="name">{{ title }}</p>
-    <PokerMenu v-if="title" />
-    <LocaleSwitch v-else class="pill" test-prefix="poker-" />
-  </header>
+  <AppBar data-testid="poker-bar" :tools-label="pt('poker.tools')">
+    <template #title>
+      <div v-if="status !== undefined" class="titles">
+        <h1 data-testid="poker-round">{{ title }}</h1>
+        <p class="status" data-testid="poker-status" :data-status="state">{{ status }}</p>
+      </div>
+      <p v-else class="name" data-testid="poker-name-of-page">{{ title }}</p>
+    </template>
+    <button v-if="invite" type="button" class="icon-btn" :aria-label="pt('poker.invite')" :title="pt('poker.invite')" data-testid="poker-invite" @click="emit('invite', $event)">
+      <Icon name="lucide:user-plus" class="ico" /><span class="label">{{ pt('poker.invite') }}</span>
+    </button>
+  </AppBar>
 </template>
 
 <style scoped>
-.top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1); min-block-size: 56px; padding: var(--sp-1) var(--sp-2); }
-.name { flex: 1; min-inline-size: 0; margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.round { min-block-size: 44px; min-inline-size: 44px; padding: 0; }
-.back { min-block-size: 44px; }
-/* The pill of the landing page, in the inks of the page (a dark room is dark) and with targets of 44 px. */
-.pill { --loc-ink: var(--muted); --loc-ink-on: var(--text); --loc-on: var(--surface); }
-.pill :deep(button) { min-block-size: 44px; min-inline-size: 44px; }
+.titles { display: grid; gap: 2px; min-inline-size: 0; }
+h1 { margin: 0; font-size: var(--fs-lg); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.status { margin: 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.name { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

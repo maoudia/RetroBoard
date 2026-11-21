@@ -16,7 +16,6 @@ const chat = useChatStore()
 const layout = useLayoutStore()
 /** The size every writing area shares, or null when columns differ (some have their own). */
 const theme = useThemeStore()
-const settings = useSettingsStore()
 const drafts = useDraftsStore()
 const { publish } = usePublish()
 /** Publishing is closed by the phase for me (facilitators are never blocked): the button says so instead of failing (#275). */
@@ -88,7 +87,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
 <template>
   <header ref="toolbarEl" class="toolbar glass" :data-folded="ui.chromeHidden ? '' : undefined">
     <div class="brand">
-      <NuxtLink to="/" class="logo" :aria-label="t('toolbar.home')"><Icon name="lucide:sparkles" /></NuxtLink>
+      <BrandLogo />
       <button class="title" type="button" :title="t('toolbar.rename')" data-testid="board-title" @click="ui.open('options')">
         <strong>{{ board.settings?.title }}</strong>
         <small class="muted">{{ theme.theme.name }}</small>
@@ -151,13 +150,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
       <ExportMenu />
       <ActivityFeed />
       <button class="icon-btn" type="button" data-testid="btn-options" @click="ui.open('options')"><Icon name="lucide:settings" class="ico" /><span>{{ t('toolbar.options') }}</span></button>
-      <button
-        class="icon-btn" type="button" data-testid="btn-variant" :aria-pressed="theme.variant === 'dark'"
-        :aria-label="t(theme.variant === 'dark' ? 'toolbar.variant.toLight' : 'toolbar.variant.toDark')"
-        @click="settings.patch({ variant: theme.variant === 'dark' ? 'light' : 'dark' })"
-      >
-        <Icon :name="theme.variant === 'dark' ? 'lucide:sun' : 'lucide:moon'" class="ico" />
-      </button>
+      <VariantToggle />
       <ProfileButton class="me" />
     </nav>
     <!-- The menus slide away and a chevron stays to bring them back: by hand, on scroll on phones, and by default in
@@ -173,8 +166,6 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
 .undo-pair { display: inline-flex; gap: 2px; }
 .toolbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 1rem; min-height: var(--toolbar-h); padding: .35rem 1rem; border-bottom: 1px solid var(--border); }
 .brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
-.logo { display: grid; place-items: center; width: 40px; height: 40px; flex: none; font-size: var(--fs-xl); border-radius: var(--r-card); background: var(--accent); color: var(--accent-ink); text-decoration: none; box-shadow: 0 6px 20px -6px var(--accent); transition: transform .2s var(--ease); }
-.logo:hover { transform: rotate(-8deg) scale(1.08); }
 .boards-head { display: block; padding: .3rem .5rem; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 /* Links and buttons of the menu look the same: the button reset was missing (change hotfix-ux-wave8). */
 .boards-new { display: flex; align-items: center; gap: .4rem; width: 100%; margin: 0; padding: .5rem .6rem; border: 0; border-radius: var(--r-sm); background: none; color: var(--accent); font: inherit; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; }
@@ -214,7 +205,6 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
 @media (max-width: 520px) {
   .toolbar { gap: .5rem; }
   .brand { gap: .35rem; }
-  .logo { width: 34px; height: 34px; }
   .title { padding-inline: .25rem; }
   .title small { display: none; }
   .brand :deep(.boards-btn) { display: none; }

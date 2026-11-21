@@ -11,7 +11,6 @@ import PokerHand from '~/components/poker/PokerHand.vue'
 import PokerStep from '~/components/poker/PokerStep.vue'
 import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
-import RoomBar from '~/components/poker/RoomBar.vue'
 import { PokerClient, type PokerView } from '~/poker/client'
 import { backColour } from '~/poker/card'
 import { useMedia } from '~/poker/media'
@@ -44,12 +43,22 @@ onMounted(() => {
   // The link people share never carries the moderator secret.
   shareUrl.value = `${location.origin}/poker/room#${formatInvite(participantRing(invite.ring), 'participant')}`
   try { name.value = sessionStorage.getItem(NAME_SLOT) ?? '' } catch { /* private mode: ask again */ }
-  // A reload keeps the seat; a first visit offers the name this browser already uses for boards, to confirm.
+  // The profile of this browser is the one of every page (the avatar of the bar). A reload keeps the seat; a first visit offers the name this browser already uses, to confirm.
+  const identity = useIdentityStore()
+  identity.load()
   const known = name.value.trim() !== ''
-  if (!known) { const identity = useIdentityStore(); identity.load(); name.value = identity.name }
+  if (!known) name.value = identity.name
   if (known) void join()
 })
 onBeforeUnmount(() => client?.close())
+
+/** The name typed here is the name of this browser from now on (the profile, the boards): it is what the step offered. */
+function submit() {
+  const identity = useIdentityStore()
+  const who = name.value.trim()
+  if (who && who !== identity.name) identity.set({ name: who, showName: identity.showName })
+  void join()
+}
 
 async function join() {
   const who = name.value.trim()
@@ -109,7 +118,7 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 <template>
   <main id="main" class="room" :class="{ live }" :style="room" data-testid="poker-room">
     <template v-if="live && view">
-      <RoomBar :title="title" :status="status" :state="view.status" @invite="openInvite" />
+      <PokerBar :title="title" :status="status" :state="view.status" invite @invite="openInvite" />
       <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="poker-live">{{ announcement }}</div>
       <div class="region" :class="{ beside }" tabindex="0" data-testid="poker-region">
         <section class="table" :aria-label="pt('poker.table.title')">
@@ -162,7 +171,7 @@ const action = computed<'invite' | 'reveal' | null>(() => {
       <InviteSheet v-model:open="inviteOpen" :url="shareUrl" />
     </template>
 
-    <PokerStep v-else-if="ring && !joined && !badLink" :title="pt('poker.pageTitle')" @submit="join">
+    <PokerStep v-else-if="ring && !joined && !badLink" @submit="submit">
       <h1><label for="poker-name">{{ pt('poker.name.label') }}</label></h1>
       <input id="poker-name" v-model="name" class="field" type="text" maxlength="24" autocomplete="nickname" data-testid="poker-name">
       <p class="line">{{ pt('poker.name.hint') }}</p>

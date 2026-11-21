@@ -2,15 +2,14 @@
 // The page of a step before the room (change poker-design-v2, K10): the start page and the name step share this one look. A bar, a column of
 // content and, in a form, one filled button: fixed at the foot of a phone (48 px, above the safe-area inset), in the flow from 600 px (56 px).
 import PokerBar from '~/components/poker/PokerBar.vue'
+import { pt } from '~/poker/strings'
 
-/** The title of the bar: set for the name step, absent on the start page (whose bar has the way back and the language). */
-defineProps<{ title?: string }>()
 const emit = defineEmits<{ submit: [] }>()
 </script>
 
 <template>
   <div class="step">
-    <PokerBar :title="title" />
+    <PokerBar :title="pt('poker.pageTitle')" />
     <form class="form" @submit.prevent="emit('submit')">
       <div class="body"><slot /></div>
       <div class="foot"><slot name="foot" /></div>

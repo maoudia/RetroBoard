@@ -172,7 +172,7 @@ The sheet is a `BaseDialog` like the board's share dialog: the title "Invite", a
 | Another device holds the round | "Only the device that opened the round can reveal it." |
 
 - Headings are for assistive technology: the room is a `main` with the regions "Table", "Results" and "Your hand" (`aria-label`s), the visible h1 is the round.
-- The overflow menu (the `Dropdown` of the design system: a bottom sheet on a phone, 48 px rows) holds, in order of use: Language (EN, FR), Light or dark (the personal variant of the theme, the control the poker pages lack, D23), Back to RetroBoard. The language and variant keep the controls and the stored settings of the rest of the product; nothing new is stored.
+- The bar is the bar of the application (amended after group 5, on the owner's request that every page of the product have the same shell): `AppBar`, the header of a board's toolbar (the mark that leads home, the tools at the right, light or dark and the avatar last). A room adds Invite as its first tool, where a board has Share. Language, theme, settings, the guide of the page and the ways to give feedback are in the profile dialog behind the avatar, as on every page, so the poker pages have no menu of their own and no language pill; nothing new is stored. The bar is the height of the toolbar (`--toolbar-h`, 56 px on a phone) and keeps its sizes on a TV.
 - No exclamation marks, no sentence that explains the interface.
 
 ### K7. Results
@@ -218,7 +218,7 @@ The content scales, the chrome does not: the sizes of the seats, cards, numbers 
 
 Vote again keeps the left place and Next round the right, whichever is filled; only the emphasis moves, because the likely next step is a re-vote when the room disagrees and the next item when it agrees. This is the one adaptive rule of the design; if the owner prefers a fixed hierarchy, the fixed filled button is Next round (the common end of a round) and nothing else changes. No glow: the primary of the dock is a filled pill with the quiet `--shadow-1` of a card, not the glow of `.btn-primary` (the rule is local to the room; the shared button is unchanged).
 
-Rare and destructive actions are out of the way: language, light or dark and the way back are in the overflow menu; leaving the room, changing the moderator and the deck belong to the later tasks of `scrum-poker` (2.2, 5.1) and will be menu items, never buttons in the dock.
+Rare and destructive actions are out of the way: language, theme and the way back are in the bar of the application (the profile dialog and the mark); leaving the room, changing the moderator and the deck belong to the later tasks of `scrum-poker` (2.2, 5.1) and will be menu items, never buttons in the dock.
 
 The new domain command `estimate.decide { round, card }` (the moderator only, a revealed round, a card of the deck, once per round and replaced by the next round) is added by task 3.3 for the "Use 5" action: a button without an effect is not shippable, and the command is the one the design of `scrum-poker` already lists. When stories arrive (task 4.1 of `scrum-poker`) the decided card becomes the story's estimate; this change does not add stories.
 
@@ -255,7 +255,7 @@ Phone, 390 px
 - Laptop and up: the same content in a 36 rem column, centred; Create is in the flow, under the colours section, 56 px.
 - Choosing a chip fills the round chips; choosing Custom shows the field with the current deck as its start; a typed list is checked as today (2 to 24 cards of at most 6 characters, no duplicate) and a problem is said under the field with `role="alert"`. The long field of D29 no longer exists for a preset.
 - "Card colours" opens a row of eight round swatches (the eight hues of the profile avatar picker) and a "Theme" swatch, as a radio group, with a live card back beside them. It sets the hue of the card backs for the whole room, written by the moderator (`settings.update { hue }`, task 5.3); until then the section is not shown (D27). The theme itself is not chosen here: the facilitator's theme rule of `scrum-poker` (task 5.2) is unchanged.
-- The lead line replaces the lead, the legend and the label; the privacy line replaces both paragraphs. Beta is the tag only; the "Suggest an idea" link moves to the overflow menu of the room and to the footer line of the start page.
+- The lead line replaces the lead, the legend and the label; the privacy line replaces both paragraphs. Beta is the tag only; the "Suggest an idea" link is with the feedback links of the profile dialog (amended: the bar of the application replaces the overflow menu).
 - Name step (room link opened, no name yet). Same look as the start page, the table not drawn behind it:
 
 ```
