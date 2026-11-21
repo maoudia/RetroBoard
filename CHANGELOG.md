@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.66.0](https://github.com/maoudia/RetroBoard/compare/v1.65.0...v1.66.0) (2026-11-21)
+
+
+### Features
+
+* **web:** the Scrum Poker room fits one phone viewport ([382b6eb](https://github.com/maoudia/RetroBoard/commit/382b6eb1e8eead794f93af3e6ee17c8f3c38715f))
+
 ## [1.65.0](https://github.com/maoudia/RetroBoard/compare/v1.64.0...v1.65.0) (2026-11-21)
 
 
