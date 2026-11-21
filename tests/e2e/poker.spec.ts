@@ -9,8 +9,10 @@ import { axe, createBoard, settle } from './helpers'
  * and a next round, a reload, a poker link opened as a board. It runs on every build: the poker pages are in all of them.
  */
 const watch = (page: Page, errors: string[]) => {
+  const webkit = page.context().browser()?.browserType().name() === 'webkit'
   page.on('pageerror', (e) => errors.push(e.message))
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
+  // WebKit words a stylesheet notice of the shared profile dialog without a violation event (the helper of the other specs skips it the same way; a real block still fires the event).
+  page.on('console', (m) => { if (m.type() === 'error' && !(webkit && m.text().startsWith('Refused to apply a stylesheet because its hash'))) errors.push(m.text()) })
 }
 const wcag = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 const noViolation = async (page: Page, where: string) => {
