@@ -1,0 +1,5 @@
+# After the shared shell: the bar and the profile of the application
+
+Screenshots of the Scrum Poker pages once they use the bar of the application (`AppBar`, the header of a board's toolbar) and its profile dialog, taken like `../after-group-5/` (English, the moderator "Malaka", `phone` 390x844, `tablet` 768x1024, `desktop` 1280x800, `tv` 2560x1440, light and dark). `<screen>-start-*` is the start page, `<screen>-name-*` the name step, `<screen>-room-*` a room after one vote, `<screen>-profile-*` the profile dialog opened from the avatar of the room.
+
+The bar is the same on the three pages: the mark of RetroBoard that leads home, the name of the page (the round with its status line in a room), Invite first of the tools in a room (as Share is on a board), light or dark and the avatar last. The pill of the language, the overflow menu and the "Suggest an idea" line of the old poker bars are gone: the language, the theme, the settings, the guide of the page and the feedback links are in the profile dialog, as on every page. On the 2560 px TV the bar keeps its size while the room grows.
