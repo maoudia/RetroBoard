@@ -118,6 +118,7 @@ Licensing, offers, sponsors, marketplace, services, premium themes. Gate: first 
 * `licensing-and-monetization` ([proposal](../openspec/changes/licensing-and-monetization/proposal.md)): shelved on 2026-11-19, see ADR-0040
 * `themes-pop-culture` ([proposal](../openspec/changes/themes-pop-culture/proposal.md))
 * `scrum-poker` ([proposal](../openspec/changes/scrum-poker/proposal.md)), **epic**: planning poker rooms, the growth item of R4 now that monetisation is shelved; it can move to R3 if R3 shrinks
+* `poker-design-v2` ([proposal](../openspec/changes/poker-design-v2/proposal.md)), priority 2 (`priority:2-design`): the design of the poker room, written first after the owner's phone screenshot of 2026-11-21 (33 measured defects, wireframes per screen class and state, six task groups ordered so that the card and the hand and the phone room in one viewport come first); it delivers the presentation of tasks 3.1 and 3.2 of `scrum-poker`. It sits with its epic in R4; its groups 1 and 2 can move to R3 (one `GROUP_OVERRIDES` line each) if the owner decides the beta must look right before it is promoted
 * `jira-estimation-import` ([proposal](../openspec/changes/jira-estimation-import/proposal.md)): Jira stories in by paste and CSV, estimates back, after `scrum-poker`
 * `open-source-business` ([proposal](../openspec/changes/open-source-business/proposal.md)): shelved on 2026-11-19, see ADR-0040 (no CLA, sponsorware, offers or prices)
 
