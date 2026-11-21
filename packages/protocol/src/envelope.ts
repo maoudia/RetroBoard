@@ -8,7 +8,7 @@
  */
 import * as v from 'valibot'
 import { CURSOR_SCALE, KEY_RE, LIMITS, ROOM_ID_RE } from '@retroboard/domain'
-import { PokerCommandSchema } from './poker'
+import { POKER_COMMAND_TAGS, PokerCommandSchema } from './poker'
 import { CommandSchema } from './v1'
 
 export const PROTOCOL_VERSION = 2
@@ -103,6 +103,7 @@ const unknownBodyEvent = <B extends v.GenericSchema>(body: B) => v.strictObject(
 })
 /** The outline of a signed event whose body this version may not know: every key of the body is kept so the signature still checks. */
 const UnknownCommandEventSchema = unknownBodyEvent(v.looseObject({ t: v.literal('cmd'), cmd: v.looseObject({ t: v.string() }), name: Name, showName: v.boolean() }))
+const UnknownPokerEventSchema = unknownBodyEvent(v.looseObject({ t: v.literal('poker'), cmd: v.looseObject({ t: v.string() }) }))
 const UnknownTagEventSchema = unknownBodyEvent(v.looseObject({ t: v.string() }))
 
 /** A signed event written by a version that has a body or a command this one lacks. The signature covers `body` as received. */
@@ -122,6 +123,8 @@ export function parseEventOrUnknown(input: unknown): ParsedEvent | null {
   if (known.success) return { kind: 'known', event: known.output }
   const command = v.safeParse(UnknownCommandEventSchema, input)
   if (command.success) return COMMAND_TAGS.has(command.output.body.cmd.t) ? null : { kind: 'unknown', event: command.output }
+  const poker = v.safeParse(UnknownPokerEventSchema, input)
+  if (poker.success) return POKER_COMMAND_TAGS.has(poker.output.body.cmd.t) ? null : { kind: 'unknown', event: poker.output }
   const other = v.safeParse(UnknownTagEventSchema, input)
   return other.success && !BODY_TAGS.has(other.output.body.t) ? { kind: 'unknown', event: other.output } : null
 }

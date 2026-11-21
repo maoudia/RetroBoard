@@ -12,4 +12,8 @@ export const PokerCommandSchema = v.variant('t', [
   v.strictObject({ t: v.literal('round.start'), round: Text, pub: Text, revote: v.optional(v.boolean()) }),
   v.strictObject({ t: v.literal('vote.seal'), round: Text, sealed: Text }),
   v.strictObject({ t: v.literal('round.reveal'), round: Text, key: Text }),
+  v.strictObject({ t: v.literal('estimate.decide'), round: Text, card: Text }),
 ])
+
+/** The tags of the poker commands this version reads: a poker command with another tag was written by a newer version (kept, not folded). */
+export const POKER_COMMAND_TAGS: ReadonlySet<string> = new Set(PokerCommandSchema.options.map((o) => o.entries.t.literal))

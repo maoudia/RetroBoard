@@ -10,7 +10,7 @@ const emit = defineEmits<{ invite: [event: Event] }>()
 
 <template>
   <ul class="seats" :class="{ many: seats.length >= 9 }" data-testid="poker-seats">
-    <PokerSeat v-for="seat in seats" :key="seat.key" :seat="seat" :revealed="revealed" />
+    <PokerSeat v-for="(seat, i) in seats" :key="seat.key" :seat="seat" :revealed="revealed" :index="i" />
     <li v-if="seats.length <= 1" class="ghost-item">
       <button type="button" class="ghost" data-testid="poker-ghost" @click="emit('invite', $event)">
         <Icon name="lucide:plus" class="plus" />

@@ -203,3 +203,73 @@ describe('rounds', () => {
     expect(state(noisy)).toEqual(state(a))
   })
 })
+
+describe('the estimate of a round (poker-design-v2)', () => {
+  const decide = (card: string, round = 'r1', author = FAC) => poker(author, { t: 'estimate.decide', round, card })
+  const revealed = () => play([join(ALICE, 'Ann'), join(BOB, 'Bob'), start(), vote(ALICE), reveal()])
+  const decidedOf = (l: Ledger) => state(l).rounds.map((r) => r.decided)
+
+  it('is the moderator\'s alone: a voter\'s decision is ignored by every replica', () => {
+    const l = revealed()
+    expect(isPrivileged({ t: 'poker', cmd: { t: 'estimate.decide', round: 'r1', card: '5' } })).toBe(true)
+    expect(foldEvent(l, decide('5', 'r1', ALICE))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(foldEvent(l, decide('5', 'r1', BOB)).ok).toBe(false)
+    expect(foldEvent(l, decide('5', 'r1', key('z'))).ok).toBe(false)
+    expect(decidedOf(l)).toEqual([null])
+    expect(reducePoker(state(l), { t: 'estimate.decide', round: 'r1', card: '5' }, { key: ALICE, moderator: false }).ok).toBe(false)
+  })
+
+  it('keeps one card of the deck for a revealed round, once', () => {
+    const l = foldAll(revealed(), [decide('5')])
+    expect(decidedOf(l)).toEqual(['5'])
+    // A second decision, even the same card, is ignored: it is once per round.
+    expect(foldEvent(l, decide('8')).ok).toBe(false)
+    expect(foldEvent(l, decide('5')).ok).toBe(false)
+    expect(decidedOf(foldAll(l, [decide('8')]))).toEqual(['5'])
+  })
+
+  it('refuses a card that is not in the deck, an empty or a wrong-typed card', () => {
+    const l = revealed()
+    for (const card of ['4', '', '5 ', 'XL', '55555']) expect(foldEvent(l, decide(card)).ok, card).toBe(false)
+    expect(foldEvent(l, decide(5 as unknown as string)).ok).toBe(false)
+    expect(foldEvent(l, decide(null as unknown as string)).ok).toBe(false)
+    // Every card of the deck is a card to decide, the question mark and the coffee included: the screen offers only the suggestion.
+    for (const card of DEFAULT_DECK) expect(foldEvent(l, decide(card)).ok, card).toBe(true)
+  })
+
+  it('uses the deck the round froze, not the room\'s current one', () => {
+    const l = play([join(ALICE, 'Ann'), poker(FAC, { t: 'settings.update', deck: ['S', 'M'] }), start('r1'), vote(ALICE), reveal(), poker(FAC, { t: 'settings.update', deck: ['1', '2'] })])
+    expect(foldEvent(l, decide('S')).ok).toBe(true)
+    expect(foldEvent(l, decide('1')).ok).toBe(false)
+  })
+
+  it('needs a revealed round: nothing to decide before the reveal, before any round, or in an older round', () => {
+    const open = play([join(ALICE, 'Ann'), start(), vote(ALICE)])
+    expect(foldEvent(open, decide('5')).ok).toBe(false)
+    expect(foldEvent(room(), decide('5')).ok).toBe(false)
+    const next = foldAll(revealed(), [start('r2')])
+    expect(foldEvent(next, decide('5', 'r1')).ok).toBe(false)
+    expect(foldEvent(next, decide('5', 'r2')).ok).toBe(false)
+    expect(foldEvent(revealed(), decide('5', 'r2')).ok).toBe(false)
+  })
+
+  it('is cleared by the next round, and the older round keeps its estimate', () => {
+    const l = foldAll(revealed(), [decide('8'), start('r2'), vote(ALICE, 'r2'), reveal('r2'), decide('3', 'r2')])
+    expect(decidedOf(l)).toEqual(['8', '3'])
+    const again = foldAll(revealed(), [decide('8'), start('r2')])
+    expect(decidedOf(again)).toEqual(['8', null])
+    expect(foldEvent(again, decide('5', 'r2')).ok).toBe(false)
+  })
+
+  it('replays to the same state on two replicas, in any cut, and junk in between leaves no trace', () => {
+    const events = [join(ALICE, 'Ann'), start(), vote(ALICE), reveal(), decide('8'), decide('5'), decide('3', 'r1', ALICE), start('r2')]
+    const all = [genesis('poker'), ...events]
+    const a = foldAll(emptyLedger(roomId), all)
+    const b = all.reduce((l, e) => foldEvent(l, e).ledger, emptyLedger(roomId))
+    expect(state(b)).toEqual(state(a))
+    expect(JSON.parse(JSON.stringify(state(a)))).toEqual(state(a))
+    expect(decidedOf(a)).toEqual(['8', null])
+    const noisy = foldAll(emptyLedger(roomId), [all[0]!, decide('5', 'r1', ALICE), ...all.slice(1)])
+    expect(state(noisy)).toEqual(state(a))
+  })
+})

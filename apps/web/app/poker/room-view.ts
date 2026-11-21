@@ -2,6 +2,7 @@
  * What the room says, by state and role (change poker-design-v2, K6): the one status line of the bar and the one hint.
  * Pure functions of the view model, so a unit test holds the table of the design.
  */
+import type { ConsensusLevel } from '@retroboard/application'
 import type { PokerView, SeatView } from './client'
 import type { PokerKey } from './strings'
 
@@ -53,4 +54,35 @@ export function hintOf(v: PokerView, say: (line: Say) => string): Say | null {
   if (missing.length > 0) return { key: 'poker.hint.waiting', params: { names: say(namesOf(missing)) } }
   // Everyone has voted: the moderator has Reveal, the others wait for the moderator.
   return v.moderator ? null : { key: 'poker.hint.everyone', params: { name: lead } }
+}
+
+/** The moderator's filled button after the reveal (K9): Next round when the room agrees (strong or full), Vote again when it does not. */
+export type Primary = 'revote' | 'next'
+export const primaryOf = (verdict: ConsensusLevel | null): Primary => (verdict === 'all' || verdict === 'strong' ? 'next' : 'revote')
+
+/** A figure with at most two decimals and no trailing zero: 7.2, 5, 3.67. */
+export const figure = (n: number): string => String(Math.round(n * 100) / 100)
+
+/**
+ * The one polite announcement a change of the view deserves, or null (K11, K6): the new round, the reveal with the figures and the verdict,
+ * or the voted count. `prev` is the view before; the first view of a visit is not announced (a person who joins is told by the page).
+ */
+export function announceOf(prev: PokerView | null, v: PokerView, say: (line: Say) => string): Say | null {
+  const round = v.round
+  const before = prev?.round
+  if (!round || !before || v.status !== 'live') return null
+  if (round.n !== before.n) return { key: !v.voter ? 'poker.announce.roundWatch' : round.revote ? 'poker.announce.revote' : 'poker.announce.round', params: { n: round.n } }
+  if (round.revealed && !before.revealed) return revealed(v, say)
+  if (!round.revealed && round.voted !== before.voted) return { key: 'poker.progress', params: { voted: round.voted, total: round.voters } }
+  return null
+}
+
+/** "Cards revealed. Average 7.2, median 5. Some agreement." An ordinal deck has a median card and no average, a round with no numbered card says so. */
+function revealed(v: PokerView, say: (line: Say) => string): Say {
+  const { stats, verdict } = v
+  if (!stats || !verdict) return { key: 'poker.announce.revealedBare' }
+  const word = say({ key: `poker.verdict.${verdict}` })
+  if (stats.counted === 0) return { key: 'poker.announce.revealedNone', params: { verdict: word } }
+  if (stats.average === null || stats.median === null) return { key: 'poker.announce.revealedMedian', params: { median: stats.suggestion ?? '', verdict: word } }
+  return { key: 'poker.announce.revealed', params: { average: figure(stats.average), median: figure(stats.median), verdict: word } }
 }

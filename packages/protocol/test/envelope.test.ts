@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { envelopeAad, parseClientFrame, parseEnvelope, parseEventOrUnknown, parsePresence, parseRelayFrame, parseSignedEvent } from '../src'
+import { POKER_COMMAND_TAGS } from '../src/poker'
 
 const env = { v: 2 as const, room: 'Ab3dEfGhIjKlMnOpQrStUv', id: '01JABCDEFGHJKMNPQRSTVWXYZ0', hlc: 1_700_000_000_000, ct: 'AbC-_9' }
 const key = 'a'.repeat(42) + 'A'
@@ -277,6 +278,7 @@ describe('poker room events (ADR-0042)', () => {
     { t: 'poker', cmd: { t: 'round.start', round: 'r2', pub: key, revote: true } },
     { t: 'poker', cmd: { t: 'vote.seal', round: 'r1', sealed } },
     { t: 'poker', cmd: { t: 'round.reveal', round: 'r1', key } },
+    { t: 'poker', cmd: { t: 'estimate.decide', round: 'r1', card: '5' } },
   ])('knows %j', (body) => {
     expect(parseEventOrUnknown(signed(body))).toMatchObject({ kind: 'known' })
     expect(parseSignedEvent(signed(body))).not.toBeNull()
@@ -289,13 +291,27 @@ describe('poker room events (ADR-0042)', () => {
     { t: 'poker', cmd: { t: 'round.start', round: 'r1', pub: key, revote: 'yes' } },
     { t: 'poker', cmd: { t: 'settings.update', deck: 'S,M' } },
     { t: 'poker', cmd: { t: 'seat.join', name: 'a', extra: 1 } },
-    { t: 'poker', cmd: { t: 'story.add', title: 'x' } },
+    { t: 'poker', cmd: { t: 'estimate.decide', round: 'r1' } },
+    { t: 'poker', cmd: { t: 'estimate.decide', round: 'r1', card: 5 } },
+    { t: 'poker', cmd: { t: 'estimate.decide', round: 'r1', card: '5', extra: 1 } },
+    { t: 'poker', cmd: { t: 'vote.seal', round: 'r1', sealed, extra: 1 } },
+    { t: 'poker', cmd: 'estimate.decide' },
+    { t: 'poker', cmd: { t: 5 } },
+    { t: 'poker', cmd: {} },
   ])('refuses the shape of %j and does not take it for an unknown event', (body) => {
     expect(parseEventOrUnknown(signed(body))).toBeNull()
   })
 
   it('keeps a body of a newer version as unknown, so an older client passes it on', () => {
     expect(parseEventOrUnknown(signed({ t: 'poker.v2', cmd: {} }))).toMatchObject({ kind: 'unknown' })
+  })
+
+  it('keeps a poker command of a newer version as unknown, with every key of its body, and still refuses a known command that does not fit', () => {
+    const body = { t: 'poker', cmd: { t: 'story.add', title: 'x', points: [1, 2] } }
+    expect(parseEventOrUnknown(signed(body))).toEqual({ kind: 'unknown', event: signed(body) })
+    for (const t of ['seat.join', 'settings.update', 'round.start', 'vote.seal', 'round.reveal', 'estimate.decide']) expect(POKER_COMMAND_TAGS.has(t), t).toBe(true)
+    expect(POKER_COMMAND_TAGS.size).toBe(6)
+    expect(parseEventOrUnknown(signed({ t: 'poker', cmd: { t: 'round.reveal' } }))).toBeNull()
   })
 
   it('has no field of the envelope that names the kind', () => {

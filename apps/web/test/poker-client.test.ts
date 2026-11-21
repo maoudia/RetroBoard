@@ -135,6 +135,61 @@ describe('two clients through a relay', () => {
     expect(fromBase64Url(roomId)).toHaveLength(16)
   })
 
+  it('shows the verdict and the outliers of a revealed round, and keeps the moderator\'s estimate for everybody until the next round', async () => {
+    const roomKey = b64(16); const roomId = b64(16)
+    const mod = formatInvite({ roomId, roomKey, facilitatorSecret: b64(16) }, 'facilitator')
+    const voter = formatInvite({ roomId, roomKey }, 'participant')
+    const { WS } = relay()
+    const views: PokerView[] = []
+    const clients: PokerClient[] = []
+    for (const [name, fragment] of [['Ann', mod], ['Bob', voter], ['Cy', voter]] as const) {
+      const invite = parseInvite(fragment)
+      if (invite?.kind !== 'encrypted') throw new Error('bad invite')
+      const index = clients.length
+      const c = new PokerClient({ ring: invite.ring, name, deck: index === 0 ? FIB : undefined, socketBase: 'ws://relay.test', WS, onChange: (v) => { views[index] = v } })
+      clients.push(c)
+      await c.start()
+      await vi.waitFor(() => expect(views[index]?.status).toBe('live'))
+    }
+    const [ann, bob, cy] = clients as [PokerClient, PokerClient, PokerClient]
+    await vi.waitFor(() => expect(views.every((v) => v.seats.length === 3 && v.round?.n === 1)).toBe(true))
+    ann.vote(FIB.indexOf('5')); bob.vote(FIB.indexOf('5')); cy.vote(FIB.indexOf('13'))
+    await vi.waitFor(() => expect(views.every((v) => v.round?.voted === 3)).toBe(true))
+    expect(views[0]!.verdict).toBeNull()
+    expect(views[0]!.outliers).toBeNull()
+    // Nothing to decide before the reveal.
+    ann.decide('5')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(views[0]!.round?.decided).toBeNull()
+
+    ann.reveal()
+    await vi.waitFor(() => expect(views.every((v) => v.round?.revealed)).toBe(true))
+    for (const v of views) {
+      expect(v.verdict).toBe('some')
+      expect(v.outliers).toEqual({ lowest: null, highest: { card: '13', voters: ['Cy'] } })
+      expect(Object.fromEntries(v.seats.map((s) => [s.name, s.outlier]))).toEqual({ Ann: null, Bob: null, Cy: 'highest' })
+      expect(v.round?.decided).toBeNull()
+    }
+    expect(views[0]!.stats?.suggestion).toBe('5')
+
+    // A voter cannot decide, and neither can the moderator keep a card that is not in the deck.
+    bob.decide('5'); ann.decide('XL')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(views.map((v) => v.round?.decided)).toEqual([null, null, null])
+
+    ann.decide('5')
+    await vi.waitFor(() => expect(views.map((v) => v.round?.decided)).toEqual(['5', '5', '5']))
+    // Once per round.
+    ann.decide('8')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(views.map((v) => v.round?.decided)).toEqual(['5', '5', '5'])
+
+    ann.nextRound()
+    await vi.waitFor(() => expect(views.every((v) => v.round?.n === 2)).toBe(true))
+    for (const v of views) { expect(v.round?.decided).toBeNull(); expect(v.verdict).toBeNull(); expect(v.outliers).toBeNull(); expect(v.seats.map((s) => s.outlier)).toEqual([null, null, null]) }
+    clients.forEach((c) => c.close())
+  })
+
   it('sends the card kept in the tab again when a reload meets a relay that forgot the room (nobody else was in it)', async () => {
     const roomKey = b64(16); const roomId = b64(16)
     const invite = parseInvite(formatInvite({ roomId, roomKey, facilitatorSecret: b64(16) }, 'facilitator'))
