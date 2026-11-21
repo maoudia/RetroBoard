@@ -193,7 +193,8 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 <style scoped>
 /* Not yet in the room (the name step, a bad link, a board's link): the look of the start page, a bar over one column. */
 .room { display: grid; align-content: start; }
-.hint { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
+/* A hint takes two lines at most (K12): the names of the people waited for are the one part that can be long, and the status line of the bar has the count. */
+.hint { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .line { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
 h1 { margin: 0; font-size: var(--fs-3xl); line-height: 1.1; }
 .notice { margin: var(--sp-4) auto; max-inline-size: min(44rem, calc(100% - 2 * var(--sp-4))); padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: var(--fs-sm); color: var(--muted); }
