@@ -3,6 +3,8 @@
  * signatures, sealing and the shared kind-aware ledger. The rules themselves (the fold, the sealed card, the statistics) are tested in
  * `packages/domain`, `packages/crypto` and `packages/application`; this is the headless twin of the two-tab room.
  */
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { deriveContentKey, deriveFacilitatorSeed, fromBase64Url, randomBytes, seal, sign, signingKeyPair, toBase64Url, utf8 } from '@retroboard/crypto'
 import { formatInvite, parseInvite, participantRing, VOTER_CAP } from '@retroboard/domain'
@@ -10,8 +12,9 @@ import { presetCards, signEvent } from '@retroboard/application'
 import { envelopeAad, parseClientFrame, PROTOCOL_VERSION } from '@retroboard/protocol'
 import { ulid } from '../app/transport/ulid'
 import { PokerClient, type PokerView } from '../app/poker/client'
-import { currentLocale } from '../app/i18n'
+import { currentLocale, pseudoLocale } from '../app/i18n'
 import { cardLabel, pokerEn, pokerFr, pt } from '../app/poker/strings'
+import { pseudolocalize } from '@retroboard/i18n'
 
 const b64 = (n: number) => toBase64Url(randomBytes(n))
 const FIB = presetCards('fibonacci')
@@ -35,6 +38,36 @@ describe('the strings', () => {
     currentLocale.value = 'fr'
     expect(pt('poker.progress', { voted: 2, total: 3 })).toBe('2 sur 3 ont voté')
     expect(pt('poker.progress')).toBe('{voted} sur {total} ont voté')
+  })
+
+  it('are lengthened by the pseudo-locale, placeholders kept, and the language is back when it is off (the overflow guard reaches the poker pages)', () => {
+    currentLocale.value = 'en'
+    pseudoLocale.value = true
+    try {
+      for (const k of Object.keys(pokerFr) as (keyof typeof pokerFr)[]) {
+        const text = pt(k)
+        expect(text.startsWith('[') && text.endsWith(']'), k).toBe(true)
+        // Four letters or more grow by about 40%; a word or two of one letter only gain their brackets.
+        if (pokerFr[k].length >= 12) expect(text.length, k).toBeGreaterThanOrEqual(Math.round(pokerFr[k].length * 1.3))
+        expect(params(text), k).toEqual(params(pokerFr[k]))
+      }
+      expect(pt('poker.progress', { voted: 2, total: 3 })).toMatch(/^\[.*2.*3.*\]$/)
+      expect(pt('poker.start.action')).toBe(pseudolocalize(pokerFr['poker.start.action']))
+    } finally {
+      pseudoLocale.value = false
+    }
+    expect(pt('poker.start.action')).toBe('Create the room')
+  })
+
+  it('hold no key that the interface does not use: the keys of the old layout are removed, not left behind', () => {
+    const root = join(__dirname, '..', 'app')
+    const walk = (dir: string): string[] => readdirSync(dir).flatMap((n) => { const p = join(dir, n); return statSync(p).isDirectory() ? walk(p) : /\.(vue|ts)$/.test(n) && n !== 'strings.ts' ? [p] : [] })
+    // The code of strings.ts itself (`cardLabel`) uses keys too; its dictionaries do not count.
+    const own = readFileSync(join(root, 'poker', 'strings.ts'), 'utf8')
+    const source = [...walk(root).map((f) => readFileSync(f, 'utf8')), own.slice(own.indexOf('export function pt'))].join('\n')
+    // A key is used when it is written whole, or when its parent is written with a runtime part (`poker.deck.${id}`, `poker.deck.error.${...}`).
+    const unused = (Object.keys(pokerFr) as string[]).filter((k) => !source.includes(`'${k}'`) && !source.includes(`\`${k}\``) && !source.includes(`${k.slice(0, k.lastIndexOf('.') + 1)}\${`))
+    expect(unused).toEqual([])
   })
 
   it('name the coffee card and the question mark for a screen reader, and any other card by its label', () => {
