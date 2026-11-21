@@ -152,6 +152,15 @@ export const CHAPTERS: readonly Chapter[] = [
       { id: 'protected', caption: t('Dans le profil, la ligne « Boards sur cet appareil » dit si le navigateur les conserve ou peut les effacer.', 'In the profile, the "Boards on this device" row says whether the browser keeps them or may clear them.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['durability'], shoot: 'durability' },
     ],
   },
+  {
+    id: 'poker',
+    title: t('Estimer avec le Scrum Poker (bêta)', 'Estimate with Scrum Poker (beta)'),
+    intro: t('Une salle de poker pour estimer en équipe: chacun choisit une carte, personne ne voit les autres avant la révélation. Sans compte, chiffré comme un board.', 'A poker room to estimate as a team: everyone picks a card and nobody sees the others until the reveal. No account, encrypted like a board.'),
+    steps: [
+      { id: 'start', caption: t('Choisis un jeu de cartes (Fibonacci, T-shirt, puissances de 2, ou ta propre liste), puis crée la salle en un clic.', 'Pick a deck (Fibonacci, T-shirt, powers of 2, or your own list), then create the room in one click.'), ops: [{ goto: '/poker' }], anchors: ['poker-start', 'poker-deck-fibonacci', 'poker-cards', 'poker-start-action'] },
+      { id: 'room', caption: t('La salle donne le lien et le QR code à partager, la table et ta main de cartes: les cartes restent cachées jusqu’à la révélation.', 'The room gives the link and QR code to share, the table and your hand of cards: the cards stay hidden until the reveal.'), ops: [{ goto: '/poker' }, { click: 'poker-start-action' }, { fill: ['poker-name', 'Alice'] }, { click: 'poker-name-join' }], anchors: ['poker-share-url', 'poker-seats', 'poker-hand'] },
+    ],
+  },
 ]
 
 /** Every anchor the tour needs, once each, in first-use order. */

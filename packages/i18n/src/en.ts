@@ -317,6 +317,8 @@ export const en: Record<keyof typeof fr, string> = {
   'landing.sub': 'A real-time board, no account, end-to-end encrypted, with private drafts, votes, groups and a timer. One link and the team is in.',
   'landing.create': 'Start a retro',
   'landing.trySolo': 'Try it solo',
+  'poker.entry': 'Scrum Poker',
+  'poker.entry.beta': 'Beta',
   'new.resume.title': 'Your recent boards',
   'landing.resume': 'Resume "{title}"',
   'landing.stat.accounts': 'accounts to create',

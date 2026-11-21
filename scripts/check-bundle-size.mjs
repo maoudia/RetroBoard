@@ -53,8 +53,12 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // 2026-11-21: total raised from 400 to 500 kB by decision of the owner, for the poker seam of the shared code (change scrum-poker, task 1.2, ADR-0042)
 // and the room of the next groups: the kind-aware ledger fold with the estimation reducer, and the poker command schema of the signed event
 // (400.7 kB measured, 399.8 kB before, +0.9 kB; the entry moved from 55.8 to 56.0 kB). The poker pages, strings, decks and statistics are not in
-// this figure yet: they exist only in a build made with NUXT_PUBLIC_POKER_DEMO=1. The entry budget is unchanged. Raise it only on purpose.
-const BUDGET = { entryKb: 56, totalKb: 500 }
+// this figure yet.
+// 2026-11-21: entry raised from 56 to 56.5 kB for the launch of Scrum Poker in every build (change scrum-poker, tasks 1.1 and 2.1): the two routes of the
+// router table, the redirect of a poker link opened as a board (a notice of the board transport and store) and nothing else (56.3 kB measured, 56.0 before).
+// The poker pages, their strings, decks and statistics are lazy chunks counted in the total (414.2 kB of 500 with them); the landing page chunk carries the
+// three entry labels. Raise it only on purpose.
+const BUDGET = { entryKb: 56.5, totalKb: 500 }
 const OPT_IN = [/initializeWebModelContext/]
 // A small chunk is opt-in only by an exact marker (the size guard below protects the big ones from a stray match). 2026-11-19, user-drive-storage:
 // the chunks that load only once a person connects a sync target are opt-in like the WebMCP polyfill, so they are reported and not counted: the

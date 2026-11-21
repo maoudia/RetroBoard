@@ -1,13 +1,23 @@
 /**
- * Strings of the Scrum Poker pages (change scrum-poker). They live next to the pages and not in the shared dictionaries: the pages
- * exist only in a build made with NUXT_PUBLIC_POKER_DEMO=1, and the shared dictionaries are inside the bundle budget of every build.
- * French is the source language; `apps/web/test/poker-strings.test.ts` keeps the two in step.
+ * Strings of the Scrum Poker pages (change scrum-poker). They live next to the pages and not in the shared dictionaries: the poker pages are
+ * lazy routes, so these strings load with them and the landing page and the board pay for none of them (the shared dictionaries are inside
+ * the entry budget of every page). Only the entry labels of the landing page and the menus (`poker.entry*`) are shared.
+ * French is the source language; `apps/web/test/poker-client.test.ts` keeps the two in step.
  */
 import { currentLocale } from '~/i18n'
 
 export const pokerFr = {
-  'poker.pageTitle': 'Planning poker (démo)',
-  'poker.demo': 'Démo du Scrum Poker : version de travail, derrière un drapeau, pas encore le produit final.',
+  'poker.pageTitle': 'Scrum Poker',
+  'poker.home': 'Retour à RetroBoard',
+  'poker.language': 'Langue',
+  'poker.start.beta': 'Bêta : il manque encore des choses (histoires, minuteur, export). Dites-nous lesquelles.',
+  'poker.name.hint': 'Seul un nom est demandé : ni compte ni adresse e-mail.',
+  'poker.share.native': 'Partager',
+  'poker.share.qr': 'Afficher le QR code',
+  'poker.share.qrLabel': 'QR code du lien de la salle',
+  'poker.alone': 'Vous êtes seul pour l’instant : partagez le lien pour inviter votre équipe.',
+  'poker.wait.reveal': 'L’animateur révèle les cartes quand tout le monde a voté.',
+  'poker.wait.next': 'L’animateur ouvre le tour suivant.',
   'poker.start.title': 'Scrum Poker',
   'poker.start.lead': 'Estimez ensemble : chacun choisit une carte, personne ne voit celles des autres avant la révélation.',
   'poker.start.action': 'Créer la salle',
@@ -84,8 +94,17 @@ export const pokerFr = {
 export type PokerKey = keyof typeof pokerFr
 
 export const pokerEn: Record<PokerKey, string> = {
-  'poker.pageTitle': 'Planning poker (demo)',
-  'poker.demo': 'Demo of Scrum Poker: a working version behind a flag, not the final product yet.',
+  'poker.pageTitle': 'Scrum Poker',
+  'poker.home': 'Back to RetroBoard',
+  'poker.language': 'Language',
+  'poker.start.beta': 'Beta: some things are still missing (stories, timer, export). Tell us which.',
+  'poker.name.hint': 'Only a name is asked: no account and no email address.',
+  'poker.share.native': 'Share',
+  'poker.share.qr': 'Show the QR code',
+  'poker.share.qrLabel': 'QR code of the room link',
+  'poker.alone': 'You are alone for now: share the link to invite your team.',
+  'poker.wait.reveal': 'The moderator reveals the cards once everyone has voted.',
+  'poker.wait.next': 'The moderator opens the next round.',
   'poker.start.title': 'Scrum Poker',
   'poker.start.lead': 'Estimate together: everyone picks a card and nobody sees the others until the reveal.',
   'poker.start.action': 'Create the room',

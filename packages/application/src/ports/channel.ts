@@ -14,9 +14,9 @@ export interface Identity {
   hue?: number
 }
 
-/** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"); or a participant on a newer version of the application. */
+/** A destructive or steering action by someone else, to tell everyone about ("Alice reset the votes"); a participant on a newer version of the application, or the link of a Scrum Poker room opened as a board ('poker-room', ADR-0042). */
 export interface BoardNotice {
-  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next' | 'phase.auto' | 'newer-version'
+  kind: 'reset.board' | 'reset.column' | 'reset.votes' | 'reset.clock' | 'phase.prev' | 'phase.next' | 'phase.auto' | 'newer-version' | 'poker-room'
   /** Name the author chose to show, or null. */
   by: string | null
   /** Column title, for reset.column. */

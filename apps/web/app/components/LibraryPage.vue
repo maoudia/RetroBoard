@@ -13,6 +13,7 @@ onMounted(() => heading.value?.focus({ preventScroll: true }))
       <p class="lead muted">{{ t('library.lead') }}</p>
       <div class="actions">
         <NuxtLink class="btn btn-primary" to="/new" data-testid="library-new"><Icon name="lucide:plus" /> {{ t('library.new') }}</NuxtLink>
+        <NuxtLink class="btn" to="/poker" data-testid="library-poker"><Icon name="lucide:spade" /> {{ t('poker.entry') }} <BetaTag /></NuxtLink>
         <NuxtLink class="btn" to="/"><Icon name="lucide:house" /> {{ t('service.home') }}</NuxtLink>
       </div>
     </header>

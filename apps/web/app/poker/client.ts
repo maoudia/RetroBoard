@@ -72,7 +72,7 @@ export class PokerClient {
   private mine: { round: string; index: number } | null = null
   private readonly held = new Map<string, Envelope>()
   private readonly fromRelay = new Set<string>()
-  private readonly sent = new Set<'genesis' | 'settings' | 'seat' | 'round'>()
+  private readonly sent = new Set<string>()
   private queue: Promise<void> = Promise.resolve()
   private heartbeat: ReturnType<typeof setInterval> | undefined
   private retry: ReturnType<typeof setTimeout> | undefined
@@ -200,6 +200,11 @@ export class PokerClient {
 
   /** What only I can write and the room still lacks: the genesis, the deck and the first round (moderator), my seat. Idempotent: it reads the ledger. */
   private async settle(): Promise<void> {
+    await this.settleRoom()
+    await this.resendCard()
+  }
+
+  private async settleRoom(): Promise<void> {
     const { poker } = this.ledger
     // Each is tried once: an event the fold refuses (a full room) must not be written again for ever.
     if (this.secret && this.ledger.facilitatorKey === null && !this.sent.has('genesis')) {
@@ -211,6 +216,15 @@ export class PokerClient {
     if (!this.secret || this.me !== this.ledger.lead || poker.rounds.length > 0) return
     if (this.o.deck && !this.sent.has('settings')) { this.sent.add('settings'); await this.send_({ t: 'settings.update', deck: [...this.o.deck] }) }
     if (!this.sent.has('round')) { this.sent.add('round'); await this.send_(await this.roundStart('r1', false)) }
+  }
+
+  /** My card kept in the tab (a reload) when the room no longer holds it: the relay forgets a room nobody is in, so it is sealed and sent again, once. */
+  private async resendCard(): Promise<void> {
+    const round = this.round
+    const kept = this.mine
+    if (!round || !kept || kept.round !== round.id || round.revealKey !== null || !this.seat?.voter || this.me in round.ballots || kept.index >= round.deck.length || this.sent.has(`vote:${round.id}`)) return
+    this.sent.add(`vote:${round.id}`)
+    await this.send_({ t: 'vote.seal', round: round.id, sealed: await sealCard(round.pub, this.o.ring.roomId, this.me, kept.index) })
   }
 
   private async ingest(env: Envelope): Promise<void> {

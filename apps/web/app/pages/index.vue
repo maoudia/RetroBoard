@@ -44,7 +44,8 @@ async function join() {
   const hash = at >= 0 ? raw.slice(at) : ''
   if (!hash || !inviteFromHash(hash)) { joinError.value = true; return }
   joinError.value = false
-  void router.push({ path: '/boards', hash })
+  // A pasted Scrum Poker room link goes straight to the poker room page; any other link is a board's.
+  void router.push({ path: /\/poker\/room#/.test(raw) ? '/poker/room' : '/boards', hash })
 }
 
 /** A QR code read by the camera: same path as a pasted link. */
@@ -86,7 +87,7 @@ onMounted(() => {
       <div class="nav-in">
         <NuxtLink to="/" class="brand" aria-label="RetroBoard"><span class="mark"><Icon name="lucide:layers" /></span>RetroBoard</NuxtLink>
         <nav class="links" :aria-label="t('landing.nav.label')">
-          <a href="#features">{{ t('landing.nav.features') }}</a><a href="#themes">{{ t('landing.nav.themes') }}</a><a href="#how">{{ t('landing.nav.how') }}</a><a href="#privacy">{{ t('landing.nav.privacy') }}</a><a href="#open">{{ t('landing.nav.open') }}</a>
+          <a href="#features">{{ t('landing.nav.features') }}</a><a href="#themes">{{ t('landing.nav.themes') }}</a><a href="#how">{{ t('landing.nav.how') }}</a><a href="#privacy">{{ t('landing.nav.privacy') }}</a><a href="#open">{{ t('landing.nav.open') }}</a><NuxtLink to="/poker" data-testid="nav-poker">{{ t('poker.entry') }} <BetaTag /></NuxtLink>
         </nav>
         <div class="right">
           <LocaleSwitch />
@@ -105,6 +106,7 @@ onMounted(() => {
         <div class="actions" data-reveal data-d="3">
           <NuxtLink to="/new" class="cta" data-testid="hero-create">{{ t('landing.create') }} <Icon name="lucide:arrow-right" /></NuxtLink>
           <button class="ghost" type="button" data-testid="solo" @click="solo">{{ t('landing.trySolo') }}</button>
+          <NuxtLink to="/poker" class="ghost" data-testid="hero-poker"><Icon name="lucide:spade" /> {{ t('poker.entry') }} <BetaTag /></NuxtLink>
         </div>
         <a class="guide-pill" :href="guideHref" data-reveal data-d="3" data-testid="landing-guide"><Icon name="lucide:book-open" /> {{ t('landing.guide') }} <Icon name="lucide:arrow-right" /></a>
         <form class="join" data-reveal data-d="4" data-testid="join-form" @submit.prevent="join">
@@ -290,7 +292,7 @@ body:has(.lp) { background: #fbfbfd !important; color: #1d1d1f; }
 .join .ghost, .join :deep(.ghost) { display: inline-flex; align-items: center; gap: .4rem; padding: .7rem 1.1rem; }
 .join-error { flex-basis: 100%; margin: 0; color: #b3261e; font-size: var(--fs-sm); text-align: center; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.ghost, .join :deep(.ghost) { padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .2s; }
+.ghost, .join :deep(.ghost) { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; padding: .85rem 1.4rem; border: 0; border-radius: 999px; background: transparent; color: var(--blue); font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .2s; }
 .ghost:hover, .join :deep(.ghost:hover) { background: rgb(0 113 227 / .08); }
 
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 1.4rem; max-width: 1120px; margin: 0 auto; padding: 4.5rem 1.25rem 3rem; text-align: center; }

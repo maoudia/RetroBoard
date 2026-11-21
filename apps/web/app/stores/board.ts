@@ -16,6 +16,8 @@ export const useBoardStore = defineStore('board', () => {
   const lastNotice = ref<(BoardNotice & { at: number }) | null>(null)
   /** A participant writes with a newer version of the application: this tab keeps their events but cannot read them until it reloads. */
   const newerVersion = ref(false)
+  /** The link is the one of a Scrum Poker room: the board page hands it to the poker room page. */
+  const pokerRoom = ref(false)
   /** Encrypted board that does not open with the keys we have (wrong passcode). */
   const accessDenied = ref(false)
   /** The facilitator moved the team to a fresh link and sent me the new one: the page opens it. */
@@ -40,6 +42,7 @@ export const useBoardStore = defineStore('board', () => {
     moved.value = null
     replicaFailing.value = false
     newerVersion.value = false
+    pokerRoom.value = false
     localCopy.value = undefined
     roomFull.value = false
     links.value = null
@@ -57,6 +60,7 @@ export const useBoardStore = defineStore('board', () => {
       onMoved: (m) => { moved.value = m },
       onNotice: (n) => {
         if (n.kind === 'newer-version') newerVersion.value = true
+        else if (n.kind === 'poker-room') pokerRoom.value = true
         else lastNotice.value = { ...n, at: Date.now() }
       },
       onCursor: (c, name) => live.setCursor(c, name),
@@ -150,7 +154,7 @@ export const useBoardStore = defineStore('board', () => {
   const groupById = (id: string) => snapshot.value?.groups.find((g) => g.id === id)
 
   return {
-    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, moved, replicaFailing, newerVersion, localCopy, roomFull, roomCode, links, myKey,
+    snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, moved, replicaFailing, newerVersion, pokerRoom, localCopy, roomFull, roomCode, links, myKey,
     connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, redoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, beginMove, moveToFreshLink, allowed, availability,
     settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingEnabled, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,

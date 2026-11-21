@@ -133,6 +133,7 @@ export class EncryptedRelayTransport implements BoardTransport {
   /** Events a newer version wrote that this one cannot read: kept and passed on, never folded (deploy-safe-sessions). */
   private readonly newer = new Set<string>()
   private newerNoticed = false
+  private pokerNoticed = false
   /** Peers that finished the initial sync with me, and the `have` lists being received. */
   private readonly peerSynced = new Set<string>()
   private readonly peerHave = new Map<string, Set<string>>()
@@ -1277,6 +1278,8 @@ export class EncryptedRelayTransport implements BoardTransport {
     if (!this.known) return
     if (this.lastStatus === 'waiting') this.setStatus('open')
     const ledger = this.log.ledger
+    // A poker room opened as a board: the page sends the person to the poker room page, once.
+    if (ledger.kind === 'poker' && !this.pokerNoticed) { this.pokerNoticed = true; this.handlers.onNotice?.({ kind: 'poker-room', by: null }) }
     // Closed for good, or removed by the facilitator: the encrypted copy goes from this device.
     if (ledger.board.settings.destroyed || ledger.removed.includes(this.deps.session.publicKey)) this.forgetReplica()
     this.delegateSessionToLink()

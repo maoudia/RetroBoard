@@ -110,6 +110,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
           <p v-if="inLibrary" class="boards-none muted" data-testid="boards-saved"><Icon name="lucide:bookmark-check" aria-hidden="true" /> {{ t('library.saved') }}</p>
           <button v-else class="boards-new" type="button" data-testid="boards-save" @click="saveToLibrary(); close()"><Icon name="lucide:bookmark-plus" /> {{ t('library.save') }}</button>
           <NuxtLink to="/boards" class="boards-new" data-testid="boards-all" @click="close()"><Icon name="lucide:library" /> {{ t('library.all') }}</NuxtLink>
+          <NuxtLink to="/poker" class="boards-new" data-testid="boards-poker" @click="close()"><Icon name="lucide:spade" /> {{ t('poker.entry') }} <BetaTag /></NuxtLink>
           <!-- Clone (change feedback-wave-7): the structure of this board, or only its open actions, in a new empty board. -->
           <button class="boards-new" type="button" data-testid="boards-clone" @click="clone('board'); close()"><Icon name="lucide:copy" /> {{ t('clone.board') }}</button>
           <button class="boards-new" type="button" data-testid="boards-clone-actions" :disabled="!board.openActions" @click="clone('actions'); close()"><Icon name="lucide:list-checks" /> {{ t('clone.actions') }}</button>
