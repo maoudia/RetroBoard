@@ -11,6 +11,21 @@ A person SHALL be able to start a poker room with a name and a deck and no accou
 - **WHEN** a round is played
 - **THEN** the relay carries only ciphertext, sizes and timing and keeps nothing after the last participant leaves
 
+### Requirement: Found from the product and marked beta
+Scrum Poker SHALL be in every build of the application, reachable from the landing page and from the menus that lead to boards, marked "Beta" in words, in French and in English, without being loaded by the landing page or by a board. A poker room link opened or pasted where a board link is expected SHALL open the poker room.
+
+#### Scenario: From the landing page
+- **WHEN** a visitor presses "Scrum Poker" on the landing page
+- **THEN** the start page opens with a deck already chosen and one button to create the room
+
+#### Scenario: A poker link in the join field
+- **WHEN** a person pastes a poker room link in the join field of the landing page, or opens it as a board address
+- **THEN** the poker room page opens with the same fragment and asks for a name
+
+#### Scenario: A reload
+- **WHEN** a participant reloads the room page after picking a card
+- **THEN** the seat, the role and the card come back, and the card is sent again if the relay no longer holds it
+
 ### Requirement: Sealed cards revealed together
 A voter's card SHALL stay hidden from every other participant, including a modified client, until the moderator reveals the round, and the reveal SHALL show every card to everyone at once. The table SHALL show who has voted without showing the value. The moderator's own device holds the key of the round and is trusted not to read cards early; the interface SHALL never show a card before the reveal and the help SHALL say who is trusted.
 

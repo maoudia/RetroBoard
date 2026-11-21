@@ -1,0 +1,7 @@
+Le Scrum Poker est une salle pour estimer ensemble: chacun choisit une carte, personne ne voit celles des autres, et les cartes se retournent d'un coup quand l'animateur les révèle. C'est une bêta: les histoires, le minuteur et les exports ne sont pas encore là. Il n'y a pas de compte, et la salle est chiffrée comme un board: le lien porte la clé après le `#`, donc le serveur ne voit que du chiffré et ne garde rien.
+
+## start
+Trouve **Scrum Poker** sur la page d'accueil, dans le menu des boards ou sur la page de la bibliothèque. Choisis un jeu de cartes (Fibonacci, Fibonacci modifié, T-shirt, puissances de 2) ou tape les tiennes séparées par des virgules, par exemple `1, 2, 4, 8, ?`: elles s'affichent en pastilles rondes. Puis appuie sur **Créer la salle**.
+
+## room
+Tape un nom et rejoins la salle: c'est tout ce qu'on te demande. Tu es l'animateur. **Copie le lien** (ou affiche le QR code, ou utilise Partager sur un téléphone) et envoie-le à l'équipe: la personne qui l'ouvre tape un nom et s'assoit à la table. Chacun choisit une carte en la touchant ou en tapant son nom au clavier (`5`, `1` puis `3` pour 13, `?`). La table montre qui a voté, jamais quoi. L'animateur appuie sur **Révéler**: toutes les cartes se retournent d'un coup, avec la moyenne, la médiane, la carte la plus choisie, l'écart, l'accord et une carte suggérée. **Revoter** ouvre un nouveau tour sur le même sujet, **Tour suivant** un tour neuf. Recharger la page garde ta place et ta carte. Une salle compte 20 votants; les suivants observent.

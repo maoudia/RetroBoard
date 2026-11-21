@@ -47,24 +47,25 @@ mise is optional. Without it, install the two tools directly:
 2. Install pnpm via Corepack (bundled with Node): `corepack enable`. Corepack reads `package.json#packageManager` (`pnpm@10.28.0`) and activates that exact version the first time you run `pnpm`, so it stays in sync with option A without needing mise.
 3. `pnpm install`
 
-## Scrum Poker demo (behind a flag, off by default)
+## Scrum Poker (beta, in every build)
 
-The `/poker` pages of the change `scrum-poker` (task 1.1, ADR-0042) exist only in a site generated with `NUXT_PUBLIC_POKER_DEMO=1`. A normal `pnpm generate` has no `/poker` route, no poker code and no poker string, so nothing changes for a user and the bundle budget is untouched. The flag is read at build time: change it, generate again.
+The `/poker` pages of the change `scrum-poker` (ADR-0042) are in every build and need no flag: `/poker` starts a room and `/poker/room#...` is the room. The landing page, the library page and the board menu link to them, marked "Beta". The pages are lazy routes with their own strings (`apps/web/app/poker/strings.ts`), so the landing page and the boards pay nothing for them; the shared bundle holds only the three entry labels (`poker.entry*`). `/poker/room` is a private prefix (never indexed, never in the sitemap); `/poker` is kept out of the index and the sitemap until its public page (task 7.1).
 
 ```bash
-NUXT_PUBLIC_POKER_DEMO=1 pnpm generate && pnpm dev:worker   # http://localhost:8787/poker (Worker, relay and site)
+pnpm generate && pnpm dev:worker   # http://localhost:8787/poker (Worker, relay and site)
 ```
 
 Try it with two or three tabs of the same browser (a second window works too; `localhost` is a secure context, a phone on the network is not, the browser refuses encryption there):
 
 1. Tab 1: open `/poker`. Pick a deck chip (Fibonacci, modified Fibonacci, T-shirt, powers of 2) or type your own cards separated by commas (`1, 2, 4, 8, ?`): they show as round chips. Press "Create the room", type a name and join. You are the moderator.
-2. Tab 1: press "Copy link" and open it in tabs 2 and 3. Type another name in each and join. Every tab lists the three seats and the same deck.
+2. Tab 1: press "Copy link" (or show the QR code) and open the link in tabs 2 and 3. Type another name in each and join. Every tab lists the three seats and the same deck. A link pasted in the join field of the landing page opens the room too.
 3. Each tab picks a card from the hand: click it, or type its name (`5`, `1` then `3` for 13, `?`). A seat shows "Has voted" and a face-down card, never the value, on every tab. Only the moderator has a Reveal button.
 4. Tab 1: press "Reveal". Every card flips at once on every tab and a results line shows the average, the median, the most chosen card, the spread, the agreement and the suggested card. "Vote again" opens a new round on the same item, "Next round" a new one; each has a fresh key.
+5. Reload a tab: the seat, the role and the card come back (they are kept in the tab's session storage; closing the tab ends the seat, and the moderator reopens the room with the moderator link).
 
-What it is: a room on the real protocol (sealed envelopes, signed events, the relay), the real estimation domain folded by the shared ledger (a genesis with `kind: "poker"`), the decks and statistics of `packages/application/src/estimation/`, one card per voter per round, 20 voters at most (a 21st seat watches), French and English, the theme tokens. What it is not: the shared transport, the mesh, the passcode, stories, the timer (tasks 2.1 and the next groups). A voter's seat survives a reload of the tab (kept in the tab's session storage); closing the tab ends it.
+What it is: a room on the real protocol (sealed envelopes, signed events, the relay), the real estimation domain folded by the shared ledger (a genesis with `kind: "poker"`), the decks and statistics of `packages/application/src/estimation/`, one card per voter per round, 20 voters at most (a 21st seat watches), French and English, the theme tokens. What it is not yet: the shared transport and the mesh, the passcode, stories, the timer (the next task groups of the change). A poker link opened as a board (`/boards#...`) is handed to the room page.
 
-Tests: `pnpm exec vitest run apps/web/test/poker-demo.test.ts packages/domain/test/estimation.test.ts packages/application/test/estimation-statistics.test.ts` (and the other `estimation`/`poker` tests of the packages) and, against a flagged site, `E2E_PORT=8791 pnpm exec playwright test tests/e2e/poker-demo.spec.ts --project=chromium` (three real tabs, the real relay, axe in light and dark; `CI=1 ... --project=phone` runs it on a phone-sized browser). The e2e spec skips itself on a normal build.
+Tests: `pnpm exec vitest run apps/web/test/poker-client.test.ts packages/domain/test/estimation.test.ts packages/application/test/estimation-statistics.test.ts` (and the other `estimation`/`poker` tests of the packages) and `pnpm exec playwright test tests/e2e/poker.spec.ts` (three real tabs, the real relay, axe in light and dark; `CI=1 ... --project=phone` runs it on a phone-sized browser, `--project=webkit` on WebKit). The spec is part of the core gate (`tests/e2e/core.json`).
 
 ## Keeping the pins in sync
 

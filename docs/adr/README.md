@@ -54,3 +54,4 @@ old one `superseded by ADR-NNNN`. Small clarifications go in its "More Informati
 | [0041](0041-sync-without-a-platform-the-sealed-vault-file-and-device-pai.md) | Sync without a platform: the sealed vault file and device pairing | proposed | 2026-11-20 |
 | [0042](0042-a-poker-room-is-a-second-room-kind-on-the-same-transport.md) | A poker room is a second room kind on the same transport | accepted | 2026-11-21 |
 | [0043](0043-jira-estimates-come-in-by-paste-and-csv-never-by-a-token.md) | Jira estimates come in by paste and CSV, never by a token we hold | proposed | 2026-11-20 |
+| [0044](0044-scrum-poker-ships-in-every-build-lazy-and-marked-beta.md) | Scrum Poker ships in every build, lazy and marked beta | accepted | 2026-11-21 |
