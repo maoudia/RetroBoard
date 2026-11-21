@@ -1,7 +1,7 @@
 import { isFormatPath } from '@retroboard/protocol'
 
 /** Paths the single-page app answers. Anything else under the SPA fallback is a real 404. */
-export const APP_ROUTES: ReadonlySet<string> = new Set(["/", "/new", '/board', '/boards', '/check', '/offline', '/unsupported', '/maintenance', '/busy', '/legal', '/privacy', '/terms', '/accessibility', '/storage/callback', '/whats-new', '/en/whats-new'])
+export const APP_ROUTES: ReadonlySet<string> = new Set(["/", "/new", '/board', '/boards', '/check', '/offline', '/unsupported', '/maintenance', '/busy', '/legal', '/privacy', '/terms', '/accessibility', '/storage/callback', '/whats-new', '/en/whats-new', '/poker', '/poker/room'])
 
 export function normalizePath(pathname: string): string {
   return pathname.length > 1 ? pathname.replace(/\/+$/, '') || '/' : pathname

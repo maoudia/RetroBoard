@@ -10,10 +10,16 @@ const releaseNotes = (() => {
   try { return parseChangelog(readFileSync(new URL('../../CHANGELOG.md', import.meta.url), 'utf8')) } catch { return [] }
 })()
 
+/**
+ * Scrum Poker demo (change scrum-poker, ADR-0042). The /poker pages exist only in a build made with NUXT_PUBLIC_POKER_DEMO=1: without it
+ * the routes, their code and their strings are not in the build, so nothing changes for a user and the bundle budget is untouched.
+ */
+const pokerDemo = process.env.NUXT_PUBLIC_POKER_DEMO === '1'
+
 /** Every page is a prerendered file (ADR-0034): the Worker never has to serve a shell for an app route. */
 const pageRoutes = () => [
   ...readdirSync(new URL('./app/pages', import.meta.url), { recursive: true, encoding: 'utf8' })
-    .filter((f) => f.endsWith('.vue') && !f.includes('[') && !/(^|\/)formats\//.test(f)) // the format pages are listed below, with their trailing slash
+    .filter((f) => f.endsWith('.vue') && !f.includes('[') && !/(^|\/)formats\//.test(f) && (pokerDemo || !f.startsWith('poker/'))) // the format pages are listed below, with their trailing slash
     .map((f) => `/${f.replace(/\.vue$/, '').replace(/(^|\/)index$/, '')}`),
   // One page per retro format and language, from the catalogue (change public-launch): a new format needs no page.
   ...(['fr', 'en'] as const).flatMap((lang) => [formatPath(null, lang), ...TEMPLATES.map((x) => formatPath(x.id, lang))]),
@@ -63,6 +69,11 @@ export default defineNuxtConfig({
     },
   },
   hooks: {
+    // The poker pages are dropped from the router unless the demo flag is on, so a normal build never bundles them.
+    'pages:extend'(pages) {
+      if (pokerDemo) return
+      for (let i = pages.length - 1; i >= 0; i--) if (pages[i]!.path === '/poker' || pages[i]!.path.startsWith('/poker/')) pages.splice(i, 1)
+    },
     // No <link rel="prefetch">: Firefox checks prefetch against default-src 'none' (there is no
     // prefetch-src), so every hint was a CSP violation. Modulepreload of the entry stays.
     'build:manifest'(manifest) {

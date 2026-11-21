@@ -47,6 +47,25 @@ mise is optional. Without it, install the two tools directly:
 2. Install pnpm via Corepack (bundled with Node): `corepack enable`. Corepack reads `package.json#packageManager` (`pnpm@10.28.0`) and activates that exact version the first time you run `pnpm`, so it stays in sync with option A without needing mise.
 3. `pnpm install`
 
+## Scrum Poker demo (behind a flag, off by default)
+
+The `/poker` pages of the change `scrum-poker` (task 1.1, ADR-0042) exist only in a site generated with `NUXT_PUBLIC_POKER_DEMO=1`. A normal `pnpm generate` has no `/poker` route, no poker code and no poker string, so nothing changes for a user and the bundle budget is untouched. The flag is read at build time: change it, generate again.
+
+```bash
+NUXT_PUBLIC_POKER_DEMO=1 pnpm generate && pnpm dev:worker   # http://localhost:8787/poker (Worker, relay and site)
+```
+
+Try it with two tabs of the same browser (a second window works too; `localhost` is a secure context, a phone on the network is not, the browser refuses encryption there):
+
+1. Tab 1: open `/poker`, press "Start a room" (or "Démarrer une salle"), type a name and join. You are the moderator.
+2. Tab 1: press "Copy link" and open it in tab 2. Type another name and join. Both tabs now list two seats.
+3. Each tab picks a card from the hand. A seat shows "Has voted" and a face-down card, never the value, on both tabs. Only the moderator has a Reveal button.
+4. Tab 1: press "Reveal". Every card flips at once on both tabs. "New round" starts the next vote with a fresh key.
+
+What it is: a minimal room on the real protocol (sealed envelopes, signed events, the relay), one card per voter per round, a Fibonacci deck, French and English, the theme tokens, 20 voters at most. What it is not: the real transport and domain (they come with tasks 1.2 and 2.1), the mesh, results, stories, the passcode. A voter's seat survives a reload of the tab (kept in the tab's session storage); closing the tab ends it.
+
+Tests: `pnpm exec vitest run apps/web/test/poker-demo.test.ts` (sealing, fold, two clients through a relay stand-in) and, against a flagged site, `E2E_PORT=8791 pnpm exec playwright test tests/e2e/poker-demo.spec.ts --project=chromium` (two real tabs, the real relay, axe in light and dark). The e2e spec skips itself on a normal build.
+
 ## Keeping the pins in sync
 
 One Node version runs in development, CI and production, and `.node-version` is its only source. It is the current LTS (an even major); move it when the next LTS starts.

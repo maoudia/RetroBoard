@@ -14,6 +14,10 @@ ADR-0042 (accepted after the spike of task 1.1) records the choice and the rule 
 
 What the spike changed in this design: the sealed vote has a key per round published at the reveal (below), the voter cap is settled at 20 with its arithmetic in the ADR, and the shared ledger fold, which is typed on boards, is made kind-aware (next table). The transport itself (envelopes, relay, mesh, replica, anti-entropy) needs no change.
 
+## The demo behind a flag
+
+At the owner's request the proof of task 1.1 is a runnable demo (`apps/web/app/poker/`, `apps/web/app/pages/poker/`): `/poker` starts a room, `/poker/room#...` is the room, one tab creates it and others join by the link, each picks a card, nothing shows until Reveal and then the cards flip together. It speaks the real protocol through the relay only, has one Fibonacci deck, French and English strings kept beside it (not in the shared dictionaries, which sit inside the bundle budget) and uses the theme tokens. The flag is `NUXT_PUBLIC_POKER_DEMO=1` at build time: without it the routes are removed from the router, so the pages, their code and their strings are not in the build and the bundle budget does not move. The demo is the seed of the first playable slice and is replaced piece by piece by the real transport and domain (tasks 1.2 and 2.1), not kept next to them.
+
 ## Where each piece lives
 
 | Piece | Layer |

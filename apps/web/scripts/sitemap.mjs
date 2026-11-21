@@ -6,8 +6,8 @@ import { join, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { isPrivate } from './robots.mjs'
 
-/** Prerendered pages that are not content: error and service shells. */
-const SERVICE = ['/404', '/200', '/busy', '/maintenance', '/unsupported']
+/** Prerendered pages that are not content: error and service shells, and the poker demo (only in a build made with NUXT_PUBLIC_POKER_DEMO=1). */
+const SERVICE = ['/404', '/200', '/busy', '/maintenance', '/unsupported', '/poker', '/poker/room']
 
 /** `index.html` is `/`, `a.html` is `/a`, `a/index.html` is `/a/`. */
 export function pathOf(file) {
