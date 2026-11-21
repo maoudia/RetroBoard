@@ -26,7 +26,8 @@
     "folder-contract",
     "onedrive-sync",
     "onedrive-worker-csp",
-    "sync-shield"
+    "sync-shield",
+    "poker"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",

@@ -1,12 +1,11 @@
 import { expect, type Page, test } from '@playwright/test'
-import { axe, settle } from './helpers'
+import { axe, createBoard, settle } from './helpers'
 
 /**
- * Scrum Poker (change scrum-poker, tasks 1.2, 1.3 and the first slice of 3.1): the start page with its deck chips and typed list, a room of
- * three people on one real relay, keyboard and click play, the results line, a re-vote and a next round. It runs only against a site
- * generated with NUXT_PUBLIC_POKER_DEMO=1; a normal build has no /poker page and the spec says so and skips.
+ * Scrum Poker (change scrum-poker, tasks 1.2, 1.3 and the first slice of 3.1, beta): the entries of the landing page and the menus, the start
+ * page with its deck chips and typed list, a room of three people on one real relay, keyboard and click play, the results line, a re-vote
+ * and a next round, a reload, a poker link opened as a board. It runs on every build: the poker pages are in all of them.
  */
-const SKIP = 'this build has no poker demo: NUXT_PUBLIC_POKER_DEMO=1 pnpm generate'
 const watch = (page: Page, errors: string[]) => {
   page.on('pageerror', (e) => errors.push(e.message))
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
@@ -22,8 +21,7 @@ const noViolation = async (page: Page, where: string) => {
 }
 const cardsOf = (page: Page) => page.getByTestId('poker-deck-cards').locator('li')
 
-test('the start page offers deck chips and a typed list, shown as round chips', async ({ page, request }) => {
-  test.skip((await request.get('/poker')).status() === 404, SKIP)
+test('the start page offers deck chips and a typed list, shown as round chips', async ({ page }) => {
   await page.goto('/poker')
   // Fibonacci is chosen at once: one click on Create is a room.
   await expect(page.getByTestId('poker-deck-fibonacci')).toBeChecked()
@@ -56,8 +54,7 @@ test('the start page offers deck chips and a typed list, shown as round chips', 
   await noViolation(page, 'start')
 })
 
-test('three people play a round: keys and clicks, the cards stay hidden, the results line, a re-vote and the next round', async ({ browser, request }) => {
-  test.skip((await request.get('/poker')).status() === 404, SKIP)
+test('three people play a round: keys and clicks, the cards stay hidden, the results line, a re-vote and the next round', async ({ browser }) => {
   const errors: string[] = []
   const phone = !!test.info().project.use.isMobile
   // Three people, three browser contexts with the options of the project (the phone project gives phone contexts).
@@ -163,8 +160,110 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
   await Promise.all(contexts.map((ctx) => ctx.close()))
 })
 
-test('a link that is not a room says so', async ({ page, request }) => {
-  test.skip((await request.get('/poker')).status() === 404, SKIP)
+test('a link that is not a room says so', async ({ page }) => {
   await page.goto('/poker/room#nonsense')
   await expect(page.getByTestId('poker-bad-link')).toBeVisible()
+})
+
+test('a visitor finds Scrum Poker from the landing page and the library, marked beta, and the page speaks both languages', async ({ page }) => {
+  const errors: string[] = []
+  watch(page, errors)
+  await page.goto('/')
+  // The hero action is a button of the same shape as "Try it solo"; the beta mark is a word.
+  const hero = page.getByTestId('hero-poker')
+  await expect(hero).toBeVisible()
+  await expect(hero).toContainText('Scrum Poker')
+  await expect(hero.getByTestId('beta-tag')).toHaveText(/b[eê]ta/i)
+  expect((await hero.boundingBox())!.height).toBe((await page.getByTestId('solo').boundingBox())!.height)
+  if (!test.info().project.use.isMobile) await expect(page.getByTestId('nav-poker')).toBeVisible()
+  await hero.click()
+  await expect(page).toHaveURL(/\/poker$/)
+  await expect(page.getByTestId('poker-start')).toBeVisible()
+  await expect(page.getByTestId('poker-start').getByTestId('beta-tag')).toBeVisible()
+
+  // The language is one tap away on the page itself.
+  await page.getByTestId('poker-lang-en').click()
+  await expect(page.getByTestId('poker-start-action')).toHaveText(/Create the room/)
+  await expect(page.getByTestId('poker-beta-note')).toContainText(/Beta/)
+  await page.getByTestId('poker-lang-fr').click()
+  await expect(page.getByTestId('poker-start-action')).toHaveText(/Créer la salle/)
+  await page.getByTestId('poker-home').click()
+  await expect(page.getByTestId('hero-title')).toBeVisible()
+
+  // The library page lists it too.
+  await page.goto('/boards')
+  await page.getByTestId('library-poker').click()
+  await expect(page.getByTestId('poker-start')).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+test('the board menu lists Scrum Poker, marked beta', async ({ page, browserName }) => {
+  // The board creation helper and the boards menu of the toolbar are the desktop ones (the phone toolbar has no boards menu; WebKit logs a CSP notice on /new that boards own).
+  test.skip(browserName !== 'chromium' || !!test.info().project.use.isMobile, 'desktop Chromium: the board creation flow of the helper')
+  await createBoard(page)
+  await page.getByTestId('btn-boards').click()
+  await expect(page.getByTestId('boards-poker').getByTestId('beta-tag')).toBeVisible()
+  await page.getByTestId('boards-poker').click()
+  await expect(page.getByTestId('poker-start')).toBeVisible()
+})
+
+test('the room survives a reload, offers the link as text, share and QR, and says what to do next', async ({ page }) => {
+  const errors: string[] = []
+  watch(page, errors)
+  await page.goto('/poker')
+  await page.getByTestId('poker-start-action').click()
+  await page.getByTestId('poker-name').fill('Ann')
+  await page.getByTestId('poker-name-join').click()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  // Alone in the room: the page says to share the link, and the QR code is one tap away.
+  await expect(page.getByTestId('poker-alone')).toBeVisible()
+  await expect(page.getByTestId('qr')).toHaveCount(0)
+  await page.getByTestId('poker-qr-toggle').click()
+  await expect(page.getByTestId('qr')).toBeVisible()
+  // The name step, the alone hint, the share block with its QR code and the language buttons pass axe in light and dark.
+  await noViolation(page, 'room-alone')
+  await page.getByTestId('poker-card-3').check({ force: true })
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+
+  // A reload keeps the seat, the moderator role and the card: no name asked again, still one seat.
+  await page.reload()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(page.getByTestId('poker-name')).toHaveCount(0)
+  await expect(page.getByTestId('poker-seat')).toHaveCount(1)
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+  await expect(page.getByTestId('poker-card-3')).toBeChecked()
+  await expect(page.getByTestId('poker-reveal')).toBeEnabled()
+  expect(errors).toEqual([])
+})
+
+test('a participant is told who steers, and a poker link pasted in the landing field or opened as a board lands in the room', async ({ browser }) => {
+  const contexts = await Promise.all([0, 1].map(() => browser.newContext(test.info().project.use)))
+  const [a, b] = await Promise.all(contexts.map((ctx) => ctx.newPage()))
+  await a!.goto('/poker')
+  await a!.getByTestId('poker-start-action').click()
+  await a!.getByTestId('poker-name').fill('Ann')
+  await a!.getByTestId('poker-name-join').click()
+  await expect(a!.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  const link = await a!.getByTestId('poker-share-url').inputValue()
+
+  // Bob pastes the room link in the join field of the landing page: the poker room opens, not a board.
+  await b!.goto('/')
+  await b!.getByTestId('join-input').fill(link)
+  await b!.getByTestId('join-go').click()
+  await expect(b!).toHaveURL(/\/poker\/room#c=/)
+  await b!.getByTestId('poker-name').fill('Bob')
+  await b!.getByTestId('poker-name-join').click()
+  await expect(b!.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(b!.getByTestId('poker-participant-wait')).toBeVisible()
+  await expect(b!.getByTestId('poker-alone')).toHaveCount(0)
+  await b!.getByTestId('poker-card-2').check({ force: true })
+  await a!.getByTestId('poker-reveal').click()
+  await expect(b!.getByTestId('poker-participant-wait')).toContainText(/suivant|next/i)
+
+  // The same link opened as a board (an old bookmark, a pasted /boards address) is handed to the room page.
+  const hash = link.slice(link.indexOf('#'))
+  await b!.goto(`/boards${hash}`)
+  await expect(b!).toHaveURL(/\/poker\/room#c=/)
+  await expect(b!.getByTestId('poker-room')).toBeVisible()
+  await Promise.all(contexts.map((ctx) => ctx.close()))
 })

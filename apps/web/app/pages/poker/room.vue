@@ -1,14 +1,15 @@
 <script setup lang="ts">
-// Scrum Poker demo room (change scrum-poker, ADR-0042): one tab creates it, others join by the link, cards stay sealed until Reveal.
+// Scrum Poker room (change scrum-poker, ADR-0042, beta): one tab creates it, others join by the link, cards stay sealed until Reveal.
 import { formatInvite, type KeyRing, parseInvite, participantRing } from '@retroboard/domain'
 import { isValidDeck } from '@retroboard/domain'
+import PokerBar from '~/components/poker/PokerBar.vue'
 import PokerHand from '~/components/poker/PokerHand.vue'
 import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
 import { PokerClient, type PokerView } from '~/poker/client'
 import { pt } from '~/poker/strings'
 
-// A demo is never indexed, whatever the indexing switch says.
+// A room is never indexed, whatever the indexing switch says (and `/poker/room` is a private prefix of the shell and of the Worker).
 useHead({ title: computed(() => pt('poker.pageTitle')), meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 const NAME_SLOT = 'retroboard:poker:name'
@@ -18,6 +19,9 @@ const name = ref('')
 const joined = ref(false)
 const view = shallowRef<PokerView | null>(null)
 const copied = ref(false)
+/** The share sheet of the phone, when the browser has one: the link is handed to it, never to a server. */
+const canShare = ref(false)
+const qrOpen = ref(false)
 const shareUrl = ref('')
 let client: PokerClient | null = null
 
@@ -27,8 +31,12 @@ onMounted(() => {
   ring.value = invite.ring
   // The link people share never carries the moderator secret.
   shareUrl.value = `${location.origin}/poker/room#${formatInvite(participantRing(invite.ring), 'participant')}`
+  canShare.value = typeof navigator.share === 'function'
   try { name.value = sessionStorage.getItem(NAME_SLOT) ?? '' } catch { /* private mode: ask again */ }
-  if (name.value.trim()) void join()
+  // A reload keeps the seat; a first visit offers the name this browser already uses for boards, to confirm.
+  const known = name.value.trim() !== ''
+  if (!known) { const identity = useIdentityStore(); identity.load(); name.value = identity.name }
+  if (known) void join()
 })
 onBeforeUnmount(() => client?.close())
 
@@ -47,6 +55,9 @@ async function join() {
 async function copy() {
   try { await navigator.clipboard.writeText(shareUrl.value); copied.value = true } catch { copied.value = false }
 }
+async function share() {
+  try { await navigator.share({ title: pt('poker.pageTitle'), url: shareUrl.value }) } catch { /* closed without sharing */ }
+}
 
 const round = computed(() => view.value?.round ?? null)
 const canReveal = computed(() => !!view.value?.canReveal && (round.value?.voted ?? 0) > 0)
@@ -58,14 +69,15 @@ const boardHref = computed(() => `/boards${location.hash}`)
 
 <template>
   <main id="main" class="room" data-testid="poker-room">
+    <PokerBar />
     <p v-if="badLink" class="notice" role="alert" data-testid="poker-bad-link">
       {{ pt('poker.error.link') }} <NuxtLink to="/poker" class="btn btn-sm"><Icon name="lucide:arrow-left" /> {{ pt('poker.back') }}</NuxtLink>
     </p>
 
     <form v-else-if="ring && !joined" class="name" @submit.prevent="join">
-      <p class="demo-note" role="note">{{ pt('poker.demo') }}</p>
       <label for="poker-name">{{ pt('poker.name.label') }}</label>
       <input id="poker-name" v-model="name" class="field" type="text" maxlength="24" autocomplete="nickname" data-testid="poker-name">
+      <p class="hint">{{ pt('poker.name.hint') }}</p>
       <button type="submit" class="btn btn-primary" :disabled="!name.trim()" data-testid="poker-name-join">
         <Icon name="lucide:users" /> {{ pt('poker.name.join') }}
       </button>
@@ -86,13 +98,19 @@ const boardHref = computed(() => `/boards${location.hash}`)
           <div class="share-row">
             <input id="poker-link" class="field" :value="shareUrl" type="text" readonly data-testid="poker-share-url" @focus="($event.target as HTMLInputElement).select()">
             <button type="button" class="btn btn-sm" data-testid="poker-copy" @click="copy"><Icon name="lucide:copy" /> {{ pt(copied ? 'poker.share.copied' : 'poker.share.copy') }}</button>
+            <button v-if="canShare" type="button" class="btn btn-sm" data-testid="poker-share" @click="share"><Icon name="lucide:share-2" /> {{ pt('poker.share.native') }}</button>
           </div>
+          <details class="qrbox" @toggle="qrOpen = ($event.target as HTMLDetailsElement).open">
+            <summary data-testid="poker-qr-toggle">{{ pt('poker.share.qr') }}</summary>
+            <QrCode v-if="qrOpen" :value="shareUrl" :label="pt('poker.share.qrLabel')" :size="200" />
+          </details>
           <p class="hint">{{ pt('poker.share.hint') }}</p>
         </section>
 
         <section :aria-label="pt('poker.table.title')">
           <h2>{{ pt('poker.table.title') }}</h2>
           <p class="progress" role="status" data-testid="poker-progress">{{ progress }}</p>
+          <p v-if="view.seats.length <= 1" class="hint alone" data-testid="poker-alone">{{ pt('poker.alone') }}</p>
           <PokerTable :seats="view.seats" />
         </section>
 
@@ -113,6 +131,7 @@ const boardHref = computed(() => `/boards${location.hash}`)
           <p v-if="!round.revealed && !view.canReveal" class="hint">{{ pt('poker.reveal.holder') }}</p>
           <p v-else-if="!round.revealed && !canReveal" class="hint">{{ pt('poker.reveal.wait') }}</p>
         </div>
+        <p v-else-if="round" class="hint" data-testid="poker-participant-wait">{{ pt(round.revealed ? 'poker.wait.next' : 'poker.wait.reveal') }}</p>
 
         <PokerHand v-if="round" :deck="round.deck" :mine="view.mine" :locked="locked" :watching="!view.voter" @pick="client?.vote($event)" />
       </template>
@@ -127,11 +146,14 @@ h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); }
 .bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--sp-2); }
 .status, .hint, .progress { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
 .progress { margin-bottom: var(--sp-3); }
-.demo-note, .notice { margin: 0; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: var(--fs-sm); color: var(--muted); }
+.notice { margin: 0; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: var(--fs-sm); color: var(--muted); }
 .name { display: grid; gap: var(--sp-3); max-width: 24rem; }
 .share { display: grid; gap: var(--sp-1); }
 .share-row { display: flex; gap: var(--sp-2); }
 .share-row input { flex: 1; min-width: 0; }
+.qrbox summary { cursor: pointer; font-size: var(--fs-sm); }
+.qrbox :deep(svg) { margin-top: var(--sp-2); }
+.alone { margin-bottom: var(--sp-3); }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
 @media (max-width: 480px) { .actions .btn { flex: 1; min-height: 48px; justify-content: center; } }
 </style>

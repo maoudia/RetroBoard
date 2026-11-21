@@ -25,6 +25,10 @@ describe('the strings', () => {
     for (const v of Object.values(pokerEn)) expect(v).not.toMatch(/[‘’“”–—]/)
   })
 
+  it('say nothing of a demo or a flag: the pages are the product, in beta', () => {
+    for (const text of [...Object.values(pokerFr), ...Object.values(pokerEn)]) expect(text).not.toMatch(/d[eé]mo|drapeau|flag/i)
+  })
+
   it('follow the current language and fill the placeholders', () => {
     currentLocale.value = 'en'
     expect(pt('poker.progress', { voted: 2, total: 3 })).toBe('2 of 3 have voted')
@@ -129,6 +133,33 @@ describe('two clients through a relay', () => {
     for (const frame of pubs) { expect(frame.t).toBe('pub'); for (const e of frame.envs) expect(Object.keys(e).sort()).toEqual(['ct', 'hlc', 'id', 'room', 'v']) }
     expect(frames.join('')).not.toMatch(/poker|round|vote|reveal|genesis/)
     expect(fromBase64Url(roomId)).toHaveLength(16)
+  })
+
+  it('sends the card kept in the tab again when a reload meets a relay that forgot the room (nobody else was in it)', async () => {
+    const roomKey = b64(16); const roomId = b64(16)
+    const invite = parseInvite(formatInvite({ roomId, roomKey, facilitatorSecret: b64(16) }, 'facilitator'))
+    if (invite?.kind !== 'encrypted') throw new Error('bad invite')
+    const slots = new Map<string, string>()
+    const store = { getItem: (k: string) => slots.get(k) ?? null, setItem: (k: string, v: string) => { slots.set(k, v) } }
+    const open = async (WS: typeof WebSocket) => {
+      let view: PokerView | null = null
+      const c = new PokerClient({ ring: invite.ring, name: 'Ann', deck: FIB, socketBase: 'ws://relay.test', WS, store, onChange: (v) => { view = v } })
+      await c.start()
+      await vi.waitFor(() => expect((view as PokerView | null)?.status).toBe('live'))
+      return { c, view: () => view! }
+    }
+    const first = await open(relay().WS)
+    first.c.vote(FIB.indexOf('8'))
+    await vi.waitFor(() => expect(first.view().round?.voted).toBe(1))
+    first.c.close()
+
+    // The relay keeps nothing once the room is empty: the reload finds no history, writes the room again, and the card is still hers.
+    const second = await open(relay().WS)
+    await vi.waitFor(() => expect(second.view().round?.voted).toBe(1))
+    expect(second.view().mine).toBe(FIB.indexOf('8'))
+    second.c.reveal()
+    await vi.waitFor(() => expect(second.view().seats.map((s) => s.card)).toEqual(['8']))
+    second.c.close()
   })
 
   it('seats a 21st person as a watcher who cannot vote, and keeps the cards of the voters', async () => {

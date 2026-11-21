@@ -1,12 +1,15 @@
 <script setup lang="ts">
-// Scrum Poker start page (change scrum-poker): present only in a build made with NUXT_PUBLIC_POKER_DEMO=1 (see nuxt.config.ts).
+// Scrum Poker start page (change scrum-poker, beta): in every build, a lazy route so the landing page pays nothing for it.
 // One decision, the deck, then one button. No account, no name yet: the room asks for the name.
 import { type DeckError, DEFAULT_PRESET, parseCustomDeck, PRESETS, type PresetId, presetCards, presetOf } from '@retroboard/application'
 import { randomBytes, toBase64Url } from '@retroboard/crypto'
 import { formatInvite } from '@retroboard/domain'
+import { ideaUrl } from '~/utils/feedback'
 import { pt } from '~/poker/strings'
 
-// A demo is never indexed, whatever the indexing switch says.
+const { t } = useT()
+
+// Kept out of every index whatever the switch says, as before the launch: the public page of the product is task 7.1 of the change.
 useHead({ title: computed(() => pt('poker.pageTitle')), meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 /** The cards as typed: a preset fills the field, and the field is the one source of the deck. */
@@ -32,8 +35,8 @@ function start() {
 
 <template>
   <main id="main" class="poker-start" data-testid="poker-start">
-    <p class="demo-note" role="note">{{ pt('poker.demo') }}</p>
-    <h1>{{ pt('poker.start.title') }}</h1>
+    <PokerBar />
+    <h1>{{ pt('poker.start.title') }} <BetaTag /></h1>
     <p class="lead">{{ pt('poker.start.lead') }}</p>
 
     <form class="setup" @submit.prevent="start">
@@ -69,6 +72,7 @@ function start() {
       </button>
     </form>
     <p class="private">{{ pt('poker.start.private') }}</p>
+    <p class="private" data-testid="poker-beta-note">{{ pt('poker.start.beta') }} <a :href="ideaUrl" target="_blank" rel="noopener">{{ t('feedback.idea') }}</a></p>
   </main>
 </template>
 
@@ -77,7 +81,6 @@ function start() {
 h1 { margin: 0; font-size: var(--fs-3xl); }
 .lead { margin: 0; font-size: var(--fs-lg); }
 .private { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
-.demo-note { margin: 0; justify-self: start; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: var(--fs-sm); color: var(--muted); }
 .setup { display: grid; gap: var(--sp-4); }
 .decks { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: var(--sp-2); }
 .decks legend { padding: 0; margin-bottom: var(--sp-2); font-size: var(--fs-lg); font-weight: 600; }

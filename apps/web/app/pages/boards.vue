@@ -70,6 +70,8 @@ watch(() => [persistence.persisted, board.ready, board.noteCount > 0, board.peer
 }, { immediate: true })
 onBeforeUnmount(() => clearTimeout(proposeTimer))
 watch(() => board.settings?.destroyed, (v) => { if (v) closeLocal(ui.moving) }, { immediate: true })
+/** The link is a Scrum Poker room's (same link format, ADR-0042): the room page takes over, with the same fragment. */
+watch(() => board.pokerRoom, (v) => { if (v) void navigateTo({ path: '/poker/room', hash: route.hash }, { replace: true }) })
 
 /** Removed by the facilitator: this tab leaves the board and its copy is gone (change facilitator-moderation). */
 const removedKey = (id: string) => `retroboard:removed:${id}`
