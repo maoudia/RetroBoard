@@ -31,7 +31,7 @@ describe('the strings', () => {
 
   it('follow the current language and fill the placeholders', () => {
     currentLocale.value = 'en'
-    expect(pt('poker.progress', { voted: 2, total: 3 })).toBe('2 of 3 have voted')
+    expect(pt('poker.progress', { voted: 2, total: 3 })).toBe('2 of 3 voted')
     currentLocale.value = 'fr'
     expect(pt('poker.progress', { voted: 2, total: 3 })).toBe('2 sur 3 ont voté')
     expect(pt('poker.progress')).toBe('{voted} sur {total} ont voté')

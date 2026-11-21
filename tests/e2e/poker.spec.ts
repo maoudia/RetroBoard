@@ -1,4 +1,6 @@
-import { type Browser, expect, type Page, test } from '@playwright/test'
+import { type Browser, type BrowserContext, expect, type Locator, type Page, test } from '@playwright/test'
+import jsQR from 'jsqr'
+import { PNG } from 'pngjs'
 import { axe, createBoard, settle } from './helpers'
 
 /**
@@ -19,6 +21,8 @@ const noViolation = async (page: Page, where: string) => {
     expect(found.violations.map((v) => `${where} ${colorScheme} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([])
   }
 }
+/** The participant link of a room, from the moderator's address (the first 44 characters of the key part): the room page never prints it. */
+const participantLink = (page: Page) => page.url().replace(/(#c=[A-Za-z0-9_-]{44})[A-Za-z0-9_-]+$/, '$1')
 const cardsOf = (page: Page) => page.getByTestId('poker-deck-cards').locator('li')
 
 test('the start page offers deck chips and a typed list, shown as round chips', async ({ page }) => {
@@ -75,8 +79,9 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
   await expect(a!.getByTestId('poker-hand').locator('.pick')).toHaveCount(5)
   await expect(a!.getByTestId('poker-round')).toHaveText(/1/)
 
-  // The link to share is the participant link: it never carries the moderator secret.
-  const link = await a!.getByTestId('poker-share-url').inputValue()
+  // The link to share is the participant link: it never carries the moderator secret (the room page does not print it: the invite sheet
+  // holds it, and a test below presses Copy to read it from the clipboard).
+  const link = participantLink(a!)
   expect(link).toMatch(/\/poker\/room#c=[A-Za-z0-9_-]{44}$/)
   expect(a!.url().split('#c=')[1]!.length).toBe(66)
 
@@ -101,7 +106,7 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
   for (const page of [a!, b!, c!]) {
     await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(3)
     await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(0)
-    await expect(page.getByTestId('poker-seat-state')).toHaveText(['Has voted', 'Has voted', 'Has voted'].map((s) => new RegExp(`${s}|A voté`)))
+    await expect(page.getByTestId('poker-seat-state')).toHaveText([/voted|a voté/, /voted|a voté/, /voted|a voté/])
     await expect(page.getByTestId('poker-results')).toHaveCount(0)
   }
   await expect(b!.getByTestId('poker-reveal')).toHaveCount(0)
@@ -111,16 +116,17 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
   await a!.getByTestId('poker-reveal').click()
   for (const page of [a!, b!, c!]) {
     await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(3)
-    await expect(page.getByTestId('poker-seat-state')).toHaveText(['2', '8', '4'])
+    // The value is on the card, once: the words of the seat say it to a screen reader, no caption repeats it.
+    await expect(page.getByTestId('poker-seat-state')).toHaveText([/(Card|Carte) 2$/, /(Card|Carte) 8$/, /(Card|Carte) 4$/])
+    await expect(page.locator('[data-testid="poker-seat"] .pcard[data-variant="face"] .value')).toHaveText(['2', '8', '4'])
     await expect(page.getByTestId('poker-average')).toHaveText('4.67')
     await expect(page.getByTestId('poker-median')).toHaveText('4')
     await expect(page.getByTestId('poker-mode')).toHaveText('2, 4, 8')
     await expect(page.getByTestId('poker-spread')).toContainText(/2 (à|to) 8/)
     await expect(page.getByTestId('poker-agreement')).toHaveText(/^33 ?%$/)
     await expect(page.getByTestId('poker-suggestion')).toHaveText('4')
-    // The hand leaves at the reveal (it does not fade): the dock has nothing to offer a voter.
+    // The hand leaves at the reveal (it does not fade): the dock offers a voter one line and no control.
     await expect(page.getByTestId('poker-hand')).toHaveCount(0)
-    await expect(page.getByTestId('poker-dock')).toHaveCount(0)
   }
   // Nobody but the moderator steers the next round.
   await expect(b!.getByTestId('poker-revote')).toHaveCount(0)
@@ -135,7 +141,8 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
     await expect(page.getByTestId('poker-results')).toHaveCount(0)
     await expect(page.getByTestId('poker-hand')).toBeVisible()
   }
-  await expect(a!.getByTestId('poker-reveal')).toBeDisabled()
+  // Reveal appears with the first card; it is not a disabled button waiting for one.
+  await expect(a!.getByTestId('poker-reveal')).toHaveCount(0)
   await a!.getByTestId('poker-card-1').check({ force: true })
   await b!.getByTestId('poker-card-1').check({ force: true })
   await a!.getByTestId('poker-reveal').click()
@@ -218,12 +225,15 @@ test('the room survives a reload, offers the link as text, share and QR, and say
   await page.getByTestId('poker-name').fill('Ann')
   await page.getByTestId('poker-name-join').click()
   await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
-  // Alone in the room: the page says to share the link, and the QR code is one tap away.
-  await expect(page.getByTestId('poker-alone')).toBeVisible()
+  // Alone in the room: the one hint says to share the link, and the QR code is one tap away, in the invite sheet.
+  await expect(page.getByTestId('poker-hint')).toHaveText(/share the link|Partagez le lien/i)
   await expect(page.getByTestId('qr')).toHaveCount(0)
-  await page.getByTestId('poker-qr-toggle').click()
+  await page.getByTestId('poker-invite').click()
   await expect(page.getByTestId('qr')).toBeVisible()
-  // The name step, the alone hint, the share block with its QR code and the language buttons pass axe in light and dark.
+  // The room alone and the invite sheet pass axe in light and dark.
+  await noViolation(page, 'invite-sheet')
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('qr')).toHaveCount(0)
   await noViolation(page, 'room-alone')
   await page.getByTestId('poker-card-3').check({ force: true })
   await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
@@ -247,7 +257,7 @@ test('a participant is told who steers, and a poker link pasted in the landing f
   await a!.getByTestId('poker-name').fill('Ann')
   await a!.getByTestId('poker-name-join').click()
   await expect(a!.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
-  const link = await a!.getByTestId('poker-share-url').inputValue()
+  const link = participantLink(a!)
 
   // Bob pastes the room link in the join field of the landing page: the poker room opens, not a board.
   await b!.goto('/')
@@ -257,11 +267,14 @@ test('a participant is told who steers, and a poker link pasted in the landing f
   await b!.getByTestId('poker-name').fill('Bob')
   await b!.getByTestId('poker-name-join').click()
   await expect(b!.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
-  await expect(b!.getByTestId('poker-participant-wait')).toBeVisible()
-  await expect(b!.getByTestId('poker-alone')).toHaveCount(0)
+  // A voter who has not chosen has the hand for a hint, and nobody is told to share the link any more.
+  await expect(b!.getByTestId('poker-hand')).toBeVisible()
+  await expect(b!.getByTestId('poker-hint')).toHaveCount(0)
   await b!.getByTestId('poker-card-2').check({ force: true })
   await a!.getByTestId('poker-reveal').click()
-  await expect(b!.getByTestId('poker-participant-wait')).toContainText(/suivant|next/i)
+  // After the reveal a voter's dock is one hint line and no control.
+  await expect(b!.getByTestId('poker-hint')).toContainText(/suivant|next/i)
+  await expect(b!.getByTestId('poker-dock').locator('button')).toHaveCount(0)
 
   // The same link opened as a board (an old bookmark, a pasted /boards address) is handed to the room page.
   const hash = link.slice(link.indexOf('#'))
@@ -339,7 +352,7 @@ for (const viewport of PHONES) {
     expect(await place()).toEqual(before)
     await page.getByTestId('poker-reveal').click()
     await expect(page.getByTestId('poker-hand')).toHaveCount(0)
-    await expect(page.getByTestId('poker-dock')).toHaveCount(0)
+    await expect(page.getByTestId('poker-dock').locator('button')).toHaveText([/Vote again/, /Next round/])
     await page.getByTestId('poker-next').click()
     await expect(page.getByTestId('poker-hand')).toBeVisible()
     await expect(page.locator('.pcard.chosen')).toHaveCount(0)
@@ -462,4 +475,315 @@ test('the hand is played with the keyboard alone: the arrow keys move and choose
   await expect(page.getByTestId('poker-card-2')).toBeFocused()
   // The ring is drawn around the card, outside the ring of the choice (WebKit does not call a script's focus() a keyboard focus).
   if (browserName === 'chromium') expect(await page.locator('.pcard.chosen').evaluate((el) => { const css = getComputedStyle(el); return [css.outlineStyle, css.outlineWidth] })).toEqual(['solid', '2px'])
+})
+
+/**
+ * Change poker-design-v2, group 2: the phone room in one viewport (the bar, the invite sheet, the seats). English, so that the words of the
+ * design can be compared as written; the rooms are built with real tabs on the real relay.
+ */
+const english = (browser: Browser, viewport: { width: number; height: number } = PHONES[0], locale = 'en-US') => browser.newContext({ viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 2, locale })
+/** What assistive technology says of an element: its text without what is hidden from it. */
+const said = (el: Locator) => el.evaluate((node) => { const copy = node.cloneNode(true) as HTMLElement; copy.querySelectorAll('[aria-hidden="true"]').forEach((e) => e.remove()); return copy.textContent!.replace(/\s+/g, ' ').trim() })
+/** A name of 24 characters, the longest the field takes. */
+const longName = (i: number) => `Maximilienne-Alexandra ${String(i).padStart(2, '0')}`.slice(0, 24)
+const goLive = async (page: Page, name: string) => {
+  await page.getByTestId('poker-name').fill(name)
+  await page.getByTestId('poker-name-join').click()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+}
+/** The moderator creates a room on a phone; the others join by the participant link, each in a context of their own. */
+async function room(browser: Browser, names: readonly string[], cards?: string, locale = 'en-US') {
+  const contexts: BrowserContext[] = []
+  const mod = await english(browser, PHONES[0], locale)
+  contexts.push(mod)
+  const page = await mod.newPage()
+  await page.goto('/poker')
+  if (cards) await page.getByTestId('poker-cards').fill(cards)
+  await page.getByTestId('poker-start-action').click()
+  await goLive(page, names[0]!)
+  const others: Page[] = []
+  for (const name of names.slice(1)) {
+    const ctx = await english(browser, { width: 390, height: 664 }, locale)
+    contexts.push(ctx)
+    const p = await ctx.newPage()
+    await p.goto(participantLink(page))
+    await goLive(p, name)
+    others.push(p)
+  }
+  await expect(page.getByTestId('poker-seat')).toHaveCount(names.length)
+  return { page, others, close: () => Promise.all(contexts.map((c) => c.close())) }
+}
+const fits = async (page: Page, where: string) => {
+  const m = await page.evaluate(() => {
+    const box = (sel: string) => { const r = document.querySelector(sel)!.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right } }
+    const region = document.querySelector('[data-testid="poker-region"]') as HTMLElement
+    return {
+      page: [document.documentElement.scrollHeight, innerHeight, document.documentElement.scrollWidth, innerWidth],
+      region: [region.scrollHeight, region.clientHeight], bar: box('[data-testid="poker-bar"]'), dock: box('[data-testid="poker-dock"]'),
+      seats: [...document.querySelectorAll('[data-testid="poker-seat"]')].map((e) => { const r = e.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right } }),
+    }
+  })
+  const h = m.page[1]!, w = m.page[3]!
+  expect(m.page[0], `${where}: the page does not scroll`).toBeLessThanOrEqual(h)
+  expect(m.page[2], `${where}: nothing makes the page scroll sideways`).toBeLessThanOrEqual(w)
+  expect(m.region[0], `${where}: the middle region does not scroll (${m.region.join(' in ')})`).toBeLessThanOrEqual(m.region[1]!)
+  expect(m.bar.top, `${where}: the bar`).toBeGreaterThanOrEqual(0)
+  expect(m.dock.bottom, `${where}: the dock`).toBeLessThanOrEqual(h + 0.5)
+  for (const seat of m.seats) {
+    expect(seat.top).toBeGreaterThanOrEqual(m.bar.bottom - 0.5)
+    expect(seat.bottom).toBeLessThanOrEqual(m.dock.top + 0.5)
+    expect(seat.left).toBeGreaterThanOrEqual(0)
+    expect(seat.right).toBeLessThanOrEqual(w)
+  }
+}
+
+for (const viewport of PHONES) {
+  test(`eight voters with 24-character names fit a ${viewport.width}x${viewport.height} phone, lobby, voting and waiting, with no scrolling`, async ({ browser, browserName }) => {
+    test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+    test.setTimeout(120_000)
+    const names = [longName(0), ...Array.from({ length: 7 }, (_, i) => longName(i + 1))]
+    const { page, others, close } = await room(browser, names)
+    await page.setViewportSize(viewport)
+    // Lobby: eight seats, nobody has chosen.
+    await fits(page, 'lobby')
+    // One seat is one line of name with an ellipsis: all the seats are as tall as each other.
+    const heights = await page.locator('[data-testid="poker-seat"]').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)))
+    expect(new Set(heights).size).toBe(1)
+    // Voting: the moderator and two others have chosen; waiting: the moderator has chosen and five are missing.
+    await page.getByTestId('poker-card-5').check({ force: true })
+    await others[0]!.getByTestId('poker-card-4').check({ force: true })
+    await others[1]!.getByTestId('poker-card-4').check({ force: true })
+    await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(3)
+    await expect(page.getByTestId('poker-status')).toHaveText('3 of 8 voted')
+    await expect(page.getByTestId('poker-hint')).toHaveText(`Waiting for ${names[3]}, ${names[4]} and 3 others.`)
+    await fits(page, 'waiting')
+    // Everyone has voted: still one viewport, and the hint is gone for the moderator (Reveal is the filled button).
+    for (const [i, p] of others.entries()) if (i >= 2) await p.getByTestId('poker-card-4').check({ force: true })
+    await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(8)
+    await expect(page.getByTestId('poker-hint')).toHaveCount(0)
+    await fits(page, 'everyone voted')
+    // Revealed: the page itself does not scroll (the results card of this release is taller than its successor: the middle region may).
+    await page.getByTestId('poker-reveal').click()
+    await expect(page.locator('[data-testid="poker-seat"][data-revealed="true"]')).toHaveCount(8)
+    const after = await page.evaluate(() => [document.documentElement.scrollHeight <= innerHeight, document.documentElement.scrollWidth <= innerWidth])
+    expect(after).toEqual([true, true])
+    const dock = (await page.getByTestId('poker-dock').boundingBox())!
+    for (const id of ['poker-revote', 'poker-next']) {
+      const b = (await page.getByTestId(id).boundingBox())!
+      expect(b.y + b.height).toBeLessThanOrEqual(viewport.height)
+      expect(b.height).toBeGreaterThanOrEqual(48)
+      expect(b.y).toBeGreaterThanOrEqual(dock.y - 0.5)
+    }
+    await close()
+  })
+}
+
+test('the same room in French on a 360x640 phone: lobby, voting and waiting fit, and the words are French', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  test.setTimeout(120_000)
+  const names = [longName(0), ...Array.from({ length: 7 }, (_, i) => longName(i + 1))]
+  const { page, others, close } = await room(browser, names, undefined, 'fr-FR')
+  await page.setViewportSize(PHONES[1])
+  await expect(page.getByTestId('poker-round')).toHaveText('Tour 1')
+  await fits(page, 'lobby, fr')
+  await page.getByTestId('poker-card-5').check({ force: true })
+  await others[0]!.getByTestId('poker-card-4').check({ force: true })
+  await expect(page.getByTestId('poker-status')).toHaveText('2 sur 8 ont voté')
+  await expect(page.getByTestId('poker-hint')).toHaveText(`En attente de ${names[2]}, ${names[3]} et 4 autres.`)
+  await fits(page, 'waiting, fr')
+  for (const [i, p] of others.entries()) if (i >= 1) await p.getByTestId('poker-card-4').check({ force: true })
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(8)
+  await fits(page, 'everyone voted, fr')
+  await page.getByTestId('poker-reveal').click()
+  await expect(page.getByTestId('poker-status')).toHaveText('Révélé')
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true)
+  await close()
+})
+
+test('twenty voters: only the middle region scrolls, the bar and the dock stay where they are', async ({ browser, browserName }) => {
+  test.skip(browserName !== 'chromium', 'twenty tabs: Chromium')
+  test.setTimeout(180_000)
+  const { page, close } = await room(browser, ['Moderator', ...Array.from({ length: 19 }, (_, i) => `Voter ${i + 1}`)])
+  const before = await page.evaluate(() => ({ bar: document.querySelector('[data-testid="poker-bar"]')!.getBoundingClientRect().top, dock: document.querySelector('[data-testid="poker-dock"]')!.getBoundingClientRect().top }))
+  const scrolls = await page.evaluate(() => {
+    const region = document.querySelector('[data-testid="poker-region"]') as HTMLElement
+    const tall = region.scrollHeight > region.clientHeight
+    region.scrollTop = region.scrollHeight
+    return { tall, moved: region.scrollTop > 0, page: document.documentElement.scrollHeight <= innerHeight, bar: document.querySelector('[data-testid="poker-bar"]')!.getBoundingClientRect().top, dock: document.querySelector('[data-testid="poker-dock"]')!.getBoundingClientRect().top }
+  })
+  expect(scrolls).toEqual({ tall: true, moved: true, page: true, bar: before.bar, dock: before.dock })
+  await close()
+})
+
+test('the bar of a phone: back, the round with one status line, Invite and a menu, each a 44 px target; Reveal is 48 px', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const ctx = await english(browser)
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  watch(page, errors)
+  await soloRoom(page)
+  await expect(page.getByTestId('poker-round')).toHaveText('Round 1')
+  await expect(page.getByTestId('poker-status')).toHaveText('Waiting for your team')
+  // No "Connected", no visible heading for the table, no printed link, no language pair on the page.
+  await expect(page.getByTestId('poker-room')).not.toContainText(/Connected|Connecté/)
+  await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0)
+  await expect(page.locator('input[readonly], [data-testid="poker-lang-en"]:visible, [data-testid="poker-qr-toggle"]')).toHaveCount(0)
+  expect((await page.getByTestId('poker-bar').boundingBox())!.height).toBeGreaterThanOrEqual(56)
+  for (const id of ['poker-home', 'poker-invite', 'poker-menu']) {
+    const b = (await page.getByTestId(id).boundingBox())!
+    expect(b.width, id).toBeGreaterThanOrEqual(44)
+    expect(b.height, id).toBeGreaterThanOrEqual(44)
+  }
+  // The label of Invite is for a tablet and up: on a phone its name comes from the aria-label.
+  await expect(page.getByTestId('poker-invite')).toHaveAccessibleName('Invite')
+  await expect(page.getByTestId('poker-invite').locator('.label')).toBeHidden()
+  // The primary of a phone is 48 px: Invite while alone, Reveal with the first card.
+  expect((await page.getByTestId('poker-invite-cta').boundingBox())!.height).toBeGreaterThanOrEqual(48)
+  await page.locator('.pick').nth(5).tap()
+  expect((await page.getByTestId('poker-reveal').boundingBox())!.height).toBeGreaterThanOrEqual(48)
+  await expect(page.getByTestId('poker-invite-cta')).toHaveCount(0)
+  // At most one filled button in the room.
+  expect(await page.locator('.btn-primary').count()).toBe(1)
+  await noViolation(page, 'room-bar')
+  expect(errors).toEqual([])
+  await ctx.close()
+})
+
+test('the overflow menu holds the language, light or dark and the way back; the choice of light or dark persists', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const ctx = await english(browser)
+  const page = await ctx.newPage()
+  await soloRoom(page)
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.evaluate(() => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ uiMode: 'advanced', variant: 'light' })) } catch { /* ignore */ } })
+  await page.reload()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(page.locator('html')).toHaveAttribute('data-variant', 'light')
+  await page.getByTestId('poker-menu').click()
+  for (const id of ['poker-lang-en', 'poker-lang-fr', 'poker-variant', 'poker-menu-home']) {
+    await expect(page.getByTestId(id)).toBeVisible()
+    expect((await page.getByTestId(id).boundingBox())!.height, id).toBeGreaterThanOrEqual(48)
+  }
+  await expect(page.getByTestId('poker-lang-en')).toHaveAttribute('aria-checked', 'true')
+  await noViolation(page, 'menu')
+  await page.getByTestId('poker-variant').click()
+  await expect(page.locator('html')).toHaveAttribute('data-variant', 'dark')
+  // The choice is kept on this device: after a reload the room is dark again; the language follows the menu too.
+  await page.reload()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(page.locator('html')).toHaveAttribute('data-variant', 'dark')
+  await page.getByTestId('poker-menu').click()
+  await page.getByTestId('poker-lang-fr').click()
+  await expect(page.getByTestId('poker-round')).toHaveText('Tour 1')
+  await page.getByTestId('poker-menu').click()
+  await page.getByTestId('poker-menu-home').click()
+  await expect(page).toHaveURL(/\/$/)
+  await ctx.close()
+})
+
+test('the invite sheet: the QR code of the participant link, Copy without showing it, and the room never prints it', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const ctx = await english(browser)
+  const page = await ctx.newPage()
+  if (browserName === 'chromium') await ctx.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await soloRoom(page)
+  const link = participantLink(page)
+  const key = link.split('#c=')[1]!
+  const secret = page.url().split('#c=')[1]!.slice(44)
+  // Closed: no element, no value and no attribute of the page holds any part of the link or of the key.
+  const printed = () => page.evaluate((part) => document.documentElement.outerHTML.includes(part) || [...document.querySelectorAll('input, textarea')].some((e) => (e as HTMLInputElement).value.includes(part)), key.slice(0, 22))
+  expect(await printed()).toBe(false)
+
+  // Three controls open the same sheet, and Escape gives the focus back to the one that did.
+  for (const opener of ['poker-invite', 'poker-ghost', 'poker-invite-cta']) {
+    await page.getByTestId(opener).click()
+    await expect(page.getByTestId('qr')).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveAccessibleName('Invite')
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('qr')).toHaveCount(0)
+    await expect(page.getByTestId(opener)).toBeFocused()
+  }
+
+  await page.getByTestId('poker-invite').click()
+  // The QR code reads back as the participant link, like a phone camera would read it.
+  const qr = page.getByTestId('qr')
+  await expect(qr).toBeVisible()
+  const png = PNG.sync.read(await qr.screenshot({ animations: 'disabled' }))
+  expect(jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data).toBe(link)
+  // The filled button copies without showing the address: the link is neither in the sheet's text nor in a field.
+  await expect(page.getByTestId('poker-copy')).toHaveClass(/btn-primary/)
+  await page.getByTestId('poker-copy').click()
+  await expect(page.getByTestId('poker-copy')).toContainText('Link copied')
+  expect(await printed()).toBe(false)
+  if (browserName === 'chromium') {
+    const copied = await page.evaluate(() => navigator.clipboard.readText())
+    expect(copied).toBe(link)
+    expect(copied).not.toContain(secret)
+  }
+  // "Share" shows only where the browser has a share sheet (a phone): a desktop browser without one does not.
+  expect(await page.getByTestId('poker-share').count()).toBe(await page.evaluate(() => (typeof navigator.share === 'function' ? 1 : 0)))
+  await noViolation(page, 'invite')
+  await ctx.close()
+})
+
+test('what the room says: one status line and at most one hint, by state and role', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const { page: ann, others: [bob], close } = await room(browser, ['Ann', 'Bob'])
+  const hint = (p: Page) => p.getByTestId('poker-hint')
+  // Two seated, nobody has chosen: the count, no hint; the hand is the hint of a person who has not chosen.
+  await expect(ann.getByTestId('poker-status')).toHaveText('0 of 2 voted')
+  await expect(hint(ann)).toHaveCount(0)
+  await expect(hint(bob!)).toHaveCount(0)
+  // The moderator has chosen, Bob has not: she waits for Bob.
+  await ann.getByTestId('poker-card-5').check({ force: true })
+  await expect(ann.getByTestId('poker-status')).toHaveText('1 of 2 voted')
+  await expect(hint(ann)).toHaveText('Waiting for Bob.')
+  await expect(hint(bob!)).toHaveCount(0)
+  // Everyone has voted: the voter waits for the moderator, the moderator has Reveal and no hint.
+  await bob!.getByTestId('poker-card-4').check({ force: true })
+  await expect(hint(bob!)).toHaveText('Everyone has voted. Waiting for Ann.')
+  await expect(hint(ann)).toHaveCount(0)
+  await expect(ann.getByTestId('poker-reveal')).toBeVisible()
+  await expect(bob!.getByTestId('poker-reveal')).toHaveCount(0)
+  // Revealed: the status says so, a voter is told who starts the next round, the moderator has the two buttons and a voter none.
+  await ann.getByTestId('poker-reveal').click()
+  for (const p of [ann, bob!]) await expect(p.getByTestId('poker-status')).toHaveText('Revealed')
+  await expect(hint(bob!)).toHaveText('Ann starts the next round.')
+  await expect(hint(ann)).toHaveCount(0)
+  await expect(ann.getByTestId('poker-dock').locator('button')).toHaveText([/Vote again/, /Next round/])
+  await expect(bob!.getByTestId('poker-dock').locator('button')).toHaveCount(0)
+  await expect(bob!.getByTestId('poker-hand')).toHaveCount(0)
+  // The words of every seat are said once, in reading order, and no card value is in the page before the reveal.
+  await ann.getByTestId('poker-next').click()
+  for (const p of [ann, bob!]) await expect(p.getByTestId('poker-round')).toHaveText('Round 2')
+  await ann.getByTestId('poker-card-5').check({ force: true })
+  await expect(bob!.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+  expect(await said(bob!.getByTestId('poker-seat').first())).toBe('Ann, Moderator, voted')
+  expect(await said(bob!.getByTestId('poker-seat').nth(1))).toBe('Bob, you, waiting')
+  await expect(bob!.locator('[data-testid="poker-seat"] .pcard[data-variant="face"]')).toHaveCount(0)
+  await expect(bob!.locator('[data-testid="poker-seats"] .value')).toHaveCount(0)
+  await close()
+})
+
+test('a seat: avatar with a ring for you, a crown for the moderator, a back with a check or a slot with a clock, a long name on one line', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const { page, close } = await room(browser, [longName(0), 'Ann'])
+  await page.locator('.pick').nth(5).tap()
+  const mine = page.getByTestId('poker-seat').first()
+  const other = page.getByTestId('poker-seat').nth(1)
+  await expect(mine.locator('.crown')).toHaveCount(1)
+  await expect(other.locator('.crown')).toHaveCount(0)
+  expect(await mine.locator('.av').evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe('none')
+  expect(await other.locator('.av').evaluate((el) => getComputedStyle(el).boxShadow)).toBe('none')
+  await expect(mine.locator('.pcard[data-variant="back"]')).toHaveCount(1)
+  await expect(mine.locator('.tick')).toBeVisible()
+  await expect(other.locator('.pcard[data-variant="slot"]')).toHaveCount(1)
+  await expect(other.locator('.tick')).toHaveCount(0)
+  // A long name is one line with an ellipsis; its seat is as tall as the other's and the full name is its tooltip and its words.
+  const name = mine.locator('.name')
+  expect(await name.evaluate((el) => [getComputedStyle(el).textOverflow, getComputedStyle(el).whiteSpace, el.scrollWidth > el.clientWidth])).toEqual(['ellipsis', 'nowrap', true])
+  expect(await mine.getAttribute('title')).toBe(longName(0))
+  expect(await mine.evaluate((el) => el.getBoundingClientRect().height)).toBeCloseTo(await other.evaluate((el) => el.getBoundingClientRect().height), 0)
+  await noViolation(page, 'seats')
+  await close()
 })
