@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test'
-import { axe, createBoard, publishNote } from './helpers'
+import { expect, test } from '@playwright/test'
+import { axe, createBoard, overflowing, publishNote } from './helpers'
 
 /**
  * Overflow check (change responsive-and-i18n-hardening, task 2.2): at 360, 768 and 1440 px, in French, English and the
@@ -9,42 +9,6 @@ import { axe, createBoard, publishNote } from './helpers'
 const WIDTHS = [360, 768, 1440] as const
 /** The browser language picks fr or en; the pseudo-locale is the French interface lengthened (`?lang=pseudo`). */
 const LANGS = [{ id: 'fr', locale: 'fr-FR', query: '' }, { id: 'en', locale: 'en-US', query: '?lang=x' }, { id: 'pseudo', locale: 'fr-FR', query: '?lang=pseudo' }] as const
-
-/** Visible elements that stick out of the screen or are clipped without a way to reach them. */
-export async function overflowing(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
-    const vw = document.documentElement.clientWidth
-    const out: string[] = []
-    const name = (el: Element) => `${el.tagName.toLowerCase()}${el.getAttribute('data-testid') ? `[${el.getAttribute('data-testid')}]` : el.className && typeof el.className === 'string' ? `.${el.className.split(' ')[0]}` : ''}`
-    if (document.documentElement.scrollWidth > vw + 1) out.push(`page scrolls sideways: ${document.documentElement.scrollWidth} > ${vw}`)
-    for (const el of document.querySelectorAll<HTMLElement>('body *')) {
-      const cs = getComputedStyle(el)
-      if (cs.display === 'none' || cs.visibility === 'hidden' || el.closest('[inert], [hidden], dialog:not([open]), [popover]:not(:popover-open)')) continue
-      const r = el.getBoundingClientRect()
-      if (r.width === 0 || r.height === 0) continue
-      // The visually-hidden labels (1 px boxes) and the ambient canvas are not content.
-      if (r.width <= 1 || el.closest('.ambient, .sr-only')) continue
-      // A strip that scrolls on purpose owns the overflow of what it holds; the other scrolling boxes (a column's notes) do not.
-      const owned = !!el.parentElement?.closest('nav.tools, .votebar, main.board, .col-tabs, .stepper, .drafts')
-      const interactive = el.matches('button, a[href], input, select, textarea, [role="tab"], [role="menuitem"]')
-      if (!owned && interactive && (r.right > vw + 1 || r.left < -1)) out.push(`${name(el)} leaves the screen: ${Math.round(r.left)}..${Math.round(r.right)} of ${vw}`)
-      // A control stays inside its note, column or writing area.
-      const card = interactive ? el.parentElement?.closest('article.note, section.col, .composer') : null
-      if (card) {
-        const c = card.getBoundingClientRect()
-        if (r.left < c.left - 2 || r.right > c.right + 2) out.push(`${name(el)} escapes its ${name(card)}: ${Math.round(r.left)}..${Math.round(r.right)} of ${Math.round(c.left)}..${Math.round(c.right)}`)
-      }
-      // Text cut by its own box with no ellipsis: the clip hides words.
-      if (interactive && !el.matches('input, textarea') && cs.overflowX !== 'visible' && cs.textOverflow !== 'ellipsis' && el.scrollWidth > el.clientWidth + 1) out.push(`${name(el)} clips its content: ${el.scrollWidth} > ${el.clientWidth}`)
-    }
-    // A scrolling strip must itself sit inside the screen.
-    for (const el of document.querySelectorAll<HTMLElement>('nav.tools, .votebar, main.board, .stepper')) {
-      const r = el.getBoundingClientRect()
-      if (r.width > 0 && (r.right > vw + 1 || r.left < -1)) out.push(`${name(el)} strip is wider than the screen: ${Math.round(r.left)}..${Math.round(r.right)} of ${vw}`)
-    }
-    return out
-  })
-}
 
 test.describe('overflow at 360, 768 and 1440 px in fr, en and pseudo (change responsive-and-i18n-hardening)', () => {
   for (const lang of LANGS) {

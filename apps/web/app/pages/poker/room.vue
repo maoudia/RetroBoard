@@ -3,7 +3,7 @@
 // cards stay sealed until Reveal. A phone shows a bar, a middle region (the table, then the results) and a dock (the hand, or the next steps):
 // the page does not scroll, only the middle region may.
 import { formatInvite, type KeyRing, parseInvite, participantRing } from '@retroboard/domain'
-import { CARD_HUES, isValidDeck } from '@retroboard/domain'
+import { isValidDeck } from '@retroboard/domain'
 import InviteSheet from '~/components/poker/InviteSheet.vue'
 import PokerBar from '~/components/poker/PokerBar.vue'
 import PokerDock from '~/components/poker/PokerDock.vue'
@@ -12,7 +12,6 @@ import PokerStep from '~/components/poker/PokerStep.vue'
 import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
 import { PokerClient, type PokerView } from '~/poker/client'
-import { backColour } from '~/poker/card'
 import { useMedia } from '~/poker/media'
 import { announceOf, dockOf, hintOf, primaryOf, type Say, statusOf } from '~/poker/room-view'
 import { pt } from '~/poker/strings'
@@ -68,8 +67,7 @@ async function join() {
   const base = useRuntimeConfig().public.wsUrl || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`
   const store = (() => { try { return sessionStorage } catch { return undefined } })()
   const kept = (() => { try { return JSON.parse(store?.getItem(`retroboard:poker:deck:${ring.value.roomId}`) ?? 'null') as unknown } catch { return null } })()
-  const hue = (() => { try { return JSON.parse(store?.getItem(`retroboard:poker:hue:${ring.value.roomId}`) ?? 'null') as unknown } catch { return null } })()
-  client = new PokerClient({ ring: ring.value, name: who, deck: isValidDeck(kept) ? kept : undefined, hue: CARD_HUES.find((h) => h === hue), socketBase: base, store, onChange: (v) => { view.value = v } })
+  client = new PokerClient({ ring: ring.value, name: who, deck: isValidDeck(kept) ? kept : undefined, socketBase: base, store, onChange: (v) => { view.value = v } })
   await client.start()
 }
 
@@ -95,8 +93,6 @@ watch(view, (now, before) => {
 /** The hand returns with a short rise after a reveal (the next round), not when a person first sits down. */
 const rise = ref(false)
 const round = computed(() => view.value?.round ?? null)
-/** The card backs of the room are in the hue its moderator picked, for everybody; none picked, they follow the theme. */
-const room = computed(() => { const back = backColour(view.value?.hue ?? null); return back ? { '--poker-back': back } : undefined })
 const live = computed(() => !!view.value && view.value.status !== 'board')
 const status = computed(() => { const line = view.value ? statusOf(view.value) : null; return line ? say(line) : '' })
 const hint = computed(() => { const line = view.value ? hintOf(view.value, say) : null; return line ? say(line) : '' })
@@ -116,7 +112,7 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 </script>
 
 <template>
-  <main id="main" class="room" :class="{ live }" :style="room" data-testid="poker-room">
+  <main id="main" class="room" :class="{ live }" data-testid="poker-room">
     <template v-if="live && view">
       <PokerBar :title="title" :status="status" :state="view.status" invite @invite="openInvite" />
       <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="poker-live">{{ announcement }}</div>

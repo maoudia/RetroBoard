@@ -51,15 +51,15 @@ const tier = computed<ValueTier>(() => valueTier(props.value ?? ''))
   .t-md .value, .t-sm .value { font-size: calc(min(var(--fs-xs), 30cqw)); }
 }
 
-/* Back: a diamond lattice made of the accent and a mix of the accent and the surface, framed by the surface. No text, no image. A room whose moderator picked a hue
-   sets --poker-back for everybody (K10); without one the lattice is the accent of the theme. */
+/* Back: a diamond lattice made of the accent and a mix of the accent and the surface, framed by the surface. No text, no image. It follows the theme (the nine
+   themes, light and dark) like every other surface of the room. */
 .back { background: var(--surface); }
 .back::before {
   content: ''; position: absolute; inset: 3px; border-radius: calc(var(--r-card) * var(--k) * .6);
   background:
-    repeating-linear-gradient(45deg, var(--poker-back, var(--accent)) 0 2px, transparent 2px 7px),
-    repeating-linear-gradient(-45deg, var(--poker-back, var(--accent)) 0 2px, transparent 2px 7px),
-    color-mix(in oklab, var(--poker-back, var(--accent)) 60%, var(--surface));
+    repeating-linear-gradient(45deg, var(--accent) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(-45deg, var(--accent) 0 2px, transparent 2px 7px),
+    color-mix(in oklab, var(--accent) 60%, var(--surface));
 }
 /* Empty slot: a dashed edge and a clock, nothing else. */
 .slot { border-style: dashed; background: transparent; color: var(--muted); }

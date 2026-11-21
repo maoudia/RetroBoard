@@ -276,20 +276,20 @@ The start page SHALL offer a headline with the Beta tag once, one lead line, dec
 - **WHEN** the visitor chooses Custom and types "1, 2, 4, 8, ?"
 - **THEN** the round chips show exactly those cards, and a list with a duplicate or a card of 7 characters is refused with a message and cannot be created
 
-### Requirement: Card colours are shown only when they work
-A collapsed "Card colours" section SHALL be shown on the start page only once it has swatches, and the hue the moderator picks SHALL set the card backs of the room for everybody.
+### Requirement: The cards and the room follow the active theme
+The card face, the card back, the seats, the table and the results SHALL take their colours, radii and contrast from the tokens of the active theme (the nine themes, light and dark), exactly as a board does, on `/poker` as in the room. There SHALL be no colour picker anywhere in poker, and a room SHALL have no colour of its own. An event of an older version that carries a card colour SHALL still fold: the colour is ignored and the rest of the event counts.
 
-#### Scenario: A hue
-- **WHEN** the moderator picks a hue before creating the room
-- **THEN** the card backs of the room use that hue for everybody, and the section shows a live card back
+#### Scenario: A theme
+- **WHEN** the device's default theme is any of the nine, in light or dark
+- **THEN** the card back is the lattice of that theme's accent, the text of the start page, the name step and the room keeps 4.5:1 (3:1 when large) and the edge of every card and empty slot keeps 3:1
 
-#### Scenario: Not yet available
-- **WHEN** the swatches are not implemented
-- **THEN** the start page has no "Card colours" section
+#### Scenario: No picker
+- **WHEN** the start page is shown
+- **THEN** it has no section, swatch or field for a colour
 
-#### Scenario: Only the moderator, only one of eight
-- **WHEN** a voter, or anybody with a number that is not one of the eight hues of the profile avatar picker, writes a hue
-- **THEN** every replica ignores it and the card backs keep the colours they had
+#### Scenario: An older client
+- **WHEN** a client of the first version of the card colours writes a hue with the deck
+- **THEN** every replica ignores the hue, keeps the deck, and the room works
 
 ### Requirement: The name step has the look of the start page
 The name step SHALL have one field prefilled with the name this browser uses, one muted line, and one filled "Join the room" button fixed at the bottom of a phone and at least 48 px high.

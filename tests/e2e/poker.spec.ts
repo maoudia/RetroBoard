@@ -88,11 +88,11 @@ test('the start page: the button is 48 px and fixed at the foot of a phone, 56 p
   expect(box.y + box.height).toBeLessThanOrEqual(844)
   // A short phone: the content is longer than the screen, the button still shows and still is the last thing of the viewport.
   await page.setViewportSize({ width: 390, height: 560 })
-  await page.getByTestId('poker-colours').locator('summary').click()
+  await page.getByTestId('poker-deck-custom').check({ force: true })
   const short = (await action.boundingBox())!
   expect(short.y + short.height).toBeLessThanOrEqual(560)
   expect(short.y + short.height).toBeGreaterThan(560 - 40)
-  await page.getByTestId('poker-colours').locator('summary').click()
+  await page.getByTestId('poker-deck-fibonacci').check({ force: true })
   // One press: the room opens and asks for a name; the deck is the Fibonacci deck.
   await action.click()
   await expect(page).toHaveURL(/\/poker\/room#c=/)
@@ -113,63 +113,40 @@ test('the start page: the button is 48 px and fixed at the foot of a phone, 56 p
   await wide.close()
 })
 
-test('the card colours: a collapsed section with eight hues and the theme, a live card back, and the hue the moderator picked is the card back of everybody', async ({ browser, browserName }) => {
+test('a room follows the active theme: the back of a card is the accent of the theme, light and dark, and no colour picker is on the start page', async ({ browser, browserName }) => {
   test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
-  const errors: string[] = []
-  const contexts = await Promise.all([0, 1].map(() => english(browser, { width: 390, height: 844 })))
-  const [a, b] = await Promise.all(contexts.map((ctx) => ctx.newPage()))
-  for (const p of [a!, b!]) watch(p, errors)
-  await a!.goto('/poker')
-  const section = a!.getByTestId('poker-colours')
-  await expect(section).not.toHaveAttribute('open', '')
-  await section.locator('summary').click()
-  // The Theme swatch is chosen; eight hues follow; each is a 44 px radio with a name; the preview is the card back of the theme.
-  await expect(a!.getByTestId('poker-hue-theme')).toBeChecked()
-  const hues = [8, 32, 52, 140, 175, 210, 260, 320]
-  for (const h of hues) {
-    const swatch = a!.getByTestId(`poker-hue-${h}`)
-    await expect(swatch).toHaveAccessibleName(/\S/)
-    const box = (await swatch.boundingBox())!
-    expect(box.width, String(h)).toBeGreaterThanOrEqual(44)
-    expect(box.height, String(h)).toBeGreaterThanOrEqual(44)
-  }
-  await expect(a!.getByTestId('poker-hue-preview')).toHaveAttribute('data-hue', 'theme')
+  const ctx = await english(browser, { width: 390, height: 844 })
+  let page = await ctx.newPage()
+  await page.goto('/poker')
+  // No picker anywhere in poker: no section of colours, no swatch, no hue.
+  await expect(page.locator('[data-testid^="poker-hue"], [data-testid="poker-colours"], details')).toHaveCount(0)
+  await expect(page.getByText(/card colours|couleurs des cartes/i)).toHaveCount(0)
+  const accentOf = (p: Page) => p.evaluate(() => { const probe = document.createElement('i'); probe.style.color = 'var(--accent)'; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c })
   const backOf = (p: Page) => p.locator('.pcard.back').first().evaluate((el) => getComputedStyle(el, '::before').backgroundImage)
-  const before = await backOf(a!)
-  await a!.getByTestId('poker-hue-140').check({ force: true })
-  await expect(a!.getByTestId('poker-hue-preview')).toHaveAttribute('data-hue', '140')
-  expect(await backOf(a!)).not.toBe(before)
-  // The radio group is reachable by keys: the arrow moves the hue.
-  await a!.getByTestId('poker-hue-140').focus()
-  await a!.keyboard.press('ArrowRight')
-  await expect(a!.getByTestId('poker-hue-175')).toBeChecked()
-  await a!.keyboard.press('ArrowLeft')
-  await expect(a!.getByTestId('poker-hue-140')).toBeChecked()
-  await noViolation(a!, 'start-colours')
-
-  await a!.getByTestId('poker-start-action').click()
-  await goLive(a!, 'Ann')
-  const link = participantLink(a!)
-  await b!.goto(link)
-  await goLive(b!, 'Bob')
-  await a!.getByTestId('poker-card-3').check({ force: true })
-  // Both see a voted seat: its card back is green for the moderator and for the guest alike, and unlike the card back of the theme.
-  for (const p of [a!, b!]) await expect(p.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
-  const green = await backOf(b!)
-  expect(green).toBe(await backOf(a!))
-  expect(green).not.toBe(before)
-  // hsl(140 60% 40%), as the computed style says it.
-  expect(green).toContain('rgb(41, 163, 82)')
-  // The room of a moderator who picked nothing keeps the colours of the theme.
-  const c = await contexts[0]!.newPage()
-  await c.goto('/poker')
-  await c.getByTestId('poker-start-action').click()
-  await goLive(c, 'Cy')
-  await c.getByTestId('poker-card-3').check({ force: true })
-  await expect(c.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
-  expect(await backOf(c)).toBe(before)
-  expect(errors).toEqual([])
-  await Promise.all(contexts.map((ctx) => ctx.close()))
+  const seen = new Set<string>()
+  for (const theme of ['studio', 'halloween', 'sakura']) {
+    for (const variant of ['light', 'dark'] as const) {
+      await page.evaluate(([id, v]) => { localStorage.setItem('retroboard:settings', JSON.stringify({ uiMode: 'advanced', defaultTheme: id, variant: v })) }, [theme, variant])
+      // A tab of its own each time: the name of a tab is kept in its session storage, which would skip the name step.
+      await page.close()
+      page = await ctx.newPage()
+      await page.goto('/poker')
+      await page.getByTestId('poker-start-action').click()
+      await page.getByTestId('poker-name').fill('Ann')
+      await page.getByTestId('poker-name-join').click()
+      await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+      await page.getByTestId('poker-card-3').check({ force: true })
+      await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+      const back = await backOf(page)
+      expect(back, `${theme} ${variant}`).toContain(await accentOf(page))
+      seen.add(back)
+      // The surfaces of the room are the theme's tokens too: the seat has the surface colour of the page.
+      expect(await page.locator('[data-testid="poker-seat"]').first().evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)')
+    }
+  }
+  // Six themes and variants, six different backs: the card is not one fixed colour.
+  expect(seen.size).toBe(6)
+  await ctx.close()
 })
 
 test('the name step has the look of the start page: one prefilled field, one muted line, the button fixed at the foot of a phone; a long name fits and a reload keeps the seat', async ({ browser, browserName }) => {

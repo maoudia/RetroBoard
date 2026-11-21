@@ -20,17 +20,17 @@ This change is the design and its spec. It ships no application code; the tasks 
 - **One primary action per state.** Reveal, then Vote again and Next round with one filled and one quiet; rare actions (language, light or dark, the way back) in an overflow menu.
 - **The link out of sight.** The invite link and QR code live in a sheet behind one Invite button, so the room key is no longer printed on every shared or projected screen.
 - **Short copy.** One status line, one muted hint at most, headings for assistive technology only.
-- **Start page and name step** keep the parts of the reference worth keeping (one click to start, deck chips, a typed list shown as round chips, a collapsed colours section) with RetroBoard's look, and a Create button fixed at the foot of a phone.
+- **Start page and name step** keep the parts of the reference worth keeping (one click to start, deck chips, a typed list shown as round chips) with RetroBoard's look, and a Create button fixed at the foot of a phone.
 - **Larger screens.** Tablet, laptop, wide and TV layouts; on a TV and in presentation the content scales with the type scale and the chrome does not.
 - **Gates.** Contrast and axe over the nine themes in light and dark, overflow in fr, en and the pseudo-locale (which today does not reach the poker pages), a screenshot review against the wireframes, the bundle budget.
 
-Two small additions outside the components, both needed by the design and both in the shape the epic already planned: the pure functions `consensusLevel` and `outliers` in `packages/application/src/estimation/`, and the domain command `estimate.decide` (and the optional `hue` of `settings.update`) in `packages/domain/src/estimation/`, with their wire bodies.
+Two small additions outside the components, both needed by the design and both in the shape the epic already planned: the pure functions `consensusLevel` and `outliers` in `packages/application/src/estimation/`, and the domain command `estimate.decide` in `packages/domain/src/estimation/`, with their wire bodies.
 
 Out of scope: stories, the backlog and the round history strip (`scrum-poker` group 4), the short code and the join by code, the passcode and "everyone moderates" (2.1 and 2.2), the countdown and auto-reveal (3.3), the "please explain" timer, choosing another card than the suggestion, the export doors and library entries, the public `/poker` page (7.1), sound, emoji throws, a new theme field or any theme file change, a new dependency, any change of the transport, the envelope, the relay or the sealed ballots, accounts or paid tiers.
 
 Bounded contexts: Presentation (the pages and components of `apps/web`) and, for the two small additions, Estimation (domain and application). Sharing and Room access are used as they are (the invite sheet shows the link the room already builds).
 
-Relay traffic and the free-plan budget: two small events more, `estimate.decide` (at most one per round) and `settings.update { hue }` (at most one per room), sealed envelopes like the rest. A 20-voter hour of about 1,170 events grows by tens of events; the budget of ADR-0042 holds.
+Relay traffic and the free-plan budget: two small events more, `estimate.decide` (at most one per round) and (a card colour was written for a few hours and is ignored), sealed envelopes like the rest. A 20-voter hour of about 1,170 events grows by tens of events; the budget of ADR-0042 holds.
 
 Relation to `scrum-poker`: that epic's tasks 3.1 (table, seats, hand, reveal) and 3.2 (results panel) describe what this change designs in detail. They are delivered through the groups here; what is not visual in 3.2 (the "please explain" timer) stays in `scrum-poker`. Its requirements are not rewritten: the delta of this change adds requirements that refine them (the layout and the look), so the two changes can be archived in either order.
 
@@ -47,6 +47,6 @@ None.
 ## Impact
 
 - Changed: `apps/web/app/pages/poker/index.vue` and `room.vue`, `apps/web/app/components/poker/` (rewritten: card, seat, table, hand, dock, results, bar, invite sheet), `apps/web/app/poker/strings.ts` and `client.ts` (view model), `tests/e2e/poker.spec.ts` (the selectors that change; the testids of surviving elements stay).
-- Added: `packages/application/src/estimation/` `consensusLevel` and `outliers`; `packages/domain/src/estimation/` `estimate.decide` and `hue`; their wire bodies in `packages/protocol/`.
+- Added: `packages/application/src/estimation/` `consensusLevel` and `outliers`; `packages/domain/src/estimation/` `estimate.decide`; their wire bodies in `packages/protocol/`.
 - Docs: `docs/design-system.md` (a section for the poker table and cards), `docs/DEVELOPMENT.md` (the poker section), the user-guide chapter `poker` in fr and en and its manifest (`tests/docs/manifest.ts`), regenerated with `pnpm docs:tour && pnpm docs:guide`.
 - Not changed: the relay, the protocol envelope, sealed ballots, the transport, the themes package, CSP (no inline script or style, no third-party origin), the bundle of the landing page and boards (the poker pages stay lazy; the budget check is part of every group).
