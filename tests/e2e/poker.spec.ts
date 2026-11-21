@@ -27,22 +27,35 @@ const participantLink = (page: Page) => page.url().replace(/(#c=[A-Za-z0-9_-]{44
 const columns = (page: Page) => page.getByTestId('poker-distribution-item').evaluateAll((els) => els.map((e) => [e.getAttribute('data-card'), e.getAttribute('data-votes')]))
 const cardsOf = (page: Page) => page.getByTestId('poker-deck-cards').locator('li')
 
-test('the start page offers deck chips and a typed list, shown as round chips', async ({ page }) => {
+/** The deck of a room made from the start page: Custom shows the typed list, which starts as the deck that was chosen. */
+const typeDeck = async (page: Page, cards: string) => {
+  await page.getByTestId('poker-deck-custom').check({ force: true })
+  await page.getByTestId('poker-cards').fill(cards)
+}
+
+test('the start page is one decision: deck chips fill the round chips, the typed list is for Custom only, a bad list is refused', async ({ page }) => {
   await page.goto('/poker')
-  // Fibonacci is chosen at once: one click on Create is a room.
+  // Fibonacci is chosen at once: one press on Create is a room.
   await expect(page.getByTestId('poker-deck-fibonacci')).toBeChecked()
   await expect(cardsOf(page)).toHaveText(['0', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '?', '☕'])
   await expect(page.getByTestId('poker-start-action')).toBeEnabled()
+  // The headline, the Beta tag once, one lead line and one muted privacy line; no typed list for a preset.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
+  await expect(page.getByTestId('beta-tag')).toHaveCount(1)
+  await expect(page.getByTestId('poker-cards')).toHaveCount(0)
 
   await page.getByTestId('poker-deck-tshirt').check({ force: true })
   await expect(cardsOf(page)).toHaveText(['XS', 'S', 'M', 'L', 'XL', 'XXL', '?'])
-  await expect(page.getByTestId('poker-cards')).toHaveValue('XS, S, M, L, XL, XXL, ?')
+  await expect(page.getByTestId('poker-cards')).toHaveCount(0)
   await page.getByTestId('poker-deck-powers').check({ force: true })
   await expect(cardsOf(page)).toHaveText(['1', '2', '4', '8', '16', '32', '64', '?'])
   await page.getByTestId('poker-deck-modified').check({ force: true })
   await expect(cardsOf(page)).toHaveCount(13)
 
-  // A typed list becomes the deck and the "Custom" chip; a bad one says why and cannot be created.
+  // Custom shows the field, which starts as the current deck; a typed list is the deck, and a bad one says why and cannot be created.
+  await page.getByTestId('poker-deck-custom').check({ force: true })
+  await expect(page.getByTestId('poker-cards')).toBeFocused()
+  await expect(page.getByTestId('poker-cards')).toHaveValue('0, ½, 1, 2, 3, 5, 8, 13, 20, 40, 100, ?, ☕')
   await page.getByTestId('poker-cards').fill('1, 2, 4, 8, ?')
   await expect(page.getByTestId('poker-deck-custom')).toBeChecked()
   await expect(cardsOf(page)).toHaveText(['1', '2', '4', '8', '?'])
@@ -51,13 +64,142 @@ test('the start page offers deck chips and a typed list, shown as round chips', 
     await expect(page.getByTestId('poker-deck-problem')).toContainText(problem)
     await expect(page.getByTestId('poker-start-action')).toBeDisabled()
   }
-  // The team colours section is there and collapsed.
-  await expect(page.locator('details.colours')).not.toHaveAttribute('open', '')
   await page.getByTestId('poker-cards').fill('S, M, L')
   await expect(page.getByTestId('poker-start-action')).toBeEnabled()
+  // A preset again hides the field.
   await page.getByTestId('poker-deck-fibonacci').check({ force: true })
-  await page.locator('details.colours summary').click()
+  await expect(page.getByTestId('poker-cards')).toHaveCount(0)
+  await expect(cardsOf(page)).toHaveCount(13)
   await noViolation(page, 'start')
+})
+
+test('the start page: the button is 48 px and fixed at the foot of a phone, 56 px in the flow from 600 px; one press makes the room with the Fibonacci deck', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const phone = await english(browser, { width: 390, height: 844 })
+  const page = await phone.newPage()
+  await page.goto('/poker')
+  const action = page.getByTestId('poker-start-action')
+  const box = (await action.boundingBox())!
+  expect(box.height).toBeGreaterThanOrEqual(48)
+  // At the foot of the screen, above the safe-area inset, whatever the length of the page.
+  expect(box.y + box.height).toBeGreaterThan(844 - 40)
+  expect(box.y + box.height).toBeLessThanOrEqual(844)
+  // A short phone: the content is longer than the screen, the button still shows and still is the last thing of the viewport.
+  await page.setViewportSize({ width: 390, height: 560 })
+  await page.getByTestId('poker-colours').locator('summary').click()
+  const short = (await action.boundingBox())!
+  expect(short.y + short.height).toBeLessThanOrEqual(560)
+  expect(short.y + short.height).toBeGreaterThan(560 - 40)
+  await page.getByTestId('poker-colours').locator('summary').click()
+  // One press: the room opens and asks for a name; the deck is the Fibonacci deck.
+  await action.click()
+  await expect(page).toHaveURL(/\/poker\/room#c=/)
+  await page.getByTestId('poker-name').fill('Ann')
+  await page.getByTestId('poker-name-join').click()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(page.getByTestId('poker-hand').locator('.pick')).toHaveCount(13)
+  await phone.close()
+
+  const wide = await browser.newContext({ viewport: { width: 1280, height: 800 } })
+  const desk = await wide.newPage()
+  await desk.goto('/poker')
+  const flow = (await desk.getByTestId('poker-start-action').boundingBox())!
+  expect(flow.height).toBeGreaterThanOrEqual(56)
+  // In the flow, in a 36 rem column: its box is not the sticky foot of a phone.
+  expect(flow.width).toBeLessThanOrEqual(36 * 16)
+  expect(await desk.getByTestId('poker-start-action').evaluate((el) => getComputedStyle(el.parentElement!).position)).toBe('static')
+  await wide.close()
+})
+
+test('the card colours: a collapsed section with eight hues and the theme, a live card back, and the hue the moderator picked is the card back of everybody', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const errors: string[] = []
+  const contexts = await Promise.all([0, 1].map(() => english(browser, { width: 390, height: 844 })))
+  const [a, b] = await Promise.all(contexts.map((ctx) => ctx.newPage()))
+  for (const p of [a!, b!]) watch(p, errors)
+  await a!.goto('/poker')
+  const section = a!.getByTestId('poker-colours')
+  await expect(section).not.toHaveAttribute('open', '')
+  await section.locator('summary').click()
+  // The Theme swatch is chosen; eight hues follow; each is a 44 px radio with a name; the preview is the card back of the theme.
+  await expect(a!.getByTestId('poker-hue-theme')).toBeChecked()
+  const hues = [8, 32, 52, 140, 175, 210, 260, 320]
+  for (const h of hues) {
+    const swatch = a!.getByTestId(`poker-hue-${h}`)
+    await expect(swatch).toHaveAccessibleName(/\S/)
+    const box = (await swatch.boundingBox())!
+    expect(box.width, String(h)).toBeGreaterThanOrEqual(44)
+    expect(box.height, String(h)).toBeGreaterThanOrEqual(44)
+  }
+  await expect(a!.getByTestId('poker-hue-preview')).toHaveAttribute('data-hue', 'theme')
+  const backOf = (p: Page) => p.locator('.pcard.back').first().evaluate((el) => getComputedStyle(el, '::before').backgroundImage)
+  const before = await backOf(a!)
+  await a!.getByTestId('poker-hue-140').check({ force: true })
+  await expect(a!.getByTestId('poker-hue-preview')).toHaveAttribute('data-hue', '140')
+  expect(await backOf(a!)).not.toBe(before)
+  // The radio group is reachable by keys: the arrow moves the hue.
+  await a!.getByTestId('poker-hue-140').focus()
+  await a!.keyboard.press('ArrowRight')
+  await expect(a!.getByTestId('poker-hue-175')).toBeChecked()
+  await a!.keyboard.press('ArrowLeft')
+  await expect(a!.getByTestId('poker-hue-140')).toBeChecked()
+  await noViolation(a!, 'start-colours')
+
+  await a!.getByTestId('poker-start-action').click()
+  await goLive(a!, 'Ann')
+  const link = participantLink(a!)
+  await b!.goto(link)
+  await goLive(b!, 'Bob')
+  await a!.getByTestId('poker-card-3').check({ force: true })
+  // Both see a voted seat: its card back is green for the moderator and for the guest alike, and unlike the card back of the theme.
+  for (const p of [a!, b!]) await expect(p.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+  const green = await backOf(b!)
+  expect(green).toBe(await backOf(a!))
+  expect(green).not.toBe(before)
+  // hsl(140 60% 40%), as the computed style says it.
+  expect(green).toContain('rgb(41, 163, 82)')
+  // The room of a moderator who picked nothing keeps the colours of the theme.
+  const c = await contexts[0]!.newPage()
+  await c.goto('/poker')
+  await c.getByTestId('poker-start-action').click()
+  await goLive(c, 'Cy')
+  await c.getByTestId('poker-card-3').check({ force: true })
+  await expect(c.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(1)
+  expect(await backOf(c)).toBe(before)
+  expect(errors).toEqual([])
+  await Promise.all(contexts.map((ctx) => ctx.close()))
+})
+
+test('the name step has the look of the start page: one prefilled field, one muted line, the button fixed at the foot of a phone; a long name fits and a reload keeps the seat', async ({ browser, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no mobile emulation')
+  const ctx = await english(browser, { width: 390, height: 844 })
+  const page = await ctx.newPage()
+  // This browser already has a name for boards: the field shows it and one press joins.
+  await page.addInitScript(() => { try { localStorage.setItem('retroboard:identity', JSON.stringify({ cid: 'c'.repeat(16), name: 'Malaka', showName: true, named: true })) } catch { /* ignore */ } })
+  await page.goto('/poker')
+  await page.getByTestId('poker-start-action').click()
+  const field = page.getByTestId('poker-name')
+  await expect(field).toHaveValue('Malaka')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/call you|appelle/i)
+  await expect(page.getByTestId('beta-tag')).toHaveCount(0)
+  const join = page.getByTestId('poker-name-join')
+  const box = (await join.boundingBox())!
+  expect(box.height).toBeGreaterThanOrEqual(48)
+  expect(box.y + box.height).toBeGreaterThan(844 - 40)
+  expect(box.y + box.height).toBeLessThanOrEqual(844)
+  await noViolation(page, 'name-step')
+  // A name of 24 characters fits its field and the page does not scroll sideways.
+  await field.fill(longName(7))
+  expect(await field.evaluate((el: HTMLInputElement) => el.scrollWidth <= el.clientWidth)).toBe(true)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+  await join.click()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  // A reload keeps the seat and skips the step.
+  await page.reload()
+  await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
+  await expect(page.getByTestId('poker-name')).toHaveCount(0)
+  await expect(page.getByTestId('poker-seat')).toHaveCount(1)
+  await ctx.close()
 })
 
 test('three people play a round: keys and clicks, the cards stay hidden, the results line, a re-vote and the next round', async ({ browser }) => {
@@ -72,7 +214,7 @@ test('three people play a round: keys and clicks, the cards stay hidden, the res
 
   // Ann creates the room with a typed deck of her own.
   await a!.goto('/poker')
-  await a!.getByTestId('poker-cards').fill('1, 2, 4, 8, ?')
+  await typeDeck(a!, '1, 2, 4, 8, ?')
   await a!.getByTestId('poker-start-action').click()
   await expect(a!).toHaveURL(/\/poker\/room#c=/)
   await a!.getByTestId('poker-name').fill('Ann')
@@ -199,7 +341,6 @@ test('a visitor finds Scrum Poker from the landing page and the library, marked 
   // The language is one tap away on the page itself.
   await page.getByTestId('poker-lang-en').click()
   await expect(page.getByTestId('poker-start-action')).toHaveText(/Create the room/)
-  await expect(page.getByTestId('poker-beta-note')).toContainText(/Beta/)
   await page.getByTestId('poker-lang-fr').click()
   await expect(page.getByTestId('poker-start-action')).toHaveText(/Créer la salle/)
   await page.getByTestId('poker-home').click()
@@ -297,7 +438,7 @@ const PHONES = [{ width: 390, height: 664 }, { width: 360, height: 640 }] as con
 const phone = (browser: Browser, viewport: { width: number; height: number }) => browser.newContext({ viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 2, locale: 'en-US' })
 const soloRoom = async (page: Page, cards?: string) => {
   await page.goto('/poker')
-  if (cards) await page.getByTestId('poker-cards').fill(cards)
+  if (cards) await typeDeck(page, cards)
   await page.getByTestId('poker-start-action').click()
   await page.getByTestId('poker-name').fill('Ann')
   await page.getByTestId('poker-name-join').click()
@@ -506,7 +647,7 @@ async function room(browser: Browser, names: readonly string[], cards?: string, 
   contexts.push(mod)
   const page = await mod.newPage()
   await page.goto('/poker')
-  if (cards) await page.getByTestId('poker-cards').fill(cards)
+  if (cards) await typeDeck(page, cards)
   await page.getByTestId('poker-start-action').click()
   await goLive(page, names[0]!)
   const others: Page[] = []
@@ -681,7 +822,7 @@ test('the overflow menu holds the language, light or dark and the way back; the 
   await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
   await expect(page.locator('html')).toHaveAttribute('data-variant', 'light')
   await page.getByTestId('poker-menu').click()
-  for (const id of ['poker-lang-en', 'poker-lang-fr', 'poker-variant', 'poker-menu-home']) {
+  for (const id of ['poker-lang-en', 'poker-lang-fr', 'poker-variant', 'poker-menu-idea', 'poker-menu-home']) {
     await expect(page.getByTestId(id)).toBeVisible()
     expect((await page.getByTestId(id).boundingBox())!.height, id).toBeGreaterThanOrEqual(48)
   }

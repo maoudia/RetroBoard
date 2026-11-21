@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  DEFAULT_DECK, emptyLedger, emptyPoker, type EventBody, foldAll, foldEvent, isPrivileged, isValidDeck, type Ledger, MAX_ROUNDS, MAX_SEATS,
+  CARD_HUES, DEFAULT_DECK, emptyLedger, emptyPoker, type EventBody, foldAll, foldEvent, isPrivileged, isValidDeck, type Ledger, MAX_ROUNDS, MAX_SEATS,
   type PokerCommand, type PokerState, reducePoker, VOTER_CAP, type VerifiedEvent,
 } from '../src'
 
@@ -85,7 +85,7 @@ describe('seats', () => {
 
   it('says why a command is ignored', () => {
     expect(foldEvent(room(), vote(ALICE))).toMatchObject({ ok: false, reason: 'invalid' })
-    expect(emptyPoker()).toMatchObject({ autoReveal: false, seats: [], rounds: [], deck: DEFAULT_DECK })
+    expect(emptyPoker()).toMatchObject({ autoReveal: false, hue: null, seats: [], rounds: [], deck: DEFAULT_DECK })
   })
 
   it('ignores an empty name', () => {
@@ -271,5 +271,26 @@ describe('the estimate of a round (poker-design-v2)', () => {
     expect(decidedOf(a)).toEqual(['8', null])
     const noisy = foldAll(emptyLedger(roomId), [all[0]!, decide('5', 'r1', ALICE), ...all.slice(1)])
     expect(state(noisy)).toEqual(state(a))
+  })
+})
+
+describe('the hue of the card backs (poker-design-v2)', () => {
+  const hue = (h: unknown, author = FAC) => poker(author, { t: 'settings.update', hue: h as number })
+
+  it('is the moderator\'s alone, one of the eight hues of the avatar picker, and the room has none until then', () => {
+    expect(state(room()).hue).toBeNull()
+    for (const h of CARD_HUES) expect(state(foldAll(room(), [hue(h)])).hue, String(h)).toBe(h)
+    expect(foldEvent(room(), hue(210, ALICE))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    expect(reducePoker(emptyPoker(), { t: 'settings.update', hue: 210 }, { key: ALICE, moderator: false }).ok).toBe(false)
+    for (const bad of [0, 9, 211, -8, 8.5, '8', null, NaN]) expect(foldEvent(room(), hue(bad)).ok, String(bad)).toBe(false)
+  })
+
+  it('travels with the deck, is kept by a later update that has none, and replays to the same state', () => {
+    const events = [poker(FAC, { t: 'settings.update', deck: ['S', 'M'], hue: 140 }), poker(FAC, { t: 'settings.update', autoReveal: true }), join(ALICE, 'Ann'), start()]
+    const a = foldAll(room(), events)
+    expect(state(a)).toMatchObject({ hue: 140, deck: ['S', 'M'], autoReveal: true })
+    expect(state(events.reduce((l, e) => foldEvent(l, e).ledger, room()))).toEqual(state(a))
+    // A bad hue refuses the whole update: the deck beside it is not written either.
+    expect(foldEvent(room(), poker(FAC, { t: 'settings.update', deck: ['S', 'M'], hue: 1 })).ok).toBe(false)
   })
 })

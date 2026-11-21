@@ -45,6 +45,8 @@ export interface PokerView {
   readonly verdict: ConsensusLevel | null
   /** The lowest and the highest card that are not the most chosen, with who played them; null before the reveal. */
   readonly outliers: Outliers | null
+  /** The hue of the card backs of the room (one of the eight of the avatar picker), or null for the colours of the theme: everybody sees the same. */
+  readonly hue: number | null
   /** Voters whose card did not open (a wrong key): a new round repairs it. */
   readonly unreadable: number
 }
@@ -54,6 +56,8 @@ export interface PokerClientOptions {
   readonly name: string
   /** Cards of the room, chosen on the start page: written by the moderator before the first round. */
   readonly deck?: readonly string[]
+  /** The hue of the card backs chosen on the start page: written with the deck, by the moderator, before the first round. */
+  readonly hue?: number
   /** Base of the socket URL (`ws://host`), without path. */
   readonly socketBase: string
   readonly WS?: typeof WebSocket
@@ -231,7 +235,10 @@ export class PokerClient {
     if (this.ledger.kind !== 'poker' || !poker) return
     if (!this.seat && !this.sent.has('seat')) { this.sent.add('seat'); await this.send_({ t: 'seat.join', name: this.o.name }) }
     if (!this.secret || this.me !== this.ledger.lead || poker.rounds.length > 0) return
-    if (this.o.deck && !this.sent.has('settings')) { this.sent.add('settings'); await this.send_({ t: 'settings.update', deck: [...this.o.deck] }) }
+    if ((this.o.deck || this.o.hue !== undefined) && !this.sent.has('settings')) {
+      this.sent.add('settings')
+      await this.send_({ t: 'settings.update', ...(this.o.deck ? { deck: [...this.o.deck] } : {}), ...(this.o.hue === undefined ? {} : { hue: this.o.hue }) })
+    }
     if (!this.sent.has('round')) { this.sent.add('round'); await this.send_(await this.roundStart('r1', false)) }
   }
 
@@ -303,7 +310,7 @@ export class PokerClient {
       : kind === 'poker' && this.sent.has('seat') && !this.seat ? 'full' : this.status
     this.o.onChange({
       status, moderator: !!this.secret && this.me === lead, canReveal: !!round && !revealed && !!this.secret && round.opener === this.me,
-      seats, mine: round && this.mine?.round === round.id ? this.mine.index : null, voter: !!this.seat?.voter, unreadable: cards?.unreadable.length ?? 0,
+      seats, mine: round && this.mine?.round === round.id ? this.mine.index : null, voter: !!this.seat?.voter, unreadable: cards?.unreadable.length ?? 0, hue: poker?.hue ?? null,
       round: round ? { n: poker!.rounds.length, revealed, revote: round.revote, voted: Object.keys(round.ballots).length, voters, deck: round.deck, decided: round.decided } : null,
       stats, verdict: stats ? consensusLevel(stats) : null, outliers: far,
     })

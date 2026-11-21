@@ -6,7 +6,7 @@ import { announceOf, dockOf, figure, hintOf, namesOf, primaryOf, type Say, statu
 /** The table of states of change poker-design-v2 (K6 and K2): what the room says and offers, by state and role. */
 const seat = (name: string, o: Partial<SeatView> = {}): SeatView => ({ key: name, name, me: false, moderator: false, voter: true, voted: false, card: null, outlier: null, ...o })
 const round = (o: Partial<RoundView> = {}): RoundView => ({ n: 1, revealed: false, revote: false, voted: 0, voters: 1, deck: ['1', '2'], decided: null, ...o })
-const view = (o: Partial<PokerView> = {}): PokerView => ({ status: 'live', moderator: false, canReveal: false, seats: [seat('Ann')], round: round(), mine: null, voter: true, stats: null, verdict: null, outliers: null, unreadable: 0, ...o })
+const view = (o: Partial<PokerView> = {}): PokerView => ({ status: 'live', moderator: false, canReveal: false, seats: [seat('Ann')], round: round(), mine: null, voter: true, stats: null, verdict: null, outliers: null, hue: null, unreadable: 0, ...o })
 const say = (line: Say) => `${line.key}${line.params ? JSON.stringify(line.params) : ''}`
 const hint = (v: PokerView) => { const h = hintOf(v, say); return h ? say(h) : null }
 

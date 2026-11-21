@@ -16,3 +16,6 @@ export const WRAP_MAX = 14
 
 /** Whether a deck is too long to wrap in a hand: a custom deck of 15 to 24 cards. */
 export const scrolls = (cards: number): boolean => cards > WRAP_MAX
+
+/** The colour of a card back of a hue the moderator picked (one of the eight of the avatar picker), or null for the colours of the theme: mid-dark, so the lattice keeps its edge on a light and on a dark surface. */
+export const backColour = (hue: number | null): string | null => (hue === null ? null : `hsl(${hue} 60% 40%)`)

@@ -283,6 +283,10 @@ A collapsed "Card colours" section SHALL be shown on the start page only once it
 - **WHEN** the swatches are not implemented
 - **THEN** the start page has no "Card colours" section
 
+#### Scenario: Only the moderator, only one of eight
+- **WHEN** a voter, or anybody with a number that is not one of the eight hues of the profile avatar picker, writes a hue
+- **THEN** every replica ignores it and the card backs keep the colours they had
+
 ### Requirement: The name step has the look of the start page
 The name step SHALL have one field prefilled with the name this browser uses, one muted line, and one filled "Join the room" button fixed at the bottom of a phone and at least 48 px high.
 
