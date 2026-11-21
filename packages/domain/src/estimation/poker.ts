@@ -23,12 +23,16 @@ export const DECK_MAX = 24
 export const CARD_MAX = 6
 export const ROUND_ID_RE = /^[A-Za-z0-9_-]{1,16}$/
 
+/** The hues a room's card backs can take: the eight of the profile's avatar picker. No hue means the colours of the theme. */
+export const CARD_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
+const isCardHue = (hue: unknown): hue is (typeof CARD_HUES)[number] => (CARD_HUES as readonly unknown[]).includes(hue)
+
 /** The deck of a room before anyone chooses one. */
 export const DEFAULT_DECK: readonly string[] = ['0', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '?', '☕']
 
 export type PokerCommand =
   | { readonly t: 'seat.join'; readonly name: string }
-  | { readonly t: 'settings.update'; readonly deck?: readonly string[]; readonly autoReveal?: boolean }
+  | { readonly t: 'settings.update'; readonly deck?: readonly string[]; readonly autoReveal?: boolean; readonly hue?: number }
   /** `revote`: the round votes again on the same item as the one before it. */
   | { readonly t: 'round.start'; readonly round: string; readonly pub: string; readonly revote?: boolean }
   | { readonly t: 'vote.seal'; readonly round: string; readonly sealed: string }
@@ -70,10 +74,12 @@ export interface PokerState {
   readonly seats: readonly Seat[]
   readonly deck: readonly string[]
   readonly autoReveal: boolean
+  /** The hue of the card backs of the room, one of CARD_HUES, or null for the colours of the theme (change poker-design-v2). */
+  readonly hue: number | null
   readonly rounds: readonly Round[]
 }
 
-export const emptyPoker = (): PokerState => ({ seats: [], deck: DEFAULT_DECK, autoReveal: false, rounds: [] })
+export const emptyPoker = (): PokerState => ({ seats: [], deck: DEFAULT_DECK, autoReveal: false, hue: null, rounds: [] })
 
 /** Who signed the event and whether the ledger lets them steer the room. */
 export interface PokerActor { readonly key: string; readonly moderator: boolean }
@@ -119,7 +125,8 @@ export function reducePoker(s: PokerState, cmd: PokerCommand, actor: PokerActor)
     case 'settings.update': {
       if (cmd.deck !== undefined && !isValidDeck(cmd.deck)) return no
       if (cmd.autoReveal !== undefined && typeof cmd.autoReveal !== 'boolean') return no
-      return yes({ ...s, deck: cmd.deck ?? s.deck, autoReveal: cmd.autoReveal ?? s.autoReveal })
+      if (cmd.hue !== undefined && !isCardHue(cmd.hue)) return no
+      return yes({ ...s, deck: cmd.deck ?? s.deck, autoReveal: cmd.autoReveal ?? s.autoReveal, hue: cmd.hue ?? s.hue })
     }
     case 'round.start': {
       if (cmd.revote !== undefined && typeof cmd.revote !== 'boolean') return no

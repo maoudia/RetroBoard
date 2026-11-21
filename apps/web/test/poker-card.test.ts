@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scrolls, valueTier, WRAP_MAX } from '../app/poker/card'
+import { backColour, scrolls, valueTier, WRAP_MAX } from '../app/poker/card'
 
 /** The rules of the playing card of a poker room (change poker-design-v2, task 1.1). */
 describe('valueTier', () => {
@@ -29,5 +29,13 @@ describe('scrolls', () => {
     expect(WRAP_MAX).toBe(14)
     expect([2, 13, 14].map(scrolls)).toEqual([false, false, false])
     expect([15, 20, 24].map(scrolls)).toEqual([true, true, true])
+  })
+})
+
+describe('backColour', () => {
+  it('is the colour of a hue, and nothing for the colours of the theme', () => {
+    expect(backColour(null)).toBeNull()
+    expect(backColour(210)).toBe('hsl(210 60% 40%)')
+    expect(backColour(8)).toBe('hsl(8 60% 40%)')
   })
 })

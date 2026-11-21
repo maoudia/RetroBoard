@@ -3,15 +3,17 @@
 // cards stay sealed until Reveal. A phone shows a bar, a middle region (the table, then the results) and a dock (the hand, or the next steps):
 // the page does not scroll, only the middle region may.
 import { formatInvite, type KeyRing, parseInvite, participantRing } from '@retroboard/domain'
-import { isValidDeck } from '@retroboard/domain'
+import { CARD_HUES, isValidDeck } from '@retroboard/domain'
 import InviteSheet from '~/components/poker/InviteSheet.vue'
 import PokerBar from '~/components/poker/PokerBar.vue'
 import PokerDock from '~/components/poker/PokerDock.vue'
 import PokerHand from '~/components/poker/PokerHand.vue'
+import PokerStep from '~/components/poker/PokerStep.vue'
 import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
 import RoomBar from '~/components/poker/RoomBar.vue'
 import { PokerClient, type PokerView } from '~/poker/client'
+import { backColour } from '~/poker/card'
 import { useMedia } from '~/poker/media'
 import { announceOf, dockOf, hintOf, primaryOf, type Say, statusOf } from '~/poker/room-view'
 import { pt } from '~/poker/strings'
@@ -57,7 +59,8 @@ async function join() {
   const base = useRuntimeConfig().public.wsUrl || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`
   const store = (() => { try { return sessionStorage } catch { return undefined } })()
   const kept = (() => { try { return JSON.parse(store?.getItem(`retroboard:poker:deck:${ring.value.roomId}`) ?? 'null') as unknown } catch { return null } })()
-  client = new PokerClient({ ring: ring.value, name: who, deck: isValidDeck(kept) ? kept : undefined, socketBase: base, store, onChange: (v) => { view.value = v } })
+  const hue = (() => { try { return JSON.parse(store?.getItem(`retroboard:poker:hue:${ring.value.roomId}`) ?? 'null') as unknown } catch { return null } })()
+  client = new PokerClient({ ring: ring.value, name: who, deck: isValidDeck(kept) ? kept : undefined, hue: CARD_HUES.find((h) => h === hue), socketBase: base, store, onChange: (v) => { view.value = v } })
   await client.start()
 }
 
@@ -83,6 +86,8 @@ watch(view, (now, before) => {
 /** The hand returns with a short rise after a reveal (the next round), not when a person first sits down. */
 const rise = ref(false)
 const round = computed(() => view.value?.round ?? null)
+/** The card backs of the room are in the hue its moderator picked, for everybody; none picked, they follow the theme. */
+const room = computed(() => { const back = backColour(view.value?.hue ?? null); return back ? { '--poker-back': back } : undefined })
 const live = computed(() => !!view.value && view.value.status !== 'board')
 const status = computed(() => { const line = view.value ? statusOf(view.value) : null; return line ? say(line) : '' })
 const hint = computed(() => { const line = view.value ? hintOf(view.value, say) : null; return line ? say(line) : '' })
@@ -102,7 +107,7 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 </script>
 
 <template>
-  <main id="main" class="room" :class="{ live }" data-testid="poker-room">
+  <main id="main" class="room" :class="{ live }" :style="room" data-testid="poker-room">
     <template v-if="live && view">
       <RoomBar :title="title" :status="status" :state="view.status" @invite="openInvite" />
       <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="poker-live">{{ announcement }}</div>
@@ -157,19 +162,22 @@ const action = computed<'invite' | 'reveal' | null>(() => {
       <InviteSheet v-model:open="inviteOpen" :url="shareUrl" />
     </template>
 
+    <PokerStep v-else-if="ring && !joined && !badLink" :title="pt('poker.pageTitle')" @submit="join">
+      <h1><label for="poker-name">{{ pt('poker.name.label') }}</label></h1>
+      <input id="poker-name" v-model="name" class="field" type="text" maxlength="24" autocomplete="nickname" data-testid="poker-name">
+      <p class="line">{{ pt('poker.name.hint') }}</p>
+      <template #foot>
+        <button type="submit" class="btn btn-primary primary" :disabled="!name.trim()" data-testid="poker-name-join">
+          <Icon name="lucide:users" /> {{ pt('poker.name.join') }}
+        </button>
+      </template>
+    </PokerStep>
+
     <template v-else>
-      <PokerBar />
+      <PokerBar :title="pt('poker.pageTitle')" />
       <p v-if="badLink" class="notice" role="alert" data-testid="poker-bad-link">
         {{ pt('poker.error.link') }} <NuxtLink to="/poker" class="btn btn-sm"><Icon name="lucide:arrow-left" /> {{ pt('poker.back') }}</NuxtLink>
       </p>
-      <form v-else-if="ring && !joined" class="name" @submit.prevent="join">
-        <label for="poker-name">{{ pt('poker.name.label') }}</label>
-        <input id="poker-name" v-model="name" class="field" type="text" maxlength="24" autocomplete="nickname" data-testid="poker-name">
-        <p class="hint">{{ pt('poker.name.hint') }}</p>
-        <button type="submit" class="btn btn-primary" :disabled="!name.trim()" data-testid="poker-name-join">
-          <Icon name="lucide:users" /> {{ pt('poker.name.join') }}
-        </button>
-      </form>
       <p v-else-if="view" class="notice" role="alert" data-testid="poker-board-hint">
         {{ pt('poker.board.hint') }} <a :href="boardHref" class="btn btn-sm"><Icon name="lucide:layout-dashboard" /> {{ pt('poker.board.open') }}</a>
       </p>
@@ -178,14 +186,14 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 </template>
 
 <style scoped>
-/* Not yet in the room (a bad link, the name step, a board's link): the plain column of the start page. */
-.room { max-width: 44rem; margin: 0 auto; padding: var(--sp-4); display: grid; gap: var(--sp-5); align-content: start; }
+/* Not yet in the room (the name step, a bad link, a board's link): the look of the start page, a bar over one column. */
+.room { display: grid; align-content: start; }
 .hint { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
-.notice { margin: 0; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: var(--fs-sm); color: var(--muted); }
-.name { display: grid; gap: var(--sp-3); max-width: 24rem; }
-.name .hint { text-align: start; }
+.line { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+h1 { margin: 0; font-size: var(--fs-3xl); line-height: 1.1; }
+.notice { margin: var(--sp-4) auto; max-inline-size: min(44rem, calc(100% - 2 * var(--sp-4))); padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: var(--fs-sm); color: var(--muted); }
 /* In the room: the bar, the middle region and the dock over the dynamic viewport. The middle region is the only thing that scrolls. */
-.room.live { max-width: none; margin: 0; padding: 0; gap: 0; height: 100dvh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; align-content: stretch; }
+.room.live { height: 100dvh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; align-content: stretch; }
 .region { min-height: 0; overflow-y: auto; padding: var(--sp-2) max(var(--sp-3), calc((100% - 44rem) / 2)); display: grid; gap: var(--sp-2); align-content: start; }
 .table { display: grid; gap: var(--sp-2); }
 /* The middle region scrolls when a crowd needs more room than there is: it takes the focus so that the keyboard can scroll it. */

@@ -1,3 +1,4 @@
+import { CARD_HUES } from '@retroboard/domain'
 import { type LocalePref, currentLocale, detectLocale } from '~/i18n'
 import { migrate } from '~/utils/settings-migration'
 import { safeStorage } from '~/utils/storage'
@@ -67,7 +68,8 @@ export interface LocalSettings {
 export type { ThemeVariantPref } from '~/utils/settings-migration'
 const KEY = 'retroboard:settings'
 
-export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
+/** The eight hues of a person's avatar: the card backs of a poker room use the same ones (the domain holds the list). */
+export const AVATAR_HUES = CARD_HUES
 export const DEFAULTS: LocalSettings = {
   ambient: true, presentGroups: true, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
