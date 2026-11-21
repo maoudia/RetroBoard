@@ -139,7 +139,7 @@ export function createJoiner(deps: JoinerDeps, ui: JoinerState) {
 
   function reset() { cancel?.(); cancel = null; ui.state = 'idle'; ui.number = '' }
 
-  /** Resolves to the board path and hash (`/boards#...`, or `/board#...` from a holder on an older version), or null. */
+  /** Resolves to the room path and hash (`/boards#...`, or `/board#...` from a holder on an older version, or `/poker/room#...` for a poker room), or null. */
   async function join(text: string, displayName: string): Promise<string | null> {
     const code = normalizeJoinCode(text)
     if (!code) { ui.state = 'failed'; return null }
@@ -184,9 +184,9 @@ export function createJoiner(deps: JoinerDeps, ui: JoinerState) {
           const ct = fromBase64Url(m.ct)
           void (ct ? openFrom(me, ct, utf8(n)) : Promise.resolve(null)).then((pt) => {
             const link = pt ? fromUtf8(pt) : ''
-            // Only a link to this site's board page is followed.
+            // Only a link to this site's board page or poker room page is followed.
             const own = link.startsWith(origin) ? link.slice(origin.length) : link
-            if (/^\/boards?#/.test(own)) finish(own, 'idle')
+            if (/^\/(boards?|poker\/room)#/.test(own)) finish(own, 'idle')
             else finish(null, 'failed')
           })
         },

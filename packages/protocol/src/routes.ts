@@ -1,5 +1,5 @@
-/** Route prefixes that never carry public content: boards, join links, the browser check, the offline shell, the dev pages and the storage sign-in callback. */
-export const PRIVATE_PREFIXES = ['/boards', '/board', '/check', '/offline', '/dev', '/storage'] as const
+/** Route prefixes that never carry public content: boards, poker rooms, join links, the browser check, the offline shell, the dev pages and the storage sign-in callback. */
+export const PRIVATE_PREFIXES = ['/boards', '/board', '/poker/room', '/check', '/offline', '/dev', '/storage'] as const
 
 /** True for a private route whatever the indexing switch says; `/boardsfoo` is not `/boards`, `/boards/x` is. */
 export function isPrivatePath(pathname: string): boolean {

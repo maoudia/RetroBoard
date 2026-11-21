@@ -1,131 +1,20 @@
 /**
- * The Scrum Poker demo (change scrum-poker, ADR-0042): the sealed card with a key per round, the fold of a poker room, and two clients
- * through a relay stand-in with the real envelopes, signatures and sealing. This is the headless twin of the two-tab demo.
+ * The Scrum Poker room (change scrum-poker, ADR-0042): the strings, and clients through a relay stand-in with the real envelopes,
+ * signatures, sealing and the shared kind-aware ledger. The rules themselves (the fold, the sealed card, the statistics) are tested in
+ * `packages/domain`, `packages/crypto` and `packages/application`; this is the headless twin of the two-tab room.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { fromBase64Url, randomBytes, toBase64Url } from '@retroboard/crypto'
-import { formatInvite, parseInvite, participantRing, SEALED_RE } from '@retroboard/domain'
-import { parseClientFrame } from '@retroboard/protocol'
-import { openCard, roundKeyPair, sealCard } from '../app/poker/ballot'
-import { DECK, PokerClient, type PokerView } from '../app/poker/client'
-import { emptyPoker, type PokerEvent, foldPoker, type PokerState, VOTER_CAP } from '../app/poker/fold'
+import { deriveContentKey, deriveFacilitatorSeed, fromBase64Url, randomBytes, seal, sign, signingKeyPair, toBase64Url, utf8 } from '@retroboard/crypto'
+import { formatInvite, parseInvite, participantRing, VOTER_CAP } from '@retroboard/domain'
+import { presetCards, signEvent } from '@retroboard/application'
+import { envelopeAad, parseClientFrame, PROTOCOL_VERSION } from '@retroboard/protocol'
+import { ulid } from '../app/transport/ulid'
+import { PokerClient, type PokerView } from '../app/poker/client'
 import { currentLocale } from '../app/i18n'
-import { pokerEn, pokerFr, pt } from '../app/poker/strings'
+import { cardLabel, pokerEn, pokerFr, pt } from '../app/poker/strings'
 
-const ROOM = 'Ab3dEfGhIjKlMnOpQrStUv'
 const b64 = (n: number) => toBase64Url(randomBytes(n))
-
-describe('a sealed card with a key per round', () => {
-  it('derives the same pair from the same secret and another pair for another round or room', async () => {
-    const secret = randomBytes(16)
-    const a = await roundKeyPair(secret, ROOM, 'r1')
-    expect(toBase64Url((await roundKeyPair(secret, ROOM, 'r1')).publicKey)).toBe(toBase64Url(a.publicKey))
-    expect(toBase64Url((await roundKeyPair(secret, ROOM, 'r2')).publicKey)).not.toBe(toBase64Url(a.publicKey))
-    expect(toBase64Url((await roundKeyPair(secret, `${ROOM}x`, 'r1')).publicKey)).not.toBe(toBase64Url(a.publicKey))
-  })
-
-  it('opens with the published key of its round, and only for its voter', async () => {
-    const secret = randomBytes(16)
-    const r1 = await roundKeyPair(secret, ROOM, 'r1'); const r2 = await roundKeyPair(secret, ROOM, 'r2')
-    const pub1 = toBase64Url(r1.publicKey); const priv1 = toBase64Url(r1.privateKey); const pub2 = toBase64Url(r2.publicKey)
-    const sealed = await sealCard(pub1, ROOM, 'voter-a', 6)
-    expect(sealed).toMatch(SEALED_RE)
-    expect(sealed.length).toBe(134)
-    expect(await openCard(priv1, pub1, ROOM, 'voter-a', sealed)).toBe(6)
-    expect(await openCard(priv1, pub1, ROOM, 'voter-b', sealed)).toBeNull()
-    expect(await openCard(priv1, pub1, `${ROOM}x`, 'voter-a', sealed)).toBeNull()
-    // The key of round 1, published at its reveal, opens nothing of round 2, and a ballot copied into round 2 does not open.
-    const next = await sealCard(pub2, ROOM, 'voter-a', 2)
-    expect(await openCard(priv1, pub1, ROOM, 'voter-a', next)).toBeNull()
-    expect(await openCard(toBase64Url(r2.privateKey), pub2, ROOM, 'voter-a', sealed)).toBeNull()
-    expect(await openCard(toBase64Url(r2.privateKey), pub2, ROOM, 'voter-a', next)).toBe(2)
-  })
-
-  it('refuses what is not a card or a key', async () => {
-    const r = await roundKeyPair(randomBytes(16), ROOM, 'r1')
-    const pub = toBase64Url(r.publicKey)
-    await expect(sealCard(pub, ROOM, 'v', -1)).rejects.toThrow('invalid card')
-    await expect(sealCard(pub, ROOM, 'v', 100)).rejects.toThrow('invalid card')
-    await expect(sealCard('!', ROOM, 'v', 1)).rejects.toThrow('invalid card')
-    const sealed = await sealCard(pub, ROOM, 'v', 1)
-    expect(await openCard('!', pub, ROOM, 'v', sealed)).toBeNull()
-    expect(await openCard(toBase64Url(r.privateKey), pub, ROOM, 'v', '!')).toBeNull()
-    expect(await openCard(toBase64Url(r.privateKey), pub, ROOM, 'v', `${sealed.slice(0, -2)}AA`)).toBeNull()
-    expect(await openCard(toBase64Url(r.privateKey), toBase64Url(randomBytes(32)), ROOM, 'v', sealed)).toBeNull()
-  })
-})
-
-describe('the fold of a poker room', () => {
-  const key = (c: string) => c.repeat(43)
-  const MOD = key('M'); const ANN = key('A'); const PUB1 = key('p'); const PUB2 = key('q'); const SEALED = 'S'.repeat(134); const SEALED2 = 'T'.repeat(134)
-  const ev = (author: string, body: unknown): PokerEvent => ({ author, body })
-  const genesis = ev(MOD, { t: 'genesis', roomId: ROOM, facilitatorKey: MOD, kind: 'poker' })
-  const cmd = (author: string, c: Record<string, unknown>) => ev(author, { t: 'poker', cmd: c })
-  const fold = (events: PokerEvent[]): PokerState => events.reduce(foldPoker, emptyPoker())
-  const open = [genesis, cmd(ANN, { t: 'seat.join', name: 'Ann' }), cmd(MOD, { t: 'round.start', round: 'r1', pub: PUB1 })]
-
-  it('takes its kind and its moderator from the first genesis, signed by the key it names', () => {
-    expect(fold([genesis])).toMatchObject({ kind: 'poker', moderator: MOD })
-    expect(fold([genesis, ev(ANN, { t: 'genesis', roomId: ROOM, facilitatorKey: ANN, kind: 'poker' })]).moderator).toBe(MOD)
-    expect(fold([ev(ANN, { t: 'genesis', roomId: ROOM, facilitatorKey: MOD, kind: 'poker' })]).kind).toBeNull()
-    expect(fold([ev(MOD, 'nonsense' as never)]).kind).toBeNull()
-  })
-
-  it('never reads the events of a board', () => {
-    const board = fold([ev(MOD, { t: 'genesis', roomId: ROOM, facilitatorKey: MOD }), cmd(ANN, { t: 'seat.join', name: 'Ann' })])
-    expect(board).toMatchObject({ kind: 'board', moderator: null })
-    expect(board.seats.size).toBe(0)
-  })
-
-  it('ignores a poker event before a poker genesis and an unknown command', () => {
-    expect(fold([cmd(ANN, { t: 'seat.join', name: 'Ann' })]).seats.size).toBe(0)
-    expect(fold([genesis, cmd(ANN, { t: 'nope' })]).seats.size).toBe(0)
-  })
-
-  it('seats a voter once, renames on a second join and caps the voters', () => {
-    const named = fold([genesis, cmd(ANN, { t: 'seat.join', name: ' Ann ' }), cmd(ANN, { t: 'seat.join', name: 'Anna' }), cmd(MOD, { t: 'seat.join', name: '' })])
-    expect([...named.seats]).toEqual([[ANN, 'Anna']])
-    const crowd = Array.from({ length: VOTER_CAP + 1 }, (_, i) => cmd(key(String.fromCharCode(97 + i)), { t: 'seat.join', name: `P${i}` }))
-    const full = fold([genesis, ...crowd])
-    expect(full.seats.size).toBe(VOTER_CAP)
-    expect(full.seats.has(key(String.fromCharCode(97 + VOTER_CAP)))).toBe(false)
-    expect(foldPoker(full, cmd(key('a'), { t: 'seat.join', name: 'Renamed' })).seats.get(key('a'))).toBe('Renamed')
-  })
-
-  it('lets only the moderator start a round, once per id, with a well-formed key', () => {
-    expect(fold([genesis, cmd(ANN, { t: 'round.start', round: 'r1', pub: PUB1 })]).rounds).toHaveLength(0)
-    expect(fold([genesis, cmd(MOD, { t: 'round.start', round: 'r1', pub: 'short' })]).rounds).toHaveLength(0)
-    expect(fold([genesis, cmd(MOD, { t: 'round.start', round: '', pub: PUB1 })]).rounds).toHaveLength(0)
-    expect(fold([genesis, cmd(MOD, { t: 'round.start', round: 'r1', pub: PUB1 }), cmd(MOD, { t: 'round.start', round: 'r1', pub: PUB2 })]).rounds).toHaveLength(1)
-  })
-
-  it('keeps the last card of a seated voter in the current round, until the reveal', () => {
-    const voted = fold([...open, cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: SEALED }), cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: SEALED2 })])
-    expect(voted.rounds[0]!.ballots.get(ANN)).toBe(SEALED2)
-    expect(fold([...open, cmd(MOD, { t: 'vote.seal', round: 'r1', sealed: SEALED })]).rounds[0]!.ballots.size).toBe(0)
-    expect(fold([...open, cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: 'short' })]).rounds[0]!.ballots.size).toBe(0)
-    expect(fold([...open, cmd(ANN, { t: 'vote.seal', round: 'r0', sealed: SEALED })]).rounds[0]!.ballots.size).toBe(0)
-    expect(fold([genesis, cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: SEALED })]).rounds).toHaveLength(0)
-  })
-
-  it('reveals once, by the moderator, and refuses a late change', () => {
-    const base = [...open, cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: SEALED })]
-    expect(fold([...base, cmd(ANN, { t: 'round.reveal', round: 'r1', key: key('k') })]).rounds[0]!.revealKey).toBeUndefined()
-    expect(fold([...base, cmd(MOD, { t: 'round.reveal', round: 'r1', key: 'short' })]).rounds[0]!.revealKey).toBeUndefined()
-    expect(fold([...base, cmd(MOD, { t: 'round.reveal', round: 'r9', key: key('k') })]).rounds[0]!.revealKey).toBeUndefined()
-    const revealed = fold([...base, cmd(MOD, { t: 'round.reveal', round: 'r1', key: key('k') })])
-    expect(revealed.rounds[0]!.revealKey).toBe(key('k'))
-    expect(foldPoker(revealed, cmd(MOD, { t: 'round.reveal', round: 'r1', key: key('z') })).rounds[0]!.revealKey).toBe(key('k'))
-    expect(foldPoker(revealed, cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: SEALED2 })).rounds[0]!.ballots.get(ANN)).toBe(SEALED)
-    // A re-vote is a new round of its own.
-    expect(foldPoker(revealed, cmd(MOD, { t: 'round.start', round: 'r2', pub: PUB2 })).rounds).toHaveLength(2)
-  })
-
-  it('reaches the same state on two replicas that fold the same events', () => {
-    const events = [...open, cmd(ANN, { t: 'vote.seal', round: 'r1', sealed: SEALED }), cmd(MOD, { t: 'round.reveal', round: 'r1', key: key('k') })]
-    expect(fold(events)).toEqual(fold([...events]))
-  })
-})
+const FIB = presetCards('fibonacci')
 
 describe('the strings', () => {
   const params = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
@@ -143,12 +32,19 @@ describe('the strings', () => {
     expect(pt('poker.progress', { voted: 2, total: 3 })).toBe('2 sur 3 ont voté')
     expect(pt('poker.progress')).toBe('{voted} sur {total} ont voté')
   })
+
+  it('name the coffee card and the question mark for a screen reader, and any other card by its label', () => {
+    currentLocale.value = 'en'
+    expect([cardLabel('\u2615'), cardLabel('?'), cardLabel('13')]).toEqual(['Coffee break', 'No idea', 'Card 13'])
+    currentLocale.value = 'fr'
+    expect(cardLabel('\u2615')).toBe('Pause café')
+  })
 })
 
 /** A relay stand-in with the behaviour the demo needs: welcome, history, `pub` kept and forwarded once, and a record of every frame. */
-function relay() {
+function relay(initial: unknown[] = []) {
   const sockets = new Set<FakeSocket>()
-  const buffer: unknown[] = []
+  const buffer: unknown[] = [...initial]
   const seen = new Set<string>()
   const frames: string[] = []
   class FakeSocket {
@@ -174,11 +70,11 @@ function relay() {
     }
     close() { this.readyState = 3; sockets.delete(this); this.onclose?.() }
   }
-  return { WS: FakeSocket as unknown as typeof WebSocket, frames }
+  return { WS: FakeSocket as unknown as typeof WebSocket, frames, sockets }
 }
 
 describe('two clients through a relay', () => {
-  it('create a room, join by the link, seal their cards and open them together at the reveal', async () => {
+  it('create a room, join by the link, seal their cards and open them together at the reveal, with the statistics', async () => {
     const roomKey = b64(16); const facilitatorSecret = b64(16); const roomId = b64(16)
     const moderatorFragment = formatInvite({ roomId, roomKey, facilitatorSecret }, 'facilitator')
     const voterFragment = formatInvite(participantRing((parseInvite(moderatorFragment) as { ring: Parameters<typeof participantRing>[0] }).ring), 'participant')
@@ -189,7 +85,7 @@ describe('two clients through a relay', () => {
     const make = (who: 'ann' | 'bob', fragment: string) => {
       const invite = parseInvite(fragment)
       if (invite?.kind !== 'encrypted') throw new Error('bad invite')
-      return new PokerClient({ ring: invite.ring, name: who === 'ann' ? 'Ann' : 'Bob', socketBase: 'ws://relay.test', WS, store: store(), onChange: (v) => { views[who] = v } })
+      return new PokerClient({ ring: invite.ring, name: who === 'ann' ? 'Ann' : 'Bob', deck: who === 'ann' ? presetCards('fibonacci') : undefined, socketBase: 'ws://relay.test', WS, store: store(), onChange: (v) => { views[who] = v } })
     }
     const ann = make('ann', moderatorFragment)
     const bob = make('bob', voterFragment)
@@ -198,9 +94,9 @@ describe('two clients through a relay', () => {
     expect(views.ann).toMatchObject({ moderator: true, status: 'live' })
     expect(views.bob).toMatchObject({ moderator: false, status: 'live' })
 
-    bob.vote(DECK.indexOf('13')); ann.vote(DECK.indexOf('5'))
+    bob.vote(FIB.indexOf('13')); ann.vote(FIB.indexOf('5'))
     await vi.waitFor(() => { expect(views.ann?.round?.voted).toBe(2); expect(views.bob?.round?.voted).toBe(2) })
-    expect(views.bob?.mine).toBe(DECK.indexOf('13'))
+    expect(views.bob?.mine).toBe(FIB.indexOf('13'))
     // Nothing is readable before the reveal, and a voter cannot reveal.
     for (const v of Object.values(views)) expect(v!.seats.map((s) => s.card)).toEqual([null, null])
     bob.reveal()
@@ -209,13 +105,22 @@ describe('two clients through a relay', () => {
 
     ann.reveal()
     await vi.waitFor(() => { expect(views.ann?.round?.revealed).toBe(true); expect(views.bob?.round?.revealed).toBe(true) })
-    for (const v of Object.values(views)) expect(Object.fromEntries(v!.seats.map((s) => [s.name, s.card]))).toEqual({ Ann: '5', Bob: '13' })
+    for (const v of Object.values(views)) {
+      expect(Object.fromEntries(v!.seats.map((s) => [s.name, s.card]))).toEqual({ Ann: '5', Bob: '13' })
+      expect(v!.stats).toMatchObject({ average: 9, median: 9, suggestion: '8', unanimous: false, consensus: 0.5 })
+    }
+    expect(views.bob?.stats).not.toBeNull()
 
-    // A new round starts blank, with its own key; the cards of the first are not carried over.
-    ann.nextRound()
-    await vi.waitFor(() => { expect(views.bob?.round).toMatchObject({ n: 2, revealed: false, voted: 0 }) })
+    // A re-vote is a round of its own that says so, with its own key; the cards of the first are not carried over.
+    ann.nextRound(true)
+    await vi.waitFor(() => { expect(views.bob?.round).toMatchObject({ n: 2, revealed: false, revote: true, voted: 0 }) })
     expect(views.bob?.mine).toBeNull()
+    expect(views.bob?.stats).toBeNull()
     expect(views.bob?.seats.map((s) => s.card)).toEqual([null, null])
+    // A participant cannot start a round; the moderator can, and it is not a re-vote.
+    bob.nextRound()
+    ann.nextRound()
+    await vi.waitFor(() => { expect(views.bob?.round).toMatchObject({ n: 3, revote: false }) })
     ann.close(); bob.close()
 
     // The relay carried envelopes of five fields and no word of the game.
@@ -226,7 +131,7 @@ describe('two clients through a relay', () => {
     expect(fromBase64Url(roomId)).toHaveLength(16)
   })
 
-  it('refuses a 21st voter and says the room is full', async () => {
+  it('seats a 21st person as a watcher who cannot vote, and keeps the cards of the voters', async () => {
     const roomKey = b64(16); const roomId = b64(16)
     const mod = formatInvite({ roomId, roomKey, facilitatorSecret: b64(16) }, 'facilitator')
     const voter = formatInvite({ roomId, roomKey }, 'participant')
@@ -240,14 +145,53 @@ describe('two clients through a relay', () => {
       const c = new PokerClient({ ring: invite.ring, name, socketBase: 'ws://relay.test', WS, onChange: (v) => { views[index] = v } })
       clients.push(c)
       await c.start()
-      await vi.waitFor(() => expect(views[index]?.status === 'live' || views[index]?.status === 'full').toBe(true))
+      await vi.waitFor(() => expect(views[index]?.status).toBe('live'))
     }
     await join(mod, 'M')
     for (let i = 1; i < VOTER_CAP; i++) await join(voter, `P${i}`)
-    expect(views[0]!.seats).toHaveLength(VOTER_CAP)
     await join(voter, 'Late')
-    expect(views[VOTER_CAP]!.status).toBe('full')
-    expect(views[0]!.seats).toHaveLength(VOTER_CAP)
+    const late = views[VOTER_CAP]!
+    await vi.waitFor(() => expect(views[0]!.seats).toHaveLength(VOTER_CAP + 1))
+    expect(views[0]!.seats.filter((s) => s.voter)).toHaveLength(VOTER_CAP)
+    expect(late.voter).toBe(false)
+    clients[VOTER_CAP]!.vote(1)
+    clients[1]!.vote(1)
+    await vi.waitFor(() => expect(views[0]!.round?.voted).toBe(1))
+    expect(views[0]!.round?.voters).toBe(VOTER_CAP)
     clients.forEach((c) => c.close())
   }, 60_000)
+
+  it('says the room is full when the relay refuses the connection', async () => {
+    const { WS, sockets } = relay()
+    let view: PokerView | null = null
+    const c = new PokerClient({ ring: { roomId: b64(16), roomKey: b64(16) }, name: 'Late', socketBase: 'ws://relay.test', WS, onChange: (v) => { view = v } })
+    await c.start()
+    await vi.waitFor(() => expect(sockets.size).toBe(1))
+    ;[...sockets][0]!.deliver({ t: 'err', code: 'full' })
+    await vi.waitFor(() => expect((view as PokerView | null)?.status).toBe('full'))
+    c.close()
+  })
+
+  it('tells a board link from a poker room: the genesis of a board has no kind', async () => {
+    const roomKey = b64(16); const roomId = b64(16)
+    const invite = parseInvite(formatInvite({ roomId, roomKey, facilitatorSecret: b64(16) }, 'facilitator'))
+    if (invite?.kind !== 'encrypted') throw new Error('bad invite')
+    const { ring } = invite
+    // The genesis a board writes, by the same transport: the room page must not treat it as a poker room, nor write into it.
+    const contentKey = await deriveContentKey(fromBase64Url(ring.roomKey)!, ring.roomId)
+    const pair = await signingKeyPair(await deriveFacilitatorSeed(fromBase64Url(ring.facilitatorSecret!)!))
+    const me = toBase64Url(pair.publicKey)
+    const signer = { publicKey: me, sign: async (m: string) => toBase64Url(await sign(pair.privateKey, utf8(m))) }
+    const event = await signEvent(signer, ring.roomId, { id: ulid(), at: Date.now(), body: { t: 'genesis', roomId: ring.roomId, facilitatorKey: me } })
+    const head = { v: PROTOCOL_VERSION, room: ring.roomId, id: event.id, hlc: event.at } as const
+    const env = { ...head, ct: toBase64Url(await seal(contentKey, utf8(JSON.stringify(event)), utf8(envelopeAad(head)))) }
+    const { WS, frames } = relay([env])
+    let view: PokerView | null = null
+    const c = new PokerClient({ ring: participantRing(ring), name: 'Ann', socketBase: 'ws://relay.test', WS, onChange: (v) => { view = v } })
+    await c.start()
+    await vi.waitFor(() => expect((view as PokerView | null)?.status).toBe('board'))
+    expect((view as PokerView | null)?.round).toBeNull()
+    expect(frames.filter((f) => f !== 'ping')).toEqual([])
+    c.close()
+  })
 })

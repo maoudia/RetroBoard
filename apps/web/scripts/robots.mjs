@@ -5,7 +5,7 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const PRIVATE_PREFIXES = ['/boards', '/board', '/check', '/offline', '/dev', '/storage']
+const PRIVATE_PREFIXES = ['/boards', '/board', '/poker/room', '/check', '/offline', '/dev', '/storage']
 const NOINDEX = 'noindex, nofollow'
 
 /** Same rule as isPrivatePath in packages/protocol (this script cannot import TypeScript); scripts/ci/test checks the two agree. */

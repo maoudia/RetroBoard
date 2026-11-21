@@ -346,7 +346,14 @@ describe('join code, joiner side', () => {
     expect(await result).toBe('/board#r=abc&k=def')
   })
 
-  it.each(['https://evil.test/boards#c=abc', `${origin}/other#c=abc`, '/boards', 'javascript:alert(1)', `${origin}.evil.test/boards#c=x`])('does not follow %s', async (link) => {
+  it('follows a link to a poker room, the same way', async () => {
+    const s = setup()
+    const { result, knock } = await knocking(s)
+    s.relay.state.handlers!.onMessage(await letFor(knock, `${origin}/poker/room#c=abc`))
+    expect(await result).toBe('/poker/room#c=abc')
+  })
+
+  it.each(['https://evil.test/boards#c=abc', `${origin}/poker/rooms#c=abc`, `${origin}/poker#c=abc`, `${origin}/poker/room`, `${origin}/other#c=abc`, '/boards', 'javascript:alert(1)', `${origin}.evil.test/boards#c=x`])('does not follow %s', async (link) => {
     const s = setup()
     const { result, knock } = await knocking(s)
     s.relay.state.handlers!.onMessage(await letFor(knock, link))
