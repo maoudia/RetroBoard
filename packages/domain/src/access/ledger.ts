@@ -242,7 +242,8 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
       return applied(ledger, { selfNames: name ? { ...rest, [author]: name } : rest })
     }
     case 'poker': {
-      const out = reducePoker(ledger.poker ?? emptyPoker(), body.cmd, { key: author, moderator: ledger.facilitators.includes(author) })
+      // A poker body reaches here only in a poker room (the kind check above), whose genesis set the state.
+      const out = reducePoker(ledger.poker!, body.cmd, { key: author, moderator: ledger.facilitators.includes(author) })
       return out.ok ? applied(ledger, { poker: out.state }) : ignore(ledger, 'invalid')
     }
     case 'cmd': {
