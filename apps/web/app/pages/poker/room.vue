@@ -199,14 +199,18 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 @media (min-width: 600px) {
   .act { min-block-size: 44px; justify-self: center; min-inline-size: 12rem; }
   .acts { grid-template-columns: repeat(2, minmax(10rem, 14rem)); justify-content: center; }
-  /* A tablet: the table takes what the results leave, the results come under it. The region scrolls only when the count of seats needs more room than there is. */
-  .region { padding-inline: var(--sp-3); grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(min-content, 1fr) auto; align-content: stretch; }
-  .table { block-size: 100%; grid-template-rows: minmax(0, 1fr) auto; min-block-size: 0; }
+  /* A tablet: the table takes what the results leave, the results come under it (a flex column: WebKit keeps a stale track when a grid row takes the rest of a
+     region by min-content). The region scrolls only when the count of seats needs more room than there is. */
+  .region { display: flex; flex-direction: column; padding-inline: var(--sp-3); align-content: normal; }
+  .table { flex: 1 1 0; min-block-size: min-content; display: flex; flex-direction: column; }
+  .table > :deep(.stage) { flex: 1 0 auto; }
+  .region > :not(.table) { flex: none; }
 }
 /* A laptop and wider: the table at the left, the results (or the quiet round panel before the reveal) at the right. */
 @media (min-width: 1024px) {
-  .region.beside { grid-template-columns: minmax(0, 1fr) calc(340px * var(--type-scale, 1)); grid-template-rows: minmax(min-content, 1fr); column-gap: var(--sp-4); }
-  .region.beside > :not(.table) { align-self: start; }
+  .region.beside { flex-direction: row; column-gap: var(--sp-4); }
+  .region.beside > .table { min-inline-size: 0; }
+  .region.beside > :not(.table) { flex: 0 0 calc(340px * var(--type-scale, 1)); align-self: flex-start; }
 }
 .panel { display: grid; gap: var(--sp-2); padding: var(--sp-4) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); text-align: center; }
 </style>
