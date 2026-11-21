@@ -53,7 +53,7 @@ A moderator SHALL manage a list of stories (typed or pasted one per line), selec
 - **THEN** every participant sees the story as estimated at 5 and the next story can be selected
 
 ### Requirement: Decks
-The room SHALL offer Fibonacci, modified Fibonacci, T-shirt sizes, powers of two, hours and days, each with a "?" card and a coffee card, and SHALL let the moderator define a custom deck. A team's default deck SHALL be kept in the local team space.
+The room SHALL offer Fibonacci, modified Fibonacci, T-shirt sizes, powers of two, hours and days, each with a "?" card (the two Fibonacci decks also have a coffee card), and SHALL let the moderator define a custom deck typed as a comma separated list of 2 to 24 different cards of at most 6 characters, shown as round chips on the start page. A team's default deck SHALL be kept in the local team space.
 
 #### Scenario: Custom deck
 - **WHEN** a moderator enters the cards "1, 2, 4, 8, ?"
@@ -79,7 +79,7 @@ The creator SHALL moderate by default and MAY transfer the role or let everyone 
 - **THEN** the round starts again with the new moderator and the voters choose again
 
 ### Requirement: Accessible and themed table
-The hand SHALL be operable by keyboard with the digit keys, the table and results SHALL meet WCAG 2.2 AA, motion SHALL respect reduced-motion settings, and the cards and table SHALL use the retro themes.
+The hand SHALL be operable by keyboard (a radio group, and the keys typed name a card: 5 picks the card 5, 1 then 3 picks 13, x then l picks XL), the table and results SHALL meet WCAG 2.2 AA, motion SHALL respect reduced-motion settings, and the cards and table SHALL use the retro themes.
 
 #### Scenario: Keyboard only
 - **WHEN** a person plays a round using only the keyboard

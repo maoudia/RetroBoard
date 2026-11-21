@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { formatPath, isFormatPath, isPrivatePath, parseIndexing, PRIVATE_PREFIXES } from '../src'
 
 describe('private routes', () => {
-  it('covers boards, join links, the check, the offline shell, the dev pages and the storage callback', () => {
-    for (const p of ['/boards', '/boards/', '/board', '/check', '/offline', '/dev/service-pages', '/boards.html', '/storage/callback']) expect(isPrivatePath(p), p).toBe(true)
-    expect([...PRIVATE_PREFIXES]).toEqual(['/boards', '/board', '/check', '/offline', '/dev', '/storage'])
+  it('covers boards, poker rooms, join links, the check, the offline shell, the dev pages and the storage callback', () => {
+    for (const p of ['/boards', '/boards/', '/board', '/poker/room', '/poker/room/', '/check', '/offline', '/dev/service-pages', '/boards.html', '/storage/callback']) expect(isPrivatePath(p), p).toBe(true)
+    expect([...PRIVATE_PREFIXES]).toEqual(['/boards', '/board', '/poker/room', '/check', '/offline', '/dev', '/storage'])
   })
 
   it('leaves the public pages alone, including look-alikes', () => {
-    for (const p of ['/', '/new', '/privacy', '/formats/', '/en/formats/starfish/', '/guide/en/', '/boardroom', '/checklist', '/devices', '/boardsxhtml', '/boards.html/x', '/boards.htmlx']) expect(isPrivatePath(p), p).toBe(false)
+    for (const p of ['/', '/new', '/privacy', '/formats/', '/en/formats/starfish/', '/guide/en/', '/poker', '/poker/', '/poker/roomy', '/boardroom', '/checklist', '/devices', '/boardsxhtml', '/boards.html/x', '/boards.htmlx']) expect(isPrivatePath(p), p).toBe(false)
   })
 })
 

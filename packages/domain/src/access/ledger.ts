@@ -16,6 +16,7 @@ import type { Command, CommandType } from '../shared/commands'
 import { allowedInPhase } from '../facilitation/agenda'
 import { LIMITS } from '../shared/limits'
 import type { BoardState, ErrorCode } from '../shared/types'
+import { emptyPoker, POKER_PRIVILEGED, type PokerCommand, type PokerState, reducePoker } from '../estimation/poker'
 import { KEY_RE, ROOM_ID_RE } from './keyring'
 
 /**
@@ -24,7 +25,9 @@ import { KEY_RE, ROOM_ID_RE } from './keyring'
  */
 export const LEDGER_VERSION = 1
 
-export interface GenesisBody { readonly t: 'genesis'; readonly roomId: string; readonly facilitatorKey: string }
+/** The kind of room is written once, in the genesis: absent means a board, `poker` a Scrum Poker room (ADR-0042). It travels inside the encrypted payload. */
+export type RoomKind = 'poker'
+export interface GenesisBody { readonly t: 'genesis'; readonly roomId: string; readonly facilitatorKey: string; readonly kind?: RoomKind }
 export interface CommandBody { readonly t: 'cmd'; readonly cmd: Command; readonly name: string | null; readonly showName: boolean }
 /**
  * Role events, by session public key: delegate (co-facilitator), revoke, hand over (the key
@@ -42,7 +45,9 @@ export interface RenameBody { readonly t: 'participant.rename'; readonly key: st
 export interface SelfNameBody { readonly t: 'participant.self'; readonly name: string }
 /** @deprecated name kept for readers of earlier code: same as RoleBody. */
 export type DelegateBody = RoleBody
-export type EventBody = GenesisBody | CommandBody | RoleBody | RenameBody | SelfNameBody
+/** A command of the estimation context: only a poker room folds it, only a board folds a `cmd`. */
+export interface PokerBody { readonly t: 'poker'; readonly cmd: PokerCommand }
+export type EventBody = GenesisBody | CommandBody | RoleBody | RenameBody | SelfNameBody | PokerBody
 
 export interface VerifiedEvent {
   /** Globally unique, sortable (ULID). Seeds deterministic ids created by this event. */
@@ -71,6 +76,10 @@ export interface Ledger {
   /** Names chosen by the participants themselves, by key (a facilitator-set name wins). */
   readonly selfNames: Readonly<Record<string, string>>
   readonly board: BoardState
+  /** Set by a genesis that names a kind. A board ledger has neither field: it folds as before. */
+  readonly kind?: RoomKind
+  /** The state of a poker room (kind `poker`); the `board` of such a ledger stays empty. */
+  readonly poker?: PokerState
   readonly applied: number
   /** Clocks of each author's recent accepted events (rate limit window). */
   readonly recent: Readonly<Record<string, readonly number[]>>
@@ -94,7 +103,10 @@ export const PRIVILEGED_COMMANDS: ReadonlySet<CommandType> = new Set<CommandType
 ])
 
 /** Genesis and role changes are always privileged; commands depend on their type. */
-export const isPrivileged = (body: EventBody): boolean => (body.t === 'cmd' ? PRIVILEGED_COMMANDS.has(body.cmd.t) : body.t !== 'participant.self')
+export const isPrivileged = (body: EventBody): boolean => {
+  if (body.t === 'cmd') return PRIVILEGED_COMMANDS.has(body.cmd.t)
+  return body.t === 'poker' ? POKER_PRIVILEGED.has(body.cmd.t) : body.t !== 'participant.self'
+}
 
 /**
  * Commands of the sealed ballot that need the facilitator capability even on an "Everyone facilitates" board: the reveal
@@ -111,7 +123,7 @@ const holdsSealedBallot = (cmd: Command): boolean => {
 const setsOpenFacilitation = (cmd: Command): boolean => (cmd as { openFacilitation?: boolean }).openFacilitation !== undefined
 
 /** Role changes: only the current facilitator or the genesis key, never a co-facilitator. */
-const isRoleChange = (body: Exclude<EventBody, { t: 'genesis' }>): body is RoleBody | RenameBody => body.t !== 'cmd' && body.t !== 'participant.self'
+const isRoleChange = (body: Exclude<EventBody, { t: 'genesis' }>): body is RoleBody | RenameBody => body.t !== 'cmd' && body.t !== 'participant.self' && body.t !== 'poker'
 
 export type Role = 'facilitator' | 'co-facilitator' | 'participant'
 
@@ -163,10 +175,12 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (ledger.facilitatorKey !== null) return ignore(ledger, 'duplicate-genesis')
     const valid = body.roomId === ledger.roomId && ROOM_ID_RE.test(body.roomId) && KEY_RE.test(body.facilitatorKey) && author === body.facilitatorKey
     if (!valid) return ignore(ledger, 'bad-genesis')
-    return applied(ledger, { facilitatorKey: author, lead: author, facilitators: [author] })
+    return applied(ledger, { facilitatorKey: author, lead: author, facilitators: [author], ...(body.kind === 'poker' ? { kind: 'poker' as const, poker: emptyPoker() } : {}) })
   }
   if (ledger.facilitatorKey === null) return ignore(ledger, 'no-genesis')
   if (ledger.hidden.includes(author)) return ignore(ledger, 'hidden')
+  // A room folds the content of its own kind and nothing else: a board command in a poker room, or a poker command on a board, is ignored by every replica.
+  if ((body.t === 'poker') !== (ledger.kind === 'poker') && (body.t === 'poker' || body.t === 'cmd')) return ignore(ledger, 'forbidden')
   // A destroyed board is closed for good: whatever arrives after it, from anyone, is ignored by every replica.
   if (ledger.board.settings.destroyed) return ignore(ledger, 'closed')
   if (isRoleChange(body)) {
@@ -174,6 +188,9 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
     if (!KEY_RE.test(body.key)) return ignore(ledger, 'invalid')
     // A takeover is the facilitator link at work: signed by the capability key, never by a co-facilitator's session key.
     if (body.t === 'role.claim' && author !== ledger.facilitatorKey) return ignore(ledger, 'not-facilitator')
+  } else if (body.t === 'poker') {
+    // The moderator steers, anyone votes (the reducer reads the same capability).
+    if (isPrivileged(body) && !ledger.facilitators.includes(author)) return ignore(ledger, 'not-facilitator')
   } else if (body.t === 'cmd' && (body.cmd.t === 'board.destroy' || holdsSealedBallot(body.cmd)) && !ledger.facilitators.includes(author)) {
     // Closing the board and the sealed ballot are never delegated to "everyone": they need the facilitator capability even on an open board.
     return ignore(ledger, 'not-facilitator')
@@ -226,6 +243,10 @@ function foldUnlimited(ledger: Ledger, event: VerifiedEvent): FoldResult {
       const name = body.name.trim().slice(0, LIMITS.displayName)
       const { [author]: _old, ...rest } = ledger.selfNames
       return applied(ledger, { selfNames: name ? { ...rest, [author]: name } : rest })
+    }
+    case 'poker': {
+      const out = reducePoker(ledger.poker ?? emptyPoker(), body.cmd, { key: author, moderator: ledger.facilitators.includes(author) })
+      return out.ok ? applied(ledger, { poker: out.state }) : ignore(ledger, 'invalid')
     }
     case 'cmd': {
       const out = reduce(ledger.board, body.cmd, { cid: author, name: body.name, showName: body.showName, ...(roleOf(ledger, author) !== 'participant' ? { moderator: true } : {}) }, { now: event.at, newId: idsFrom(event.id) })

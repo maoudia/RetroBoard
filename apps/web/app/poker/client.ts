@@ -1,33 +1,49 @@
 /**
- * The relay client of the Scrum Poker demo (change scrum-poker, ADR-0042). It speaks the real protocol: envelopes of five fields
- * sealed with the room's content key, signed events, `pub` frames through the relay, the history on connect. It does not use the
- * mesh: the demo goes through the relay only. The real transport, with a kind-aware ledger, comes with tasks 1.2 and 2.1.
+ * The relay client of the Scrum Poker room (change scrum-poker, ADR-0042). It speaks the real protocol: envelopes of five fields sealed
+ * with the room's content key, signed events, `pub` frames through the relay, the history on connect. The room is the shared ledger
+ * folded by the replica log (kind `poker`), the cards are opened with the estimation read model and the statistics are the application's.
+ * It does not use the mesh: the room goes through the relay only until task 2.1 moves it onto the shared transport.
  */
-import { signEvent, type SignerPort, type SignedEvent, verifyEvent } from '@retroboard/application'
-import { deriveContentKey, deriveFacilitatorSeed, fromBase64Url, fromUtf8, open, randomBytes, seal, sign, signingKeyPair, toBase64Url, utf8, verify } from '@retroboard/crypto'
-import { EVENT_ID_RE, envelopeAad, type Envelope, parseEnvelope, parseRelayFrame, PROTOCOL_VERSION } from '@retroboard/protocol'
-import { KEY_RE, type KeyRing } from '@retroboard/domain'
+import { EventLog, openRound, type OpenedRound, roundStatistics, type SignedEvent, type SignerPort, signEvent, type Statistics, verifyEvent } from '@retroboard/application'
+import { deriveContentKey, deriveFacilitatorSeed, fromBase64Url, fromUtf8, open, openCard, randomBytes, roundKeyPair, seal, sealCard, sign, signingKeyPair, toBase64Url, utf8 } from '@retroboard/crypto'
+import { currentRound, type EventBody, type KeyRing, type Ledger, type PokerCommand, type Round, signingRoom } from '@retroboard/domain'
+import { type Envelope, envelopeAad, parseEnvelope, parseEventOrUnknown, parseRelayFrame, PROTOCOL_VERSION } from '@retroboard/protocol'
+import { HybridClock } from '@retroboard/sync'
+import { ed25519Verifier } from '~/adapters/signing'
 import { ulid } from '~/transport/ulid'
-import { openCard, roundKeyPair, sealCard } from './ballot'
-import { emptyPoker, foldPoker, type PokerEvent, type PokerState } from './fold'
 
-/** The deck of the demo: Fibonacci with a question mark. A card travels as its index. */
-export const DECK = ['0', '1', '2', '3', '5', '8', '13', '21', '?'] as const
-
-export type PokerStatus = 'connecting' | 'live' | 'offline' | 'full'
-export interface SeatView { readonly key: string; readonly name: string; readonly me: boolean; readonly moderator: boolean; readonly voted: boolean; readonly card: string | null }
+export type PokerStatus = 'connecting' | 'live' | 'offline' | 'full' | 'board'
+export interface SeatView {
+  readonly key: string; readonly name: string; readonly me: boolean; readonly moderator: boolean
+  /** A seat that does not vote watches (the room has more voters than its cap). */
+  readonly voter: boolean
+  readonly voted: boolean
+  /** The card, once the round is revealed and the ballot opens; never before. */
+  readonly card: string | null
+}
+export interface RoundView { readonly n: number; readonly revealed: boolean; readonly revote: boolean; readonly voted: number; readonly voters: number; readonly deck: readonly string[] }
 export interface PokerView {
   readonly status: PokerStatus
   readonly moderator: boolean
+  /** The device that may reveal this round: it holds the round key. */
+  readonly canReveal: boolean
   readonly seats: readonly SeatView[]
-  readonly round: { readonly n: number; readonly revealed: boolean; readonly voted: number } | null
+  readonly round: RoundView | null
   /** Deck index of my own card in this round. */
   readonly mine: number | null
+  /** Whether my seat votes (a late seat of a full room watches). */
+  readonly voter: boolean
+  /** Statistics of the revealed round; null before the reveal. */
+  readonly stats: Statistics | null
+  /** Voters whose card did not open (a wrong key): a new round repairs it. */
+  readonly unreadable: number
 }
 
 export interface PokerClientOptions {
   readonly ring: KeyRing
   readonly name: string
+  /** Cards of the room, chosen on the start page: written by the moderator before the first round. */
+  readonly deck?: readonly string[]
   /** Base of the socket URL (`ws://host`), without path. */
   readonly socketBase: string
   readonly WS?: typeof WebSocket
@@ -40,42 +56,31 @@ const RETRY_MS = 2_000
 const PING_MS = 25_000
 const PUSH_CHUNK = 100
 
-const verifier = {
-  async verify(publicKey: string, signature: string, message: string) {
-    const key = fromBase64Url(publicKey); const sig = fromBase64Url(signature)
-    return !!key && !!sig && verify(key, sig, utf8(message))
-  },
-}
-
-const isEvent = (x: unknown): x is SignedEvent => {
-  const e = x as Partial<SignedEvent> | null
-  return typeof e === 'object' && e !== null && typeof e.id === 'string' && EVENT_ID_RE.test(e.id) && Number.isFinite(e.at) && typeof e.author === 'string' && KEY_RE.test(e.author)
-    && typeof e.sig === 'string' && typeof e.body === 'object' && e.body !== null
-}
-
 export class PokerClient {
   private ws: WebSocket | null = null
   private status: PokerStatus = 'connecting'
-  private state: PokerState = emptyPoker()
-  /** Verified events in the total order of the room: by clock, then id, the same on every replica whatever the order they arrive in. */
-  private log: { at: number; id: string; event: PokerEvent }[] = []
+  private log: EventLog<SignedEvent>
+  private readonly room: string
+  private readonly clock = new HybridClock()
   private contentKey = new Uint8Array()
   private signer: SignerPort | null = null
   private secret: Uint8Array | null = null
   private me = ''
-  private clock = 0
   private closed = false
   private histDone = false
-  private cards = new Map<string, Record<string, number | null>>()
+  private opened = new Map<string, { key: string; cards: OpenedRound }>()
   private mine: { round: string; index: number } | null = null
   private readonly held = new Map<string, Envelope>()
   private readonly fromRelay = new Set<string>()
-  private readonly sent = new Set<'genesis' | 'seat' | 'round'>()
+  private readonly sent = new Set<'genesis' | 'settings' | 'seat' | 'round'>()
   private queue: Promise<void> = Promise.resolve()
   private heartbeat: ReturnType<typeof setInterval> | undefined
   private retry: ReturnType<typeof setTimeout> | undefined
 
-  constructor(private readonly o: PokerClientOptions) {}
+  constructor(private readonly o: PokerClientOptions) {
+    this.room = signingRoom(o.ring)
+    this.log = new EventLog<SignedEvent>(this.room)
+  }
 
   async start(): Promise<void> {
     const { ring, store } = this.o
@@ -106,34 +111,39 @@ export class PokerClient {
     this.ws?.close()
   }
 
+  private get ledger(): Ledger { return this.log.ledger }
+  private get round(): Round | undefined { return this.ledger.poker ? currentRound(this.ledger.poker) : undefined }
+  private get seat() { return this.ledger.poker?.seats.find((s) => s.key === this.me) }
+
   /** Picks (or changes) my card before the reveal. */
   vote(index: number): void {
-    const round = this.current
-    if (!round || round.revealKey || !this.state.seats.has(this.me)) return
+    const round = this.round
+    if (!round || round.revealKey !== null || !this.seat?.voter || !Number.isInteger(index) || index < 0 || index >= round.deck.length) return
     this.mine = { round: round.id, index }
     try { this.o.store?.setItem(`retroboard:poker:card:${this.o.ring.roomId}`, JSON.stringify(this.mine)) } catch { /* kept in memory only */ }
     this.emit()
-    this.enqueue(async () => this.publish({ t: 'poker', cmd: { t: 'vote.seal', round: round.id, sealed: await sealCard(round.pub, this.o.ring.roomId, this.me, index) } }))
+    this.enqueue(async () => this.send_({ t: 'vote.seal', round: round.id, sealed: await sealCard(round.pub, this.o.ring.roomId, this.me, index) }))
   }
 
-  /** Moderator: shows every card at once, by publishing the private half of the round key. */
+  /** The device that opened the round shows every card at once, by publishing the private half of the round key. */
   reveal(): void {
-    const round = this.current
-    if (!round || round.revealKey || !this.secret || this.me !== this.state.moderator) return
-    this.enqueue(async () => this.publish({ t: 'poker', cmd: { t: 'round.reveal', round: round.id, key: toBase64Url((await roundKeyPair(this.secret!, this.o.ring.roomId, round.id)).privateKey) } }))
+    const round = this.round
+    if (!round || round.revealKey !== null || !this.secret || round.opener !== this.me) return
+    this.enqueue(async () => this.send_({ t: 'round.reveal', round: round.id, key: toBase64Url((await roundKeyPair(this.secret!, this.o.ring.roomId, round.id)).privateKey) }))
   }
 
-  /** Moderator: a new round with its own key (the first round, or a re-vote). */
-  nextRound(): void {
-    if (!this.secret || this.me !== this.state.moderator) return
-    this.enqueue(async () => this.publish(await this.roundStart(`r${this.state.rounds.length + 1}`)))
+  /** Moderator: a new round with its own key; `revote` votes again on the same item. */
+  nextRound(revote = false): void {
+    if (!this.secret || this.me !== this.ledger.lead) return
+    this.enqueue(async () => this.send_(await this.roundStart(`r${(this.ledger.poker?.rounds.length ?? 0) + 1}`, revote)))
   }
 
-  private async roundStart(id: string) {
-    return { t: 'poker', cmd: { t: 'round.start', round: id, pub: toBase64Url((await roundKeyPair(this.secret!, this.o.ring.roomId, id)).publicKey) } }
+  private async roundStart(id: string, revote: boolean): Promise<PokerCommand> {
+    const pub = toBase64Url((await roundKeyPair(this.secret!, this.o.ring.roomId, id)).publicKey)
+    return revote ? { t: 'round.start', round: id, pub, revote } : { t: 'round.start', round: id, pub }
   }
 
-  private get current() { return this.state.rounds[this.state.rounds.length - 1] }
+  private send_(cmd: PokerCommand): Promise<void> { return this.publish({ t: 'poker', cmd }) }
 
   private enqueue(job: () => Promise<void>): void {
     this.queue = this.queue.then(job).catch(() => { /* a failed job must not block the next ones */ })
@@ -188,13 +198,19 @@ export class PokerClient {
     this.setStatus('live')
   }
 
-  /** What only I can write and the room still lacks: the genesis (moderator), my seat, the first round (moderator). Idempotent: it reads the state. */
+  /** What only I can write and the room still lacks: the genesis, the deck and the first round (moderator), my seat. Idempotent: it reads the ledger. */
   private async settle(): Promise<void> {
+    const { poker } = this.ledger
     // Each is tried once: an event the fold refuses (a full room) must not be written again for ever.
-    if (this.secret && this.state.kind === null && !this.sent.has('genesis')) { this.sent.add('genesis'); await this.publish({ t: 'genesis', roomId: this.o.ring.roomId, facilitatorKey: this.me, kind: 'poker' }) }
-    if (this.state.kind !== 'poker') return
-    if (!this.state.seats.has(this.me) && !this.sent.has('seat')) { this.sent.add('seat'); await this.publish({ t: 'poker', cmd: { t: 'seat.join', name: this.o.name } }) }
-    if (this.secret && this.me === this.state.moderator && this.state.rounds.length === 0 && !this.sent.has('round')) { this.sent.add('round'); await this.publish(await this.roundStart('r1')) }
+    if (this.secret && this.ledger.facilitatorKey === null && !this.sent.has('genesis')) {
+      this.sent.add('genesis')
+      await this.publish({ t: 'genesis', roomId: this.room, facilitatorKey: this.me, kind: 'poker' })
+    }
+    if (this.ledger.kind !== 'poker' || !poker) return
+    if (!this.seat && !this.sent.has('seat')) { this.sent.add('seat'); await this.send_({ t: 'seat.join', name: this.o.name }) }
+    if (!this.secret || this.me !== this.ledger.lead || poker.rounds.length > 0) return
+    if (this.o.deck && !this.sent.has('settings')) { this.sent.add('settings'); await this.send_({ t: 'settings.update', deck: [...this.o.deck] }) }
+    if (!this.sent.has('round')) { this.sent.add('round'); await this.send_(await this.roundStart('r1', false)) }
   }
 
   private async ingest(env: Envelope): Promise<void> {
@@ -203,41 +219,32 @@ export class PokerClient {
     const ct = fromBase64Url(head.ct)
     const plain = ct && await open(this.contentKey, ct, utf8(envelopeAad(head)))
     if (!plain) return
-    let event: unknown
-    try { event = JSON.parse(fromUtf8(plain)) } catch { return }
-    // The header must agree with the signed content, and the signature must hold, before anything is folded.
-    if (!isEvent(event) || event.id !== head.id || event.at !== head.hlc || !(await verifyEvent(verifier, this.o.ring.roomId, event))) return
+    let raw: unknown
+    try { raw = JSON.parse(fromUtf8(plain)) } catch { return }
+    // The header must agree with the signed content, the body must be one this version reads and the signature must hold, before anything is folded.
+    const parsed = parseEventOrUnknown(raw)
+    if (parsed?.kind !== 'known' || parsed.event.id !== head.id || parsed.event.at !== head.hlc) return
+    if (!(await verifyEvent(ed25519Verifier, this.room, parsed.event as SignedEvent))) return
     this.held.set(head.id, head)
-    this.clock = Math.max(this.clock, event.at)
-    this.insert({ at: event.at, id: event.id, event: { author: event.author, body: event.body } })
+    this.clock.receive(parsed.event.at)
+    this.log.insert(parsed.event as SignedEvent)
     await this.openRevealed()
     this.emit()
     if (this.histDone) await this.settle()
   }
 
-  /** An event that sorts last is folded onto the state; one that sorts earlier (it arrived late) makes the room fold again from the start. */
-  private insert(entry: { at: number; id: string; event: PokerEvent }): void {
-    const last = this.log[this.log.length - 1]
-    const after = !last || entry.at > last.at || (entry.at === last.at && entry.id > last.id)
-    if (after) { this.log.push(entry); this.state = foldPoker(this.state, entry.event); return }
-    this.log = [...this.log, entry].sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : 1))
-    this.state = this.log.reduce((s, e) => foldPoker(s, e.event), emptyPoker())
-  }
-
   /** Every replica opens the ballots of a revealed round itself, with the key the reveal published. */
   private async openRevealed(): Promise<void> {
-    for (const round of this.state.rounds) {
-      if (!round.revealKey || this.cards.has(round.id)) continue
-      const opened: Record<string, number | null> = {}
-      for (const [voter, sealed] of round.ballots) opened[voter] = await openCard(round.revealKey, round.pub, this.o.ring.roomId, voter, sealed)
-      this.cards.set(round.id, opened)
+    for (const round of this.ledger.poker?.rounds ?? []) {
+      if (round.revealKey === null || this.opened.get(round.id)?.key === round.revealKey) continue
+      const cards = await openRound(round, (r, voter, sealed) => openCard(r.revealKey!, r.pub, this.o.ring.roomId, voter, sealed))
+      this.opened.set(round.id, { key: round.revealKey, cards })
     }
   }
 
-  private async publish(body: Record<string, unknown>): Promise<void> {
+  private async publish(body: EventBody): Promise<void> {
     if (!this.signer) return
-    this.clock = Math.max(this.clock + 1, Date.now())
-    const event = await signEvent(this.signer, this.o.ring.roomId, { id: ulid(), at: this.clock, body: body as never })
+    const event = await signEvent(this.signer, this.room, { id: ulid(), at: this.clock.tick(this.log.lastAt), body })
     const head = { v: PROTOCOL_VERSION, room: this.o.ring.roomId, id: event.id, hlc: event.at } as const
     const env: Envelope = { ...head, ct: toBase64Url(await seal(this.contentKey, utf8(JSON.stringify(event)), utf8(envelopeAad(head)))) }
     await this.ingest(env)
@@ -249,16 +256,22 @@ export class PokerClient {
   }
 
   private emit(): void {
-    const round = this.current
-    const opened = round ? this.cards.get(round.id) : undefined
-    const seats = [...this.state.seats].map(([key, name]) => ({
-      key, name, me: key === this.me, moderator: key === this.state.moderator, voted: !!round?.ballots.has(key),
-      card: opened && opened[key] != null ? (DECK[opened[key]!] ?? '?') : null,
-    }))
+    const { poker, kind, lead } = this.ledger
+    const round = this.round
+    const cards = round ? this.opened.get(round.id)?.cards : undefined
+    const seats: SeatView[] = (poker?.seats ?? []).map((s) => {
+      const index = cards?.picks[s.key]
+      return { key: s.key, name: s.name, me: s.key === this.me, moderator: s.key === lead, voter: s.voter, voted: !!round && s.key in round.ballots, card: index === undefined ? null : (round!.deck[index] ?? null) }
+    })
+    const voters = seats.filter((s) => s.voter).length
+    const revealed = !!round && round.revealKey !== null
+    const status: PokerStatus = this.ledger.facilitatorKey !== null && kind !== 'poker' ? 'board'
+      : kind === 'poker' && this.sent.has('seat') && !this.seat ? 'full' : this.status
     this.o.onChange({
-      status: this.state.kind === 'poker' && this.sent.has('seat') && !this.state.seats.has(this.me) ? 'full' : this.status, moderator: !!this.secret && this.me === this.state.moderator, seats,
-      round: round ? { n: this.state.rounds.length, revealed: !!round.revealKey, voted: round.ballots.size } : null,
-      mine: round && this.mine?.round === round.id ? this.mine.index : null,
+      status, moderator: !!this.secret && this.me === lead, canReveal: !!round && !revealed && !!this.secret && round.opener === this.me,
+      seats, mine: round && this.mine?.round === round.id ? this.mine.index : null, voter: !!this.seat?.voter, unreadable: cards?.unreadable.length ?? 0,
+      round: round ? { n: poker!.rounds.length, revealed, revote: round.revote, voted: Object.keys(round.ballots).length, voters, deck: round.deck } : null,
+      stats: round && revealed && cards ? roundStatistics(round.deck, Object.values(cards.picks)) : null,
     })
   }
 }

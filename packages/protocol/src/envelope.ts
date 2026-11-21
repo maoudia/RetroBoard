@@ -8,6 +8,7 @@
  */
 import * as v from 'valibot'
 import { CURSOR_SCALE, KEY_RE, LIMITS, ROOM_ID_RE } from '@retroboard/domain'
+import { PokerCommandSchema } from './poker'
 import { CommandSchema } from './v1'
 
 export const PROTOCOL_VERSION = 2
@@ -70,11 +71,12 @@ const Key = v.pipe(v.string(), v.regex(KEY_RE))
 const Name = v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(LIMITS.displayName)))
 
 const EventBodySchema = v.variant('t', [
-  v.strictObject({ t: v.literal('genesis'), roomId: v.pipe(v.string(), v.regex(ROOM_ID_RE)), facilitatorKey: Key }),
+  v.strictObject({ t: v.literal('genesis'), roomId: v.pipe(v.string(), v.regex(ROOM_ID_RE)), facilitatorKey: Key, kind: v.optional(v.literal('poker')) }),
   v.strictObject({ t: v.literal('cmd'), cmd: CommandSchema, name: Name, showName: v.boolean() }),
   v.strictObject({ t: v.picklist(['role.delegate', 'role.revoke', 'role.handover', 'role.claim', 'participant.hide', 'participant.unhide', 'participant.remove']), key: Key }),
   v.strictObject({ t: v.literal('participant.rename'), key: Key, name: v.pipe(v.string(), v.maxLength(LIMITS.displayName)) }),
   v.strictObject({ t: v.literal('participant.self'), name: v.pipe(v.string(), v.maxLength(LIMITS.displayName)) }),
+  v.strictObject({ t: v.literal('poker'), cmd: PokerCommandSchema }),
 ])
 
 /** Plaintext inside a `pub` envelope. */
