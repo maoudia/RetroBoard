@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.69.0](https://github.com/maoudia/RetroBoard/compare/v1.68.0...v1.69.0) (2026-11-21)
+
+
+### Features
+
+* **web:** the Scrum Poker pages have the bar and the profile of the application (change poker-design-v2) ([bc606ec](https://github.com/maoudia/RetroBoard/commit/bc606ec8527fc01f0b2e5a3b8e95709a796dd17f))
+
 ## [1.68.0](https://github.com/maoudia/RetroBoard/compare/v1.67.0...v1.68.0) (2026-11-21)
 
 
