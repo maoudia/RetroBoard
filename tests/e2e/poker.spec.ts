@@ -499,9 +499,10 @@ const goLive = async (page: Page, name: string) => {
   await expect(page.getByTestId('poker-status')).toHaveAttribute('data-status', 'live')
 }
 /** The moderator creates a room on a phone; the others join by the participant link, each in a context of their own. */
-async function room(browser: Browser, names: readonly string[], cards?: string, locale = 'en-US') {
+async function room(browser: Browser, names: readonly string[], cards?: string, locale = 'en-US', screen?: { width: number; height: number }) {
   const contexts: BrowserContext[] = []
-  const mod = await english(browser, PHONES[0], locale)
+  // A screen of a tablet or wider is a desktop-style context (no touch emulation); the default is a phone.
+  const mod = screen ? await browser.newContext({ viewport: screen, locale }) : await english(browser, PHONES[0], locale)
   contexts.push(mod)
   const page = await mod.newPage()
   await page.goto('/poker')
@@ -518,7 +519,17 @@ async function room(browser: Browser, names: readonly string[], cards?: string, 
     others.push(p)
   }
   await expect(page.getByTestId('poker-seat')).toHaveCount(names.length)
-  return { page, others, close: () => Promise.all(contexts.map((c) => c.close())) }
+  /** Another person sits down: the room grows by one tab. */
+  const join = async (name: string, viewport?: { width: number; height: number }) => {
+    const ctx = viewport ? await browser.newContext({ viewport, locale }) : await english(browser, { width: 390, height: 664 }, locale)
+    contexts.push(ctx)
+    const p = await ctx.newPage()
+    await p.goto(participantLink(page))
+    await goLive(p, name)
+    others.push(p)
+    return p
+  }
+  return { page, others, join, close: () => Promise.all(contexts.map((c) => c.close())) }
 }
 const fits = async (page: Page, where: string) => {
   const m = await page.evaluate(() => {
@@ -1126,4 +1137,192 @@ test('a round of question marks has one column and no number; a T-shirt round sh
   expect(await columns(shirts.page)).toEqual([['S', '1'], ['M', '2'], ['L', '1']])
   await expect(shirts.page.getByTestId('poker-use')).toHaveText('Use M')
   await shirts.close()
+})
+
+/**
+ * Change poker-design-v2, group 4: larger screens. From 600 px the seats sit on an oval, the person at the bottom centre and the others
+ * clockwise in join order; the results sit beside the table (laptop) or under it (tablet); the content scales on a TV, the chrome does not.
+ */
+const TABLET = { width: 768, height: 1024 }
+const LAPTOP = { width: 1280, height: 800 }
+const WIDE = { width: 1600, height: 900 }
+const TV = { width: 2560, height: 1440 }
+/** Resizes the window and waits for the page to take the screen class of the new width (the plugin listens to `resize`). */
+const resize = async (page: Page, screen: { width: number; height: number }) => {
+  await page.setViewportSize(screen)
+  const id = screen.width >= 2400 ? 'tv' : screen.width >= 1600 ? 'wide' : screen.width >= 1024 ? 'laptop' : screen.width >= 600 ? 'tablet' : 'phone'
+  await page.waitForFunction((want) => document.documentElement.dataset.screen === want, id)
+  await page.waitForTimeout(100)
+}
+type Rect = { l: number; t: number; r: number; b: number }
+/** What the table looks like on this page: every seat's box, the stage, the felt, the dock, the hand and whether anything scrolls. */
+const geometry = (page: Page) => page.evaluate(() => {
+  const rect = (el: Element | null): Rect | null => { if (!el) return null; const r = el.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom } }
+  const region = document.querySelector('[data-testid="poker-region"]') as HTMLElement
+  const seats = [...document.querySelectorAll('[data-testid="poker-seat"]')]
+  return {
+    stage: rect(document.querySelector('[data-testid="poker-stage"]'))!, felt: rect(document.querySelector('[data-testid="poker-felt"]')),
+    seats: seats.map((e) => ({ ...rect(e)!, name: e.querySelector('.name')!.textContent!, me: e.classList.contains('me') })),
+    dock: rect(document.querySelector('[data-testid="poker-dock"]')), hand: rect(document.querySelector('[data-testid="poker-hand"]')), results: rect(document.querySelector('[data-testid="poker-results"]')),
+    panel: rect(document.querySelector('[data-testid="poker-panel"]')), bar: rect(document.querySelector('[data-testid="poker-bar"]'))!,
+    pageScrolls: document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth,
+    regionScrolls: region.scrollHeight > region.clientHeight, width: innerWidth, height: innerHeight,
+  }
+})
+type Geometry = Awaited<ReturnType<typeof geometry>>
+const overlapping = (g: Geometry) => g.seats.flatMap((a, i) => g.seats.slice(i + 1).filter((b) => a.l < b.r - 0.5 && b.l < a.r - 0.5 && a.t < b.b - 0.5 && b.t < a.b - 0.5).map((b) => `${a.name} / ${b.name}`))
+const outsideStage = (g: Geometry) => g.seats.filter((a) => a.l < g.stage.l - 1 || a.r > g.stage.r + 1 || a.t < g.stage.t - 1 || a.b > g.stage.b + 1).map((a) => a.name)
+/** Angle of a box from the middle of the stage, in degrees clockwise on the screen from the bottom (the person's place): left is 90, top 180, right 270. */
+const clockwise = (g: Geometry, a: Rect) => { const cx = (g.stage.l + g.stage.r) / 2, cy = (g.stage.t + g.stage.b) / 2; const deg = (Math.atan2(-(((a.l + a.r) / 2 - cx) / ((g.stage.r - g.stage.l) / 2)), ((a.t + a.b) / 2 - cy) / ((g.stage.b - g.stage.t) / 2)) * 180) / Math.PI; return (deg + 360) % 360 }
+
+test('on a tablet and a laptop the seats sit on an oval: the person at the bottom centre, the others clockwise in join order, no overlap, nothing leaves the stage', async ({ browser, browserName }) => {
+  test.skip(browserName !== 'chromium', 'twenty tabs: Chromium')
+  test.setTimeout(240_000)
+  const names = ['Moderator', 'Ann', 'Bob']
+  const { page, others, join, close } = await room(browser, names, undefined, 'en-US', LAPTOP)
+  for (const count of [3, 6, 8, 14, 20]) {
+    while (names.length < count) { const name = `Voter ${String(names.length).padStart(2, '0')}`; names.push(name); await join(name) }
+    await expect(page.getByTestId('poker-seat')).toHaveCount(count)
+    for (const screen of [TABLET, LAPTOP]) {
+      await resize(page, screen)
+      const where = `${count} voters at ${screen.width}x${screen.height}`
+      const g = await geometry(page)
+      expect(overlapping(g), `${where}: no two seats overlap`).toEqual([])
+      expect(outsideStage(g), `${where}: no seat leaves the stage`).toEqual([])
+      // The DOM and so the tab order stay in join order, whatever the picture.
+      expect(g.seats.map((s) => s.name), `${where}: join order`).toEqual(names)
+      // The person is at the bottom centre; the next to join follows clockwise (to the left of the person), and the angles only grow.
+      const me = g.seats[0]!
+      expect(Math.abs((me.l + me.r) / 2 - (g.stage.l + g.stage.r) / 2), `${where}: centred`).toBeLessThan(2)
+      expect(g.seats.every((s) => s.t <= me.t + 0.5), `${where}: the person is the lowest`).toBe(true)
+      const angles = g.seats.slice(1).map((s) => clockwise(g, s))
+      expect(angles, `${where}: clockwise`).toEqual([...angles].sort((a, b) => a - b))
+      expect(angles[0]!, `${where}: the next one follows the person to the left`).toBeGreaterThan(0)
+      expect(angles[0]!).toBeLessThan(180)
+      // The seats are 96, 80 and 64 px wide by count (the type scale of these screens is 1).
+      expect(Math.round(me.r - me.l), where).toBe(count <= 8 ? 96 : count <= 14 ? 80 : 64)
+      // The page never scrolls (only the middle region may), and the hand and the dock are inside the viewport.
+      expect(g.pageScrolls, `${where}: the page does not scroll`).toBe(false)
+      expect(g.dock!.b, `${where}: the dock`).toBeLessThanOrEqual(g.height + 0.5)
+      expect(g.hand!.b, `${where}: the hand`).toBeLessThanOrEqual(g.height + 0.5)
+      expect(g.hand!.l).toBeGreaterThanOrEqual(0)
+      expect(g.hand!.r).toBeLessThanOrEqual(g.width)
+      if (count <= 8) expect(g.regionScrolls, `${where}: the middle region fits`).toBe(false)
+    }
+  }
+  await noViolation(page, 'oval')
+  void others
+  await close()
+})
+
+test('on a tablet the round and the primary action are in the middle of the table; the results sit under it in two columns, beside it from 1024 px, with the dock under both', async ({ browser, browserName }) => {
+  test.setTimeout(150_000)
+  test.skip(browserName === 'firefox', 'Firefox: the project is Chromium and WebKit')
+  const { page, others, close } = await room(browser, ['Malaka', 'Ann', 'Bob', 'Cy', 'Dee', 'Eli'], undefined, 'en-US', TABLET)
+  const inside = (g: Geometry, a: Rect | null) => a!.l >= g.felt!.l - 1 && a!.r <= g.felt!.r + 1 && a!.t >= g.felt!.t - 1 && a!.b <= g.felt!.b + 1
+  // Before any card: the round and the count are in the table (laptop: also in a quiet panel beside it, with the hint), Reveal comes with the first card.
+  await expect(page.getByTestId('poker-reveal')).toHaveCount(0)
+  await pick(page, '8')
+  await expect(page.getByTestId('poker-reveal')).toBeVisible()
+  const felt = page.getByTestId('poker-felt')
+  await expect(felt).toContainText('Round 1')
+  await expect(felt).toContainText('1 of 6 voted')
+  await expect(felt.getByTestId('poker-reveal')).toBeVisible()
+  await expect(page.getByTestId('poker-dock').getByTestId('poker-reveal')).toHaveCount(0)
+  let g = await geometry(page)
+  expect(inside(g, await page.getByTestId('poker-reveal').evaluate((el) => { const r = el.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom } })), 'Reveal is in the table').toBe(true)
+  expect(Math.abs((g.felt!.l + g.felt!.r) / 2 - (g.stage.l + g.stage.r) / 2)).toBeLessThan(2)
+  expect(g.panel, 'a tablet has no side panel').toBeNull()
+  await expect(page.getByTestId('poker-hint')).toHaveText('Waiting for Ann, Bob and 3 others.')
+  expect(Math.abs((g.hand!.l + g.hand!.r) / 2 - g.width / 2), 'the hand is centred').toBeLessThan(3)
+  expect(g.hand!.l).toBeGreaterThanOrEqual(0); expect(g.hand!.r).toBeLessThanOrEqual(g.width)
+  // The hand is 60 px cards on a tablet and 72 px on a laptop.
+  const cardWidth = () => page.getByTestId('poker-card-0').locator('xpath=following-sibling::span').evaluate((el) => Math.round(el.getBoundingClientRect().width))
+  expect(await cardWidth()).toBe(60)
+  await resize(page, LAPTOP)
+  expect(await cardWidth()).toBe(72)
+  g = await geometry(page)
+  await expect(page.getByTestId('poker-panel')).toContainText('Round 1')
+  await expect(page.getByTestId('poker-panel')).toContainText('Waiting for Ann, Bob and 3 others.')
+  expect(g.panel!.l, 'the quiet panel is at the right of the table').toBeGreaterThanOrEqual(g.stage.r - 1)
+  await resize(page, TABLET)
+
+  // Revealed: a round of six.
+  const cards = ['8', '5', '5', '13', '5', '?']
+  for (const [i, p] of others.entries()) await pick(p, cards[i + 1]!)
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(6)
+  await page.getByTestId('poker-reveal').click()
+  await expect(page.getByTestId('poker-results')).toBeVisible()
+  for (const [screen, where] of [[TABLET, 'tablet'], [LAPTOP, 'laptop'], [WIDE, 'wide']] as const) {
+    await resize(page, screen)
+    g = await geometry(page)
+    expect(g.pageScrolls, `${where}: the page does not scroll`).toBe(false)
+    expect(g.regionScrolls, `${where}: the middle region fits six voters`).toBe(false)
+    expect(g.dock!.b, `${where}: the dock`).toBeLessThanOrEqual(g.height + 0.5)
+    expect(overlapping(g), where).toEqual([])
+    expect(g.results!.b, `${where}: the results are above the dock`).toBeLessThanOrEqual(g.dock!.t + 0.5)
+    if (where === 'tablet') {
+      expect(g.results!.t, 'tablet: the results are under the table').toBeGreaterThanOrEqual(g.stage.b - 1)
+      // Two columns: the distribution is at the right of the numbers.
+      const [numbers, distribution] = await page.evaluate(() => ['[data-testid="poker-average"]', '[data-testid="poker-distribution"]'].map((sel) => document.querySelector(sel)!.getBoundingClientRect().left))
+      expect(distribution!).toBeGreaterThan(numbers! + 150)
+    } else {
+      expect(g.results!.l, `${where}: the results are beside the table`).toBeGreaterThanOrEqual(g.stage.r - 1)
+      expect(g.results!.t, `${where}: at the top of the room`).toBeLessThan(g.stage.t + 20)
+    }
+    // The buttons of the dock are centred under both.
+    const acts = await page.getByTestId('poker-acts').boundingBox()
+    expect(Math.abs(acts!.x + acts!.width / 2 - g.width / 2), where).toBeLessThan(3)
+  }
+  await noViolation(page, 'oval revealed')
+  await close()
+})
+
+test('on a TV the content grows with the type scale and the chrome does not; a person who only watches has a larger table and no dock', async ({ browser, browserName }) => {
+  test.skip(browserName !== 'chromium', 'a full room of twenty-one tabs: Chromium')
+  test.setTimeout(240_000)
+  const names = ['Malaka', 'Ann', 'Bob']
+  const { page, others, join, close } = await room(browser, names, undefined, 'en-US', LAPTOP)
+  await pick(page, '8'); await pick(others[0]!, '5'); await pick(others[1]!, '13')
+  await expect(page.locator('[data-testid="poker-seat"][data-voted="true"]')).toHaveCount(3)
+  const measure = () => page.evaluate(() => {
+    const box = (sel: string) => { const r = document.querySelector(sel)!.getBoundingClientRect(); return { w: r.width, h: r.height } }
+    const font = (sel: string) => parseFloat(getComputedStyle(document.querySelector(sel)!).fontSize)
+    return { card: box('[data-testid="poker-seat"] .pcard'), seat: box('[data-testid="poker-seat"]'), bar: box('[data-testid="poker-bar"]'), reveal: box('[data-testid="poker-reveal"]'), name: font('[data-testid="poker-seat"] .name'), round: font('[data-testid="poker-felt"] .round'), menu: box('[data-testid="poker-menu"]') }
+  })
+  const laptop = await measure()
+  await resize(page, TV)
+  const tv = await measure()
+  // A card (and a seat, an avatar, a name) is 1.5 times the size of the same card on a laptop; the bar and the buttons are the size they were.
+  expect(tv.card.w / laptop.card.w).toBeCloseTo(1.5, 1)
+  expect(tv.card.h / laptop.card.h).toBeCloseTo(1.5, 1)
+  expect(tv.seat.w / laptop.seat.w).toBeCloseTo(1.5, 1)
+  expect(tv.name / laptop.name).toBeCloseTo(1.5, 1)
+  expect(tv.round / laptop.round).toBeCloseTo(1.5, 1)
+  expect(tv.bar.h).toBe(laptop.bar.h)
+  expect(tv.reveal).toEqual(laptop.reveal)
+  expect(tv.menu).toEqual(laptop.menu)
+  // The results grow too, and nothing is under the sizes of the scale.
+  await others[2 - 1]!.bringToFront()
+  await page.bringToFront()
+  await page.getByTestId('poker-reveal').click()
+  await expect(page.getByTestId('poker-results')).toBeVisible()
+  const sizes = await page.evaluate(() => [...document.querySelectorAll('[data-testid="poker-results"] dt, [data-testid="poker-results"] .far li, [data-testid="poker-results"] .n, [data-testid="poker-meter"]')].map((e) => parseFloat(getComputedStyle(e).fontSize)))
+  expect(Math.min(...sizes), 'every text of the results is at least the small size times 1.5').toBeGreaterThanOrEqual(0.875 * 16 * 1.5 - 0.5)
+  const g = await geometry(page)
+  expect(g.pageScrolls).toBe(false)
+  expect(g.results!.l).toBeGreaterThanOrEqual(g.stage.r - 1)
+
+  // A full room: the twenty-first person watches, on a TV, with a larger table and no dock.
+  for (let i = names.length; i < 21; i++) await join(`Voter ${String(i).padStart(2, '0')}`)
+  const watcher = await join('Watcher', TV)
+  await expect(watcher.getByTestId('poker-status')).toHaveText('Watching')
+  await expect(watcher.getByTestId('poker-dock')).toHaveCount(0)
+  await expect(watcher.getByTestId('poker-hand')).toHaveCount(0)
+  const w = await geometry(watcher)
+  expect(w.pageScrolls).toBe(false)
+  expect(w.seats).toHaveLength(22)
+  expect(overlapping(w)).toEqual([])
+  expect(Math.round(w.seats[0]!.r - w.seats[0]!.l), 'a seat of the largest table, times the type scale of a TV').toBe(96)
+  await close()
 })

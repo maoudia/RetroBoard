@@ -18,7 +18,7 @@ const shareText = computed(() => pt('poker.results.share', { share: props.share 
 </template>
 
 <style scoped>
-.meter { display: grid; grid-template-columns: auto minmax(2rem, 1fr) auto; align-items: center; gap: var(--sp-2); min-block-size: 28px; font-size: var(--fs-sm); }
+.meter { display: grid; grid-template-columns: auto minmax(2rem, 1fr) auto; align-items: center; gap: var(--sp-2); min-block-size: 28px; font-size: calc(var(--fs-sm) * var(--type-scale, 1)); }
 .words { font-weight: 700; min-inline-size: 0; }
 .share { font-variant-numeric: tabular-nums; color: var(--muted); }
 .track { display: block; block-size: 10px; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); overflow: hidden; }

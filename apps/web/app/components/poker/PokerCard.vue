@@ -9,15 +9,13 @@ const props = defineProps<{
   value?: string
   /** The card of the hand that this person played: lifted, ringed and checked (shape, not only colour). */
   chosen?: boolean
-  /** A card too small for corner values (a seat): the value alone, large. */
-  compact?: boolean
 }>()
 
 const tier = computed<ValueTier>(() => valueTier(props.value ?? ''))
 </script>
 
 <template>
-  <span class="pcard" :class="[variant, `t-${tier}`, { chosen, compact }]" aria-hidden="true" data-testid="poker-card-art" :data-variant="variant">
+  <span class="pcard" :class="[variant, `t-${tier}`, { chosen }]" aria-hidden="true" data-testid="poker-card-art" :data-variant="variant">
     <template v-if="variant === 'face' && value !== undefined">
       <span class="corner tl">{{ value }}</span>
       <span class="value">{{ value }}</span>
@@ -33,7 +31,7 @@ const tier = computed<ValueTier>(() => valueTier(props.value ?? ''))
 .pcard {
   --w: var(--poker-card-w, 46px);
   --k: var(--poker-card-k, .45);
-  position: relative; display: grid; place-items: center; flex: none; inline-size: var(--w); aspect-ratio: 5 / 7;
+  position: relative; display: grid; place-items: center; flex: none; inline-size: var(--w); aspect-ratio: 5 / 7; container-type: inline-size;
   border: 2px solid var(--muted); border-radius: calc(var(--r-card) * var(--k)); background: var(--surface); color: var(--text);
   font-family: var(--f-display); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; user-select: none;
   transition: transform var(--dur-fast);
@@ -45,11 +43,13 @@ const tier = computed<ValueTier>(() => valueTier(props.value ?? ''))
 .corner { position: absolute; font-size: var(--fs-xs); font-weight: 600; letter-spacing: -.04em; }
 .tl { inset: 2px auto auto 3px; }
 .br { inset: auto 3px 2px auto; transform: rotate(180deg); }
-/* On a small card (a seat) the corners would touch the value: the value alone is enough. */
-.compact .corner { display: none; }
-.compact .value { font-size: calc(min(var(--fs-lg), var(--w) * .5)); }
-.compact.t-lg .value { font-size: calc(min(var(--fs-md), var(--w) * .4)); }
-.compact.t-md .value, .compact.t-sm .value { font-size: calc(min(var(--fs-xs), var(--w) * .3)); }
+/* On a card under 41 px wide (a seat on a phone, a label of the distribution) the corners would touch the value: the value alone is enough, sized by the card. */
+@container (max-width: 40px) {
+  .corner { display: none; }
+  .value { font-size: calc(min(var(--fs-lg), 50cqw)); }
+  .t-lg .value { font-size: calc(min(var(--fs-md), 40cqw)); }
+  .t-md .value, .t-sm .value { font-size: calc(min(var(--fs-xs), 30cqw)); }
+}
 
 /* Back: a diamond lattice made of the accent and a mix of the accent and the surface, framed by the surface. No text, no image. */
 .back { background: var(--surface); }
