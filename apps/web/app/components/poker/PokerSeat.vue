@@ -30,7 +30,7 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
       <span v-else class="face">
         <span class="flip">
           <PokerCard class="side" :variant="seat.voted ? 'back' : 'slot'" />
-          <PokerCard v-if="seat.card !== null" class="side front" variant="face" :value="seat.card" compact />
+          <PokerCard v-if="seat.card !== null" class="side front" variant="face" :value="seat.card" />
         </span>
       </span>
       <Icon v-if="kind === 'voted'" class="tick" name="lucide:check" />
@@ -52,8 +52,8 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
 }
 /* "You": a ring of the accent around the avatar, with a gap, plus the hidden word. */
 .me .av { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
-.crown, .far { display: grid; place-items: center; color: var(--text); font-size: var(--fs-sm); }
-.slot { grid-area: slot; position: relative; display: grid; place-items: center; --poker-card-w: 36px; inline-size: var(--poker-card-w); aspect-ratio: 5 / 7; }
+.crown, .far { display: grid; place-items: center; color: var(--text); font-size: calc(var(--fs-sm) * var(--type-scale, 1)); }
+.slot { grid-area: slot; position: relative; display: grid; place-items: center; --poker-card-w: var(--seat-card, 36px); inline-size: var(--poker-card-w); aspect-ratio: 5 / 7; }
 .face { perspective: 600px; inline-size: 100%; block-size: 100%; }
 /* The flip: 280 ms, eased out, the cards of a table starting 10 ms apart up to 60 ms, so the last one lands at 340 ms, before 400. Its own constant: no token is this long. */
 .flip { --flip: 280ms; position: relative; display: block; inline-size: 100%; block-size: 100%; transform-style: preserve-3d; transition: transform var(--flip) ease-out calc(min(var(--i, 0) * 10ms, 60ms)); }
@@ -65,7 +65,9 @@ const word = computed(() => (kind.value === 'card' ? cardLabel(props.seat.card!)
   position: absolute; inset: auto -6px -4px auto; box-sizing: content-box; inline-size: 10px; block-size: 10px; padding: 2px;
   border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 2px solid var(--surface);
 }
-[data-screen="tablet"] .seat, [data-screen="laptop"] .seat, [data-screen="wide"] .seat, [data-screen="tv"] .seat { --av: 24px; }
+/* From the tablet the table is an oval and a seat has the size its table gives it (--seat-card is half its width); the content scales on a wide screen and a TV. */
+[data-screen="tablet"] .seat, [data-screen="laptop"] .seat, [data-screen="wide"] .seat, [data-screen="tv"] .seat { --av: calc(24px * var(--type-scale, 1)); }
+[data-screen="tablet"] .name, [data-screen="laptop"] .name, [data-screen="wide"] .name, [data-screen="tv"] .name { font-size: calc(var(--fs-sm) * var(--type-scale, 1)); }
 @media (forced-colors: active) { .seat { border-color: CanvasText; } .av { border: 1px solid CanvasText; forced-color-adjust: none; } .tick { forced-color-adjust: none; background: Highlight; color: HighlightText; } }
 @media (prefers-reduced-motion: reduce) { .flip { transition: none; } }
 :root[data-motion="reduced"] .flip { transition: none; }

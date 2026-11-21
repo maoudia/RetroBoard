@@ -12,12 +12,16 @@ import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
 import RoomBar from '~/components/poker/RoomBar.vue'
 import { PokerClient, type PokerView } from '~/poker/client'
+import { useMedia } from '~/poker/media'
 import { announceOf, dockOf, hintOf, primaryOf, type Say, statusOf } from '~/poker/room-view'
 import { pt } from '~/poker/strings'
 
 // A room is never indexed, whatever the indexing switch says (and `/poker/room` is a private prefix of the shell and of the Worker).
 useHead({ title: computed(() => pt('poker.pageTitle')), meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
+/** From 600 px the table is an oval with the round and its primary action in the middle; from 1024 px the results (or a quiet round panel) sit beside it. */
+const oval = useMedia('(min-width: 600px)', 'calc(cos(45deg) * 1px)')
+const beside = useMedia('(min-width: 1024px)')
 const NAME_SLOT = 'retroboard:poker:name'
 const ring = ref<KeyRing | null>(null)
 const badLink = ref(false)
@@ -102,24 +106,42 @@ const action = computed<'invite' | 'reveal' | null>(() => {
     <template v-if="live && view">
       <RoomBar :title="title" :status="status" :state="view.status" @invite="openInvite" />
       <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="poker-live">{{ announcement }}</div>
-      <div class="region" data-testid="poker-region">
+      <div class="region" :class="{ beside }" tabindex="0" data-testid="poker-region">
         <section class="table" :aria-label="pt('poker.table.title')">
-          <PokerTable :seats="view.seats" :revealed="!!round?.revealed" @invite="openInvite" />
-          <p v-if="hint && dock !== 'revealed'" class="hint" data-testid="poker-hint">{{ hint }}</p>
+          <PokerTable :seats="view.seats" :revealed="!!round?.revealed" @invite="openInvite">
+            <template v-if="oval" #center>
+              <p class="round">{{ title }}</p>
+              <p class="muted">{{ status }}</p>
+              <button v-if="action === 'reveal'" type="button" class="btn btn-primary act" data-testid="poker-reveal" @click="client?.reveal()">
+                <Icon name="lucide:eye" /> {{ pt('poker.reveal') }}
+              </button>
+              <button v-else-if="action === 'invite'" type="button" class="btn btn-primary act" data-testid="poker-invite-cta" @click="openInvite">
+                <Icon name="lucide:user-plus" /> {{ pt('poker.invite.cta') }}
+              </button>
+            </template>
+          </PokerTable>
+          <p v-if="hint && dock !== 'revealed' && !beside" class="hint" data-testid="poker-hint">{{ hint }}</p>
         </section>
         <PokerResults
           v-if="view.stats" :stats="view.stats" :verdict="view.verdict" :outliers="view.outliers" :unreadable="view.unreadable" :decided="round?.decided ?? null" :moderator="view.moderator"
           @use="client?.decide($event)"
         />
+        <aside v-else-if="beside" class="panel" :aria-label="pt('poker.results.title')" data-testid="poker-panel">
+          <p class="round">{{ title }}</p>
+          <p class="muted">{{ status }}</p>
+          <p v-if="hint" class="hint" data-testid="poker-hint">{{ hint }}</p>
+        </aside>
       </div>
       <PokerDock v-if="dock !== 'none' && round">
         <template v-if="dock === 'hand'">
-          <button v-if="action === 'reveal'" type="button" class="btn btn-primary act" data-testid="poker-reveal" @click="client?.reveal()">
-            <Icon name="lucide:eye" /> {{ pt('poker.reveal') }}
-          </button>
-          <button v-else-if="action === 'invite'" type="button" class="btn btn-primary act" data-testid="poker-invite-cta" @click="openInvite">
-            <Icon name="lucide:user-plus" /> {{ pt('poker.invite.cta') }}
-          </button>
+          <template v-if="!oval">
+            <button v-if="action === 'reveal'" type="button" class="btn btn-primary act" data-testid="poker-reveal" @click="client?.reveal()">
+              <Icon name="lucide:eye" /> {{ pt('poker.reveal') }}
+            </button>
+            <button v-else-if="action === 'invite'" type="button" class="btn btn-primary act" data-testid="poker-invite-cta" @click="openInvite">
+              <Icon name="lucide:user-plus" /> {{ pt('poker.invite.cta') }}
+            </button>
+          </template>
           <PokerHand :deck="round.deck" :mine="view.mine" :rise="rise" @pick="client?.vote($event)" />
         </template>
         <div v-else-if="view.moderator" class="acts" data-testid="poker-acts">
@@ -166,9 +188,25 @@ const action = computed<'invite' | 'reveal' | null>(() => {
 .room.live { max-width: none; margin: 0; padding: 0; gap: 0; height: 100dvh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; align-content: stretch; }
 .region { min-height: 0; overflow-y: auto; padding: var(--sp-2) max(var(--sp-3), calc((100% - 44rem) / 2)); display: grid; gap: var(--sp-2); align-content: start; }
 .table { display: grid; gap: var(--sp-2); }
+/* The middle region scrolls when a crowd needs more room than there is: it takes the focus so that the keyboard can scroll it. */
+.region:focus-visible { outline-offset: -2px; }
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 /* The primary action of a phone is 48 px high; the buttons of the dock are never smaller than a thumb. The filled one has the quiet shadow of a card, no glow. */
 .act { min-block-size: 48px; }
 .act.btn-primary { box-shadow: var(--shadow-1); }
-@media (min-width: 600px) { .act { min-block-size: 44px; justify-self: center; min-inline-size: 12rem; } .acts { grid-template-columns: repeat(2, minmax(10rem, 14rem)); justify-content: center; } }
+.round { margin: 0; font-family: var(--f-display); font-size: calc(var(--fs-xl) * var(--type-scale, 1)); font-weight: 700; line-height: 1.1; }
+.muted { margin: 0; font-size: calc(var(--fs-sm) * var(--type-scale, 1)); color: var(--muted); }
+@media (min-width: 600px) {
+  .act { min-block-size: 44px; justify-self: center; min-inline-size: 12rem; }
+  .acts { grid-template-columns: repeat(2, minmax(10rem, 14rem)); justify-content: center; }
+  /* A tablet: the table takes what the results leave, the results come under it. The region scrolls only when the count of seats needs more room than there is. */
+  .region { padding-inline: var(--sp-3); grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(min-content, 1fr) auto; align-content: stretch; }
+  .table { block-size: 100%; grid-template-rows: minmax(0, 1fr) auto; min-block-size: 0; }
+}
+/* A laptop and wider: the table at the left, the results (or the quiet round panel before the reveal) at the right. */
+@media (min-width: 1024px) {
+  .region.beside { grid-template-columns: minmax(0, 1fr) calc(340px * var(--type-scale, 1)); grid-template-rows: minmax(min-content, 1fr); column-gap: var(--sp-4); }
+  .region.beside > :not(.table) { align-self: start; }
+}
+.panel { display: grid; gap: var(--sp-2); padding: var(--sp-4) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); text-align: center; }
 </style>

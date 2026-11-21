@@ -199,7 +199,7 @@ After the reveal the results card sits under the seats (phone and tablet portrai
 
 | Class | Layout |
 |---|---|
-| tablet portrait (768x1024) | Bar; the oval table on top (about 520 px); after the reveal the table shrinks to about 380 px and the results card sits under it in two columns (numbers and meter, distribution); the dock |
+| tablet portrait (768x1024) | Bar; the oval table on top, taking the height the results and the dock leave (about 690 px for up to 8 seats, and the same after the reveal, when the results card sits under it in two columns (numbers, meter and outliers at the left, distribution at the right)); a table never gets shorter than its seat count needs (480 px up to 8 seats, 660 up to 14, 800 up to 20, times the type scale), so 9 to 20 voters can make the middle region scroll on a tablet and a laptop, never overlap seats; the dock |
 | laptop (1280x800) | Bar; the oval table at the left, about 60% of the width; the results panel at the right (about 360 px) after the reveal, before it a quiet panel with the round and the count; the dock under both, centred |
 | wide and TV | The same layout; card, seat, avatar, number and text sizes are multiplied by `--type-scale` (1.125 wide, 1.5 TV) |
 

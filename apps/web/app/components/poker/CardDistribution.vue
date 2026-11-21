@@ -15,7 +15,7 @@ const said = (c: CardCount) => (c.votes === 1 ? pt('poker.results.votes.one', { 
       <span class="sr-only">{{ said(c) }}</span>
       <span class="n" aria-hidden="true">{{ c.votes }}</span>
       <span class="bar" aria-hidden="true" />
-      <PokerCard class="mini" variant="face" :value="c.card" compact />
+      <PokerCard class="mini" variant="face" :value="c.card" />
     </li>
   </ul>
 </template>
@@ -23,11 +23,11 @@ const said = (c: CardCount) => (c.votes === 1 ? pt('poker.results.votes.one', { 
 <style scoped>
 /* Columns are at least 24 px wide and 4 px apart; their height is at most 24 px on a short phone (the room fits 360x640 with both outliers), 40 px on a tall one and 56 px from the tablet, and 4 px at least for one vote of many. */
 .dist { --bar-max: 24px; list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: var(--sp-1); }
-.item { flex: 0 1 36px; min-inline-size: 24px; display: grid; justify-items: center; gap: 2px; }
-.n { font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
-.bar { inline-size: 20px; block-size: max(4px, calc(var(--bar-max) * var(--share))); border-radius: var(--r-xs); background: var(--accent); }
-.mini { --poker-card-w: 24px; --poker-card-k: .3; }
+.item { flex: 0 1 calc(36px * var(--type-scale, 1)); min-inline-size: calc(24px * var(--type-scale, 1)); display: grid; justify-items: center; gap: 2px; }
+.n { font-size: calc(var(--fs-sm) * var(--type-scale, 1)); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.bar { inline-size: calc(20px * var(--type-scale, 1)); block-size: max(4px, calc(var(--bar-max) * var(--share))); border-radius: var(--r-xs); background: var(--accent); }
+.mini { --poker-card-w: calc(24px * var(--type-scale, 1)); --poker-card-k: .3; }
 @media (min-height: 760px) { .dist { --bar-max: 40px; } }
-[data-screen="tablet"] .dist, [data-screen="laptop"] .dist, [data-screen="wide"] .dist, [data-screen="tv"] .dist { --bar-max: 56px; }
+[data-screen="tablet"] .dist, [data-screen="laptop"] .dist, [data-screen="wide"] .dist, [data-screen="tv"] .dist { --bar-max: calc(56px * var(--type-scale, 1)); }
 @media (forced-colors: active) { .bar { forced-color-adjust: none; background: Highlight; } }
 </style>
