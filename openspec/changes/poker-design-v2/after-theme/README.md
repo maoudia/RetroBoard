@@ -1,0 +1,3 @@
+# After: the cards and the room follow the board themes
+
+The start page and a revealed round (the moderator "Malaka" and three voters, the cards 8, 5, 5, 13) in five of the nine themes (Studio, Paper, Halloween, Cyber, Sakura), light and dark, at 390x844 (`phone`) and 1280x800 (`desktop`): `<screen>-<theme>-<start|revealed>-<light|dark>`. The card back, the face, the seats, the table, the results, the buttons and the fonts come from the tokens of the active theme, as on a board; there is no colour picker on the start page. The contrast of all nine themes in both variants is measured by `tests/e2e/poker-themes.spec.ts` (every text 4.5:1, 3:1 when large; the edge of every card and empty slot 3:1; the back is the accent of the theme).
