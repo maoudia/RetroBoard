@@ -12,7 +12,7 @@ const share = computed(() => Math.round(props.stats.consensus * 100))
 
 <template>
   <section class="results" aria-labelledby="poker-results-title" data-testid="poker-results">
-    <h2 id="poker-results-title">{{ pt('poker.results.title') }}</h2>
+    <h2 id="poker-results-title" class="sr-only">{{ pt('poker.results.title') }}</h2>
     <dl v-if="stats.counted > 0" class="line">
       <div v-if="stats.average !== null"><dt>{{ pt('poker.results.average') }}</dt><dd data-testid="poker-average">{{ num(stats.average) }}</dd></div>
       <div v-if="stats.median !== null"><dt>{{ pt('poker.results.median') }}</dt><dd data-testid="poker-median">{{ num(stats.median) }}</dd></div>
