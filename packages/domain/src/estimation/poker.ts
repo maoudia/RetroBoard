@@ -23,9 +23,6 @@ export const DECK_MAX = 24
 export const CARD_MAX = 6
 export const ROUND_ID_RE = /^[A-Za-z0-9_-]{1,16}$/
 
-/** Cards that are not a number or a size: they count as a card cast and stay out of the numbers. */
-export const SPECIAL_CARDS: ReadonlySet<string> = new Set(['?', '☕', '∞'])
-
 /** The deck of a room before anyone chooses one. */
 export const DEFAULT_DECK: readonly string[] = ['0', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '?', '☕']
 
@@ -112,8 +109,8 @@ export function reducePoker(s: PokerState, cmd: PokerCommand, actor: PokerActor)
       const known = s.seats.some((seat) => seat.key === actor.key)
       if (!known && s.seats.length >= MAX_SEATS) return no
       if (known) return yes({ ...s, seats: s.seats.map((seat) => (seat.key === actor.key ? { ...seat, name } : seat)) })
-      const voters = s.seats.filter((seat) => seat.voter).length
-      return yes({ ...s, seats: [...s.seats, { key: actor.key, name, voter: voters < VOTER_CAP }] })
+      // The voters are always the first seats in log order, so the room has a free voter seat while it has fewer seats than the cap.
+      return yes({ ...s, seats: [...s.seats, { key: actor.key, name, voter: s.seats.length < VOTER_CAP }] })
     }
     case 'settings.update': {
       if (cmd.deck !== undefined && !isValidDeck(cmd.deck)) return no

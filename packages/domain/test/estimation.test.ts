@@ -68,6 +68,9 @@ describe('a poker room (ledger)', () => {
   it('ignores a round, a reveal and a setting from a participant', () => {
     const l = play([join(ALICE, 'Ann')])
     expect(foldEvent(l, start('r1', ALICE))).toMatchObject({ ok: false, reason: 'not-facilitator' })
+    // The reducer says no by itself, whoever calls it.
+    for (const cmd of [{ t: 'round.start', round: 'r1', pub: PUB }, { t: 'settings.update', autoReveal: true }, { t: 'round.reveal', round: 'r1', key: REVEAL }] as const) expect(reducePoker(emptyPoker(), cmd, { key: ALICE, moderator: false })).toEqual({ ok: false })
+    expect(reducePoker(emptyPoker(), { t: 'seat.join', name: 'Ann' }, { key: ALICE, moderator: false }).ok).toBe(true)
     expect(foldEvent(l, poker(ALICE, { t: 'settings.update', autoReveal: true }))).toMatchObject({ ok: false, reason: 'not-facilitator' })
     const open = play([start(), vote(ALICE)], l)
     expect(foldEvent(open, reveal('r1', ALICE))).toMatchObject({ ok: false, reason: 'not-facilitator' })
@@ -78,6 +81,11 @@ describe('seats', () => {
   it('seat in log order; a name is trimmed and cut, a second join renames', () => {
     const l = play([join(ALICE, '  Ann  '), join(BOB, 'B'.repeat(60)), join(ALICE, 'Anna')])
     expect(state(l).seats).toEqual([{ key: ALICE, name: 'Anna', voter: true }, { key: BOB, name: 'B'.repeat(24), voter: true }])
+  })
+
+  it('says why a command is ignored', () => {
+    expect(foldEvent(room(), vote(ALICE))).toMatchObject({ ok: false, reason: 'invalid' })
+    expect(emptyPoker()).toMatchObject({ autoReveal: false, seats: [], rounds: [], deck: DEFAULT_DECK })
   })
 
   it('ignores an empty name', () => {
