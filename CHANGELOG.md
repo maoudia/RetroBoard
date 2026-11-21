@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.64.0](https://github.com/maoudia/RetroBoard/compare/v1.63.0...v1.64.0) (2026-11-21)
+
+
+### Features
+
+* **web:** Scrum Poker in every build, found from the landing page and the menus, beta (change scrum-poker) ([228dd33](https://github.com/maoudia/RetroBoard/commit/228dd33397881d1417cf75ea88b7941f2dce0222))
+
 ## [1.63.0](https://github.com/maoudia/RetroBoard/compare/v1.62.0...v1.63.0) (2026-11-21)
 
 
