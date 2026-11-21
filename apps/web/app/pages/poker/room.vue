@@ -3,6 +3,7 @@
 import { formatInvite, type KeyRing, parseInvite, participantRing } from '@retroboard/domain'
 import { isValidDeck } from '@retroboard/domain'
 import PokerBar from '~/components/poker/PokerBar.vue'
+import PokerDock from '~/components/poker/PokerDock.vue'
 import PokerHand from '~/components/poker/PokerHand.vue'
 import PokerResults from '~/components/poker/PokerResults.vue'
 import PokerTable from '~/components/poker/PokerTable.vue'
@@ -62,13 +63,15 @@ async function share() {
 const round = computed(() => view.value?.round ?? null)
 const canReveal = computed(() => !!view.value?.canReveal && (round.value?.voted ?? 0) > 0)
 const progress = computed(() => (round.value?.revealed ? pt('poker.revealed') : pt('poker.progress', { voted: round.value?.voted ?? 0, total: round.value?.voters ?? 0 })))
-const locked = computed(() => !round.value || round.value.revealed || view.value?.status === 'full')
+/** The hand is in the dock while a round is open for a voter; at the reveal it leaves (it does not fade). */
+const handShown = computed(() => !!round.value && !round.value.revealed && !!view.value?.voter && view.value.status !== 'full')
 const title = computed(() => pt(round.value?.revote ? 'poker.round.revote' : 'poker.round', { n: round.value?.n ?? 1 }))
 const boardHref = computed(() => `/boards${location.hash}`)
 </script>
 
 <template>
   <main id="main" class="room" data-testid="poker-room">
+    <div class="region" data-testid="poker-region">
     <PokerBar />
     <p v-if="badLink" class="notice" role="alert" data-testid="poker-bad-link">
       {{ pt('poker.error.link') }} <NuxtLink to="/poker" class="btn btn-sm"><Icon name="lucide:arrow-left" /> {{ pt('poker.back') }}</NuxtLink>
@@ -133,14 +136,20 @@ const boardHref = computed(() => `/boards${location.hash}`)
         </div>
         <p v-else-if="round" class="hint" data-testid="poker-participant-wait">{{ pt(round.revealed ? 'poker.wait.next' : 'poker.wait.reveal') }}</p>
 
-        <PokerHand v-if="round" :deck="round.deck" :mine="view.mine" :locked="locked" :watching="!view.voter" @pick="client?.vote($event)" />
+        <p v-if="round && !view.voter" class="hint" data-testid="poker-watching">{{ pt('poker.hand.watching') }}</p>
       </template>
     </template>
+    </div>
+    <PokerDock v-if="view && handShown">
+      <PokerHand v-if="round" :deck="round.deck" :mine="view.mine" @pick="client?.vote($event)" />
+    </PokerDock>
   </main>
 </template>
 
 <style scoped>
-.room { max-width: 44rem; margin: 0 auto; padding: var(--sp-4); display: grid; gap: var(--sp-5); }
+.room { height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+/* The middle region is the only thing that scrolls: the dock (the hand) stays where it is and covers nothing. */
+.region { min-height: 0; overflow-y: auto; padding: var(--sp-4) max(var(--sp-4), calc((100% - 44rem) / 2)); display: grid; gap: var(--sp-5); align-content: start; }
 h1 { margin: 0; font-size: var(--fs-2xl); }
 h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); }
 .bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--sp-2); }
