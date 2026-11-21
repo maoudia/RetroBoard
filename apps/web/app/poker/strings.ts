@@ -4,7 +4,7 @@
  * the entry budget of every page). Only the entry labels of the landing page and the menus (`poker.entry*`) are shared.
  * French is the source language; `apps/web/test/poker-client.test.ts` keeps the two in step.
  */
-import { currentLocale } from '~/i18n'
+import { currentLocale, pseudolocalize, pseudoLocale } from '~/i18n'
 
 export const pokerFr = {
   'poker.pageTitle': 'Scrum Poker',
@@ -204,9 +204,9 @@ export const pokerEn: Record<PokerKey, string> = {
   'poker.seat.none': 'no card',
 }
 
-/** Text of a key in the current language, with `{name}` placeholders filled. */
+/** Text of a key in the current language, with `{name}` placeholders filled. Under `?lang=pseudo` it is the French text made about 40% longer, as everywhere else (K12). */
 export function pt(key: PokerKey, params?: Record<string, string | number>): string {
-  const raw = (currentLocale.value === 'en' ? pokerEn : pokerFr)[key]
+  const raw = pseudoLocale.value ? pseudolocalize(pokerFr[key]) : (currentLocale.value === 'en' ? pokerEn : pokerFr)[key]
   return params ? raw.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name] ?? `{${name}}`)) : raw
 }
 
