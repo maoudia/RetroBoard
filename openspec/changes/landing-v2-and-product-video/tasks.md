@@ -8,5 +8,5 @@
 
 ## 2. Content
 
-- [ ] 2.1 "Built in public, source available" section with PolyForm Noncommercial license and repository links; verify e2e link targets
-- [ ] 2.2 Feature sections refresh and pseudo-locale overflow check; verify visual regression
+- [x] 2.1 "Built in public, source available" section with PolyForm Noncommercial license and repository links; verify e2e link targets
+- [x] 2.2 Feature sections refresh and pseudo-locale overflow check; verify visual regression

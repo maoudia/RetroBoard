@@ -45,7 +45,7 @@ test('the landing is prerendered: its content is in the HTML, with no inline sty
 
 const REPO = 'https://github.com/maoudia/retroboard'
 
-test('the "Built in public, fair terms" section states the license and links to the source (change landing-v2-and-product-video, task 2.1)', async ({ page }) => {
+test('the "Built in public, source available" section states the license and links to the source (change landing-v2-and-product-video, task 2.1)', async ({ page }) => {
   await page.goto('/')
   const section = page.getByTestId('landing-open')
   await expect(section.getByRole('heading', { level: 2 })).toContainText(/Construit en public|Built in public/)
@@ -81,7 +81,7 @@ test('the open-code section and the feature cards are in English too, and are re
   await page.goto('/?lang=x')
   const section = page.getByTestId('landing-open')
   await section.scrollIntoViewIfNeeded()
-  await expect(section.getByRole('heading', { level: 2 })).toHaveText('Built in public, fair terms.')
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText('Built in public, source available.')
   await expect(section.getByTestId('open-commercial')).toHaveText('Ask for a commercial license')
   await expect(page.locator('#features .card')).toHaveCount(10)
   for (const title of ['Agenda ring', 'Vote podium', 'Live cursors', 'Exports', 'AI agents']) await expect(page.locator('#features h3', { hasText: title })).toBeVisible()
