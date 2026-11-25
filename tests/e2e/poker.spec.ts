@@ -1,7 +1,7 @@
 import { type Browser, type BrowserContext, expect, type Locator, type Page, test } from '@playwright/test'
 import jsQR from 'jsqr'
 import { PNG } from 'pngjs'
-import { axe, createBoard, settle } from './helpers'
+import { axe, createBoard, phoneLayout, settle } from './helpers'
 
 /**
  * Scrum Poker (change scrum-poker, tasks 1.2, 1.3 and the first slice of 3.1, beta): the entries of the landing page and the menus, the start
@@ -324,7 +324,7 @@ test('a link that is not a room says so', async ({ page }) => {
   await expect(page.getByTestId('poker-bad-link')).toBeVisible()
 })
 
-test('a visitor finds Scrum Poker from the landing page and the library, marked beta, and the page speaks both languages', async ({ page }) => {
+test('a visitor finds Scrum Poker from the landing page and the library, marked beta, and the page speaks both languages', async ({ page, isMobile }) => {
   const errors: string[] = []
   watch(page, errors)
   await page.goto('/')
@@ -334,7 +334,8 @@ test('a visitor finds Scrum Poker from the landing page and the library, marked 
   await expect(hero).toContainText('Scrum Poker')
   await expect(hero.getByTestId('beta-tag')).toHaveText(/b[eê]ta/i)
   expect((await hero.boundingBox())!.height).toBe((await page.getByTestId('solo').boundingBox())!.height)
-  if (!test.info().project.use.isMobile) await expect(page.getByTestId('nav-poker')).toBeVisible()
+  // The landing links fold away at 900 px and below (the hero action stays), so only a wide window shows the nav link.
+  if (!phoneLayout({ isMobile, viewport: page.viewportSize() }) && (page.viewportSize()?.width ?? 0) > 900) await expect(page.getByTestId('nav-poker')).toBeVisible()
   await hero.click()
   await expect(page).toHaveURL(/\/poker$/)
   await expect(page.getByTestId('poker-start')).toBeVisible()
@@ -357,9 +358,9 @@ test('a visitor finds Scrum Poker from the landing page and the library, marked 
   expect(errors).toEqual([])
 })
 
-test('the board menu lists Scrum Poker, marked beta', async ({ page, browserName }) => {
+test('the board menu lists Scrum Poker, marked beta', async ({ page, browserName, isMobile }) => {
   // The board creation helper and the boards menu of the toolbar are the desktop ones (the phone toolbar has no boards menu; WebKit logs a CSP notice on /new that boards own).
-  test.skip(browserName !== 'chromium' || !!test.info().project.use.isMobile, 'desktop Chromium: the board creation flow of the helper')
+  test.skip(browserName !== 'chromium' || phoneLayout({ isMobile, viewport: page.viewportSize() }), 'desktop Chromium: the board creation flow of the helper')
   await createBoard(page)
   await page.getByTestId('btn-boards').click()
   await expect(page.getByTestId('boards-poker').getByTestId('beta-tag')).toBeVisible()
