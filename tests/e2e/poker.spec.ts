@@ -558,25 +558,19 @@ test('under forced colours the edges of the cards and the chosen card stay visib
   await ctx.close()
 })
 
-test('under forced colours the start page keeps the edges of its chips, its round chips and the lit swatch', async ({ browser, browserName }) => {
+test('under forced colours the start page keeps the edges of its chips, and its round chips', async ({ browser, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours emulation: Chromium')
   const ctx = await english(browser, { width: 390, height: 844 })
   const page = await ctx.newPage()
   await page.emulateMedia({ forcedColors: 'active' })
   await page.goto('/poker')
-  await page.getByTestId('poker-colours').locator('summary').click()
-  await page.getByTestId('poker-hue-175').check({ force: true })
   const edge = (selector: string) => page.locator(selector).first().evaluate((el) => { const css = getComputedStyle(el); return { style: css.borderTopStyle, width: css.borderTopWidth, colour: css.borderTopColor, outline: css.outlineStyle } })
-  // A chip, a round chip and the card colours section have a visible edge in a colour that is not transparent.
-  for (const selector of ['.chip', '.round-chip', '.colours']) {
+  // A chip and a round chip have a visible edge in a colour that is not transparent.
+  for (const selector of ['.chip', '.round-chip']) {
     const found = await edge(selector)
     expect(found.style, selector).toBe('solid')
     expect(found.colour, selector).not.toBe('rgba(0, 0, 0, 0)')
   }
-  // The lit swatch has an outline of its own (the ring of a box-shadow is dropped), and the hue stays the hue: the colour of a swatch is the information.
-  expect(await page.locator('.dot.on').first().evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid')
-  const disc = await page.locator('.disc').nth(1).evaluate((el) => getComputedStyle(el).backgroundColor)
-  expect(disc).not.toBe(await page.locator('.disc').nth(2).evaluate((el) => getComputedStyle(el).backgroundColor))
   await ctx.close()
 })
 

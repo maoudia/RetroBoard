@@ -21,7 +21,7 @@ describe('the poker interface keeps to the tokens', () => {
     expect(styles.filter(({ css }) => css).length).toBeGreaterThan(10)
   })
 
-  it('writes no hex, rgb or hsl colour: colours are tokens, system colours (forced colours) or the hue the moderator picked', () => {
+  it('writes no hex, rgb or hsl colour: colours are tokens, or system colours (forced colours)', () => {
     const bad = styles.flatMap(({ f, css }) => [...css.matchAll(/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\(/g)].map((m) => `${f}: ${m[0]}`))
     expect(bad, 'use var(--text), var(--accent), var(--surface)... (docs/design-system.md)').toEqual([])
   })
