@@ -101,7 +101,9 @@ export default defineNuxtConfig({
   // No _payload.json next to the prerendered landing: its payload is hydrated from the page itself and a client-side
   // navigation renders the route in the browser; the extracted file would only add a request (and under the
   // client-shell route rule it came out as HTML).
-  experimental: { payloadExtraction: false },
+  // NuxtLink prefetches the component chunks of the pages a link points to as soon as the link is visible: on the public pages that is the whole
+  // board setup and poker bundles (and their CSS) fetched before the visitor asked for them. Prefetch on interaction (hover, focus) only.
+  experimental: { payloadExtraction: false, defaults: { nuxtLink: { prefetch: true, prefetchOn: { visibility: false, interaction: true } } } },
   typescript: { strict: true },
   vite: { build: { sourcemap: false }, define: { __RELEASE_NOTES__: JSON.stringify(releaseNotes) } },
 })
