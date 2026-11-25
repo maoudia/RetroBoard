@@ -17,8 +17,10 @@ for (const [lang, prefix] of [['fr', ''], ['en', '/en']] as const) {
     await expect(page.getByTestId('release-item').first()).toContainText(firstItem.text)
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', new RegExp(`${prefix}/whats-new$`))
     await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute('href', /(?<!\/en)\/whats-new$/)
-    await expect(page.locator('main')).toContainText(/PolyForm Noncommercial/)
-    await expect(page.locator('main')).not.toContainText(/open[ -]source/i)
+    // The page's own copy (intro, notes, footer), not the release entries: those are verbatim commit subjects and may say "open source".
+    const own = await page.locator('main').evaluate((main) => [...main.children].filter((el) => el.getAttribute('data-testid') !== 'release').map((el) => el.textContent ?? '').join('\n'))
+    expect(own).toMatch(/PolyForm Noncommercial/)
+    expect(own).not.toMatch(/open[ -]source/i)
   })
 }
 
