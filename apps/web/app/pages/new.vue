@@ -177,10 +177,12 @@ h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
 .lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }
 .panel { padding: clamp(1rem, 3vw, 2rem); }
 .resume h2 { margin: 0 0 .5rem; font-size: var(--fs-lg); }
-.modebar { display: flex; align-items: center; gap: .8rem 1.2rem; flex-wrap: wrap; }
+.modebar { display: flex; align-items: flex-start; gap: .8rem 1.2rem; flex-wrap: wrap; }
 /* The switch keeps its place in both modes: left aligned, and the note is always there (change hotfix-ux-wave8). */
-.modebar :deep(.mode) { margin: 0; justify-self: start; flex: none; }
+.modebar :deep(.mode) { margin: 0; justify-self: start; align-self: flex-start; flex: none; }
 .modebar .small { margin: 0; font-size: var(--fs-sm); max-width: 62ch; }
+/* On a phone the bar is centred again (change hotfix-ux-wave8). */
+@media (max-width: 600px) { .modebar { align-items: center; } .modebar :deep(.mode) { align-self: center; } }
 .foot { display: grid; gap: .4rem; font-size: var(--fs-sm); }
 .link { justify-self: start; border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-weight: 600; }
 </style>
