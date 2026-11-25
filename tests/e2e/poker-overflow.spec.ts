@@ -50,9 +50,8 @@ for (const lang of LANGS) {
         await a.goto(`/poker${lang.query}`)
         // The pseudo-locale reaches the poker strings (the room is lengthened too, on the page the guests open as well).
         await expect(a.getByTestId('poker-start-action')).toHaveText(lang.id === 'pseudo' ? /^\s*\[.*\]\s*$/ : /^[^[]+$/)
-        await a.getByTestId('poker-colours').locator('summary').click()
         await a.getByTestId('poker-deck-custom').check({ force: true })
-        await fits(a, 'start page (Custom, colours open)')
+        await fits(a, 'start page (Custom)')
         await a.getByTestId('poker-start-action').click()
         await expect(a.getByTestId('poker-name')).toBeVisible()
         await a.getByTestId('poker-name').fill(longName(0))
