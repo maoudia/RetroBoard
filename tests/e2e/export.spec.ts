@@ -173,7 +173,10 @@ test('the preview frame is sandboxed, keeps the strict CSP and shows the report 
   await expect(frame.locator('body')).toContainText('<img src=x onerror=alert(1)>') // text, not markup
   expect(await frame.locator('img').count()).toBe(0)
   // The report stylesheet is allowed by hash: the frame looks like the saved file.
-  expect(await frame.locator('h2').first().evaluate((h) => getComputedStyle(h).borderBottomWidth)).toBe('1px')
+  // On the TV screen the dialog is zoomed 1.5x (fix-tv-dialog-scale), so the 1px border computes to 1/1.5 px there.
+  const border = await frame.locator('h2').first().evaluate((h) => getComputedStyle(h).borderBottomWidth)
+  if (await page.locator('html').getAttribute('data-screen') === 'tv') expect(parseFloat(border)).toBeCloseTo(1 / 1.5, 4)
+  else expect(border).toBe('1px')
   expect(await frame.locator('.kpi').first().evaluate((k) => getComputedStyle(k).borderRadius)).toBe('10px')
   // The page itself still forbids inline styles and scripts, and every other origin.
   const csp = await page.evaluate(async () => (await fetch(location.href)).headers.get('content-security-policy'))
