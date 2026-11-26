@@ -48,7 +48,7 @@ COPY --from=worker-build /out/wrangler.jsonc /out/wrangler.version /app/
 # runs: npm is used once to install Wrangler, then removed, and the container starts Wrangler directly.
 # ca-certificates: the slim base ships none and workerd aborts at start without a system CA bundle.
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
- && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+ && apt-get install -y --no-install-recommends --only-upgrade zlib1g libzstd1 passwd login.defs \
  && rm -rf /var/lib/apt/lists/* \
  && echo '{"private":true}' > package.json \
  && npm install --no-audit --no-fund --omit=dev "wrangler@$(cat wrangler.version)" \
@@ -85,7 +85,7 @@ COPY --from=build /out/ws.version /app/ws.version
 # The base image ships npm with its own dependencies (undici, ip-address...) that the scan reports and the relay never
 # runs: npm is used once to install `ws` (no transitive dependency), then removed, and the container starts Node directly.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+ && apt-get install -y --no-install-recommends --only-upgrade zlib1g libzstd1 passwd login.defs \
  && rm -rf /var/lib/apt/lists/* \
  && echo '{"private":true,"type":"module"}' > package.json \
  && npm install --no-audit --no-fund --omit=dev "ws@$(cat ws.version)" \
