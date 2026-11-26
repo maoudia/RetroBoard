@@ -57,11 +57,11 @@ Anything not on this list slipped to R3.
 * Encrypted sync of boards and preferences to a folder the user picks: `user-drive-storage` ([proposal](../openspec/changes/user-drive-storage/proposal.md)), priority 1 (`priority:1-urgent`), task groups 1 (the `SyncTarget` interface, the browser adapter, local encryption, the board library, the contract tests and the in-memory fake) and 2 (the vault engine with its merge rules, the folder adapter and Preferences > Sync: automatic push and pull, status, disconnect and forget). It is Joplin's "File system" target: the user's own sync client (OneDrive, Drive, Dropbox, iCloud, Syncthing, Nextcloud) carries the encrypted files, so R2 needs no sign-in, no Microsoft registration and no CSP change. Chromium desktop only in R2. Groups 3 to 10 (OneDrive through Graph first, then GitHub, Google Drive, Dropbox, WebDAV, S3, generic HTTP, device pairing) sit in R3 as sub-issues of the same epic.
   The R2 scope grew by this item on 2026-11-14 at the owner's request. Estimate: two groups, one PR each, about 14 agent sessions of two hours in all (about 6 and 8), on top of the launch-path items above and under the limit of 3 changes in progress; smaller than the OneDrive-first plan (about 16 sessions plus the owner's Entra registration) because there is no OAuth, registration or CSP work. The 2026-12-13 target holds if group 1 is merged by 2026-11-27 and group 2 by 2026-12-08; the owner's only task is a live check with a folder carried by their own sync client. If group 2 is late, R2 keeps group 1 (the local library and the encrypted vault format, no sync yet) and group 2 ships right after the launch; the owner decides at the 2026-12-04 review.
 * Sync UX, the product around the sync engine (owner notes 2026-11-20): `sync-ux` ([proposal](../openspec/changes/sync-ux/proposal.md)), priority 1. Groups 1 to 3 are R2 and small: the shield button (press to sync now), any folder, the onboarding sheet and its once-only nudge. They can ship before the 2026-12-09 freeze (about 5 sessions in all, one pull request each); if capacity is short they ship right after the launch, never at the cost of the launch-path items. Groups 4 to 6 (sealed vault file, pairing without a platform, phones) are R3.
-* Two bugs from the owner's notes of 2026-11-20, both small and both allowed before the freeze: `fix-group-with-menu-layout` ([proposal](../openspec/changes/fix-group-with-menu-layout/proposal.md)) and `fix-votes-after-format-change` ([proposal](../openspec/changes/fix-votes-after-format-change/proposal.md)).
+* Delivered and archived on 2026-11-26: the two bugs from the owner's notes of 2026-11-20, `fix-group-with-menu-layout` ([proposal](../openspec/changes/archive/2026-11-26-fix-group-with-menu-layout/proposal.md)) and `fix-votes-after-format-change` ([proposal](../openspec/changes/archive/2026-11-26-fix-votes-after-format-change/proposal.md)).
 * Brand identity: `brand-identity` ([proposal](../openspec/changes/brand-identity/proposal.md)): charter, logo, icon kit, share images and press kit; the mark and the signature wait for the owner's approval.
 * License: the project is source available under PolyForm Noncommercial 1.0.0 and closed to outside contributions ([ADR-0040](adr/0040-polyform-noncommercial-source-available-license.md)), so the launch path has no CLA, pricing or sponsorware decision.
 * Archived, owner check left: `p2p-presence-and-cursors` ([proposal](../openspec/changes/archive/2026-11-12-p2p-presence-and-cursors/proposal.md)) and `webmcp-browser-agents` ([proposal](../openspec/changes/archive/2026-11-12-webmcp-browser-agents/proposal.md)) are delivered; only the owner checks in [owner-checks.md](owner-checks.md) remain.
-* Delivered and archived: `user-manual-and-tutorials`, `short-links-and-join`, `retro-report`, `results-insights`, `voting-v2-and-ranking`, `responsive-and-i18n-hardening`, `activity-rings-timer`, `allure-report-aggregation`, `automated-semver-release`, `edge-security-and-domain`.
+* Delivered and archived: `export-hub`, `postit-visual-system` and `publishing-ux-redesign` (2026-11-26; their screenshot checks moved to `visual-regression`, their two owner checks to [owner-checks.md](owner-checks.md)), `user-manual-and-tutorials`, `short-links-and-join`, `retro-report`, `results-insights`, `voting-v2-and-ranking`, `responsive-and-i18n-hardening`, `activity-rings-timer`, `allure-report-aggregation`, `automated-semver-release`, `edge-security-and-domain`.
 
 Moved to R3 on 2026-11-12: `design-system-components`, `ci-toolchain-speed`, `scorecard-hardening`, `code-health-for-agents` (change to open),
 `note-edit-and-unpublish`, `note-zoom-on-double-tap`, `group-colors-menu-and-scope`, `column-defaults-and-collapse`, `chat-floating-dock`,
@@ -79,10 +79,7 @@ Team workspaces, carried-over actions, undo history, exports, UI polish. Gate: a
 * `actions-v2-and-carry-over` ([proposal](../openspec/changes/actions-v2-and-carry-over/proposal.md))
 * `profile-avatars-and-team-space` ([proposal](../openspec/changes/profile-avatars-and-team-space/proposal.md))
 * `board-undo-rewind` ([proposal](../openspec/changes/board-undo-rewind/proposal.md))
-* `export-hub` ([proposal](../openspec/changes/export-hub/proposal.md))
 * `export-destinations-v2` ([proposal](../openspec/changes/export-destinations-v2/proposal.md))
-* `postit-visual-system` ([proposal](../openspec/changes/postit-visual-system/proposal.md))
-* `publishing-ux-redesign` ([proposal](../openspec/changes/publishing-ux-redesign/proposal.md))
 * `board-creation-v2` ([proposal](../openspec/changes/board-creation-v2/proposal.md))
 * `cluster-reveal-motion` ([proposal](../openspec/changes/cluster-reveal-motion/proposal.md))
 * `facilitator-moderation` ([proposal](../openspec/changes/facilitator-moderation/proposal.md))
@@ -138,8 +135,8 @@ Fifteen notes became eleven changes (note 9, desktop mode works well, is informa
 
 | Note | Change | Release | Size | Why there |
 |---|---|---|---|---|
-| 3 | `fix-group-with-menu-layout` | R2, before the freeze | S | A visible bug in a daily menu; a geometry test keeps it fixed |
-| 4 | `fix-votes-after-format-change` | R2, before the freeze | S | Votes shown but not counted is a trust bug; one rule fixes it |
+| 3 | `fix-group-with-menu-layout` | R2, delivered 2026-11-26 | S | A visible bug in a daily menu; a geometry test keeps it fixed |
+| 4 | `fix-votes-after-format-change` | R2, delivered 2026-11-26 | S | Votes shown but not counted is a trust bug; one rule fixes it |
 | 12, 13, 14 | `sync-ux` groups 1 to 3 | R2, before the freeze if capacity allows | S, S, M | Encrypted sync is priority 1 and unusable if nobody finds it; small, no new infrastructure |
 | 12, 13, 14 | `sync-ux` groups 4 to 6 | R3 | M, L, M | Sealed vault file, pairing and phone fixes need a spike, a protocol check and real-device tests (owner's Microsoft app registration, an iPhone and an Android phone) |
 | 8 | `cursors-off-for-now` | R3 (can ride before the freeze) | S | Removes an unreliable feature; a flag, not a deletion; low risk if capacity appears |
