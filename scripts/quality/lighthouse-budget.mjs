@@ -21,25 +21,41 @@ export function budgetFor(budgets, page) {
   return { ...global, ...(pages[page] ?? {}) }
 }
 
-/** results: [{ page, variant, scores: { performance, accessibility, 'best-practices' } }] */
+/** The budgets of one form factor ('mobile' or 'desktop'): the file holds one object per form factor (change public-launch, task 3.1). */
+export function forFormFactor(file, formFactor) {
+  const budgets = file[formFactor]
+  if (!budgets) throw new Error(`no budgets for the form factor "${formFactor}" (known: ${Object.keys(file).join(', ')})`)
+  return budgets
+}
+
+/** How many times a page is scored: `--runs` (explicit) wins; otherwise LIGHTHOUSE_RUNS (fallback), and the landing on mobile is scored at least 3 times (a cold first run reads 13 to 16 points low). */
+export function runsFor({ page, formFactor, explicit, fallback = 1 }) {
+  if (explicit !== undefined) return Math.max(1, Math.trunc(explicit))
+  const base = Math.max(1, Math.trunc(fallback))
+  return page === 'landing' && formFactor === 'mobile' ? Math.max(base, 3) : base
+}
+
+/** results: [{ page, variant, formFactor?, scores: { performance, accessibility, 'best-practices' } }] */
 export function evaluate(results, budgets) {
   const failures = []
   for (const r of results) {
     for (const [category, min] of Object.entries(budgetFor(budgets, r.page))) {
       const score = r.scores[category]
-      if (typeof score !== 'number' || score < min) failures.push({ page: r.page, variant: r.variant, category, score: score ?? null, min })
+      if (typeof score !== 'number' || score < min) failures.push({ page: r.page, variant: r.variant, ...(r.formFactor && { formFactor: r.formFactor }), category, score: score ?? null, min })
     }
   }
   return failures
 }
 
 export function renderTable(results, failures) {
-  const bad = new Set(failures.map((f) => `${f.page}|${f.variant}|${f.category}`))
+  const key = (r) => `${r.formFactor ?? ''}|${r.page}|${r.variant}`
+  const bad = new Set(failures.map((f) => `${key(f)}|${f.category}`))
+  const withFactor = results.some((r) => r.formFactor)
   const cats = results.length ? Object.keys(results[0].scores) : []
-  const cell = (r, c) => `${Math.round((r.scores[c] ?? 0) * 100)}${bad.has(`${r.page}|${r.variant}|${c}`) ? ' FAIL' : ''}`
+  const cell = (r, c) => `${Math.round((r.scores[c] ?? 0) * 100)}${bad.has(`${key(r)}|${c}`) ? ' FAIL' : ''}`
   return [
-    `| Page | Variant | ${cats.join(' | ')} |`,
-    `|---|---|${cats.map(() => '---').join('|')}|`,
-    ...results.map((r) => `| ${r.page} | ${r.variant} | ${cats.map((c) => cell(r, c)).join(' | ')} |`),
+    `| ${withFactor ? 'Form factor | ' : ''}Page | Variant | ${cats.join(' | ')} |`,
+    `|${withFactor ? '---|' : ''}---|---|${cats.map(() => '---').join('|')}|`,
+    ...results.map((r) => `| ${withFactor ? `${r.formFactor} | ` : ''}${r.page} | ${r.variant} | ${cats.map((c) => cell(r, c)).join(' | ')} |`),
   ].join('\n')
 }

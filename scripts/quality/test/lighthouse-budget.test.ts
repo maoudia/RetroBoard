@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain ESM script without types
-import { budgetFor, categories, evaluate, median, renderTable } from '../lighthouse-budget.mjs'
+import { budgetFor, categories, evaluate, forFormFactor, median, renderTable, runsFor } from '../lighthouse-budget.mjs'
 
 const budgets = { performance: 0.8, accessibility: 0.95 }
 
@@ -38,5 +38,36 @@ describe('lighthouse budgets', () => {
     expect(median([{ performance: 0.65, accessibility: 1 }, { performance: 0.97, accessibility: 1 }, { performance: 0.98, accessibility: 0.9 }])).toEqual({ performance: 0.97, accessibility: 1 })
     expect(median([{ performance: 0.5 }, { performance: 0.7 }])).toEqual({ performance: 0.6 })
     expect(median([{ performance: 0.8 }])).toEqual({ performance: 0.8 })
+  })
+  it('a form factor has its own budgets and an unknown one is refused', () => {
+    const file = { mobile: { performance: 0.8, pages: { landing: { performance: 0.95 } } }, desktop: { performance: 0.9 } }
+    expect(forFormFactor(file, 'mobile')).toBe(file.mobile)
+    expect(budgetFor(forFormFactor(file, 'desktop'), 'landing')).toEqual({ performance: 0.9 })
+    expect(() => forFormFactor(file, 'tablet')).toThrow('tablet')
+  })
+  it('the committed file budgets the landing at 0.95 performance on mobile, and the other pages keep theirs', async () => {
+    const file = (await import('../../../quality/lighthouse-budgets.json')).default
+    expect(budgetFor(forFormFactor(file, 'mobile'), 'landing').performance).toBe(0.95)
+    expect(budgetFor(forFormFactor(file, 'mobile'), 'new').performance).toBe(0.8)
+    expect(budgetFor(forFormFactor(file, 'desktop'), 'new').performance).toBe(0.8)
+  })
+  it('a landing median under 0.95 on mobile fails and the failure and the table name the form factor', () => {
+    const file = { mobile: { performance: 0.8, accessibility: 0.95, pages: { landing: { performance: 0.95 } } } }
+    const runs = [{ performance: 0.9, accessibility: 1 }, { performance: 0.97, accessibility: 1 }, { performance: 0.91, accessibility: 1 }]
+    const results = [{ page: 'landing', variant: 'light', formFactor: 'mobile', scores: median(runs) }]
+    const failures = evaluate(results, forFormFactor(file, 'mobile'))
+    expect(failures).toEqual([{ page: 'landing', variant: 'light', formFactor: 'mobile', category: 'performance', score: 0.91, min: 0.95 }])
+    const table = renderTable(results, failures)
+    expect(table).toContain('| Form factor | Page | Variant |')
+    expect(table).toContain('| mobile | landing | light | 91 FAIL | 100 |')
+  })
+  it('scores the landing on mobile three times, the other pages once, and an explicit --runs wins', () => {
+    expect(runsFor({ page: 'landing', formFactor: 'mobile' })).toBe(3)
+    expect(runsFor({ page: 'landing', formFactor: 'mobile', fallback: 5 })).toBe(5)
+    expect(runsFor({ page: 'landing', formFactor: 'desktop' })).toBe(1)
+    expect(runsFor({ page: 'new', formFactor: 'mobile' })).toBe(1)
+    expect(runsFor({ page: 'new', formFactor: 'mobile', fallback: 5 })).toBe(5)
+    expect(runsFor({ page: 'landing', formFactor: 'mobile', explicit: 1, fallback: 5 })).toBe(1)
+    expect(runsFor({ page: 'new', formFactor: 'desktop', explicit: 7 })).toBe(7)
   })
 })
