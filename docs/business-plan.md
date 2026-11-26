@@ -53,6 +53,8 @@ Conclusion honnete : c'est un produit vitrine et un levier de missions (facilita
 
 Landing SEO (pages "format de retro X"), modeles de retro partageables, badge "Made with RetroBoard" sur les rapports exportes, GitHub (stars, contributions), posts LinkedIn de cas concrets, partenariats avec des coachs agiles.
 
+Le kit de lancement (posts Show HN, Product Hunt, LinkedIn et dev.to en francais et en anglais, ordre de publication et liste du jour J) est dans [`docs/launch/`](launch/README.md).
+
 ## 14. Extra ideas
 
 - **Presenter mode** for TV/projector with QR code to join and huge type.
