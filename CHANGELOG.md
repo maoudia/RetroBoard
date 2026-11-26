@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.71.1](https://github.com/maoudia/RetroBoard/compare/v1.71.0...v1.71.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* **build:** the runtime images upgrade libzstd1, passwd and login.defs so the release scan passes ([8c6af99](https://github.com/maoudia/RetroBoard/commit/8c6af99e173e4b4ef486ad514f0987c8c7507c6b))
+
 ## [1.71.0](https://github.com/maoudia/RetroBoard/compare/v1.70.0...v1.71.0) (2026-11-26)
 
 
