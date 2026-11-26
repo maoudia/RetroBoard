@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.71.0](https://github.com/maoudia/RetroBoard/compare/v1.70.0...v1.71.0) (2026-11-26)
+
+
+### Features
+
+* **web:** Scrum Poker is checked on nine themes and in the pseudo-locale (poker-design-v2 group 6) ([da1587e](https://github.com/maoudia/RetroBoard/commit/da1587ec4f3c7464ee6f8b93adebbf14997d880f))
+
 ## [1.70.0](https://github.com/maoudia/RetroBoard/compare/v1.69.0...v1.70.0) (2026-11-26)
 
 
