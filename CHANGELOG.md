@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.70.0](https://github.com/maoudia/RetroBoard/compare/v1.69.0...v1.70.0) (2026-11-26)
+
+
+### Features
+
+* **web:** Scrum Poker follows the board themes and the card colour picker is gone (change poker-design-v2) ([020c618](https://github.com/maoudia/RetroBoard/commit/020c6189b3dd8a95517c128980b5eb161e7e308b))
+* **web:** the landing open-code section says source available, not open source (change landing-v2-and-product-video) ([9ecd540](https://github.com/maoudia/RetroBoard/commit/9ecd5409242fea735a7d7c22b0385cd5e4a2d988))
+
+
+### Bug Fixes
+
+* **web:** the Simple / Advanced switch keeps its place on wide screens, centred on a phone ([5b84504](https://github.com/maoudia/RetroBoard/commit/5b84504c79c70be8312a686c3b71ee221296f38a))
+
+
+### Performance
+
+* **web:** prefetch linked pages on interaction only, not when the link is visible ([1687778](https://github.com/maoudia/RetroBoard/commit/1687778944ed49d987ce1600ae072c16663e0f6d))
+
 ## [1.69.0](https://github.com/maoudia/RetroBoard/compare/v1.68.0...v1.69.0) (2026-11-21)
 
 
