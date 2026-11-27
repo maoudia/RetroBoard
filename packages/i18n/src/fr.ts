@@ -235,7 +235,7 @@ export const fr = {
   'agenda.remove': 'Retirer {phase}',
   'agenda.totalPlanned': 'Total : {n} min',
   'agenda.rules': 'Règles des étapes',
-  'agenda.rules.hint': 'Recommandé : chaque étape n\'ouvre que ce dont elle parle (écrire, regrouper, voter, actions). Désactivez pour que chacun puisse tout faire à tout moment.',
+  'agenda.rules.hint': 'Recommandé : chaque étape n\'ouvre que ce dont elle parle.',
   'presenter.walk.top': 'Retour à l idée la plus votée',
   'presenter.walk.start': 'Parcourir les idées votées',
   'presenter.walk.label': 'Idée votée en discussion',

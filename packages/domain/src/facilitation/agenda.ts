@@ -193,9 +193,6 @@ export function normalizePolicy(kind: PhaseKind, policy: PhasePolicy): PhasePoli
   return Object.keys(out).length ? out : undefined
 }
 
-/** A capability as the phase has it: the stored value or the preset. */
-export const capabilityOn = (phase: Pick<Phase, 'kind' | 'policy'>, capability: Capability): boolean => phase.policy?.[capability] ?? presetCapability(phase.kind, capability)
-
 /** Does the phase (kind and policy) allow a participant to run the command? A bare kind means its preset. */
 export function phaseAllows(phase: PhaseKind | Pick<Phase, 'kind' | 'policy'>, command: CommandType): boolean {
   const { kind, policy } = typeof phase === 'string' ? { kind: phase, policy: undefined } : phase
