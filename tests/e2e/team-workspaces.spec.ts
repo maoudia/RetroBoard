@@ -161,6 +161,7 @@ test('a team travels by encrypted link and by .retroteam file, without any board
 
 test('the team and project row comes first on /new, in simple and in advanced mode', async ({ page }) => {
   await page.goto('/new')
+  await page.getByTestId('mode-simple').click()
   const above = (a: string, b: string) => page.evaluate(([x, y]) => {
     const ea = document.querySelector(`[data-testid="${x}"]`), eb = document.querySelector(`[data-testid="${y}"]`)
     return !!ea && !!eb && !!(ea.compareDocumentPosition(eb) & Node.DOCUMENT_POSITION_FOLLOWING)
