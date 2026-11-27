@@ -198,6 +198,7 @@ onMounted(() => {
 
       <section id="how" class="sec">
         <h2 data-reveal>{{ t('landing.how.h') }}</h2>
+        <LazyLandingWalkthrough hydrate-on-visible />
         <ol class="steps">
           <li data-reveal><span class="n">1</span><h3>{{ t('landing.how.1.h') }}</h3><p>{{ t('landing.how.1.p') }}</p></li>
           <li data-reveal data-d="1"><span class="n">2</span><h3>{{ t('landing.how.2.h') }}</h3><p>{{ t('landing.how.2.p') }}</p></li>
