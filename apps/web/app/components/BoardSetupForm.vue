@@ -24,9 +24,11 @@ watch(() => recents.items[0]?.title, (prev) => {
 }, { immediate: true })
 watch(() => props.cloneTitle, (v) => { if (v) { title.value = v; typed.value = true } }, { immediate: true })
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
+/** A format picked by hand is kept when the team changes (change creation-team-first). */
+const picked = ref(false)
 watch(() => props.prefill, (p) => {
   if (!p || props.cloneTitle) return
-  if (p.templateId && getTemplate(p.templateId)) templateId.value = p.templateId
+  if (p.templateId && getTemplate(p.templateId) && (!picked.value || p.linked)) templateId.value = p.templateId
   if (p.title && !typed.value) title.value = p.title
 }, { immediate: true })
 /** Votes per person and sealed ballot (advanced): applied right after the board exists. */
@@ -80,7 +82,7 @@ function onSubmit() {
 
     <section class="block">
       <h3><span class="n">2</span> {{ t('setup.step2') }}</h3>
-      <TemplatePicker v-model="templateId" :theme-id="themeId" :show-all="prefill?.linked" @update:minutes="emit('update:minutes', $event)" />
+      <TemplatePicker v-model="templateId" @update:model-value="picked = true" :theme-id="themeId" :show-all="prefill?.linked" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
     <div v-if="advanced" class="adv" data-testid="setup-advanced">
