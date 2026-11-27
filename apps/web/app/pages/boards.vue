@@ -437,7 +437,8 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <PresenterFocus v-if="board.ready && ui.presenter" />
       <PresenterWalk v-if="board.ready && ui.presenter" />
-      <PresenterSpotlight v-if="board.ready && ui.presenter" />
+      <NoteZoom v-if="board.ready && ui.presenter" mode="presenter" />
+      <NoteZoom v-if="board.ready" mode="zoom" />
       <TalkBanner v-if="board.ready" />
       <VoteBar v-if="board.ready && board.votingEnabled" />
       <TurnBar v-if="board.ready && board.snapshot?.turn" />

@@ -14,6 +14,13 @@ describe('resolveShortcut', () => {
     expect(resolveShortcut(key('?'), ctx())).toEqual({ id: 'help.open' })
   })
 
+  it('z zooms the focused note, but never while typing or when shortcuts are off (change note-zoom-on-double-tap)', () => {
+    expect(resolveShortcut(key('z'), ctx())).toEqual({ id: 'note.zoom' })
+    expect(resolveShortcut(key('z'), ctx({ typing: true }))).toBeNull()
+    expect(resolveShortcut(key('z'), ctx({ enabled: false }))).toBeNull()
+    expect(resolveShortcut(key('Enter'), ctx())).toEqual({ id: 'note.edit' })
+  })
+
   it('does nothing while typing, in a dialog, while composing text or when switched off', () => {
     expect(resolveShortcut(key('p'), ctx({ typing: true }))).toBeNull()
     expect(resolveShortcut(key('p'), ctx({ dialogOpen: true }))).toBeNull()
