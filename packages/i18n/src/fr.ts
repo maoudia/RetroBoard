@@ -508,7 +508,7 @@ export const fr = {
   'profile.shareCursor': 'Partager mon pointeur',
   'profile.shareCursor.hint': 'Les autres voient où tu pointes, chiffré, jamais stocké. Sur écran tactile, seulement pendant un glisser.',
   'profile.p2p': 'Liens directs entre participants',
-  'profile.p2p.hint': 'Plus rapide et indépendant de notre serveur. Les autres voient ton adresse IP, comme en visio. Désactivé : tout passe par le relais, chiffré, et ton pointeur n\'est pas partagé. S\'applique à la prochaine ouverture d\'un board.',
+  'profile.p2p.hint': 'Plus rapide et indépendant de notre serveur. Les autres voient ton adresse IP, comme en visio. Désactivé : tout passe par le relais, chiffré. S\'applique à la prochaine ouverture d\'un board.',
   'links.p2p': 'Direct : {n} personne(s) te joignent en direct, le plus rapide',
   'links.relay': 'Relais : un intermédiaire passe les messages, un peu plus lent et tout aussi privé',
   'links.p2p.idle': 'Direct : de personne à personne, le plus rapide',

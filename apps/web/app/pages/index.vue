@@ -169,7 +169,7 @@ onMounted(() => {
             <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:trophy" /></div>
             <h3>{{ t('landing.f.podium.h') }}</h3><p>{{ t('landing.f.podium.p') }}</p>
           </article>
-          <article class="card" data-reveal data-d="2">
+          <article v-if="cursorsEnabled()" class="card" data-reveal data-d="2">
             <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:mouse-pointer-2" /></div>
             <h3>{{ t('landing.f.cursors.h') }}</h3><p>{{ t('landing.f.cursors.p') }}</p>
           </article>

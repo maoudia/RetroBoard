@@ -15,6 +15,7 @@
     "voting",
     "takeover",
     "presence",
+    "cursors-off",
     "accessibility-statement",
     "a11y",
     "indexing",
@@ -35,6 +36,7 @@
     "board events travel peer to peer",
     "three participants: everyone links to everyone",
     "pointers: the other participant sees mine",
+    "with the flag off the other presence stays",
     "participants menu: shows who is typing",
     "the lead's pointer carries a crown",
     "a late joiner opens a long board from the facilitator snapshot"

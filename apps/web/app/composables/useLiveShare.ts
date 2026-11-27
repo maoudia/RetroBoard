@@ -16,6 +16,8 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   const board = useBoardStore()
   const ui = useUiStore()
   const settings = useSettingsStore()
+  // Paused (change cursors-off-for-now): no pointer is sampled or sent, whatever the stored settings say. Focus stays.
+  const cursorsOn = cursorsEnabled()
 
   let lastSent: number | null = null
   let pending: OwnCursor | null = null
@@ -94,15 +96,19 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
 
   let heartbeat: ReturnType<typeof setInterval> | undefined
   watch(boardEl, (el, old) => {
-    old?.removeEventListener('pointermove', onMove)
-    old?.removeEventListener('pointerleave', onLeave)
-    old?.removeEventListener('dragover', onDragOver)
+    if (cursorsOn) {
+      old?.removeEventListener('pointermove', onMove)
+      old?.removeEventListener('pointerleave', onLeave)
+      old?.removeEventListener('dragover', onDragOver)
+    }
     old?.removeEventListener('focusin', onFocusChange)
     old?.removeEventListener('focusout', onFocusChange)
     if (!el) { observer?.disconnect(); return }
-    el.addEventListener('pointermove', onMove, { passive: true })
-    el.addEventListener('pointerleave', onLeave, { passive: true })
-    el.addEventListener('dragover', onDragOver, { passive: true })
+    if (cursorsOn) {
+      el.addEventListener('pointermove', onMove, { passive: true })
+      el.addEventListener('pointerleave', onLeave, { passive: true })
+      el.addEventListener('dragover', onDragOver, { passive: true })
+    }
     el.addEventListener('focusin', onFocusChange)
     el.addEventListener('focusout', onFocusChange)
     nextTick(observeColumns)
@@ -111,7 +117,7 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   watch(() => board.columns.length, () => nextTick(observeColumns))
   watch(() => ui.dragNoteId, () => sendFocus())
   // Turned off: the others drop my pointer right away.
-  watch(() => [settings.s.shareCursor, ui.laser] as const, ([on, laser]) => { if (!on && !laser) { pending = null; board.sendCursor({ anchor: null, x: 0, y: 0, drag: false }) } })
+  if (cursorsOn) watch(() => [settings.s.shareCursor, ui.laser] as const, ([on, laser]) => { if (!on && !laser) { pending = null; board.sendCursor({ anchor: null, x: 0, y: 0, drag: false }) } })
   // Peers that join later learn my focus within a few seconds.
   watch(() => board.peers.length, () => sendFocus(true))
 

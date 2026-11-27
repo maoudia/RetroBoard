@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { axe, createBoard, join, noteByText, phoneLayout, publishNote, settle } from './helpers'
+import { axe, createBoard, cursorsOn, join, noteByText, phoneLayout, publishNote, settle } from './helpers'
 
 test.describe('presenter column focus (presenter-mode-v2)', () => {
   test.skip(phoneLayout, 'presenter mode is for large screens')
@@ -223,6 +223,7 @@ test('in presentation a long word never leaves its note, and notes grow with the
 })
 
 test('the laser pointer: the presenter shows a red dot to everybody, even with pointers hidden, and turns it off (change presenter-mode-v2)', async ({ page, browser, isMobile }) => {
+  test.skip(!cursorsOn, 'shared pointers are paused (change cursors-off-for-now)')
   test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'presenter mode is for large screens')
   await page.setViewportSize({ width: 1100, height: 760 })
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', keepShare: true })
