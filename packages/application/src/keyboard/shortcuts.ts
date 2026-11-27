@@ -4,7 +4,7 @@
  */
 export type ShortcutId =
   | 'column.focus' | 'note.new' | 'note.prev' | 'note.next' | 'column.prev' | 'column.next' | 'note.edit' | 'focus.clear'
-  | 'drafts.publish' | 'filter.open' | 'vote.add' | 'vote.remove' | 'note.color'
+  | 'drafts.publish' | 'filter.open' | 'vote.add' | 'vote.remove' | 'note.color' | 'note.zoom'
   | 'presenter.toggle' | 'writing.toggle' | 'zoom.in' | 'zoom.out' | 'zoom.reset' | 'density.cycle' | 'share.open' | 'export.open' | 'help.open'
   | 'timer.toggle' | 'phase.next' | 'phase.prev' | 'ranking.open' | 'floor.give'
 
@@ -38,6 +38,7 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   { id: 'vote.add', keys: ['v'], group: 'write', label: 'kbd.vote.add', display: 'v' },
   { id: 'vote.remove', keys: ['V'], group: 'write', label: 'kbd.vote.remove', display: 'Shift+v' },
   { id: 'note.color', keys: ['c'], group: 'write', label: 'kbd.note.color', display: 'c' },
+  { id: 'note.zoom', keys: ['z'], group: 'write', label: 'kbd.note.zoom', display: 'z' },
   { id: 'filter.open', keys: ['/'], group: 'board', label: 'kbd.filter.open', display: '/' },
   { id: 'presenter.toggle', keys: ['P'], group: 'board', label: 'kbd.presenter.toggle', display: 'Shift+p' },
   { id: 'writing.toggle', keys: ['w'], group: 'board', label: 'kbd.writing.toggle', display: 'w' },

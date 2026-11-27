@@ -20,6 +20,7 @@ describe('the shortcut table, exactly', () => {
       row('vote.add', ['v'], 'write', 'kbd.vote.add', 'v'),
       row('vote.remove', ['V'], 'write', 'kbd.vote.remove', 'Shift+v'),
       row('note.color', ['c'], 'write', 'kbd.note.color', 'c'),
+      row('note.zoom', ['z'], 'write', 'kbd.note.zoom', 'z'),
       row('filter.open', ['/'], 'board', 'kbd.filter.open', '/'),
       row('presenter.toggle', ['P'], 'board', 'kbd.presenter.toggle', 'Shift+p'),
       row('writing.toggle', ['w'], 'board', 'kbd.writing.toggle', 'w'),

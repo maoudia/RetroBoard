@@ -68,6 +68,9 @@ function schedulePeek(e: PointerEvent) {
 }
 onBeforeUnmount(cancelPeek)
 // A long press with a finger lifts the cluster (change responsive-and-i18n-hardening, task 3.2); a mouse uses the native drag.
+// A double tap or double click on the stack zooms its first idea and steps through the cluster (change note-zoom-on-double-tap); the first tap still opens the cluster, nothing waits.
+const { openZoom } = useNoteZoom()
+useNoteZoomGesture(stackEl, { follow: true, enabled: () => !props.expanded && !ui.dragGroupId, zoom: () => { if (openZoom(top.value.id, props.item.group.id)) { cancelPeek(); ui.openGroupId = null } } })
 const touch = useTouchDrag(stackEl, {
   enabled: () => !props.expanded && !board.locked,
   begin: () => { cancelPeek(); ui.dragGroupId = props.item.group.id },

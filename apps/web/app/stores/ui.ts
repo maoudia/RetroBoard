@@ -74,6 +74,9 @@ export const useUiStore = defineStore('ui', () => {
   /** Presenter note spotlight (presenter-mode-v2): id of the enlarged note, null when off. Local to this tab. */
   const spotlightNoteId = ref<string | null>(null)
   const walkIndex = ref<number | null>(null)
+  /** Note zoom (note-zoom-on-double-tap): id of the enlarged note and, for a cluster, the cluster it steps through. Local to this tab, never persisted or sent. */
+  const zoomNoteId = ref<string | null>(null)
+  const zoomGroupId = ref<string | null>(null)
   /** My view filter (text, colours, author, has votes). Never shared. */
   const filter = ref<NoteFilter>({ ...EMPTY_FILTER })
   /** Presenter laser pointer: my pointer is shown to everybody while on (change presenter-mode-v2). */
@@ -105,5 +108,5 @@ export const useUiStore = defineStore('ui', () => {
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
+  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
 })

@@ -48,6 +48,7 @@ const gate = computed(() => board.availability('action.add'))
 function toAction() {
   ui.openActionFrom({ sourceId: props.note.id, text: props.note.text, owner: props.note.author ?? '' })
 }
+const { zoomable, openZoom } = useNoteZoom()
 const others = computed(() => board.columns.filter((c) => c.id !== props.note.columnId))
 </script>
 
@@ -71,6 +72,9 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
       </button>
       <button v-if="board.access.canSteer && !inGroup && !note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`pin-${note.id}`" @click="note.pinned ? board.commands.unpin(note.id) : board.commands.pin(note.id); close()">
         <Icon :name="note.pinned ? 'lucide:pin-off' : 'lucide:pin'" /> {{ note.pinned ? t('note.unpin') : t('note.pin') }}
+      </button>
+      <button v-if="zoomable(note.id)" class="dd-item" type="button" role="menuitem" :data-testid="`zoom-${note.id}`" @click="openZoom(note.id, note.groupId ?? null); close()">
+        <Icon name="lucide:zoom-in" /> {{ t('note.zoom') }}
       </button>
       <div class="dd-sep" />
       <button v-if="inGroup || note.groupId" class="dd-item" type="button" role="menuitem" :data-testid="`ungroup-${note.id}`" @click="board.commands.ungroupNote(note.id); close()">

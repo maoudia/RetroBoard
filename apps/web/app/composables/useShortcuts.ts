@@ -27,6 +27,7 @@ export function useShortcuts() {
   const { push } = useToasts()
   const { t } = useT()
   const layout = useLayoutStore()
+  const { openZoom } = useNoteZoom()
 
   const columns = () => [...document.querySelectorAll<HTMLElement>('section[data-anchor-kind="column"]')]
   const notesOf = (col: HTMLElement) => [...col.querySelectorAll<HTMLElement>('article.note[data-anchor-kind="note"]')]
@@ -97,6 +98,7 @@ export function useShortcuts() {
     'filter.open': () => { ui.filterOpen = true },
     'vote.add': () => { const id = focusedNoteId(); if (id) board.commands.addVote('note', id) },
     'vote.remove': () => { const id = focusedNoteId(); if (id) board.commands.removeVote('note', id) },
+    'note.zoom': () => { const id = focusedNoteId(); if (id) openZoom(id, focusedNote()?.closest<HTMLElement>('[data-testid^="cluster-inline-"]')?.dataset.sourceId ?? null) },
     'note.color': () => { const id = focusedNoteId(); if (id) ui.openPalette(id) },
     'presenter.toggle': () => { ui.presenter = !ui.presenter },
     'writing.toggle': () => { const l = useLayoutStore(); l.setWritingHidden(!l.writingHidden) },

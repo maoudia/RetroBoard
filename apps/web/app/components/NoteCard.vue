@@ -15,6 +15,9 @@ const { clipped, open: readMore } = useNoteFit(textEl, () => props.note.text)
 const editing = ref(false)
 const draft = ref('')
 const over = ref(false)
+const { openZoom } = useNoteZoom()
+// Double tap or double click zooms the idea (change note-zoom-on-double-tap); a note in a cluster steps through its cluster.
+useNoteZoomGesture(el, { enabled: () => !editing.value, zoom: () => { openZoom(props.note.id, props.note.groupId ?? null) } })
 
 // Set before first render so the enter animation is replaced by the flight.
 const flightFrom = props.note.mine ? flights.consume(props.note.columnId, props.note.text) : null
