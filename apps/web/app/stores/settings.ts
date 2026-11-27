@@ -9,6 +9,10 @@ export interface LocalSettings {
   ambient: boolean
   /** Presentation mode shows the ideas of each group by default (change feedback-wave-7). */
   presentGroups: boolean
+  /** Sizes and collapse chosen in one column apply to every column (on by default, change column-defaults-and-collapse). */
+  linkColumns: boolean
+  /** Show the collapse and expand button in column headers (off by default, change column-defaults-and-collapse). */
+  collapseButtons: boolean
   motion: 'auto' | 'reduced'
   density: Density
   /** Play a short chime when the timer ends. */
@@ -69,7 +73,7 @@ const KEY = 'retroboard:settings'
 
 export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
 export const DEFAULTS: LocalSettings = {
-  ambient: true, presentGroups: true, motion: 'auto', density: 'comfortable', sound: false,
+  ambient: true, presentGroups: true, linkColumns: true, collapseButtons: false, motion: 'auto', density: 'comfortable', sound: false,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: -1, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
   phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatStatus: true, votedSort: 'votes', saveJoinedBoards: false, slackWebhook: '',

@@ -26,7 +26,7 @@ test('the double chevron folds every column when they are locked together', asyn
   test.skip(phoneLayout({ isMobile, viewport: page.viewportSize() }), 'a phone has no writing area to resize or fold: it writes in the bottom sheet')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const first = page.locator('[data-testid^="area-all-"]').first()
-  await first.click()
+  await expect(first).toHaveAttribute('aria-pressed', 'true')
   await page.locator('[data-testid^="write-hide-"]').first().click()
   await expect(page.locator('[data-testid^="write-handle-"]')).toHaveCount(3)
 })

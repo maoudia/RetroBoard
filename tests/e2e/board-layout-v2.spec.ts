@@ -68,6 +68,7 @@ test('one column can fold its own writing area with a slide, the others keep the
   const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
   const before = (await column(page, 0).locator('.notes').boundingBox())!.height
+  await page.getByTestId(`area-all-${a}`).click() // the link is on by default: fold one column on its own
   await page.getByTestId(`write-hide-${a}`).click()
   await expect(page.getByTestId(`draft-${a}`)).toBeHidden()
   await expect(page.getByTestId(`write-handle-${a}`)).toBeVisible()
@@ -85,6 +86,7 @@ test('the toolbar writing switch folds and unfolds every column, even ones folde
   await createBoard(page, { template: 'start-stop-continue' })
   const a = (await column(page, 0).getAttribute('data-testid'))!.replace('column-', '')
   const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
+  await page.getByTestId(`area-all-${a}`).click() // the link is on by default: fold one column on its own
   await page.getByTestId(`write-hide-${a}`).click()
   await page.getByTestId('btn-writing').click()
   await expect(page.getByTestId(`draft-${a}`)).toBeHidden()
@@ -127,7 +129,9 @@ test('the writing size is per column, and the Write chevron sets every column at
   const b = (await column(page, 1).getAttribute('data-testid'))!.replace('column-', '')
   const h = async (id: string) => (await page.getByTestId(`draft-${id}`).boundingBox())!.height
   const normal = await h(a)
-  // One column only.
+  // The link is on by default: turn it off to size one column only.
+  await page.getByTestId(`area-all-${a}`).click()
+  await expect(page.getByTestId(`area-all-${a}`)).toHaveAttribute('aria-pressed', 'false')
   await page.getByTestId(`area-large-${a}`).click()
   await expect(async () => expect(await h(a)).toBeGreaterThan(normal + 30)).toPass()
   expect(Math.abs((await h(b)) - normal)).toBeLessThan(4)
