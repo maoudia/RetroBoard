@@ -158,3 +158,43 @@ test('a team travels by encrypted link and by .retroteam file, without any board
   await expect(cp.getByTestId('team-names')).toContainText('Search')
   await carol.close()
 })
+
+test('the team and project row comes first on /new, in simple and in advanced mode', async ({ page }) => {
+  await page.goto('/new')
+  const above = (a: string, b: string) => page.evaluate(([x, y]) => {
+    const ea = document.querySelector(`[data-testid="${x}"]`), eb = document.querySelector(`[data-testid="${y}"]`)
+    return !!ea && !!eb && !!(ea.compareDocumentPosition(eb) & Node.DOCUMENT_POSITION_FOLLOWING)
+  }, [a, b])
+  // Simple mode: the compact row, without the long explanation.
+  await expect(page.getByTestId('team-card')).toBeVisible()
+  await expect(page.getByTestId('team-intro')).toHaveCount(0)
+  expect(await above('team-card', 'setup-title')).toBe(true)
+  await axe(page)
+  await page.getByTestId('mode-advanced').click()
+  await expect(page.getByTestId('team-intro')).toBeVisible()
+  expect(await above('team-card', 'setup-title')).toBe(true)
+})
+
+test('a typed title and a picked format survive a change of team', async ({ page }) => {
+  await createBoard(page, { template: 'mad-sad-glad', title: 'Sprint 7', name: 'Alice' })
+  await page.goto('/new')
+  await expect(page.getByTestId('setup-title')).toHaveValue('Sprint 8')
+  await page.getByTestId('setup-title').fill('My own title')
+  await page.getByTestId('tab-all').click()
+  await page.getByTestId('template-start-stop-continue').click()
+  await page.getByTestId('team-select').selectOption('__new')
+  await page.getByTestId('team-select').selectOption({ index: 0 })
+  await expect(page.getByTestId('setup-title')).toHaveValue('My own title')
+  await expect(page.getByTestId('template-start-stop-continue')).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('simple mode creates a board for a new team and a project', async ({ page }) => {
+  await page.goto('/new')
+  await page.getByTestId('team-select').selectOption('__new')
+  await page.getByTestId('team-name').fill('Gamma')
+  await page.getByTestId('team-project').fill('Apollo')
+  await page.getByTestId('setup-submit').click()
+  await expect(page).toHaveURL(/\/boards/)
+  await page.goto('/new')
+  await expect(page.getByTestId('team-select').locator('option:checked')).toContainText('Gamma')
+})

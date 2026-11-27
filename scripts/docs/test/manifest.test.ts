@@ -34,7 +34,7 @@ describe('the user guide manifest', () => {
   })
 
   it('names images chapter-step.webp and resolves a text in a language', () => {
-    expect(imageName(chapters[0], chapters[0].steps[0])).toBe('create-form.webp')
+    expect(imageName(chapters[0], chapters[0].steps[0])).toBe('create-team.webp')
     expect(text({ fr: 'a', en: 'b' }, 'en')).toBe('b')
     expect(text('same', 'fr')).toBe('same')
   })
