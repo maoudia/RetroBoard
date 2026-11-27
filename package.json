@@ -45,7 +45,8 @@
     "docs:guide": "node scripts/docs/guide.mjs",
     "docs:check": "node scripts/docs/check.mjs",
     "docs:video": "node scripts/docs/video.mjs",
-    "docs:voice": "node scripts/docs/voiceover.mjs"
+    "docs:voice": "node scripts/docs/voiceover.mjs",
+    "video:record": "node scripts/video/record-walkthrough.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
