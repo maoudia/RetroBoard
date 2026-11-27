@@ -10,17 +10,18 @@ const board = useBoardStore()
 const drafts = useDraftsStore()
 const layout = useLayoutStore()
 const ui = useUiStore()
+const settings = useSettingsStore()
 /** Phones write in a bottom sheet (change publishing-ux-redesign): the column keeps only the drafts tray, the folding of the writing area does not apply. */
 const phone = computed(() => layout.cls === 'phone')
 const sheeted = computed(() => phone.value && ui.composeColumn === props.column.id)
 const folded = computed(() => !phone.value && (layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id)))
 /** Columns locked together (the columns icon): the double chevron folds and unfolds every column at once (change feedback-wave-7). */
 function fold() {
-  if (ui.writeAll) layout.setWritingHidden(true)
+  if (settings.s.linkColumns) layout.setWritingHidden(true)
   else layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, true)
 }
 function unfold() {
-  if (ui.writeAll) { layout.setWritingHidden(false); return }
+  if (settings.s.linkColumns) { layout.setWritingHidden(false); return }
   if (layout.writingHidden) { layout.setWritingHidden(false); return }
   layout.setColumnWriteHidden(board.roomId ?? '', props.column.id, false)
 }
@@ -49,7 +50,7 @@ function startGrow(e: PointerEvent) {
 /** Double-click on the grip: back to the column's default height and size. */
 function resetSize() { ui.setColumnWriteHeight(board.roomId, props.column.id, null) }
 function setSize(z: (typeof WRITE_SIZES)[number]) {
-  if (ui.writeAll) ui.setAllWriteSize(board.roomId, z)
+  if (settings.s.linkColumns) ui.setAllWriteSize(board.roomId, z)
   else ui.setColumnWriteSize(board.roomId, props.column.id, z)
 }
 function growKey(e: KeyboardEvent) {
@@ -185,7 +186,7 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
       <template v-if="!phone">
         <!-- Size in place: S M L right here, and a link that makes the choice apply to every column (change feedback-wave-4). -->
         <SizePicker :model-value="ui.writeSizeOf(column.id)" :options="WRITE_SIZES" :label="t('private.area')" :option-label="(z) => t(`private.area.${z}` as never)" :testid="(z) => `area-${z}-${column.id}`" @update:model-value="setSize" />
-        <button class="mini-btn all" type="button" :aria-pressed="ui.writeAll" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="ui.writeAll = !ui.writeAll"><Icon name="lucide:columns-3" /></button>
+        <button class="mini-btn all" type="button" :aria-pressed="settings.s.linkColumns" :aria-label="t('private.area.all')" :title="t('private.area.all')" :data-testid="`area-all-${column.id}`" @click="settings.patch({ linkColumns: !settings.s.linkColumns })"><Icon name="lucide:columns-3" /></button>
         <button class="mini-btn" type="button" :aria-label="t('private.fold')" :title="t('private.fold')" :data-testid="`write-hide-${column.id}`" @click="fold"><Icon name="lucide:chevrons-down" /></button>
       </template>
     </header>

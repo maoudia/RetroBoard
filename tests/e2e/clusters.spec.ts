@@ -99,6 +99,7 @@ test.describe('clusters as merged ideas', () => {
   })
 
   test('expand all shows notes inline for me; collapse brings stacks back', async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ collapseButtons: true })) } catch { /* ignore */ } })
     await createBoard(page, { template: 'start-stop-continue' })
     for (const t of ['A1', 'A2']) await publishNote(page, 0, t)
     await noteByText(page, 'A2').dragTo(noteByText(page, 'A1'))

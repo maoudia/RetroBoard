@@ -109,6 +109,7 @@ test.describe('60 notes in a column', () => {
   })
 
   test('an expanded cluster takes the whole width of the column, its notes inside', async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.setItem('retroboard:settings', JSON.stringify({ collapseButtons: true })) } catch { /* ignore */ } })
     await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
     await publishAll(page, 0, ['Premiere', 'Deuxieme', 'Troisieme'])
     // A drop that lands while the column is still reflowing misses: drop again until the cluster is there.

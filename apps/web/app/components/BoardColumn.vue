@@ -109,7 +109,7 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
         </template>
       </Dropdown>
  <button
-        v-if="hasClusters" class="mini-btn" type="button" :aria-pressed="expanded" :data-testid="`expand-${column.id}`"
+        v-if="hasClusters && appSettings.s.collapseButtons" class="mini-btn" type="button" :aria-pressed="expanded" :data-testid="`expand-${column.id}`"
         :aria-label="expanded ? t('cluster.collapseAll') : t('cluster.expandAll')" :title="expanded ? t('cluster.collapseAll') : t('cluster.expandAll')" @click="ui.toggleExpanded(column.id)"
       >
         <Icon :name="expanded ? 'lucide:fold-vertical' : 'lucide:unfold-vertical'" />

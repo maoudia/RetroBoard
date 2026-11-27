@@ -12,9 +12,13 @@ export const useUiStore = defineStore('ui', () => {
   const dialog = ref<DialogName>(null)
   /** Columns whose clusters show their notes inline (this participant's view only). */
   const expandedColumns = ref(new Set<string>())
+  const appSettings = useSettingsStore()
+  /** Toggles one column; while the all-columns link is on, every column that has groups follows the clicked one (change column-defaults-and-collapse). */
   const toggleExpanded = (columnId: string) => {
     const next = new Set(expandedColumns.value)
-    if (next.has(columnId)) next.delete(columnId); else next.add(columnId)
+    const on = !next.has(columnId)
+    const targets = appSettings.s.linkColumns ? new Set([columnId, ...(useBoardStore().snapshot?.groups ?? []).map((g) => g.columnId)]) : new Set([columnId])
+    for (const id of targets) { if (on) next.add(id); else next.delete(id) }
     expandedColumns.value = next
   }
   /** Personal column widths and writing area, remembered per board and per screen class (change device-layout-prefs). */
@@ -43,15 +47,15 @@ export const useUiStore = defineStore('ui', () => {
     // A preset replaces a width set by dragging.
     if (layout.current.widths?.[room]?.[columnId] !== undefined) layout.setWidth(room, columnId, null)
     if (!layout.current.sizes[room]) layout.setSizes(room, legacy.value.sizes)
-    layout.setSize(room, columnId, size)
+    if (!appSettings.s.linkColumns) { layout.setSize(room, columnId, size); return }
+    // Linked: the preset goes to every column; a dragged width stays (a free width is deliberate).
+    for (const c of useBoardStore().columns) layout.setSize(room, c.id, size)
   }
   const setWriteSize = (room: string | null, size: WriteSize) => { if (room) layout.setWrite(room, size) }
   /** Notes grouped by "group by author" per column, kept to offer an undo. */
   const autoGrouped = ref<Record<string, string[]>>({})
   /** Cluster being dragged (drop on another cluster to merge). */
   const dragGroupId = ref<string | null>(null)
-  /** Writing-area size choices apply to every column while this is on (feedback-wave-4). */
-  const writeAll = ref(false)
   const openGroupId = ref<string | null>(null)
   /** Column being edited in the column dialog; null with dialog='column' means "add". */
   const editingColumnId = ref<string | null>(null)
@@ -108,5 +112,5 @@ export const useUiStore = defineStore('ui', () => {
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, writeAll, dragGroupId }
+  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
 })

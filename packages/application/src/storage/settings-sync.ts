@@ -12,7 +12,7 @@ export const SYNCED_SETTINGS = [
 
 /** Preferences about the device, its browser or a secret (ADR-0033): never synced. */
 export const LOCAL_ONLY_SETTINGS = [
-  'density', 'chatSide', 'retentionDays', 'systemNotify', 'browserAgents', 'p2p', 'slackWebhook',
+  'density', 'linkColumns', 'collapseButtons', 'chatSide', 'retentionDays', 'systemNotify', 'browserAgents', 'p2p', 'slackWebhook',
 ] as const
 
 /** The person's display choices. */

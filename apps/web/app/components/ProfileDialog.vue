@@ -117,6 +117,8 @@ async function wipe() {
         </select>
       </div>
       <ToggleSwitch plain :label="t('profile.presentGroups')" :hint="t('profile.presentGroups.hint')" :model-value="settings.s.presentGroups" data-testid="set-present-groups" @update:model-value="(on: boolean) => set({ presentGroups: on })" />
+      <ToggleSwitch plain :label="t('profile.linkColumns')" :hint="t('profile.linkColumns.hint')" :model-value="settings.s.linkColumns" data-testid="set-link-columns" @update:model-value="(on: boolean) => set({ linkColumns: on })" />
+      <ToggleSwitch plain :label="t('profile.collapseButtons')" :hint="t('profile.collapseButtons.hint')" :model-value="settings.s.collapseButtons" data-testid="set-collapse-buttons" @update:model-value="(on: boolean) => set({ collapseButtons: on })" />
       <ToggleSwitch v-if="advanced" plain :label="t('profile.ambient')" :hint="t('profile.ambient.hint')" :model-value="settings.s.ambient" data-testid="set-ambient" @update:model-value="(on: boolean) => set({ ambient: on })" />
       <div v-if="advanced" class="line">
         <span><strong>{{ t('profile.motion') }}</strong><small class="muted">{{ t('profile.motion.hint') }}</small></span>
