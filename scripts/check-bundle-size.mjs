@@ -63,7 +63,9 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // component (about 0.1 kB; the component, the guide link and the feedback links are a lazy chunk). The poker bar reuses the toolbar's mark, its light or dark
 // button (which reads the variant from the root, so that the theme store does not move into the entry) and the avatar.
 // 2026-11-28: entry raised from 56.6 to 56.8 kB (56.7 measured) for the fr/en strings of the simple creation page (change simple-mode-ux-pass, groups 1 and 2).
-const BUDGET = { entryKb: 56.8, totalKb: 500 }
+// 2026-11-28: entry raised from 56.8 to 57.0 kB on top of the line above for the phase policy (change phase-controls, groups 1 and 2): the agenda.policy command schema and fold,
+// the capability tables of the shared domain and the lock on the post-it (56.7 kB measured, 56.6 before). Raise it only on purpose.
+const BUDGET = { entryKb: 57.0, totalKb: 500 }
 const OPT_IN = [/initializeWebModelContext/]
 // A small chunk is opt-in only by an exact marker (the size guard below protects the big ones from a stray match). 2026-11-19, user-drive-storage:
 // the chunks that load only once a person connects a sync target are opt-in like the WebMCP polyfill, so they are reported and not counted: the

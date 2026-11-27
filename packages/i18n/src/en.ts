@@ -236,7 +236,7 @@ export const en: Record<keyof typeof fr, string> = {
   'agenda.remove': 'Remove {phase}',
   'agenda.totalPlanned': 'Total: {n} min',
   'agenda.rules': 'Phase rules',
-  'agenda.rules.hint': 'Recommended: each phase opens only what it is about (writing, grouping, voting, actions). Turn it off to let everyone do everything at any time.',
+  'agenda.rules.hint': 'Recommended: each phase opens only what it is about.',
   'presenter.walk.top': 'Back to the most voted idea',
   'presenter.walk.start': 'Walk through voted ideas',
   'presenter.walk.label': 'Voted idea under discussion',
