@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.72.0](https://github.com/maoudia/RetroBoard/compare/v1.71.1...v1.72.0) (2026-11-27)
+
+
+### Features
+
+* **quality:** Lighthouse form-factor and runs options, budgets per form factor (public-launch 3.1) ([0d571dd](https://github.com/maoudia/RetroBoard/commit/0d571dd979557b1bc7fd611d1636ed4050aa0a77))
+
 ## [1.71.1](https://github.com/maoudia/RetroBoard/compare/v1.71.0...v1.71.1) (2026-11-26)
 
 
