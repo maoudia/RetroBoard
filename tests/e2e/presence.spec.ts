@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote, settle } from './helpers'
+import { createBoard, cursorsOn, join, noteByText, publishNote, settle } from './helpers'
 
 async function shareUrl(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -9,6 +9,7 @@ async function shareUrl(page: import('@playwright/test').Page) {
 }
 
 test('pointers: the other participant sees mine over the same note with a different window size', async ({ page, browser, isMobile }) => {
+  test.skip(!cursorsOn, 'shared pointers are paused (change cursors-off-for-now); cursors-off.spec.ts covers the flag off')
   test.skip(isMobile, 'touch screens share focus, not a pointer (next test)')
   await page.setViewportSize({ width: 1100, height: 760 })
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
@@ -43,6 +44,7 @@ test('pointers: the other participant sees mine over the same note with a differ
 })
 
 test('"Show others\' pointers" off hides them on my screen', async ({ page, browser, isMobile }) => {
+  test.skip(!cursorsOn, 'shared pointers are paused (change cursors-off-for-now)')
   test.skip(isMobile, 'pointers are never drawn on touch screens')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
   const bob = await join(browser, await shareUrl(page), 'Bob')

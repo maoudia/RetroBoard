@@ -34,8 +34,8 @@ const rows = cols.map((c) => ({ ...c, items: c.notes.map((key) => ({ key, n: n++
         </article>
       </section>
     </div>
-    <span class="cursor a"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#0071e3" /></svg><em>Alice</em></span>
-    <span class="cursor b"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#1b7f3b" /></svg><em>Bob</em></span>
+    <span v-if="cursorsEnabled()" class="cursor a"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#0071e3" /></svg><em>Alice</em></span>
+    <span v-if="cursorsEnabled()" class="cursor b"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 1l11 6-5 1.5L6 14z" fill="#1b7f3b" /></svg><em>Bob</em></span>
   </div>
 </template>
 

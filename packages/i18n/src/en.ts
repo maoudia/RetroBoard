@@ -509,7 +509,7 @@ export const en: Record<keyof typeof fr, string> = {
   'profile.shareCursor': 'Share my pointer',
   'profile.shareCursor.hint': 'Others see where you point, encrypted, never stored. On touch screens, only while you drag.',
   'profile.p2p': 'Direct links with participants',
-  'profile.p2p.hint': 'Faster and independent from our server. Peers see your IP address, as in a video call. Off: everything goes through the relay, encrypted, and your pointer is not shared. Applies when you next open a board.',
+  'profile.p2p.hint': 'Faster and independent from our server. Peers see your IP address, as in a video call. Off: everything goes through the relay, encrypted. Applies when you next open a board.',
   'links.p2p': 'Direct: {n} person(s) reach you straight, the fastest way',
   'links.relay': 'Relay: a go-between passes the messages along, a bit slower and just as private',
   'links.p2p.idle': 'Direct: straight between people, the fastest way',

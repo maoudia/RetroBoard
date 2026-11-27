@@ -63,7 +63,7 @@ export const useBoardStore = defineStore('board', () => {
         else if (n.kind === 'poker-room') pokerRoom.value = true
         else lastNotice.value = { ...n, at: Date.now() }
       },
-      onCursor: (c, name) => live.setCursor(c, name),
+      onCursor: (c, name) => { if (cursorsEnabled()) live.setCursor(c, name) },
       onFocus: (f, name) => live.setFocus(f, name),
       onPeerLeft: (conn) => live.drop(conn),
       onRoomFull: (full) => { roomFull.value = full },
@@ -105,7 +105,7 @@ export const useBoardStore = defineStore('board', () => {
   const roomCode = computed(() => (roomId.value && !isSolo(roomId.value) && snapshot.value ? roomWords(roomId.value, snapshot.value.settings.locale ?? 'fr').join(' · ') : null))
   /** My actor id on this board (session key on encrypted boards): who I am in talk turns. */
   const myKey = computed(() => snapshot.value?.peers.find((p) => p.me)?.key ?? null)
-  const sendCursor = (c: OwnCursor) => transport?.sendCursor?.(c)
+  const sendCursor = (c: OwnCursor) => { if (cursorsEnabled()) transport?.sendCursor?.(c) }
   const sendFocus = (f: OwnFocus) => transport?.sendFocus?.(f)
   const canUseBoardFile = () => typeof transport?.exportBoardFile === 'function'
   const exportBoardFile = () => transport?.exportBoardFile?.() ?? Promise.resolve(null)

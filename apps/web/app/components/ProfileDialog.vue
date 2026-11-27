@@ -184,9 +184,9 @@ async function wipe() {
         </span>
         <button v-if="!persistence.persisted && board.canUseBoardFile()" type="button" class="btn btn-sm" data-testid="durability-save" @click="ui.open('export')"><Icon name="lucide:file-lock" /> {{ t('profile.durability.save') }}</button>
       </div>
-      <ToggleSwitch plain :label="t('profile.shareCursor')" :hint="t('profile.shareCursor.hint')" :model-value="settings.s.shareCursor" data-testid="set-share-cursor" @update:model-value="(on: boolean) => set({ shareCursor: on })" />
+      <ToggleSwitch v-if="cursorsEnabled()" plain :label="t('profile.shareCursor')" :hint="t('profile.shareCursor.hint')" :model-value="settings.s.shareCursor" data-testid="set-share-cursor" @update:model-value="(on: boolean) => set({ shareCursor: on })" />
       <ToggleSwitch v-if="advanced" plain :label="t('profile.p2p')" :hint="t('profile.p2p.hint')" :model-value="settings.s.p2p" data-testid="set-p2p" @update:model-value="(on: boolean) => set({ p2p: on })" />
-      <ToggleSwitch v-if="advanced" plain :label="t('profile.showCursors')" :model-value="settings.s.showCursors" data-testid="set-show-cursors" @update:model-value="(on: boolean) => set({ showCursors: on })" />
+      <ToggleSwitch v-if="advanced && cursorsEnabled()" plain :label="t('profile.showCursors')" :model-value="settings.s.showCursors" data-testid="set-show-cursors" @update:model-value="(on: boolean) => set({ showCursors: on })" />
     </section>
 
     <section v-if="advanced" class="grp" data-testid="layout-section">

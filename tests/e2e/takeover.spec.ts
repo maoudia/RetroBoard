@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, enterName } from './helpers'
+import { createBoard, cursorsOn, enterName } from './helpers'
 
 async function facilitatorLink(page: import('@playwright/test').Page) {
   await page.getByTestId('btn-share').click()
@@ -92,6 +92,7 @@ test('the lead sees the facilitator link card at once, hands over to a connected
 })
 
 test('the lead\'s pointer carries a crown for others, an ordinary pointer does not', async ({ page, browser, isMobile }) => {
+  test.skip(!cursorsOn, 'shared pointers are paused (change cursors-off-for-now)')
   test.skip(isMobile, 'touch screens show no floating pointers')
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
   await page.getByTestId('btn-share').click()
