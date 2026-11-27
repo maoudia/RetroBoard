@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 40" width="368" height="80" role="img" aria-label="RetroBoard">
+  <g transform="translate(0 4) scale(1.3333)" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+    <path d="M15 3v4h4"/>
+    <path d="M16.5 14.5a4.5 4.5 0 1 1-1.32-3.18"/>
+    <path d="M15.2 8v3.3h-3.3"/>
+  </g>
+  <text x="42" y="27" font-family="'Inter Variable', Inter, -apple-system, 'Segoe UI', system-ui, sans-serif" font-size="22" font-weight="650" letter-spacing="-0.4" fill="#1d1d1f">RetroBoard</text>
+</svg>
