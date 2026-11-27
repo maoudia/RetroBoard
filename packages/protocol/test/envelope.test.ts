@@ -234,6 +234,14 @@ describe('versions that differ (deploy-safe-sessions)', () => {
     expect(parseEventOrUnknown(genesis)?.kind).toBe('known')
   })
 
+  it('agenda.policy is a known command with a strict policy, and an older client keeps it as unknown', async () => {
+    const { parseEventOrUnknown } = await import('../src')
+    const known = cmd({ t: 'agenda.policy', phase: 'abcd1234', policy: { write: true, freeze: false } })
+    expect(parseEventOrUnknown(known)).toEqual({ kind: 'known', event: known })
+    expect(parseEventOrUnknown(cmd({ t: 'agenda.policy', phase: 'abcd1234', reset: true, policy: {} }))?.kind).toBe('known')
+    for (const policy of [{ write: 1 }, { nope: true }, 'x']) expect(parseEventOrUnknown(cmd({ t: 'agenda.policy', phase: 'abcd1234', policy }))?.kind).not.toBe('known')
+  })
+
   it('an unknown command or body keeps every key, so the signature still checks', async () => {
     const { parseEventOrUnknown } = await import('../src')
     const future = cmd({ t: 'future.command', value: 1, nested: { a: [1] } })

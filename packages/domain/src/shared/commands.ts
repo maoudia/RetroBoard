@@ -76,11 +76,12 @@ export type Command =
   | { t: 'talk.end' }
   | { t: 'talk.self' }
   | { t: 'talk.done' }
-  | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number }[]; rules?: boolean; autoPublish?: boolean; chain?: boolean }
+  | { t: 'agenda.set'; phases: { kind: PhaseKindName; minutes: number; policy?: Partial<Record<'write' | 'publish' | 'group' | 'vote' | 'actions' | 'freeze', boolean>> }[]; rules?: boolean; autoPublish?: boolean; chain?: boolean }
   | { t: 'agenda.options'; rules?: boolean; autoPublish?: boolean; chain?: boolean }
   | { t: 'agenda.advance'; from: number }
   | { t: 'agenda.clear' }
   | { t: 'agenda.voteOpen'; on: boolean }
+  | { t: 'agenda.policy'; phase: string; reset?: boolean; policy: Partial<Record<'write' | 'publish' | 'group' | 'vote' | 'actions' | 'freeze', boolean>> }
   | { t: 'agenda.toClose' }
   | { t: 'agenda.start' }
   | { t: 'agenda.pause' }

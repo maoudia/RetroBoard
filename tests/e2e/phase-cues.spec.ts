@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { closeCompose, composeField, createBoard, join, noteByText, publishNote } from './helpers'
+import { axe, closeCompose, composeField, createBoard, join, noteByText, publishNote } from './helpers'
 
 const shareLink = async (page: Page) => {
   if (!(await page.getByTestId('share-url').isVisible())) await page.getByTestId('btn-share').click()
@@ -75,5 +75,57 @@ test('votes and actions get the same closed cue; a phase change says what opened
   await panel(page, 'agenda-next')
   await expect(bob.page.getByTestId('live-polite')).toContainText(/Ouvert : le vote|Opened: voting/)
   await expect(bob.page.getByTestId('live-polite')).toContainText(/Fermé|Closed/)
+  await bob.ctx.close()
+})
+
+test('the lock on a post-it: a facilitator opens and closes voting with an icon-only button, a participant sees none', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await publishNote(page, 0, 'Lock me')
+  const bob = await join(browser, await shareLink(page), 'Bob')
+  await expect(noteByText(bob.page, 'Lock me')).toBeVisible()
+  await panel(page, 'agenda-start')
+  await panel(page, 'agenda-next')
+  await panel(page, 'agenda-next') // Group: voting is closed by the phase
+
+  const mine = noteByText(page, 'Lock me')
+  const theirs = noteByText(bob.page, 'Lock me')
+  const open = mine.locator('[data-testid^="open-voting-"]')
+  await expect(open).toHaveAccessibleName(/Open voting now|Ouvrir le vote maintenant/)
+  await expect(open).toHaveText('')
+  expect((await axe(page).include('article.note').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+  await expect(theirs.locator('[data-testid^="gated-vote-"]')).toBeDisabled()
+  await expect(theirs.locator('[data-testid^="open-voting-"], [data-testid^="close-voting-"]')).toHaveCount(0)
+
+  await open.click()
+  await expect(theirs.locator('[data-testid^="vote-"]').first()).toBeEnabled()
+  const close = mine.locator('[data-testid^="close-voting-"]')
+  await expect(close).toHaveAccessibleName(/Close voting|Clore le vote/)
+  expect((await axe(page).include('article.note').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
+  await expect(theirs.locator('[data-testid^="close-voting-"]')).toHaveCount(0)
+
+  await close.click()
+  await expect(theirs.locator('[data-testid^="gated-vote-"]')).toBeDisabled()
+  await expect(open).toBeVisible()
+  await bob.ctx.close()
+})
+
+test('a simple board applies the recommended presets: through every phase, each one opens only what it is about', async ({ page, browser }) => {
+  await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
+  await publishNote(page, 0, 'Preset me')
+  const bob = await join(browser, await shareLink(page), 'Bob')
+  const colId = (await bob.page.locator('section[data-testid^="column-"]').first().getAttribute('data-testid'))!.replace('column-', '')
+  const theirs = noteByText(bob.page, 'Preset me')
+  await expect(theirs).toBeVisible()
+  await panel(page, 'agenda-start')
+  // checkin, review, write, group, vote, rank, actions, close: writing opens in Write only (and drafts still land in Group), voting in Vote only.
+  const writing = ['no', 'no', 'yes', 'yes', 'no', 'no', 'no', 'no']
+  const voting = [false, false, false, false, true, false, false, false]
+  for (let i = 0; i < 8; i++) {
+    if (i > 0) await panel(page, 'agenda-next')
+    if (writing[i] === 'yes' && i === 2) await expect(bob.page.getByTestId(`draft-${colId}`)).toBeEnabled()
+    else if (writing[i] === 'no') await expect(bob.page.getByTestId(`draft-${colId}`)).toBeDisabled()
+    if (voting[i]) await expect(theirs.locator('[data-testid^="vote-"]').first()).toBeEnabled()
+    else await expect(theirs.locator('[data-testid^="gated-vote-"]')).toBeDisabled()
+  }
   await bob.ctx.close()
 })

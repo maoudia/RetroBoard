@@ -22,6 +22,10 @@ describe('cloneSpec', () => {
     expect(JSON.stringify(c)).not.toContain('secret idea')
     expect(c.actions).toBeUndefined()
   })
+  it('keeps the phase policies of the agenda', () => {
+    const s = { ...(snap as object), agenda: { phases: [{ id: 'p', kind: 'group', plannedMs: 300_000, policy: { write: true } }], rules: true, autoPublish: true } } as never
+    expect(cloneSpec(s, 'board', 'copy').agenda?.phases).toEqual([{ kind: 'group', minutes: 5, policy: { write: true } }])
+  })
   it('copies only the open actions for an actions-only clone', () => {
     const c = cloneSpec(snap, 'actions', 'copy')
     expect(c.actions).toEqual([{ text: 'Fix CI', owner: 'Ann', status: 'open', due: '2026-12-01', from: 'Sprint 12' }])

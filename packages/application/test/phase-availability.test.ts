@@ -27,6 +27,20 @@ describe('phase availability', () => {
     expect(a.closedBy).toBe(kind)
   })
 
+  it('reads the policy of the phase: write open during group, vote frozen, and the next phase that opens it', () => {
+    const a = agenda(ALL, ALL.indexOf('group'))
+    expect(phaseAvailability(a, 'note.add', false).allowed).toBe(false)
+    a.phases[a.current]!.policy = { write: true }
+    expect(phaseAvailability(a, 'note.add', false)).toEqual({ allowed: true, canOverride: false, closedBy: null, opensAt: null })
+    const v = agenda(ALL, ALL.indexOf('vote'))
+    v.phases[v.current]!.policy = { freeze: true }
+    expect(phaseAvailability(v, 'vote.add', false)).toMatchObject({ allowed: false, closedBy: 'vote', opensAt: null })
+    expect(phaseAvailability(v, 'vote.add', true)).toMatchObject({ allowed: true, canOverride: true })
+    const w = agenda(['write', 'rank'], 0)
+    w.phases[1]!.policy = { vote: true }
+    expect(phaseAvailability(w, 'vote.add', false)).toMatchObject({ closedBy: 'write', opensAt: 'rank' })
+  })
+
   it('names the next phase that opens the command, or none', () => {
     // Vote phase, writing reopens only if a later write/group phase exists.
     // Drafts published in bulk (note.addMany) are accepted again in the Group phase.

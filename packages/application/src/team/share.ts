@@ -1,4 +1,4 @@
-import { PHASE_KINDS, type PhaseInput } from '@retroboard/domain'
+import { CAPABILITIES, normalizePolicy, PHASE_KINDS, type PhaseInput, type PhasePolicy } from '@retroboard/domain'
 import { TEAM_COLORS, TEAM_EMOJIS, type Team, type TeamDefaults, type Workspace } from './workspace'
 
 /**
@@ -19,6 +19,15 @@ const text = (v: unknown, max: number): string | null => {
 const MAX_PHASES = 20
 const MAX_MINUTES = 600
 
+/** A shared policy keeps only boolean capabilities that differ from the preset; anything else is dropped. */
+function policyOf(kind: PhaseInput['kind'], v: unknown): PhasePolicy | undefined {
+  if (typeof v !== 'object' || v === null) return undefined
+  const o = v as Record<string, unknown>
+  const raw: PhasePolicy = {}
+  for (const c of CAPABILITIES) if (typeof o[c] === 'boolean') raw[c] = o[c]
+  return normalizePolicy(kind, raw)
+}
+
 function agendaOf(v: unknown): TeamDefaults['agenda'] | null {
   if (typeof v !== 'object' || v === null) return null
   const a = v as Record<string, unknown>
@@ -29,7 +38,8 @@ function agendaOf(v: unknown): TeamDefaults['agenda'] | null {
     const kind = (PHASE_KINDS as readonly unknown[]).find((k) => k === o.kind)
     const minutes = Number.isInteger(o.minutes) ? (o.minutes as number) : 0
     if (!kind || minutes < 1 || minutes > MAX_MINUTES) return null
-    phases.push({ kind: kind as PhaseInput['kind'], minutes })
+    const policy = policyOf(kind as PhaseInput['kind'], o.policy)
+    phases.push({ kind: kind as PhaseInput['kind'], minutes, ...(policy ? { policy } : {}) })
   }
   return { phases, rules: a.rules === true, autoPublish: a.autoPublish === true, ...(a.autoStart === true ? { autoStart: true } : {}), ...(a.chain === false ? { chain: false } : {}) }
 }

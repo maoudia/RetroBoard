@@ -1,4 +1,4 @@
-import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, phaseClock, withoutOverride } from './agenda'
+import { agendaRunning, closePhase, extendPhase, MIN, newAgenda, normalizePolicy, phaseClock, withoutOverride } from './agenda'
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { KEY_RE } from '../access/keyring'
@@ -10,7 +10,7 @@ import { emptyTalk } from './talk'
 
 type FacilitationCommand = 'drafts.reveal' | 'board.init' | 'template.apply' | 'settings.update'
   | 'timer.start' | 'timer.pause' | 'timer.reset' | 'board.reset' | 'board.destroy' | 'column.reset' | 'vote.reset'
-  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.advance' | 'agenda.prev' | 'agenda.extend' | 'agenda.end' | 'agenda.restart' | 'agenda.voteOpen' | 'agenda.toClose'
+  | 'agenda.set' | 'agenda.options' | 'agenda.clear' | 'agenda.start' | 'agenda.pause' | 'agenda.next' | 'agenda.advance' | 'agenda.prev' | 'agenda.extend' | 'agenda.end' | 'agenda.restart' | 'agenda.voteOpen' | 'agenda.policy' | 'agenda.toClose'
 
 /** The end of the agenda closes voting (results shown): nobody keeps voting on a retro that is over (change feedback-wave-5). */
 const closeVoting = (s: BoardState): Pick<BoardState, 'settings'> => ({ settings: { ...s.settings, votingClosed: true } })
@@ -254,6 +254,23 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
     if (!agendaRunning(a)) return fail('invalid')
     if (!!a.voteOpen === c.on) return done(s, {})
     return done({ ...s, agenda: c.on ? { ...a, voteOpen: true } : withoutOverride(a) }, { meta: true })
+  },
+
+  /**
+   * Per-phase capability policy (change phase-controls). The given capabilities are merged into the stored ones; a value equal to the
+   * preset is dropped, and a policy left empty is removed, so `reset` ("Reset to recommended") clears the stored ones first.
+   */
+  'agenda.policy': (s, c) => {
+    const a = s.agenda
+    if (!a) return fail('not-found')
+    const i = a.phases.findIndex((p) => p.id === c.phase)
+    if (i < 0) return fail('not-found')
+    const phase = a.phases[i]!
+    const merged = normalizePolicy(phase.kind, { ...(c.reset ? {} : phase.policy), ...c.policy })
+    if (JSON.stringify(merged ?? null) === JSON.stringify(phase.policy ?? null)) return done(s, {})
+    const { policy: _old, ...rest } = phase
+    const phases = a.phases.map((p, j) => (j === i ? (merged ? { ...rest, policy: merged } : rest) : p))
+    return done({ ...s, agenda: { ...a, phases } }, { meta: true })
   },
 
   /** Jump to the close phase from any earlier phase; skipped phases keep no actual time. */
