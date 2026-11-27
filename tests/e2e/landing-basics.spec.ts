@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
+import { cursorsOn } from './helpers'
 
 test('the site ships its icons and manifest, and the landing says what is true (change stabilise-main)', async ({ page }) => {
   await page.goto('/')
@@ -83,8 +84,8 @@ test('the open-code section and the feature cards are in English too, and are re
   await section.scrollIntoViewIfNeeded()
   await expect(section.getByRole('heading', { level: 2 })).toHaveText('Built in public, source available.')
   await expect(section.getByTestId('open-commercial')).toHaveText('Ask for a commercial license')
-  await expect(page.locator('#features .card')).toHaveCount(10)
-  for (const title of ['Agenda ring', 'Vote podium', 'Live cursors', 'Exports', 'AI agents']) await expect(page.locator('#features h3', { hasText: title })).toBeVisible()
+  await expect(page.locator('#features .card')).toHaveCount(cursorsOn ? 10 : 9)
+  for (const title of ['Agenda ring', 'Vote podium', ...(cursorsOn ? ['Live cursors'] : []), 'Exports', 'AI agents']) await expect(page.locator('#features h3', { hasText: title })).toBeVisible()
   // Reduced motion: nothing waits for a scroll to appear.
   await expect(section.locator('.card').first()).toHaveCSS('opacity', '1')
   await context.close()

@@ -79,3 +79,13 @@ unchanged: captions only.
 The guide and the video ship with the site: merge the pull request and the normal deploy publishes them under `/guide/`. A
 separate CI job for the guide is not set up; the checks that run in CI are `pnpm docs:check` (in `pnpm verify`) and the e2e specs
 `tests/e2e/guide.spec.ts`, `guide-links.spec.ts` and `guide-video.spec.ts` (CSP, pictures, video, accessibility).
+
+## Record the landing walkthrough
+
+```bash
+pnpm dev:worker                 # in another terminal, http://localhost:8787
+pnpm video:record               # fr and en, about 45 s each; --locale en for one language
+```
+
+It films one loop of the animated walkthrough of the landing (`LandingWalkthrough.vue`) and writes
+`reports/product-video/walkthrough-<locale>.webm` for social media (`BASE_URL` and `VIDEO_OUT` override the site and the folder).

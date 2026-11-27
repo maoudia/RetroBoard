@@ -433,7 +433,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <AppToolbar v-if="board.ready" />
       <LazySyncNudge v-if="board.ready" />
       <PhaseStepper v-if="board.ready && board.snapshot?.agenda" />
-      <CursorLayer v-if="board.ready" />
+      <CursorLayer v-if="board.ready && cursorsEnabled()" />
       <PresenterJoin v-if="board.ready && ui.presenter" />
       <PresenterFocus v-if="board.ready && ui.presenter" />
       <PresenterWalk v-if="board.ready && ui.presenter" />

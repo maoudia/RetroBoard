@@ -1,6 +1,9 @@
 import AxeBuilder from '@axe-core/playwright'
 import { type Browser, expect, type Page } from '@playwright/test'
 
+/** Shared pointers are paused by default (change cursors-off-for-now); the flag-on run (pnpm e2e:cursors) builds the site with them on. */
+export const cursorsOn = process.env.E2E_CURSORS === '1'
+
 export async function enterName(page: Page, name: string, show = true) {
   await page.getByTestId('name-input').fill(name)
   // Typing a name ticks "show" by default (author-name-by-default): set it explicitly.

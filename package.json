@@ -1,6 +1,6 @@
 {
   "name": "retroboard",
-  "version": "1.72.0",
+  "version": "1.73.0",
   "private": true,
   "type": "module",
   "description": "Real-time, anonymous, themeable retrospective board (Nuxt static + Cloudflare Workers + Durable Objects)",
@@ -20,6 +20,7 @@
     "e2e": "playwright test",
     "e2e:core": "node scripts/e2e-core.mjs",
     "e2e:rest": "node scripts/e2e-rest.mjs",
+    "e2e:cursors": "node scripts/e2e-cursors.mjs",
     "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm dup && pnpm knip && pnpm adr:check && pnpm wip && pnpm quarantine && pnpm docs:check && pnpm test && openspec validate --all --strict",
     "spec": "openspec",
     "postinstall": "pnpm --filter @retroboard/web prepare && node scripts/commits/install-hooks.mjs",
@@ -45,7 +46,8 @@
     "docs:guide": "node scripts/docs/guide.mjs",
     "docs:check": "node scripts/docs/check.mjs",
     "docs:video": "node scripts/docs/video.mjs",
-    "docs:voice": "node scripts/docs/voiceover.mjs"
+    "docs:voice": "node scripts/docs/voiceover.mjs",
+    "video:record": "node scripts/video/record-walkthrough.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

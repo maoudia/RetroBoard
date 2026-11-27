@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.73.0](https://github.com/maoudia/RetroBoard/compare/v1.72.0...v1.73.0) (2026-11-27)
+
+
+### Features
+
+* **web:** animated product walkthrough on the landing and its WebM recording script ([7dc3dd4](https://github.com/maoudia/RetroBoard/commit/7dc3dd4a4b696f0e9fa6784f7ba2b6479dbd43b4))
+* **web:** pause shared pointers behind the CURSORS_ENABLED flag, off by default (cursors-off-for-now) ([4b61cf5](https://github.com/maoudia/RetroBoard/commit/4b61cf5da42234d90466df0f8d6c8ee9b10dc452))
+
+
+### Bug Fixes
+
+* **quality:** keep the docs-reading script tests out of the Stryker sandbox run ([9283dbe](https://github.com/maoudia/RetroBoard/commit/9283dbe0198a4d0d82ca568035de9f7c4441a9c6))
+
 ## [1.72.0](https://github.com/maoudia/RetroBoard/compare/v1.71.1...v1.72.0) (2026-11-27)
 
 

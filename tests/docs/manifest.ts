@@ -45,6 +45,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: t('Créer un board', 'Create a board'),
     intro: t('Un board se crée en quelques secondes: un titre, un format, un thème. Aucun compte n’est nécessaire.', 'A board takes seconds to create: a title, a format, a theme. No account is needed.'),
     steps: [
+      { id: 'team', caption: t('Choisis d’abord l’équipe (et un projet si tu veux): ses réglages préparent le formulaire en dessous.', 'Choose your team first (and a project if you like): its defaults prepare the form below.'), ops: [{ goto: '/new' }], anchors: ['team-select', 'team-project'], shoot: 'team-card' },
       { id: 'form', caption: t('Donne un titre au board et choisis un format de rétro.', 'Give the board a title and pick a retro format.'), ops: [{ goto: '/new' }, { fill: ['setup-title', t('Sprint 24', 'Sprint 24')] }], anchors: ['setup-title', 'setup-submit'] },
       { id: 'theme', caption: t('Le thème est choisi par le facilitateur et vaut pour toute l’équipe.', 'The facilitator picks the theme and the whole team sees it.'), ops: [], anchors: ['theme-studio'], shoot: 'setup-form' },
     ],

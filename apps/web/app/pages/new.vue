@@ -36,7 +36,7 @@ onMounted(() => {
 
 /** Previous actions to carry over into the new board (team profile or a file). */
 const carry = ref<ImportedAction[]>([])
-/** Team and project of the new board (change team-workspaces): advanced shows both, simple keeps the last team. */
+/** Team and project of the new board (changes team-workspaces, creation-team-first): chosen first, in both modes; untouched, simple keeps the last team. */
 const team = useTeamStore()
 const NEW_TEAM = '__new'
 const teamChoice = ref(team.current?.id ?? NEW_TEAM)
@@ -81,8 +81,8 @@ async function create({ passcode, ...form }: SetupResult) {
   }
   const ring = { ...newKeyRing(), ...(passcode && !soloMode.value ? { passcode: true } : {}) }
   if (soloMode.value) markSolo(ring.roomId)
-  const chosen = advanced.value && teamChoice.value === NEW_TEAM && newTeamName.value.trim() ? team.create(newTeamName.value) : team.teams.find((x) => x.id === teamChoice.value) ?? team.ensureTeam()
-  team.assign(ring.roomId, chosen.id, advanced.value ? projectName.value : null)
+  const chosen = teamChoice.value === NEW_TEAM && newTeamName.value.trim() ? team.create(newTeamName.value) : team.teams.find((x) => x.id === teamChoice.value) ?? team.ensureTeam()
+  team.assign(ring.roomId, chosen.id, projectName.value)
   team.remember(chosen.id, {
     templateId: setup.templateId, themeId: setup.themeId, title: setup.title, at: Date.now(),
     ...(setup.agenda ? { agenda: setup.agenda } : {}),
@@ -118,18 +118,9 @@ async function create({ passcode, ...form }: SetupResult) {
         <h2>{{ t('new.resume.title') }}</h2>
         <RecentBoards :limit="3" testid="new-resume-list" />
       </section>
-      <section class="card panel">
-        <ToggleSwitch v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
-        <ToggleSwitch plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
-        <p v-if="cloned" class="clone-banner" role="status" data-testid="clone-banner"><Icon name="lucide:copy" /> {{ t(cloned.kind === 'actions' ? 'clone.banner.actions' : 'clone.banner') }}</p>
-        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :prefill="prefill" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
-      </section>
-      <section v-if="advanced" class="card panel">
-        <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
-      </section>
-      <section v-if="advanced" class="card panel team" data-testid="team-card">
+      <section class="card panel team" :class="{ compact: !advanced }" data-testid="team-card">
         <h2 class="h2"><Icon name="lucide:users-round" /> {{ t('team.title') }}</h2>
-        <p class="muted">{{ t('team.intro') }}</p>
+        <p v-if="advanced" class="muted" data-testid="team-intro">{{ t('team.intro') }}</p>
         <div class="team-row">
           <label class="team-f">
             <span>{{ t('team.team') }}</span>
@@ -148,6 +139,15 @@ async function create({ passcode, ...form }: SetupResult) {
             <datalist id="team-projects"><option v-for="p in team.projects(teamChoice)" :key="p" :value="p" /></datalist>
           </label>
         </div>
+      </section>
+      <section class="card panel">
+        <ToggleSwitch v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
+        <ToggleSwitch plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
+        <p v-if="cloned" class="clone-banner" role="status" data-testid="clone-banner"><Icon name="lucide:copy" /> {{ t(cloned.kind === 'actions' ? 'clone.banner.actions' : 'clone.banner') }}</p>
+        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :prefill="prefill" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
+      </section>
+      <section v-if="advanced" class="card panel">
+        <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
       </section>
       <section v-if="advanced" class="card panel">
         <CarryOverPicker v-model="carry" :team-id="teamChoice" :project="projectName" />
@@ -170,6 +170,7 @@ async function create({ passcode, ...form }: SetupResult) {
 h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
 .h2 { display: flex; gap: .5rem; align-items: center; margin: 0; font-size: var(--fs-lg); }
 .team { display: grid; gap: .6rem; }
+.team.compact { gap: .4rem; }
 .team-row { display: flex; flex-wrap: wrap; gap: .75rem; }
 .team-f { display: grid; gap: .25rem; flex: 1 1 14rem; font-weight: 600; }
 .solo-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }

@@ -169,7 +169,7 @@ onMounted(() => {
             <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:trophy" /></div>
             <h3>{{ t('landing.f.podium.h') }}</h3><p>{{ t('landing.f.podium.p') }}</p>
           </article>
-          <article class="card" data-reveal data-d="2">
+          <article v-if="cursorsEnabled()" class="card" data-reveal data-d="2">
             <div class="vis v-icon" aria-hidden="true"><Icon name="lucide:mouse-pointer-2" /></div>
             <h3>{{ t('landing.f.cursors.h') }}</h3><p>{{ t('landing.f.cursors.p') }}</p>
           </article>
@@ -198,6 +198,7 @@ onMounted(() => {
 
       <section id="how" class="sec">
         <h2 data-reveal>{{ t('landing.how.h') }}</h2>
+        <LazyLandingWalkthrough hydrate-on-visible />
         <ol class="steps">
           <li data-reveal><span class="n">1</span><h3>{{ t('landing.how.1.h') }}</h3><p>{{ t('landing.how.1.p') }}</p></li>
           <li data-reveal data-d="1"><span class="n">2</span><h3>{{ t('landing.how.2.h') }}</h3><p>{{ t('landing.how.2.p') }}</p></li>

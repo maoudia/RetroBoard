@@ -88,6 +88,9 @@ export default defineNuxtConfig({
       // The public client id of the Microsoft Entra app registration, when it is set at build time (NUXT_PUBLIC_ONEDRIVE_CLIENT_ID).
       // Empty: OneDrive is offered only if the deployment serves one in /providers.json (the Worker setting ONEDRIVE_CLIENT_ID).
       onedriveClientId: '',
+      // Shared pointers (live cursors, the laser and their settings) are paused (change cursors-off-for-now). NUXT_PUBLIC_CURSORS_ENABLED=true
+      // turns them back on at build time; the flag-on e2e run (pnpm e2e:cursors) does that.
+      cursorsEnabled: false,
     },
   },
   // Static hoisting turns constant :style bindings into literal style attributes (innerHTML), which the CSP blocks.

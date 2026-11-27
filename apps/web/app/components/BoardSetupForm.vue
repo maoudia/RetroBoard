@@ -24,9 +24,11 @@ watch(() => recents.items[0]?.title, (prev) => {
 }, { immediate: true })
 watch(() => props.cloneTitle, (v) => { if (v) { title.value = v; typed.value = true } }, { immediate: true })
 const templateId = ref<string>(DEFAULT_TEMPLATE_ID)
+/** A format picked by hand is kept when the team changes (change creation-team-first). */
+const picked = ref(false)
 watch(() => props.prefill, (p) => {
   if (!p || props.cloneTitle) return
-  if (p.templateId && getTemplate(p.templateId)) templateId.value = p.templateId
+  if (p.templateId && getTemplate(p.templateId) && (!picked.value || p.linked)) templateId.value = p.templateId
   if (p.title && !typed.value) title.value = p.title
 }, { immediate: true })
 /** Votes per person and sealed ballot (advanced): applied right after the board exists. */
@@ -80,7 +82,7 @@ function onSubmit() {
 
     <section class="block">
       <h3><span class="n">2</span> {{ t('setup.step2') }}</h3>
-      <TemplatePicker v-model="templateId" :theme-id="themeId" :show-all="prefill?.linked" @update:minutes="emit('update:minutes', $event)" />
+      <TemplatePicker v-model="templateId" @update:model-value="picked = true" :theme-id="themeId" :show-all="prefill?.linked" @update:minutes="emit('update:minutes', $event)" />
     </section>
 
     <div v-if="advanced" class="adv" data-testid="setup-advanced">
@@ -126,6 +128,8 @@ h3 { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-xl); }
 .go { align-self: flex-end; padding: .8rem 1.5rem; font-size: var(--fs-md); }
 /* Phones: the primary action is a large centred button in the thumb zone, full width and stuck to the bottom while the form scrolls (change responsive-and-i18n-hardening). */
 @media (max-width: 480px) {
+  /* The sticky button is clamped to the form top while the form is below the fold: this room keeps it off the first field (target size, change creation-team-first). */
+  .setup::before { content: ''; } /* an empty flex item: its gap moves the first field below the button, padding would not (sticky clamps to the content box) */
   .go { position: sticky; bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); z-index: 5; align-self: stretch; justify-content: center; min-height: 3rem; font-size: var(--fs-lg); box-shadow: var(--shadow-2), 0 -.5rem .75rem .5rem color-mix(in oklab, var(--bg) 85%, transparent); }
 }
 .pass { display: grid; gap: .35rem; }
