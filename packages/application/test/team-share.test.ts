@@ -51,6 +51,13 @@ describe('team share', () => {
     for (const bad of [null, 'x', {}, { phases: [] }, { phases: 'x' }, { phases: [null] }, { phases: [{ kind: 'nope', minutes: 3 }] }, { phases: [{ kind: 'write', minutes: 0 }] }, { phases: [{ kind: 'write', minutes: 601 }] }, { phases: [{ kind: 'write', minutes: 1.5 }] }, { phases: [{ kind: 'write', minutes: '3' }] }, { phases: Array.from({ length: 21 }, () => ({ kind: 'write', minutes: 1 })) }]) expect(parse(bad)).toBeUndefined()
   })
 
+  it('keeps the boolean capabilities of a shared phase policy that differ from the preset, and drops the rest', () => {
+    const parse = (policy: unknown) => parseTeamShare({ id: 'a', name: 'N', settings: { agenda: { phases: [{ kind: 'rank', minutes: 3, policy }], rules: true, autoPublish: true } } })!.settings.agenda!.phases[0]
+    expect(parse({ vote: true, write: false, freeze: false, group: 'yes', nope: true })).toEqual({ kind: 'rank', minutes: 3, policy: { vote: true } })
+    expect(parse({ freeze: false })).toEqual({ kind: 'rank', minutes: 3 })
+    expect(parse('x')).toEqual({ kind: 'rank', minutes: 3 })
+  })
+
   it('joining adds the team and makes it the next one; joining again updates it and keeps the local boards', () => {
     const share = teamShareOf(aliceWorkspace().teams[0]!)
     let bob = joinTeam(addTeam(EMPTY_WORKSPACE, 'Mine', 'm').ws, share)

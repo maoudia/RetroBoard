@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { votingState } from '@retroboard/application'
 import type { VotableKind } from '@retroboard/domain'
 import { errorLabel } from '~/utils/labels'
 const { t } = useT()
@@ -14,6 +15,8 @@ const bumped = ref(false)
 const plus = ref(0)
 
 const gate = computed(() => board.availability('vote.add'))
+/** Voting is open outside the Vote phase because a facilitator opened it; only a facilitator may take it back. */
+const overridden = computed(() => board.access.canSteer && !!board.snapshot && votingState(board.snapshot) === 'overridden')
 const perItem = computed(() => board.settings?.maxVotesPerItem ?? 1)
 const closed = computed(() => board.settings?.votingClosed ?? false)
 const single = computed(() => perItem.value <= 1)
@@ -47,11 +50,15 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
       <span class="thumb"><Icon name="lucide:lock" /></span>
     </button>
     <!-- Same locked state for every role (solo included); a facilitator may open voting now instead of waiting for the phase (#231). -->
-    <button v-if="gate.canOverride" class="vote open-now" type="button" :title="t('vote.openNow.hint')" :data-testid="`open-voting-${id}`" @click="board.commands.openVotingNow(true)">
-      <Icon name="lucide:lock-open" /><span>{{ t('votebar.openNow') }}</span>
+    <button v-if="gate.canOverride" class="vote lock-btn" type="button" :aria-label="`${t('votebar.openNow')} - ${label}`" :title="t('vote.openNow.hint')" :data-testid="`open-voting-${id}`" @click="board.commands.openVotingNow(true)">
+      <Icon name="lucide:lock-open" />
     </button>
   </span>
   <span v-else-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
+    <!-- Voting is open only because a facilitator opened it now: the same lock closes it again (participants see nothing). -->
+    <button v-if="overridden" class="vote lock-btn" type="button" :aria-label="`${t('votebar.closeAction')} - ${label}`" :title="t('vote.closeNow.hint')" :data-testid="`close-voting-${id}`" @click="board.commands.openVotingNow(false)">
+      <Icon name="lucide:lock-open" />
+    </button>
     <button
       v-if="!single && voted && !closed" class="vote undo" type="button"
       :aria-label="t('vote.undo', { label })" :data-testid="`unvote-${id}`" @click="remove"
@@ -81,8 +88,8 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
 .vote.voted { background: var(--note-ink, currentColor); color: var(--c, #fff); border-color: var(--note-ink, currentColor); }
 .vote.off { opacity: .55; cursor: not-allowed; }
 .vote.gated { background: var(--gated-bg); color: var(--text); border-style: dashed; } /* the note ink is dark on every note: on a dark surface the lock would vanish */
-.vote.open-now { min-width: 0; max-width: 100%; font-size: var(--fs-sm); font-weight: 600; }
-.vote.open-now > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* a long label ends in an ellipsis; the title carries the full text */
+.vote.lock-btn { justify-content: center; min-width: 32px; padding: .2rem .45rem; }
+@media (pointer: coarse) { .vote.lock-btn { min-width: 44px; min-height: 44px; } } /* touch target */
 .vote.undo { padding: .2rem .4rem; }
 .mine { display: inline-flex; gap: 3px; }
 .mine i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }

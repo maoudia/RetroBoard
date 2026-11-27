@@ -30,6 +30,6 @@ export function cloneSpec(snap: Snapshot, kind: CloneKind, copyLabel: string): C
     title: title ? `${title} - ${copyLabel}` : copyLabel,
     themeId: snap.settings.themeId,
     columns: snap.columns.map((c) => ({ title: c.title, subtitle: c.subtitle, icon: c.icon as ColumnIcon, ...(c.color === undefined ? {} : { color: c.color }), ...(c.votable === false ? { votable: false } : {}) })),
-    ...(a ? { agenda: { phases: a.phases.map((p) => ({ kind: p.kind, minutes: Math.max(1, Math.round(p.plannedMs / 60_000)) })), rules: a.rules, autoPublish: a.autoPublish, chain: a.chain !== false } } : {}),
+    ...(a ? { agenda: { phases: a.phases.map((p) => ({ kind: p.kind, minutes: Math.max(1, Math.round(p.plannedMs / 60_000)), ...(p.policy ? { policy: p.policy } : {}) })), rules: a.rules, autoPublish: a.autoPublish, chain: a.chain !== false } } : {}),
   }
 }

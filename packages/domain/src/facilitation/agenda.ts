@@ -13,6 +13,8 @@ export interface Phase {
   plannedMs: number
   /** Time actually spent, pauses excluded; set when the phase is left (for the retro report). */
   actualMs?: number
+  /** Capabilities that differ from the preset of the kind (change phase-controls); absent means the preset. */
+  policy?: PhasePolicy
 }
 
 /**
@@ -68,14 +70,17 @@ export const AGENDA_PRESETS: Record<30 | 45 | 60 | 90, Record<PhaseKind, number>
   90: { checkin: 7, review: 8, write: 15, group: 12, vote: 8, rank: 7, actions: 23, close: 10 },
 }
 
-export interface PhaseInput { kind: PhaseKind; minutes: number }
+export interface PhaseInput { kind: PhaseKind; minutes: number; policy?: PhasePolicy }
 
 export const presetPhases = (total: keyof typeof AGENDA_PRESETS): PhaseInput[] =>
   PHASE_KINDS.map((kind) => ({ kind, minutes: AGENDA_PRESETS[total][kind] }))
 
 export function newAgenda(phases: readonly PhaseInput[], newId: () => string, opts: { rules?: boolean; autoPublish?: boolean; chain?: boolean } = {}): AgendaState {
   return {
-    phases: phases.map((p) => ({ id: newId(), kind: p.kind, plannedMs: Math.round(p.minutes * MIN) })),
+    phases: phases.map((p) => {
+      const policy = p.policy && normalizePolicy(p.kind, p.policy)
+      return { id: newId(), kind: p.kind, plannedMs: Math.round(p.minutes * MIN), ...(policy ? { policy } : {}) }
+    }),
     current: -1, startedAt: 0, pausedAt: null, rules: opts.rules ?? true, autoPublish: opts.autoPublish ?? true, chain: opts.chain ?? false,
   }
 }
@@ -142,8 +147,8 @@ export function extendPhase(a: AgendaState, deltaMs: number, borrow: boolean): A
   return { ...a, phases }
 }
 
-/** What each phase is about: participants may do these, facilitators may do anything. */
-const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
+/** What each phase is about: participants may do these, facilitators may do anything (the recommended preset). */
+export const PHASE_PRESETS: Record<PhaseKind, readonly CommandType[]> = {
   // Stryker disable next-line ArrayDeclaration: an array holding something that is no command allows nothing, like the empty one
   checkin: [],
   review: ['action.status', 'action.update', 'action.toggle'],
@@ -156,8 +161,52 @@ const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
   close: ['roti.set'],
 }
 
-/** Does a phase of this kind allow a participant to run the command? */
-export const phaseAllows = (kind: PhaseKind, command: CommandType): boolean => PHASE_COMMANDS[kind].includes(command)
+export const CAPABILITIES = ['write', 'publish', 'group', 'vote', 'actions', 'freeze'] as const
+export type Capability = (typeof CAPABILITIES)[number]
+/** Only the capabilities that differ from the preset are stored: a reset deletes the key. */
+export type PhasePolicy = Partial<Record<Capability, boolean>>
+
+/** The commands each capability governs; `freeze` governs all of them for participants. */
+export const CAPABILITY_COMMANDS: Record<Exclude<Capability, 'freeze'>, readonly CommandType[]> = {
+  write: ['note.add', 'note.edit', 'note.delete', 'note.color'],
+  publish: ['note.addMany'],
+  group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move'],
+  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
+  actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
+}
+
+/** Is the capability fully on in the preset of this kind (all of its commands are allowed)? A partial one reads as off. */
+export const presetCapability = (kind: PhaseKind, capability: Capability): boolean =>
+  capability !== 'freeze' && CAPABILITY_COMMANDS[capability].every((c) => PHASE_PRESETS[kind].includes(c))
+
+/** A value that changes nothing against the preset: on while all its commands are allowed, off while none is, never freeze on. */
+const redundant = (kind: PhaseKind, capability: Capability, on: boolean): boolean => {
+  if (capability === 'freeze') return !on
+  const inPreset = CAPABILITY_COMMANDS[capability].filter((c) => PHASE_PRESETS[kind].includes(c)).length
+  return on ? inPreset === CAPABILITY_COMMANDS[capability].length : inPreset === 0
+}
+
+/** The policy without the values that equal the preset, or undefined when nothing differs. */
+export function normalizePolicy(kind: PhaseKind, policy: PhasePolicy): PhasePolicy | undefined {
+  const out: PhasePolicy = {}
+  for (const c of CAPABILITIES) if (policy[c] !== undefined && !redundant(kind, c, policy[c]!)) out[c] = policy[c]
+  return Object.keys(out).length ? out : undefined
+}
+
+/** A capability as the phase has it: the stored value or the preset. */
+export const capabilityOn = (phase: Pick<Phase, 'kind' | 'policy'>, capability: Capability): boolean => phase.policy?.[capability] ?? presetCapability(phase.kind, capability)
+
+/** Does the phase (kind and policy) allow a participant to run the command? A bare kind means its preset. */
+export function phaseAllows(phase: PhaseKind | Pick<Phase, 'kind' | 'policy'>, command: CommandType): boolean {
+  const { kind, policy } = typeof phase === 'string' ? { kind: phase, policy: undefined } : phase
+  if (!policy) return PHASE_PRESETS[kind].includes(command)
+  if (policy.freeze) return false
+  let allowed = PHASE_PRESETS[kind].includes(command)
+  for (const c of Object.keys(CAPABILITY_COMMANDS) as (keyof typeof CAPABILITY_COMMANDS)[]) {
+    if (policy[c] !== undefined && CAPABILITY_COMMANDS[c].includes(command)) allowed = policy[c]!
+  }
+  return allowed
+}
 
 /** Phase rules: is this command allowed for a participant right now? Always true without running rules. */
 export function allowedInPhase(a: AgendaState | null, command: CommandType): boolean {
@@ -165,5 +214,5 @@ export function allowedInPhase(a: AgendaState | null, command: CommandType): boo
   // Taking and giving back one's own speaking turn is never a phase matter.
   if (command === 'talk.self' || command === 'talk.done' || command === 'chat.post' || command === 'presenter.set') return true
   if (a.voteOpen && phaseAllows('vote', command)) return true
-  return phaseAllows(a.phases[a.current]!.kind, command)
+  return phaseAllows(a.phases[a.current]!, command)
 }

@@ -13,7 +13,7 @@ const started = (): Ledger => foldAll(emptyLedger(roomId), [genesis()])
 const open = (): Ledger => foldAll(started(), [cmd(FAC, { t: 'settings.update', openFacilitation: true })])
 
 const EXPECTED_PRIVILEGED = [
-  'agenda.advance', 'agenda.clear', 'agenda.end', 'agenda.extend', 'agenda.next', 'agenda.options', 'agenda.pause', 'agenda.prev', 'agenda.restart', 'agenda.set', 'agenda.start', 'agenda.toClose', 'agenda.voteOpen',
+  'agenda.advance', 'agenda.clear', 'agenda.end', 'agenda.extend', 'agenda.next', 'agenda.options', 'agenda.pause', 'agenda.policy', 'agenda.prev', 'agenda.restart', 'agenda.set', 'agenda.start', 'agenda.toClose', 'agenda.voteOpen',
   'action.import', 'board.destroy', 'board.init', 'board.reset', 'chat.clear', 'column.hide', 'column.reset', 'column.show', 'drafts.reveal', 'note.freeze', 'note.pin', 'note.unfreeze', 'note.unpin',
   'settings.update', 'talk.assign', 'talk.end', 'template.apply', 'timer.pause', 'timer.reset', 'timer.start', 'turn.set', 'vote.close', 'vote.reopen', 'vote.reset', 'vote.reveal',
 ].sort()

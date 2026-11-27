@@ -22,8 +22,8 @@ export function phaseAvailability(agenda: AgendaState | null, command: CommandTy
   if (!agendaRunning(agenda) || !agenda.rules) return OPEN
   // Facilitator override (facilitator-controls-v2): voting stays open until the next phase change.
   if (agenda.voteOpen && phaseAllows('vote', command)) return OPEN
-  const here = agenda.phases[agenda.current]!.kind
+  const here = agenda.phases[agenda.current]!
   if (phaseAllows(here, command)) return OPEN
-  const next = agenda.phases.slice(agenda.current + 1).find((p) => phaseAllows(p.kind, command))
-  return { allowed: bypassesRules, canOverride: bypassesRules, closedBy: here, opensAt: next?.kind ?? null }
+  const next = agenda.phases.slice(agenda.current + 1).find((p) => phaseAllows(p, command))
+  return { allowed: bypassesRules, canOverride: bypassesRules, closedBy: here.kind, opensAt: next?.kind ?? null }
 }

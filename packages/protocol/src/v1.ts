@@ -16,6 +16,9 @@ const ActionStatus = v.picklist(['todo', 'doing', 'done', 'blocked', 'dropped'])
 // Stryker disable next-line Regex: the calendar check on this line already refuses every string the anchors would (it parses and round-trips the date)
 const DueDate = v.pipe(v.string(), v.regex(/^\d{4}-\d{2}-\d{2}$/), v.check((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) && new Date(`${d}T00:00:00Z`).toISOString().startsWith(d)))
 
+/** Capabilities of a phase that differ from its preset (change phase-controls). */
+const PhasePolicyShape = v.strictObject({ write: v.optional(v.boolean()), publish: v.optional(v.boolean()), group: v.optional(v.boolean()), vote: v.optional(v.boolean()), actions: v.optional(v.boolean()), freeze: v.optional(v.boolean()) })
+
 /** A sealed ballot: base64url of ephemeral key, nonce, padded vote and tag (about 135 characters). */
 const Sealed = v.pipe(v.string(), v.regex(SEALED_RE))
 const BallotKey = v.pipe(v.string(), v.regex(KEY_RE))
@@ -129,6 +132,7 @@ export const CommandSchema = v.variant('t', [
     phases: v.pipe(v.array(v.object({
       kind: v.picklist(['checkin', 'review', 'write', 'group', 'vote', 'rank', 'actions', 'close']),
       minutes: v.pipe(v.number(), v.minValue(1), v.maxValue(LIMITS.maxPhaseMinutes)),
+      policy: v.optional(PhasePolicyShape),
     })), v.minLength(1), v.maxLength(LIMITS.maxPhases)),
     rules: v.optional(v.boolean()),
     autoPublish: v.optional(v.boolean()),
@@ -138,6 +142,12 @@ export const CommandSchema = v.variant('t', [
   v.object({ t: v.literal('agenda.advance'), from: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(LIMITS.maxPhases)) }),
   v.object({ t: v.literal('agenda.clear') }),
   v.object({ t: v.literal('agenda.voteOpen'), on: v.boolean() }),
+  v.object({
+    t: v.literal('agenda.policy'),
+    phase: Id,
+    reset: v.optional(v.boolean()),
+    policy: PhasePolicyShape,
+  }),
   v.object({ t: v.literal('agenda.toClose') }),
   v.object({ t: v.literal('agenda.start') }),
   v.object({ t: v.literal('agenda.pause') }),

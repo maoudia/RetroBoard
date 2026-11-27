@@ -44,6 +44,7 @@ const remove = (i: number) => patch({ phases: model.value.phases.filter((_, k) =
       </ol>
       <p class="muted" data-testid="agenda-total">{{ t('agenda.totalPlanned', { n: total }) }}</p>
       <CheckPill :model-value="model.rules" :label="t('agenda.rules')" data-testid="agenda-rules" @change="patch({ rules: ($event.target as HTMLInputElement).checked })" />
+      <p class="muted small" data-testid="agenda-rules-hint">{{ t('agenda.rules.hint') }}</p>
       <CheckPill :model-value="model.autoPublish" :label="t('agenda.autoPublish')" data-testid="agenda-autopublish" @change="patch({ autoPublish: ($event.target as HTMLInputElement).checked })" />
       <CheckPill :model-value="model.chain !== false" :label="t('agenda.chain')" data-testid="agenda-chain" @change="patch({ chain: ($event.target as HTMLInputElement).checked })" />
       <CheckPill :model-value="!!model.autoStart" :label="t('agenda.autoStart')" data-testid="agenda-autostart" @change="patch({ autoStart: ($event.target as HTMLInputElement).checked })" />

@@ -1,4 +1,4 @@
-import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
+import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type PhasePolicy, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
 import { createUndoStack, inverseOf, type UndoLabel } from './history'
@@ -189,6 +189,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
     setAgenda: (phases: { kind: PhaseKindName; minutes: number }[], opts: { rules?: boolean; autoPublish?: boolean; chain?: boolean } = {}) =>
       send({ t: 'agenda.set', phases: phases.slice(0, LIMITS.maxPhases), ...opts }),
     agendaOptions: (opts: { rules?: boolean; autoPublish?: boolean; chain?: boolean }) => send({ t: 'agenda.options', ...opts }),
+    setPhasePolicy: (phase: string, policy: PhasePolicy) => send({ t: 'agenda.policy', phase, policy }),
+    resetPhasePolicy: (phase: string) => send({ t: 'agenda.policy', phase, reset: true, policy: {} }),
     clearAgenda: () => send({ t: 'agenda.clear' }),
     startAgenda: () => send({ t: 'agenda.start' }),
     pauseAgenda: () => send({ t: 'agenda.pause' }),
