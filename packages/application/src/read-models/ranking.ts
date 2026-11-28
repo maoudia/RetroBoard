@@ -6,12 +6,19 @@ export interface RankedItem {
   id: string
   title: string
   columnId: string
+  /** Score: the votes, or ups minus downs in the up and down style. */
   votes: number
+  /** Up and down style only. */
+  ups?: number
+  downs?: number
   /** Standard competition ranking: ties share a rank and the next rank skips (1, 2, 2, 4). */
   rank: number
   /** Number of notes merged in a cluster (1 for a note). */
   size: number
 }
+
+const updown = (x: { ups?: number | null; downs?: number | null }): { ups?: number; downs?: number } =>
+  x.ups === undefined || x.ups === null ? {} : { ups: x.ups, downs: x.downs ?? 0 }
 
 /**
  * Ranking after voting: every idea (loose note or cluster) ordered by votes, ties kept together.
@@ -28,14 +35,16 @@ export function buildRanking(s: Pick<Snapshot, 'notes' | 'groups'> & { columns?:
     if (!counted(cols, g)) continue
     const notes = s.notes.filter((n) => n.groupId === g.id)
     if (!notes.length) continue
-    items.push({ kind: 'cluster', id: g.id, title: groupTitle(g, notes), columnId: g.columnId, votes: g.votes ?? 0, rank: 0, size: notes.length, pos: order.get(notes[0]!.id)! })
+    items.push({ kind: 'cluster', id: g.id, title: groupTitle(g, notes), columnId: g.columnId, votes: g.votes ?? 0, ...updown(g), rank: 0, size: notes.length, pos: order.get(notes[0]!.id)! })
   }
   for (const n of s.notes) {
     if (n.groupId || !counted(cols, n)) continue
-    items.push({ kind: 'note', id: n.id, title: n.text, columnId: n.columnId, votes: n.votes ?? 0, rank: 0, size: 1, pos: order.get(n.id)! })
+    items.push({ kind: 'note', id: n.id, title: n.text, columnId: n.columnId, votes: n.votes ?? 0, ...updown(n), rank: 0, size: 1, pos: order.get(n.id)! })
   }
-  items.sort((a, b) => b.votes - a.votes || a.pos - b.pos)
-  return items.map(({ pos: _pos, ...it }, i, all) => ({ ...it, rank: i > 0 && all[i - 1]!.votes === it.votes ? 0 : i + 1 }))
+  // Score, then ups (up and down style; absent ups are equal), then board order.
+  items.sort((a, b) => b.votes - a.votes || (b.ups ?? 0) - (a.ups ?? 0) || a.pos - b.pos)
+  const same = (a: RankedItem, b: RankedItem): boolean => a.votes === b.votes && (a.ups ?? 0) === (b.ups ?? 0)
+  return items.map(({ pos: _pos, ...it }, i, all) => ({ ...it, rank: i > 0 && same(all[i - 1]!, it) ? 0 : i + 1 }))
     .reduce<RankedItem[]>((acc, it) => [...acc, { ...it, rank: it.rank || acc.at(-1)!.rank }], [])
 }
 

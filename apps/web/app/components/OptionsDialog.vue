@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { SettingsPatch } from '@retroboard/application'
 import { DISPLAY_SCALES, LIMITS, NOTE_TEXT_MIN } from '@retroboard/domain'
+import { errorLabel } from '~/utils/labels'
 const { t } = useT()
 
 const ui = useUiStore()
+const { push } = useToasts()
 const board = useBoardStore()
 const open = computed({ get: () => ui.dialog === 'options', set: (v) => { if (!v && ui.dialog === 'options') ui.close() } })
 const SCALE_ICON = { small: 'minimize-2', normal: 'square', large: 'maximize-2' } as const
@@ -23,6 +25,13 @@ const set = (patch: SettingsPatch) => {
   board.commands.updateSettings(patch)
   // Switching an open board to one facilitator: whoever switches becomes the lead.
   if (patch.openFacilitation === false && board.myKey) { ui.takeoverAsked = true; board.sendRole('role.claim', board.myKey) }
+}
+const voteStyle = computed(() => s.value.voteStyle ?? 'dots')
+/** The style is fixed once a vote exists: the board answers 'not-empty' and the toast says why. */
+function setStyle(v: 'dots' | 'updown') {
+  if (v === voteStyle.value) return
+  const r = board.commands.updateSettings({ voteStyle: v })
+  if (r && !r.ok && r.error !== 'offline') push(r.error === 'not-empty' ? t('options.voteStyle.locked') : errorLabel(r.error as never), 'warn')
 }
 const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.value.title) set({ title: title.value }) }
 </script>
@@ -67,6 +76,12 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         <h3>{{ t('options.votes') }}</h3>
         <ToggleSwitch plain :label="t('setup.voting.enabled')" :hint="t('setup.voting.enabled.hint')" :model-value="s.votingEnabled !== false" data-testid="opt-voting-enabled" @update:model-value="(on: boolean) => set({ votingEnabled: on })" />
         <div class="line">
+          <span><strong>{{ t('options.voteStyle') }}</strong><small class="muted">{{ t('options.voteStyle.hint') }}</small></span>
+          <span class="pick-seg" role="group" :aria-label="t('options.voteStyle')">
+            <button v-for="v in (['dots', 'updown'] as const)" :key="v" type="button" :class="{ on: voteStyle === v }" :aria-pressed="voteStyle === v" :data-testid="`opt-vote-style-${v}`" @click="setStyle(v)">{{ t(`options.voteStyle.${v}`) }}</button>
+          </span>
+        </div>
+        <div v-if="voteStyle === 'dots'" class="line">
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
           <span class="stepper">
             <button class="mini-btn" type="button" :aria-label="t('options.less')" :disabled="s.voteLimit <= LIMITS.minVotes" @click="setLimit(s.voteLimit - 1)"><Icon name="lucide:minus" /></button>
@@ -75,8 +90,8 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
           </span>
         </div>
         <!-- All votes on one idea: off by default; it is the per-idea cap set to the whole vote budget (change vote-all-on-one-idea). -->
-        <ToggleSwitch v-if="advanced" plain :label="t('options.allOnOne')" :hint="t('options.allOnOne.hint')" :model-value="allOnOne" :disabled="s.voteLimit <= 1" data-testid="opt-all-on-one" @update:model-value="(on: boolean) => set({ maxVotesPerItem: on ? s.voteLimit : 1 })" />
-        <div v-if="advanced" class="line">
+        <ToggleSwitch v-if="advanced && voteStyle === 'dots'" plain :label="t('options.allOnOne')" :hint="t('options.allOnOne.hint')" :model-value="allOnOne" :disabled="s.voteLimit <= 1" data-testid="opt-all-on-one" @update:model-value="(on: boolean) => set({ maxVotesPerItem: on ? s.voteLimit : 1 })" />
+        <div v-if="advanced && voteStyle === 'dots'" class="line">
           <span><strong>{{ t('options.perItem') }}</strong><small class="muted">{{ t('options.perItem.hint') }}</small></span>
           <span class="stepper">
             <button class="mini-btn" type="button" :aria-label="t('options.perItem.less')" :disabled="s.maxVotesPerItem <= 1" @click="set({ maxVotesPerItem: s.maxVotesPerItem - 1 })"><Icon name="lucide:minus" /></button>

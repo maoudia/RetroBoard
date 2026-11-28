@@ -1,7 +1,7 @@
 import type { RevealCount, VotableKind } from '../shared/commands'
 import { done, fail, type HandlerMap } from '../shared/outcome'
 import type { Actor, BoardState, Outcome } from '../shared/types'
-import { ballotsOf, countOf, votability, votesUsedBy } from './policy'
+import { ballotsOf, choiceOf, countOf, downsOf, isUpDown, votability, votesUsedBy } from './policy'
 import { revealIsPlausible, SEALED_RE, SEALED_VOTER, sealedBallotsBy } from './sealed'
 
 function guard(s: BoardState): Outcome | null {
@@ -11,6 +11,8 @@ function guard(s: BoardState): Outcome | null {
 }
 
 function addVote(s: BoardState, kind: VotableKind, id: string, a: Actor): Outcome {
+  // Dot votes belong to the dots style; the up and down style has its own commands.
+  if (isUpDown(s)) return fail('forbidden')
   // A sealed ballot never lets a choice travel in clear.
   if (s.settings.sealedBallot) return fail('forbidden')
   const blocked = guard(s) ?? (() => { const r = votability(s, kind, id); return r ? fail(r) : null })()
@@ -25,7 +27,7 @@ function addVote(s: BoardState, kind: VotableKind, id: string, a: Actor): Outcom
 
 /** Removes one of the actor's votes from the item (undo). Allowed even if the item became unvotable. */
 function removeVote(s: BoardState, kind: VotableKind, id: string, a: Actor): Outcome {
-  if (s.settings.sealedBallot) return fail('forbidden')
+  if (s.settings.sealedBallot || isUpDown(s)) return fail('forbidden')
   const blocked = guard(s)
   if (blocked) return blocked
   const item = kind === 'note' ? s.notes[id] : s.groups[id]
@@ -38,8 +40,36 @@ function removeVote(s: BoardState, kind: VotableKind, id: string, a: Actor): Out
     : done({ ...s, groups: { ...s.groups, [id]: { ...s.groups[id]!, voters } } }, { groups: [id] })
 }
 
+/**
+ * Up and down style (change up-down-votes): one choice per participant and idea, no budget. A new choice replaces the
+ * old one, so a participant is in at most one of the two lists. `null` clears it. Idempotent: the same choice twice is a no-op.
+ */
+function setChoice(s: BoardState, kind: VotableKind, id: string, a: Actor, choice: 'up' | 'down' | null): Outcome {
+  if (!isUpDown(s) || s.settings.sealedBallot) return fail('forbidden')
+  const blocked = guard(s)
+  if (blocked) return blocked
+  // Clearing is allowed on an idea that became unvotable, like the undo of a dot vote.
+  if (choice !== null) {
+    const why = votability(s, kind, id)
+    if (why) return fail(why)
+  }
+  const item = kind === 'note' ? s.notes[id] : s.groups[id]
+  if (!item) return fail('not-found')
+  if (choiceOf(item, a.cid) === choice) return done(s, {})
+  const voters = item.voters.filter((v) => v !== a.cid)
+  const downVoters = downsOf(item).filter((v) => v !== a.cid)
+  if (choice === 'up') voters.push(a.cid)
+  if (choice === 'down') downVoters.push(a.cid)
+  const { downVoters: _old, ...rest } = item
+  const next = { ...rest, voters, ...(downVoters.length ? { downVoters } : {}) }
+  return kind === 'note'
+    ? done({ ...s, notes: { ...s.notes, [id]: next as typeof s.notes[string] } }, { notes: [id] })
+    : done({ ...s, groups: { ...s.groups, [id]: next as typeof s.groups[string] } }, { groups: [id] })
+}
+
 /** Casts one sealed ballot. Only public data is checked here (mode, budget, replay): the choice is readable by the ballot key alone. */
 function sealVote(s: BoardState, sealed: string, a: Actor): Outcome {
+  if (isUpDown(s)) return fail('forbidden')
   const blocked = guard(s)
   if (blocked) return blocked
   if (!s.settings.sealedBallot || !SEALED_RE.test(sealed)) return fail('invalid')
@@ -82,7 +112,7 @@ function revealTally(s: BoardState, counts: RevealCount[]): Outcome {
 }
 
 /** Voting context: dot votes with a per-person budget, a per-item cap, votes on notes or clusters, a closing phase. */
-export const votingHandlers: HandlerMap<'vote.toggle' | 'vote.add' | 'vote.remove' | 'vote.seal' | 'vote.unseal' | 'vote.reveal' | 'vote.close' | 'vote.reopen'> = {
+export const votingHandlers: HandlerMap<'vote.toggle' | 'vote.add' | 'vote.remove' | 'vote.up' | 'vote.down' | 'vote.clear' | 'vote.seal' | 'vote.unseal' | 'vote.reveal' | 'vote.close' | 'vote.reopen'> = {
   // Kept for clients of protocol v1: one vote per note, on or off.
   'vote.toggle': (s, c, a) => {
     const n = s.notes[c.id]
@@ -91,6 +121,9 @@ export const votingHandlers: HandlerMap<'vote.toggle' | 'vote.add' | 'vote.remov
   },
   'vote.add': (s, c, a) => addVote(s, c.kind, c.id, a),
   'vote.remove': (s, c, a) => removeVote(s, c.kind, c.id, a),
+  'vote.up': (s, c, a) => setChoice(s, c.kind, c.id, a, 'up'),
+  'vote.down': (s, c, a) => setChoice(s, c.kind, c.id, a, 'down'),
+  'vote.clear': (s, c, a) => setChoice(s, c.kind, c.id, a, null),
   'vote.seal': (s, c, a) => sealVote(s, c.sealed, a),
   'vote.unseal': (s, c, a) => unsealVote(s, c.sealed, a),
   'vote.reveal': (s, c) => revealTally(s, c.counts),

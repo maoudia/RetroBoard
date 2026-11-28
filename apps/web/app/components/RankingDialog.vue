@@ -53,7 +53,7 @@ function toAction(item: RankedItem) {
           <ul class="on-step">
             <li v-for="it in s.items" :key="it.id" class="winner" :data-testid="`podium-${it.id}`">
               <strong class="ttl">{{ it.title }}</strong>
-              <small class="muted">{{ t('ranking.votes', { n: it.votes }) }}</small>
+              <small class="muted" :data-testid="`podium-score-${it.id}`">{{ it.ups === undefined ? t('ranking.votes', { n: it.votes }) : t('ranking.score', { n: it.votes, up: it.ups, down: it.downs ?? 0 }) }}</small>
             </li>
           </ul>
           <span class="block" aria-hidden="true">{{ s.rank }}</span>
@@ -113,7 +113,7 @@ function toAction(item: RankedItem) {
             <span class="ttl">{{ it.title }}</span>
             <small class="muted">{{ columnTitle(it.columnId) }}<template v-if="it.kind === 'cluster'"> · {{ t('ranking.cluster', { n: it.size }) }}</template></small>
           </span>
-          <span class="n mono">{{ it.votes }}</span>
+          <span class="n mono" :title="it.ups === undefined ? undefined : t('ranking.score', { n: it.votes, up: it.ups, down: it.downs ?? 0 })" :data-testid="`rank-score-${it.id}`">{{ it.votes }}</span>
           <button
             v-if="board.access.canSteer" class="btn btn-sm" type="button" :disabled="done.has(it.id)"
             :aria-label="`${t(done.has(it.id) ? 'ranking.toAction.done' : 'ranking.toAction')} - ${it.title}`" :data-testid="`to-action-${it.id}`" @click="toAction(it)"

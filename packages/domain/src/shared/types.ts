@@ -20,6 +20,8 @@ export interface Group {
   title: string | null
   /** Votes cast on the cluster as one idea (a client id per vote; repeats allowed). Never leaves the server. */
   voters: string[]
+  /** Down votes of the up and down vote style (change up-down-votes): `voters` then holds the ups. Absent: none. */
+  downVoters?: string[]
   /** Frozen by a facilitator: read only until unfrozen (change note-freeze). */
   frozen?: boolean
   /** Pinned at the top of its column: time of the pin, which is the pin order (change note-pin). */
@@ -39,6 +41,8 @@ export interface NoteRecord {
   groupId: string | null
   /** Client ids that voted. Never leaves the server. */
   voters: string[]
+  /** Down votes of the up and down vote style (change up-down-votes): `voters` then holds the ups. Absent: none. */
+  downVoters?: string[]
   createdAt: number
   /** Frozen by a facilitator: read only until unfrozen (change note-freeze). */
   frozen?: boolean
@@ -86,6 +90,9 @@ export interface TimerState {
 export type DisplayScale = 'small' | 'normal' | 'large'
 export const DISPLAY_SCALES: readonly DisplayScale[] = ['small', 'normal', 'large']
 
+export type VoteStyle = 'dots' | 'updown'
+export const VOTE_STYLES: readonly VoteStyle[] = ['dots', 'updown']
+
 export interface BoardSettings {
   title: string
   voteLimit: number
@@ -93,6 +100,8 @@ export interface BoardSettings {
   maxVotesPerItem: number
   /** What can be voted on. With clusters votable, notes inside a cluster are not voted separately. */
   votable: 'notes' | 'clusters' | 'both'
+  /** Vote style (change up-down-votes): dots with a budget (default, absent) or one up or down per idea. Fixed once a vote exists. */
+  voteStyle?: VoteStyle
   /** Counts hidden from everyone but their own votes until voting closes ("hidden counts"). */
   secretVoting: boolean
   /** Voting phase over: no more votes, hidden counts are revealed to everyone at once. */
@@ -215,8 +224,13 @@ export interface SnapshotNote {
   color: number
   author: string | null
   groupId: string | null
-  /** null while hidden counts hide them. */
+  /** null while hidden counts hide them. In the up and down style: the score (ups minus downs). */
   votes: number | null
+  /** Up and down style only: ups and downs, null while hidden counts hide them. */
+  ups?: number | null
+  downs?: number | null
+  /** Up and down style only: my choice on this idea. */
+  myChoice?: 'up' | 'down' | null
   voted: boolean
   /** How many of my votes are on this note. */
   myVotes: number
@@ -239,6 +253,9 @@ export interface SnapshotGroup {
   title: string | null
   /** Cluster score: its own votes plus votes its notes received; null while counts are hidden. */
   votes: number | null
+  ups?: number | null
+  downs?: number | null
+  myChoice?: 'up' | 'down' | null
   myVotes: number
   votable: boolean
   frozen?: boolean

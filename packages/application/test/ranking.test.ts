@@ -44,4 +44,11 @@ describe('ranking and votable columns (change column-voting-scope)', () => {
     })!
     expect(r.map((x) => x.id)).toEqual(['a'])
   })
+
+  it('up and down style: orders by score then ups, and only equal score and ups share a rank', () => {
+    const ud = (id: string, votes: number, ups: number, downs: number): SnapshotNote => ({ ...note(id, votes), ups, downs })
+    const r = buildRanking({ notes: [ud('a', 1, 1, 0), ud('b', 1, 3, 2), ud('c', 1, 3, 2), ud('d', -2, 0, 2)], groups: [] })!
+    expect(r.map((x) => [x.id, x.rank, x.ups, x.downs])).toEqual([['b', 1, 3, 2], ['c', 1, 3, 2], ['a', 3, 1, 0], ['d', 4, 0, 2]])
+    expect(podium(r).map((x) => x.id)).toEqual(['b', 'c', 'a'])
+  })
 })

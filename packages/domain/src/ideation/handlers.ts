@@ -2,6 +2,18 @@ import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { DEFAULT_NOTE_MAX_LENGTH, LIMITS, NOTE_COLOR_EXTENDED } from '../shared/limits'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { makeNote, normalizeGroups } from './notes'
+import { choiceOf, downsOf, isUpDown } from '../voting/policy'
+import type { BoardState, Group } from '../shared/types'
+
+/** The votes of a merged cluster. Up and down style: one choice per person, the receiving cluster's choice wins. */
+function mergedVotes(s: BoardState, onto: Group, from: Group): Group {
+  if (!isUpDown(s)) return { ...onto, voters: [...onto.voters, ...from.voters] }
+  const free = (cid: string): boolean => choiceOf(onto, cid) === null
+  const voters = [...onto.voters, ...from.voters.filter(free)]
+  const downVoters = [...downsOf(onto), ...downsOf(from).filter((cid) => free(cid) && !from.voters.includes(cid))]
+  const { downVoters: _old, ...rest } = onto
+  return { ...rest, voters, ...(downVoters.length ? { downVoters } : {}) }
+}
 
 type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.move' | 'note.color'
   | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.recolor' | 'group.dissolve' | 'group.merge' | 'group.move'
@@ -138,7 +150,7 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
       notes[n.id] = { ...n, groupId: onto.id }
       moved.push(n.id)
     }
-    const groups = { ...s.groups, [onto.id]: { ...onto, voters: [...onto.voters, ...from.voters] } }
+    const groups = { ...s.groups, [onto.id]: mergedVotes(s, onto, from) }
     Reflect.deleteProperty(groups, from.id)
     return done({ ...s, notes, groups }, { notes: moved, groups: [onto.id, from.id] })
   },

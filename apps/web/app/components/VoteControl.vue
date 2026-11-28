@@ -8,7 +8,7 @@ const { t } = useT()
  * Dot-vote control for a note or a cluster.
  * One vote per item: a toggle. Several: "+" adds, "-" takes one back, dots show my votes.
  */
-const props = defineProps<{ kind: VotableKind; id: string; votes: number | null; myVotes: number; label: string }>()
+const props = defineProps<{ kind: VotableKind; id: string; votes: number | null; myVotes: number; label: string; ups?: number | null; downs?: number | null; myChoice?: 'up' | 'down' | null }>()
 const board = useBoardStore()
 const { push } = useToasts()
 const bumped = ref(false)
@@ -22,6 +22,12 @@ const closed = computed(() => board.settings?.votingClosed ?? false)
 const single = computed(() => perItem.value <= 1)
 const canAdd = computed(() => !board.locked && !closed.value && board.votesLeft > 0 && props.myVotes < perItem.value)
 const voted = computed(() => props.myVotes > 0)
+/** Up and down style (change up-down-votes): two buttons, my choice pressed, one choice per idea, no budget. */
+const updown = computed(() => board.settings?.voteStyle === 'updown')
+function choose(c: 'up' | 'down') {
+  if (closed.value) return report({ ok: false, error: 'voting-closed' })
+  report(board.commands.setChoice(props.kind, props.id, props.myChoice === c ? null : c))
+}
 const countLabel = computed(() => (props.votes !== null ? ` ${props.votes}` : ''))
 
 function report(r: { ok: boolean; error?: string }) {
@@ -53,6 +59,17 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
     <button v-if="gate.canOverride" class="vote lock-btn" type="button" :aria-label="`${t('votebar.openNow')} - ${label}`" :title="t('vote.openNow.hint')" :data-testid="`open-voting-${id}`" @click="board.commands.openVotingNow(true)">
       <Icon name="lucide:lock-open" />
     </button>
+  </span>
+  <span v-else-if="board.allowed('vote.add') && updown" class="vc ud" role="group" :aria-label="t('vote.group', { label })" :data-testid="`votes-${id}`">
+    <button
+      v-for="c in (['up', 'down'] as const)" :key="c" class="vote" type="button" :aria-pressed="myChoice === c"
+      :aria-label="`${t(myChoice === c ? `note.${c}.on` : `note.${c}`)}${c === 'up' && ups != null ? ` ${ups}` : ''}${c === 'down' && downs != null ? ` ${downs}` : ''} - ${label}`"
+      :class="{ voted: myChoice === c, off: closed }" :data-testid="`${c}-${id}`" @click="choose(c)"
+    >
+      <span class="thumb"><Icon :name="c === 'up' ? 'lucide:thumbs-up' : 'lucide:thumbs-down'" /></span>
+      <span v-if="(c === 'up' ? ups : downs) != null" class="n mono">{{ c === 'up' ? ups : downs }}</span>
+    </button>
+    <span v-if="votes !== null" class="score mono" :title="t('vote.score', { n: votes })" :data-testid="`score-${id}`">{{ votes > 0 ? `+${votes}` : votes }}</span>
   </span>
   <span v-else-if="board.allowed('vote.add')" class="vc" :data-testid="`votes-${id}`">
     <!-- Voting is open only because a facilitator opened it now: the same lock closes it again (participants see nothing). -->
@@ -91,6 +108,7 @@ onBeforeUnmount(() => clearTimeout(plusTimer))
 .vote.lock-btn { justify-content: center; min-width: 32px; padding: .2rem .45rem; }
 @media (pointer: coarse) { .vote.lock-btn { min-width: 44px; min-height: 44px; } } /* touch target */
 .vote.undo { padding: .2rem .4rem; }
+.score { font-weight: 800; padding: 0 .2rem; }
 .mine { display: inline-flex; gap: 3px; }
 .mine i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .plus { position: absolute; right: -4px; top: -14px; font-size: var(--fs-xs); font-weight: 800; animation: rise .8s ease-out forwards; pointer-events: none; }

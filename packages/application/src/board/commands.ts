@@ -1,4 +1,4 @@
-import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type PhasePolicy, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
+import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type PhasePolicy, type Snapshot, type TimerMinutes, type VotableKind, type VoteStyle } from '@retroboard/domain'
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
 import { createUndoStack, inverseOf, type UndoLabel } from './history'
@@ -17,7 +17,7 @@ export interface BoardCommandDeps {
   onHistory?(size: number, redoSize: number): void
 }
 
-export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; sealedBallot?: boolean; ballotKey?: string; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; hideWritingOnReturn?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
+export interface SettingsPatch { title?: string; voteLimit?: number; maxVotesPerItem?: number; actionMode?: 'checkbox' | 'workflow'; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; voteStyle?: VoteStyle; sealedBallot?: boolean; ballotKey?: string; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; hideWritingOnReturn?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
 export interface ColumnInput { title: string; subtitle?: string; icon?: Extract<Command, { t: 'column.add' }>['icon']; color?: number; votable?: boolean }
 
 /**
@@ -139,6 +139,18 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       if (locked()) return err('locked')
       if (view?.settings.votingClosed) return err('voting-closed')
       return send({ t: 'vote.remove', kind, id })
+    },
+    /** Up and down style: gives my up, my down, or takes my choice back (null). One choice per idea, no budget. */
+    setChoice(kind: VotableKind, id: string, choice: 'up' | 'down' | null): BoardResult {
+      const view = deps.view()
+      if (locked()) return err('locked')
+      if (view?.settings.votingClosed) return err('voting-closed')
+      if (view) {
+        const item = kind === 'note' ? view.notes.find((n) => n.id === id) : view.groups.find((g) => g.id === id)
+        if (!item) return err('not-found')
+        if (choice !== null && !item.votable) return err('not-votable')
+      }
+      return send({ t: choice === null ? 'vote.clear' : choice === 'up' ? 'vote.up' : 'vote.down', kind, id })
     },
     /** One vote on a note, on or off (agents and the simple one-vote-per-item mode). */
     toggleVote(noteId: string): BoardResult {

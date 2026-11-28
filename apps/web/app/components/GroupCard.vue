@@ -86,7 +86,7 @@ const touch = useTouchDrag(stackEl, {
         <Icon name="lucide:layers" /> <strong>{{ item.title }}</strong> <span class="muted">{{ item.notes.length }}</span>
       </button>
       <!-- The expanded cluster keeps its vote inside its frame (#272). -->
-      <VoteControl v-if="item.group.votable && board.votingEnabled" :id="item.group.id" kind="cluster" :votes="item.group.votes" :my-votes="item.group.myVotes" :label="item.title" />
+      <VoteControl v-if="item.group.votable && board.votingEnabled" :id="item.group.id" kind="cluster" :votes="item.group.votes" :ups="item.group.ups" :downs="item.group.downs" :my-choice="item.group.myChoice" :my-votes="item.group.myVotes" :label="item.title" />
     </div>
     <div class="inotes">
       <NoteCard v-for="n in item.notes" :key="n.id" :note="n" in-group />
@@ -129,7 +129,7 @@ const touch = useTouchDrag(stackEl, {
     <!-- A cluster is voted as one idea. -->
     <VoteControl
       v-if="item.group.votable && !expanded && board.votingEnabled" :id="item.group.id" class="gvote" kind="cluster"
-      :votes="item.group.votes" :my-votes="item.group.myVotes" :label="item.title"
+      :votes="item.group.votes" :ups="item.group.ups" :downs="item.group.downs" :my-choice="item.group.myChoice" :my-votes="item.group.myVotes" :label="item.title"
     />
   </div>
   </div>

@@ -2,7 +2,7 @@ import type { AgendaState } from './facilitation/agenda'
 import type { BoardState, Peer, Snapshot, SnapshotGroup, SnapshotNote } from './shared/types'
 import { isFrozenNote } from './ideation/freeze'
 import { rotiSummary } from './facilitation/roti'
-import { clusterVoters, counted, countOf, votability, votesUsedBy } from './voting/policy'
+import { choiceOf, clusterDowners, clusterVoters, counted, countOf, downsOf, isUpDown, votability, votesUsedBy } from './voting/policy'
 import { countsHidden } from './voting/sealed'
 
 export interface Viewer {
@@ -16,6 +16,7 @@ const closing = (a: AgendaState | null): boolean => !!a && (a.current >= a.phase
 export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], now: number, names: Readonly<Record<string, string>> = {}): Snapshot {
   // Hidden counts: only until the facilitator closes voting, then everyone sees them at once.
   const secret = countsHidden(state.settings)
+  const updown = isUpDown(state)
   const all = Object.values(state.notes)
   const notes: SnapshotNote[] = all
     .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))
@@ -28,7 +29,8 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
       author: n.author ? (names[n.ownerCid] ?? n.author) : n.author,
       groupId: n.groupId,
       // An idea whose column is not votable shows no count; its votes come back with the column.
-      votes: secret ? null : counted(state, n) ? n.voters.length : 0,
+      votes: secret ? null : counted(state, n) ? n.voters.length - (updown ? downsOf(n).length : 0) : 0,
+      ...(updown ? { ups: secret ? null : counted(state, n) ? n.voters.length : 0, downs: secret ? null : counted(state, n) ? downsOf(n).length : 0, myChoice: counted(state, n) ? choiceOf(n, viewer.cid) : null } : {}),
       voted: counted(state, n) && n.voters.includes(viewer.cid),
       myVotes: counted(state, n) ? countOf(n.voters, viewer.cid) : 0,
       // Stryker disable next-line StringLiteral: votability only tests for 'cluster', so any other kind reads as a note
@@ -41,9 +43,11 @@ export function buildSnapshot(state: BoardState, viewer: Viewer, peers: Peer[], 
     }))
   const groups: SnapshotGroup[] = Object.values(state.groups).map((g) => {
     const voters = clusterVoters(state, g.id)
+    const downs = updown ? clusterDowners(state, g.id).length : 0
     return {
       id: g.id, columnId: g.columnId, title: g.title,
-      votes: secret ? null : counted(state, g) ? voters.length : 0,
+      votes: secret ? null : counted(state, g) ? voters.length - downs : 0,
+      ...(updown ? { ups: secret ? null : counted(state, g) ? voters.length : 0, downs: secret ? null : counted(state, g) ? downs : 0, myChoice: counted(state, g) ? choiceOf(g, viewer.cid) : null } : {}),
       myVotes: counted(state, g) ? countOf(g.voters, viewer.cid) : 0,
       votable: votability(state, 'cluster', g.id) === null,
       ...(g.frozen ? { frozen: true } : {}),
