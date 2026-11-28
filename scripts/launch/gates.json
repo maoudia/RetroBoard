@@ -1,0 +1,7 @@
+{
+  "streak": { "target": 14 },
+  "lighthouse": { "formFactor": "mobile", "page": "landing", "performance": 0.95, "runs": 3, "baseUrl": "http://127.0.0.1:8787" },
+  "axe": { "specs": ["tests/e2e/a11y.spec.ts", "tests/e2e/format-pages.spec.ts", "tests/e2e/whats-new.spec.ts"] },
+  "archived": ["brand-identity", "landing-v2-and-product-video"],
+  "guide": { "source": "apps/web/app/pages/index.vue", "needle": "/guide/${locale.value}/" }
+}

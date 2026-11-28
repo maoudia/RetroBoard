@@ -48,6 +48,7 @@ Feature freeze until main is green. Gate: 7 green nights in a row (nightly gate 
 
 Launch path only (owner decision 2026-11-12): what the launch needs, nothing else. The R2 gate is 14 green nights in a row (nightly gate
 above), Lighthouse mobile above 95 on the landing, axe without violation on the public pages, the launch kit ready.
+One command measures them: `pnpm launch:check` ([`scripts/launch/gates.json`](../scripts/launch/gates.json)) writes the dated report [`docs/launch/readiness.md`](launch/readiness.md); the posts and the day-of checklist are in the [launch kit](launch/README.md).
 Anything not on this list slipped to R3.
 
 * Nightly health: the nightly gate above, the quarantine and the streak. Delivered and archived: `agentic-delivery-harness` ([proposal](../openspec/changes/archive/2026-11-14-agentic-delivery-harness/proposal.md)).
