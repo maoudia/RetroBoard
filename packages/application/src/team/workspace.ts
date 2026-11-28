@@ -15,6 +15,8 @@ export interface TeamDefaults {
 }
 export interface Team { id: string; name: string; emoji: string; color: string; defaults?: TeamDefaults }
 export interface SavedAction { text: string; owner: string; status: string; due?: string }
+/** What a saved retro keeps for trends (change results-trends): the people on the board and its few recurring words. */
+export interface RetroStats { participants: number; keywords: string[] }
 export interface SavedRetro {
   /** Board room id, so saving the same board again replaces its entry. */
   boardId: string
@@ -23,6 +25,7 @@ export interface SavedRetro {
   title: string
   at: number
   actions: SavedAction[]
+  stats?: RetroStats
 }
 export interface Workspace {
   teams: Team[]

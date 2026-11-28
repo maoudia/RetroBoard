@@ -63,7 +63,7 @@ function add() {
 function toggle(a: ActionItem, done: boolean) { board.commands.setActionDone(a.id, done) }
 function setStatus(a: ActionItem, status: ActionStatus) { board.commands.setActionStatus(a.id, status) }
 function saveForNextTime() {
-  team.saveActions(board.roomId ?? '', board.settings?.title ?? '', board.actions)
+  team.saveActions(board.roomId ?? '', board.settings?.title ?? '', board.actions, board.snapshot)
   push(t('actions.saved', { n: board.actions.filter(isOpenAction).length }), 'ok')
 }
 const clip = (s: string) => (s.length > 60 ? `${s.slice(0, 60)}...` : s)
