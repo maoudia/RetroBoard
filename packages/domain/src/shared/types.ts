@@ -126,6 +126,8 @@ export interface BoardSettings {
   destroyed: boolean
   /** Arrivals and departures also pop up as toasts (always in the activity feed). Absent on older boards: on. */
   announceArrivals?: boolean
+  /** Collapse the writing areas when the agenda goes back before Write (change phase-transition-guidance). Absent on older boards: on. */
+  hideWritingOnReturn?: boolean
   /** Longest note text accepted, NOTE_TEXT_MIN..LIMITS.noteText (facilitator setting). */
   noteMaxLength: number
   /** Display for the whole room (facilitator setting, change board-layout-v2): post-it width and text size. Absent: normal. */

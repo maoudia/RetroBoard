@@ -169,6 +169,13 @@ describe('settings, exactly', () => {
     expect(ok(run(was, { t: 'settings.update', votingEnabled: true })).state.settings.votingEnabled).toBe(true)
   })
 
+  it('records hideWritingOnReturn only when it is given (change phase-transition-guidance)', () => {
+    const plain = ok(run(harness().state, { t: 'settings.update', title: 'x' })).state.settings
+    expect(plain).not.toHaveProperty('hideWritingOnReturn')
+    expect(ok(run(harness().state, { t: 'settings.update', hideWritingOnReturn: false })).state.settings.hideWritingOnReturn).toBe(false)
+    expect(ok(run(harness().state, { t: 'settings.update', hideWritingOnReturn: true })).state.settings.hideWritingOnReturn).toBe(true)
+  })
+
   it('records arrivals and display sizes only when they are given, and only valid sizes', () => {
     const plain = ok(run(harness().state, { t: 'settings.update', title: 'x' })).state.settings
     for (const key of ['announceArrivals', 'noteSize', 'noteText']) expect(plain, key).not.toHaveProperty(key)

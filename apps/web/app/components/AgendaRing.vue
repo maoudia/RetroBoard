@@ -121,11 +121,10 @@ const spent = (ms: number) => (ms < 180 * 60_000 ? `${minutes(ms)} min` : mmss(m
       <div v-if="canSteer" class="transport" role="group" :aria-label="t('agenda.title')">
         <button class="tb" type="button" :class="{ armed: restartArmed }" data-testid="agenda-restart" :title="t(restartArmed ? 'agenda.restart.confirm' : 'agenda.restart')" :aria-label="t(restartArmed ? 'agenda.restart.confirm' : 'agenda.restart')" @click="restart"><Icon :name="restartArmed ? 'lucide:check' : 'lucide:rotate-ccw'" /></button>
         <button class="tb" type="button" data-testid="agenda-prev" :disabled="agenda.current <= 0" :title="t('agenda.prev')" @click="board.commands.previousPhase()"><Icon name="lucide:skip-back" /><span class="sr-only">{{ t('agenda.prev') }}</span></button>
-        <button
-          v-if="agenda.current < agenda.phases.length" class="tb play" type="button" :data-testid="playing ? 'agenda-pause' : 'agenda-start'"
-          :aria-label="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')" :title="t(playing ? 'agenda.pause' : agenda.current < 0 ? 'agenda.start' : 'agenda.resume')"
-          @click="playing ? board.commands.pauseAgenda() : board.commands.startAgenda()"
-        ><Icon :name="playing ? 'lucide:pause' : 'lucide:play'" /></button>
+        <template v-if="agenda.current < agenda.phases.length">
+          <button v-if="playing" class="tb play" type="button" data-testid="agenda-pause" :aria-label="t('agenda.pause')" :title="t('agenda.pause')" @click="board.commands.pauseAgenda()"><Icon name="lucide:pause" /></button>
+          <button v-else class="tb play" type="button" data-testid="agenda-start" :aria-label="t(agenda.current < 0 ? 'agenda.start' : 'agenda.resume')" :title="t(agenda.current < 0 ? 'agenda.start' : 'agenda.resume')" @click="board.commands.startAgenda()"><Icon name="lucide:play" /></button>
+        </template>
         <button class="tb" type="button" data-testid="agenda-next" :disabled="!started" :title="t('agenda.next')" @click="board.commands.nextPhase()"><Icon name="lucide:skip-forward" /><span class="sr-only">{{ t('agenda.next') }}</span></button>
         <button class="tb stop" type="button" data-testid="agenda-end" :disabled="!started" :title="t('agenda.end')" :aria-label="t('agenda.end')" @click="board.commands.endAgenda()"><Icon name="lucide:square" /></button>
       </div>

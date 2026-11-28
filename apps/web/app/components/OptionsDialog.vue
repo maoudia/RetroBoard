@@ -100,6 +100,7 @@ const saveTitle = () => { if (title.value.trim() && title.value.trim() !== s.val
         </div>
         <ToggleSwitch plain :label="t('options.secret')" :hint="t('options.secret.hint')" :model-value="s.secretVoting" data-testid="opt-secret" @update:model-value="(on: boolean) => set({ secretVoting: on })" />
         <ToggleSwitch v-if="advanced" plain :label="t('options.arrivals')" :hint="t('options.arrivals.hint')" :model-value="s.announceArrivals !== false" data-testid="opt-arrivals" @update:model-value="(on: boolean) => set({ announceArrivals: on })" />
+        <ToggleSwitch v-if="advanced" plain :label="t('options.hideWriting')" :hint="t('options.hideWriting.hint')" :model-value="s.hideWritingOnReturn !== false" data-testid="opt-hide-writing" @update:model-value="(on: boolean) => set({ hideWritingOnReturn: on })" />
         <ToggleSwitch plain :label="t('options.lock')" :hint="t('options.lock.hint')" :model-value="s.locked" data-testid="opt-lock" @update:model-value="(on: boolean) => set({ locked: on })" />
         <ToggleSwitch v-if="advanced" plain :label="t('options.browserAgents')" :hint="t('options.browserAgents.hint')" :model-value="s.browserAgentsAllowed !== false" data-testid="opt-browser-agents" @update:model-value="(on: boolean) => set({ browserAgentsAllowed: on })" />
         <ToggleSwitch v-if="board.access.role !== 'participant'" plain :label="t('roles.open')" :hint="t('roles.open.hint')" :model-value="s.openFacilitation" data-testid="opt-open-facilitation" @update:model-value="(on: boolean) => set({ openFacilitation: on })" />

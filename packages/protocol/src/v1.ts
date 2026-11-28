@@ -100,6 +100,7 @@ export const CommandSchema = v.variant('t', [
     talkBudgetSec: v.optional(v.pipe(v.number(), v.integer(), v.minValue(TALK_BUDGET_MIN_S), v.maxValue(TALK_BUDGET_MAX_S))),
     talkSelfStart: v.optional(v.boolean()),
     announceArrivals: v.optional(v.boolean()),
+    hideWritingOnReturn: v.optional(v.boolean()),
     noteMaxLength: v.optional(v.pipe(v.number(), v.integer(), v.minValue(NOTE_TEXT_MIN), v.maxValue(LIMITS.noteText))),
     noteSize: v.optional(v.picklist(['small', 'normal', 'large'])),
     noteText: v.optional(v.picklist(['small', 'normal', 'large'])),
