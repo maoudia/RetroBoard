@@ -29,6 +29,8 @@ describe('results trends', () => {
     expect(buildTrends(history, 't1', now)!.actionsDone).toEqual({ done: 1, total: 2, from: 'Sprint 42' })
     // This board's own actions update the status too.
     expect(buildTrends(history, 't1', { ...now, actions: [{ text: 'Fix CI', owner: 'Zed', status: 'done' }] })!.actionsDone).toEqual({ done: 2, total: 2, from: 'Sprint 42' })
+    // Text and owner match whatever the case and the spaces around them.
+    expect(buildTrends(history, 't1', { ...now, actions: [{ text: ' fix ci ', owner: ' ZED ', status: 'done' }] })!.actionsDone!.done).toBe(2)
   })
 
   it('lists the words of this retro that already came back, within the last few retros only', () => {
@@ -39,6 +41,16 @@ describe('results trends', () => {
     // "meetings" only appears in the retro older than the last three: not compared.
     expect(buildTrends(history, 't1', now)!.recurring).toEqual(['deploy'])
     expect(buildTrends(history, 't1', now)!.previous).toBe(MAX_COMPARED_RETROS)
+  })
+
+  it('matches words whatever the case and the spaces, lists every recurring word in order, and at most five', () => {
+    const words = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot']
+    const history = ws([retro({ boardId: 'a', at: 1, stats: { participants: 3, keywords: words.map((w) => ` ${w.toUpperCase()} `) } })])
+    const t = buildTrends(history, 't1', { ...now, stats: { participants: 3, keywords: words } })!
+    expect(t.recurring).toEqual(words.slice(0, 5))
+    expect(buildTrends(history, 't1', { ...now, stats: { participants: 3, keywords: ['alpha', 'bravo'] } })!.lines.at(-1)).toEqual({ key: 'trends.recurring', params: { words: 'alpha, bravo' } })
+    // Nothing recurs: no sentence about words.
+    expect(buildTrends(history, 't1', { ...now, stats: { participants: 3, keywords: ['zulu'] } })!.lines.map((l) => l.key)).toEqual(['trends.participation.same'])
   })
 
   it('is null when no figure can be compared', () => {
@@ -58,5 +70,9 @@ describe('results trends', () => {
     const note = (text: string, author: string | null) => ({ text, author }) as never
     const stats = retroStatsOf({ peers: [], notes: [note('slow deploy pipeline', 'Ana'), note('deploy fails often', 'Bob'), note('x', null)] } as never)
     expect(stats).toEqual({ participants: 2, keywords: ['deploy'] })
+    // At most five words are kept.
+    const many = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf'].map((w) => `${w} ${w}x`)
+    const texts = many.flatMap((m) => [m.split(' ')[0]!, `${m.split(' ')[0]} again`, `${m.split(' ')[0]} too`]).map((text) => note(text, null))
+    expect(retroStatsOf({ peers: [], notes: texts } as never).keywords).toHaveLength(5)
   })
 })
