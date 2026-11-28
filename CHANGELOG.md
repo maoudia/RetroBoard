@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.76.0](https://github.com/maoudia/RetroBoard/compare/v1.75.0...v1.76.0) (2026-11-28)
+
+
+### Features
+
+* **web:** celebrate when an idea reaches done, one signature per theme (done-celebration 1.1-3.2) ([567a80a](https://github.com/maoudia/RetroBoard/commit/567a80a2deb8db6d0f3ab93b313da8b89c10c065))
+* **web:** group three-dot menu and one open group per column (group-colors-menu-and-scope 2.1, 2.2, 3.1, 3.2, 4.1) ([b4c915d](https://github.com/maoudia/RetroBoard/commit/b4c915d249e3d05a2cd2440e59375468ccdb6765))
+* **web:** guide the empty Previous actions phase and hide writing areas when going back (phase-transition-guidance) ([f37df0a](https://github.com/maoudia/RetroBoard/commit/f37df0a130243793024f6c9680481442ec872287))
+* **web:** join by code accepts only the committed exchange (join-code-drop-fallback 1.1) ([7cfad7a](https://github.com/maoudia/RetroBoard/commit/7cfad7a173658778460e81093b256466db23ed87))
+* **web:** per-phase policy and a lock icon on post-its to open and close voting (phase-controls 1.1, 1.2, 2.1, 2.2) ([9eeb50f](https://github.com/maoudia/RetroBoard/commit/9eeb50fdc9df45a69bb078cecbe478a66fc928c7))
+* **web:** trends against the previous retros of the team on results and report (results-trends 1.1) ([a6a1351](https://github.com/maoudia/RetroBoard/commit/a6a1351b374caddba2dc28e1dbd76a7295d42e39))
+
+
+### Bug Fixes
+
+* **quality:** keep every script test out of the Stryker sandbox run ([70aab4c](https://github.com/maoudia/RetroBoard/commit/70aab4c3c6eefbaf21040652d251a618f618ad33))
+* **web:** encode the guide pictures at WebP quality 64 to keep them under the 3 MB budget ([2258fd4](https://github.com/maoudia/RetroBoard/commit/2258fd4851670cb5cadf9d981e202bd8fa1b1b9d))
+
+
+### Refactoring
+
+* **web:** compute trends outside the eager team store (results-trends 1.1) ([4ff50a4](https://github.com/maoudia/RetroBoard/commit/4ff50a4409168fa953191915b497cbe2f0ffa106))
+
 ## [1.75.0](https://github.com/maoudia/RetroBoard/compare/v1.74.0...v1.75.0) (2026-11-28)
 
 
