@@ -1,7 +1,7 @@
 import { agreementKeyPair, fromBase64Url, fromUtf8, openFrom, sealTo, toBase64Url, utf8 } from '@retroboard/crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { JoinMsg } from '../app/utils/join-code'
-import { commitKey, committedNumber, safetyNumber } from '../app/utils/join-code'
+import { commitKey, committedNumber } from '../app/utils/join-code'
 import { type ChannelHandlers, COMMIT_WAIT_MS, createJoiner, createJoinHost, type HostState, type JoinerState, JOINER_WAIT_MS, MAX_KNOCKS } from '../app/utils/join-flow'
 
 /** A fake side room: records what is sent and closed, and lets the test play the other end. */
@@ -33,9 +33,13 @@ const newHostState = (): HostState => ({ code: null, expiresAt: 0, knocks: [], c
 beforeEach(() => { vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }) })
 afterEach(() => { vi.useRealTimers() })
 
-async function knockMsg(n: string, name = 'Bob'): Promise<{ msg: JoinMsg; keys: Awaited<ReturnType<typeof agreementKeyPair>> }> {
+/** The committed exchange as a joiner plays it: knock2, then the key once the holder challenged. */
+async function knockIn(relay: ReturnType<typeof fakeRelay>, n: string, name = 'Bob') {
   const keys = await agreementKeyPair()
-  return { keys, msg: { t: 'knock', n, pub: toBase64Url(keys.publicKey), name } }
+  relay.state.handlers!.onMessage({ t: 'knock2', n, c: await commitKey(keys.publicKey, n), name })
+  const challenge = relay.sent.find((m) => m.t === 'challenge' && m.n === n) as Extract<JoinMsg, { t: 'challenge' }> | undefined
+  if (challenge) relay.state.handlers!.onMessage({ t: 'reveal', n, pub: toBase64Url(keys.publicKey) })
+  return { keys, pub: toBase64Url(keys.publicKey), h: challenge && fromBase64Url(challenge.h)! }
 }
 
 describe('join code, holder side', () => {
@@ -59,40 +63,13 @@ describe('join code, holder side', () => {
 
   it('stops by itself after 10 minutes: the code is gone, the knocks too, and the side room is closed', async () => {
     const { relay, state } = await started({ ttlMs: 600_000 })
-    const { msg } = await knockMsg('n1')
-    relay.state.handlers!.onMessage(msg)
+    await knockIn(relay, 'n1')
     await until(() => state.knocks.length === 1)
     await vi.advanceTimersByTimeAsync(599_999)
     expect(state.code).toBe('RB-AAAAAA')
     await vi.advanceTimersByTimeAsync(1)
     expect(state).toMatchObject({ code: null, knocks: [], connected: false })
     expect(relay.state.closed).toBe(1)
-  })
-
-  it('lists a knock with its name and the safety number of its key', async () => {
-    const { relay, state } = await started()
-    const { msg, keys } = await knockMsg('n1', 'Bob')
-    relay.state.handlers!.onMessage(msg)
-    await until(() => state.knocks.length === 1)
-    expect(state.knocks).toEqual([{ n: 'n1', name: 'Bob', pub: (msg as { pub: string }).pub, number: await safetyNumber(keys.publicKey), verified: false }])
-  })
-
-  it('refuses both requests when two show the same safety number, and every later one with it', async () => {
-    const { relay, state, host } = await started()
-    const real = await knockMsg('real')
-    const other = await knockMsg('other')
-    relay.state.handlers!.onMessage(real.msg)
-    relay.state.handlers!.onMessage(other.msg)
-    await until(() => state.knocks.length === 2)
-    // Someone who read the first request imitates it: same key, so same number, other nonce and name.
-    relay.state.handlers!.onMessage({ ...real.msg, n: 'twin', name: 'Bob' })
-    await until(() => state.imitation)
-    expect(state.knocks.map((k) => k.n)).toEqual(['other'])
-    relay.state.handlers!.onMessage({ ...real.msg, n: 'third', name: 'Bob' })
-    await flush()
-    expect(state.knocks.map((k) => k.n)).toEqual(['other'])
-    host.stop()
-    expect(state.imitation).toBe(false)
   })
 
   it('answers a committed knock with a challenge, and shows the number that depends on it once the key matches the commitment', async () => {
@@ -111,7 +88,7 @@ describe('join code, holder side', () => {
     expect(state.knocks).toEqual([])
   })
 
-  it('lists a committed knock as verified, with a number that no other request can be ground to match', async () => {
+  it('lists a committed knock with its name and a number that no other request can be ground to match', async () => {
     const { relay, state } = await started()
     const real = await agreementKeyPair()
     relay.state.handlers!.onMessage({ t: 'knock2', n: 'real', c: await commitKey(real.publicKey, 'real'), name: 'Bob' })
@@ -128,57 +105,58 @@ describe('join code, holder side', () => {
     await until(() => state.knocks.length === 2)
     expect(state.imitation).toBe(false)
     const byNonce = Object.fromEntries(state.knocks.map((k) => [k.n, k]))
-    expect(byNonce.real).toMatchObject({ verified: true, number: await committedNumber(real.publicKey, h, 'real') })
+    expect(byNonce.real).toMatchObject({ name: 'Bob', number: await committedNumber(real.publicKey, h, 'real') })
     expect(byNonce.evil!.number).toBe(await committedNumber(attacker.publicKey, h2, 'evil'))
     expect(byNonce.evil!.number).not.toBe(byNonce.real!.number)
   })
 
   it('keeps at most five knocks, one per attempt, and only from a key of the right size', async () => {
     const { relay, state } = await started()
-    for (let i = 0; i < MAX_KNOCKS + 3; i++) relay.state.handlers!.onMessage((await knockMsg(`n${i}`)).msg)
+    for (let i = 0; i < MAX_KNOCKS + 3; i++) await knockIn(relay, `n${i}`)
     await until(() => state.knocks.length === MAX_KNOCKS)
     await flush()
     expect(state.knocks.map((k) => k.n).sort()).toEqual(['n0', 'n1', 'n2', 'n3', 'n4'])
     const fresh = await started()
-    const one = await knockMsg('same')
-    fresh.relay.state.handlers!.onMessage(one.msg)
-    fresh.relay.state.handlers!.onMessage(one.msg)
+    await knockIn(fresh.relay, 'same')
+    await knockIn(fresh.relay, 'same')
     await until(() => fresh.state.knocks.length === 1)
     await flush()
     expect(fresh.state.knocks).toHaveLength(1)
-    fresh.relay.state.handlers!.onMessage({ t: 'knock', n: 'short', pub: toBase64Url(new Uint8Array(31)), name: 'x' })
-    fresh.relay.state.handlers!.onMessage({ t: 'knock', n: 'long', pub: toBase64Url(new Uint8Array(33)), name: 'x' })
-    fresh.relay.state.handlers!.onMessage({ t: 'knock', n: 'junk', pub: '!!not base64!!', name: 'x' })
+    for (const [n, pub] of [['short', toBase64Url(new Uint8Array(31))], ['long', toBase64Url(new Uint8Array(33))], ['junk', '!!not base64!!']] as const) {
+      fresh.relay.state.handlers!.onMessage({ t: 'knock2', n, c: await commitKey(new Uint8Array(32), n), name: 'x' })
+      fresh.relay.state.handlers!.onMessage({ t: 'reveal', n, pub })
+    }
     await flush()
     expect(fresh.state.knocks.map((k) => k.n)).toEqual(['same'])
   })
 
   it('does not add a knock whose safety number was still being computed when the code stopped', async () => {
     const { relay, state, host } = await started()
-    relay.state.handlers!.onMessage((await knockMsg('late')).msg)
+    await knockIn(relay, 'late')
     host.stop()
     await flush()
     expect(state.knocks).toEqual([])
   })
 
-  it('ignores what is not a knock', async () => {
+  it('ignores what is not a knock, and refuses a plain knock that carries no commitment (change join-code-drop-fallback)', async () => {
     const { relay, state } = await started()
+    relay.state.handlers!.onMessage({ t: 'knock', n: 'old', pub: toBase64Url((await agreementKeyPair()).publicKey), name: 'Old' } as never)
     relay.state.handlers!.onMessage({ t: 'let', n: 'n1', ct: 'x' })
     relay.state.handlers!.onMessage({ t: 'deny', n: 'n1' })
     await flush()
     expect(state.knocks).toEqual([])
+    expect(relay.sent).toEqual([])
   })
 
   it('lets a knocker in by sealing the current link to his key alone', async () => {
     let link = 'https://x.test/boards#c=old'
     const { relay, state, host } = await started({ link: () => link })
-    const bob = await knockMsg('n1')
-    relay.state.handlers!.onMessage(bob.msg)
+    const bob = await knockIn(relay, 'n1')
     await until(() => state.knocks.length === 1)
     link = 'https://x.test/boards#c=new'
     await host.admit(state.knocks[0]!)
     expect(state.knocks).toEqual([])
-    const [let1] = relay.sent
+    const let1 = relay.sent.find((m) => m.t === 'let')
     expect(let1).toMatchObject({ t: 'let', n: 'n1' })
     const ct = fromBase64Url((let1 as { ct: string }).ct)!
     expect(fromUtf8((await openFrom(bob.keys, ct, utf8('n1')))!)).toBe('https://x.test/boards#c=new')
@@ -188,10 +166,8 @@ describe('join code, holder side', () => {
 
   it('lets only the knocker who asked in, and nobody once the code is gone', async () => {
     const { relay, state, host } = await started()
-    const a = await knockMsg('a')
-    const b = await knockMsg('b')
-    relay.state.handlers!.onMessage(a.msg)
-    relay.state.handlers!.onMessage(b.msg)
+    await knockIn(relay, 'a')
+    await knockIn(relay, 'b')
     await until(() => state.knocks.length === 2)
     await host.admit(state.knocks.find((k) => k.n === 'b')!)
     expect(state.knocks.map((k) => k.n)).toEqual(['a'])
@@ -206,11 +182,11 @@ describe('join code, holder side', () => {
 
   it('refuses a knocker with a deny addressed to him', async () => {
     const { relay, state, host } = await started()
-    relay.state.handlers!.onMessage((await knockMsg('a')).msg)
-    relay.state.handlers!.onMessage((await knockMsg('b')).msg)
+    await knockIn(relay, 'a')
+    await knockIn(relay, 'b')
     await until(() => state.knocks.length === 2)
     host.refuse(state.knocks.find((k) => k.n === 'a')!)
-    expect(relay.sent).toEqual([{ t: 'deny', n: 'a' }])
+    expect(relay.sent.filter((m) => m.t === 'deny')).toEqual([{ t: 'deny', n: 'a' }])
     expect(state.knocks.map((k) => k.n)).toEqual(['b'])
   })
 
@@ -257,20 +233,21 @@ describe('join code, joiner side', () => {
     const joiner = createJoiner({ openChannel: relay.openChannel, origin, ...over }, ui)
     return { relay, ui, joiner }
   }
-  /** Starts a join, plays the relay opening, and returns the knock the joiner sent with his key. */
+  /** Starts a join, plays the relay opening and the holder's challenge, and returns the key the joiner then revealed. */
   async function knocking(s: ReturnType<typeof setup>, text = 'rb-7kq2m9', name = 'Bob') {
     const result = s.joiner.join(text, name)
     await until(() => !!s.relay.state.handlers)
     s.relay.state.handlers!.onOpen!()
-    // An older holder never answers the committed knock: after the wait the plain knock follows (the committed path has its own tests).
     await until(() => s.relay.sent.some((m) => m.t === 'knock2'))
-    vi.advanceTimersByTime(COMMIT_WAIT_MS)
-    await until(() => s.relay.sent.some((m) => m.t === 'knock'))
+    const knock2 = s.relay.sent.find((m) => m.t === 'knock2') as Extract<JoinMsg, { t: 'knock2' }>
+    const h = crypto.getRandomValues(new Uint8Array(16))
+    s.relay.state.handlers!.onMessage({ t: 'challenge', n: knock2.n, h: toBase64Url(h) })
+    await until(() => s.relay.sent.some((m) => m.t === 'reveal'))
     await until(() => !!s.ui.number)
-    const knock = s.relay.sent.find((m) => m.t === 'knock') as Extract<JoinMsg, { t: 'knock' }>
+    const knock = { ...(s.relay.sent.find((m) => m.t === 'reveal') as Extract<JoinMsg, { t: 'reveal' }>), name: knock2.name, h }
     return { result, knock }
   }
-  const letFor = async (knock: Extract<JoinMsg, { t: 'knock' }>, link: string, n = knock.n): Promise<JoinMsg> =>
+  const letFor = async (knock: { n: string; pub: string }, link: string, n = knock.n): Promise<JoinMsg> =>
     ({ t: 'let', n, ct: toBase64Url(await sealTo(fromBase64Url(knock.pub)!, utf8(link), utf8(knock.n))) })
 
   it('does not knock for something that is not a code', async () => {
@@ -280,14 +257,14 @@ describe('join code, joiner side', () => {
     expect(relay.state.opened).toBe(0)
   })
 
-  it('knocks on the side room of the code with a one-time key, the name cut to 40 characters, and shows the safety number', async () => {
+  it('knocks on the side room of the code with a one-time key, the name cut to 40 characters, and shows the number', async () => {
     const s = setup()
     const { knock } = await knocking(s, 'rb 7kq2m9', 'B'.repeat(60))
     expect(s.relay.state.code).toBe('RB-7KQ2M9')
     expect(s.ui.state).toBe('waiting')
-    expect(knock).toMatchObject({ t: 'knock', name: 'B'.repeat(40) })
+    expect(knock).toMatchObject({ t: 'reveal', name: 'B'.repeat(40) })
     expect(fromBase64Url(knock.pub)).toHaveLength(32)
-    expect(s.ui.number).toBe(await safetyNumber(fromBase64Url(knock.pub)!))
+    expect(s.ui.number).toBe(await committedNumber(fromBase64Url(knock.pub)!, knock.h, knock.n))
     expect(s.ui.number).toMatch(/^\d{3} \d{3}$/)
   })
 
@@ -299,7 +276,7 @@ describe('join code, joiner side', () => {
     await until(() => s.relay.sent.length === 1)
     const knock2 = s.relay.sent[0] as Extract<JoinMsg, { t: 'knock2' }>
     expect(knock2).toMatchObject({ t: 'knock2', name: 'Bob' })
-    expect(s.relay.sent.some((m) => m.t === 'reveal' || m.t === 'knock')).toBe(false)
+    expect(s.relay.sent.some((m) => m.t === 'reveal')).toBe(false)
     const h = crypto.getRandomValues(new Uint8Array(16))
     s.relay.state.handlers!.onMessage({ t: 'challenge', n: knock2.n, h: toBase64Url(h) })
     await until(() => s.relay.sent.some((m) => m.t === 'reveal'))
@@ -308,10 +285,10 @@ describe('join code, joiner side', () => {
     expect(await commitKey(pub, knock2.n)).toBe(knock2.c)
     await until(() => !!s.ui.number)
     expect(s.ui.number).toBe(await committedNumber(pub, h, knock2.n))
-    // The challenge arrived: no plain knock follows.
+    // The challenge arrived: nobody is told to update.
     vi.advanceTimersByTime(COMMIT_WAIT_MS * 2)
     await flush()
-    expect(s.relay.sent.some((m) => m.t === 'knock')).toBe(false)
+    expect(s.ui.state).toBe('waiting')
     s.relay.state.handlers!.onMessage({ t: 'let', n: knock2.n, ct: toBase64Url(await sealTo(pub, utf8(`${origin}/boards#c=abc`), utf8(knock2.n))) })
     expect(await result).toBe('/boards#c=abc')
   })
@@ -364,8 +341,8 @@ describe('join code, joiner side', () => {
   it('fails on a link sealed to somebody else, and on a hand-off that is not even a ciphertext', async () => {
     const a = setup()
     const first = await knocking(a)
-    const other = await knockMsg('x')
-    a.relay.state.handlers?.onMessage({ t: 'let', n: first.knock.n, ct: toBase64Url(await sealTo(other.keys.publicKey, utf8(`${origin}/boards#c=abc`), utf8(first.knock.n))) })
+    const other = await agreementKeyPair()
+    a.relay.state.handlers?.onMessage({ t: 'let', n: first.knock.n, ct: toBase64Url(await sealTo(other.publicKey, utf8(`${origin}/boards#c=abc`), utf8(first.knock.n))) })
     expect(await first.result).toBeNull()
     expect(a.ui.state).toBe('failed')
     const b = setup()
@@ -380,7 +357,7 @@ describe('join code, joiner side', () => {
     const { result, knock } = await knocking(s)
     s.relay.state.handlers!.onMessage(await letFor(knock, `${origin}/boards#c=abc`, 'someone-else'))
     s.relay.state.handlers!.onMessage({ t: 'deny', n: 'someone-else' })
-    s.relay.state.handlers!.onMessage({ t: 'knock', n: knock.n, pub: knock.pub, name: 'x' })
+    s.relay.state.handlers!.onMessage({ t: 'knock2', n: knock.n, c: 'x', name: 'x' })
     await flush()
     expect(s.ui.state).toBe('waiting')
     s.relay.state.handlers!.onMessage({ t: 'deny', n: knock.n })
@@ -388,11 +365,28 @@ describe('join code, joiner side', () => {
     expect(s.ui.state).toBe('denied')
   })
 
+  it('tells the person to update the app when the holder never answers the committed knock, and keeps listening', async () => {
+    const s = setup()
+    const result = s.joiner.join('rb-7kq2m9', 'Bob')
+    await until(() => !!s.relay.state.handlers)
+    s.relay.state.handlers!.onOpen!()
+    await until(() => s.relay.sent.some((m) => m.t === 'knock2'))
+    expect(s.ui.state).toBe('waiting')
+    vi.advanceTimersByTime(COMMIT_WAIT_MS)
+    expect(s.ui.state).toBe('outdated')
+    expect(s.relay.sent.every((m) => m.t === 'knock2')).toBe(true)
+    // A slow holder that does answer later brings the exchange back on track.
+    const knock2 = s.relay.sent[0] as Extract<JoinMsg, { t: 'knock2' }>
+    s.relay.state.handlers!.onMessage({ t: 'challenge', n: knock2.n, h: toBase64Url(new Uint8Array(16)) })
+    expect(s.ui.state).toBe('waiting')
+    s.joiner.cancel()
+    expect(await result).toBeNull()
+  })
+
   it('times out after 90 seconds of silence', async () => {
     const s = setup()
     const { result } = await knocking(s)
-    // The helper already let the committed-knock wait pass.
-    await vi.advanceTimersByTimeAsync(JOINER_WAIT_MS - COMMIT_WAIT_MS - 1)
+    await vi.advanceTimersByTimeAsync(JOINER_WAIT_MS - 1)
     expect(s.ui.state).toBe('waiting')
     await vi.advanceTimersByTimeAsync(1)
     expect(await result).toBeNull()

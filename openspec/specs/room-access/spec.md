@@ -119,3 +119,10 @@ The system SHALL seal the new link to each remaining participant's own key and s
 #### Scenario: Participant offline during the move
 - **WHEN** a participant is not connected when the facilitator moves the team
 - **THEN** they are not sent the link, their old link opens the closed room, and the facilitator is told beforehand how many people are moved so the others can be sent the link with Share
+
+### Requirement: Committed join only
+Join by code SHALL accept only the committed exchange; a request that carries no commitment SHALL be refused.
+
+#### Scenario: Plain request refused
+- **WHEN** a request arrives without a commitment
+- **THEN** the holder does not list it and the joiner is told to update the app

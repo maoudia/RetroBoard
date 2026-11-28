@@ -116,6 +116,7 @@ onMounted(() => {
           <JoinScanner @found="openScanned" />
           <p v-if="byCode.state.value !== 'idle'" class="join-code-state" role="status" data-testid="join-code-state" :data-state="byCode.state.value">
             <template v-if="byCode.state.value === 'connecting' || byCode.state.value === 'waiting'">{{ t('landing.join.waiting') }} <strong class="mono" data-testid="join-number">{{ byCode.number.value }}</strong> <button type="button" class="link" data-testid="join-cancel" @click="byCode.cancel()">{{ t('landing.join.cancel') }}</button></template>
+            <template v-else-if="byCode.state.value === 'outdated'">{{ t('landing.join.outdated') }} <button type="button" class="link" data-testid="join-cancel" @click="byCode.cancel()">{{ t('landing.join.cancel') }}</button></template>
             <template v-else>{{ t(`landing.join.${byCode.state.value}` as never) }}</template>
           </p>
           <p v-if="joinError" id="join-error" class="join-error" role="alert" data-testid="join-error">{{ t('landing.join.invalid') }}</p>

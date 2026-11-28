@@ -18,8 +18,6 @@ test('joining with a short code: knock, safety number, let in (change short-link
 
   // Alice sees the same number and lets Bob in.
   await expect(page.getByTestId('knock-number')).toHaveText(mine)
-  // Both sides run the committed exchange, so the request is verified.
-  await expect(page.getByTestId('knock-unverified')).toHaveCount(0)
   await page.getByTestId('knock-admit').click()
   await bob.waitForURL(/\/boards#/)
   await expect(bob.getByTestId('name-input').or(bob.getByTestId('board'))).toBeVisible()
