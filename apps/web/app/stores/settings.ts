@@ -3,6 +3,7 @@ import { migrate } from '~/utils/settings-migration'
 import { safeStorage } from '~/utils/storage'
 import type { ThemeVariantPref } from '~/utils/settings-migration'
 import { DEFAULT_ZOOM, type Density } from '~/utils/layout'
+import { DEFAULT_PLACE, type DockMode, type Place, validMode, validPlace } from '~/utils/chat-dock'
 
 export interface LocalSettings {
   /** Background atmosphere (snow, bats...) when the theme has one. */
@@ -60,6 +61,10 @@ export interface LocalSettings {
   systemNotify: boolean
   /** Side of the floating chat drawer (personal). */
   chatSide: 'left' | 'right'
+  /** The floating chat button snaps to the screen edges (default) or rests where it is dropped (change chat-floating-dock, local only). */
+  chatDock: DockMode
+  /** Where the chat button rests: an edge and a fraction along it, or two fractions of the window; never pixels, never sent anywhere. */
+  chatPlace: Place
   /** Chat header line: connected and focused on the conversation (on by default). */
   chatStatus: boolean
   /** Sort of the voted ideas list in the actions panel. */
@@ -78,12 +83,15 @@ export const DEFAULTS: LocalSettings = {
   ambient: true, presentGroups: true, linkColumns: true, collapseButtons: false, motion: 'auto', density: 'comfortable', sound: false, celebrations: true,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: -1, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
-  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatStatus: true, votedSort: 'votes', saveJoinedBoards: false, slackWebhook: '',
+  phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatDock: 'snap', chatPlace: DEFAULT_PLACE, chatStatus: true, votedSort: 'votes', saveJoinedBoards: false, slackWebhook: '',
 }
 
 /** Personal, local-only preferences. Nothing here is sent to the server. */
 export const useSettingsStore = defineStore('settings', () => {
   const s = reactive<LocalSettings>({ ...DEFAULTS, ...migrate(safeStorage.get<Record<string, unknown>>(KEY, {})) })
+  // A stored value that is not a valid place (an old or edited file) falls back to the defaults.
+  s.chatDock = validMode(s.chatDock)
+  s.chatPlace = validPlace(s.chatPlace)
 
   function apply() {
     const root = document.documentElement
@@ -100,8 +108,12 @@ export const useSettingsStore = defineStore('settings', () => {
   }
   function patch(next: Partial<LocalSettings>) {
     Object.assign(s, next)
+    s.chatDock = validMode(s.chatDock) // an imported file may hold anything
+    s.chatPlace = validPlace(s.chatPlace)
     safeStorage.set(KEY, { ...s })
     apply()
   }
-  return { s, apply, applyLocale, patch }
+  /** Back to the default place of the chat button: the right edge, in the lower third, snapping. */
+  function resetChatPlace() { patch({ chatDock: 'snap', chatPlace: { ...DEFAULT_PLACE } }) }
+  return { s, apply, applyLocale, patch, resetChatPlace }
 })

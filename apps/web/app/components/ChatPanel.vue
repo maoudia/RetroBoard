@@ -3,7 +3,7 @@ import { connectionState } from '@retroboard/application'
 import { CHAT_TEXT_MAX } from '@retroboard/domain'
 import type { Peer } from '@retroboard/domain'
 import { hueBg, nameHue, peerHue } from '~/utils/avatar'
-import { safeStorage } from '~/utils/storage'
+import { drawerSide, mirror } from '~/utils/chat-dock'
 const { t, locale } = useT()
 
 /**
@@ -20,7 +20,8 @@ const input = ref<HTMLTextAreaElement | null>(null)
 const log = ref<HTMLElement | null>(null)
 const clearAsk = ref(false)
 const layout = useLayoutStore()
-const side = computed(() => layout.chatSide ?? settings.s.chatSide)
+/** The drawer opens on the side of the chat button when it rests on the left or right edge, else on the side chosen in the profile (change chat-floating-dock). */
+const side = computed(() => drawerSide(settings.s.chatDock, settings.s.chatPlace, layout.chatSide ?? settings.s.chatSide))
 
 const time = (at: number) => formatClock(at, locale.value)
 const initial = (n: string | null) => (n?.trim()[0] ?? '?').toUpperCase()
@@ -86,39 +87,11 @@ const focused = ref(true)
 const syncFocus = () => { focused.value = document.visibilityState === 'visible' && document.hasFocus() }
 onMounted(() => { syncFocus(); window.addEventListener('focus', syncFocus); window.addEventListener('blur', syncFocus); document.addEventListener('visibilitychange', syncFocus) })
 onBeforeUnmount(() => { window.removeEventListener('focus', syncFocus); window.removeEventListener('blur', syncFocus); document.removeEventListener('visibilitychange', syncFocus) })
-/**
- * The minimised bubble can be dragged anywhere (it hid the "add idea" button on a phone) and closed with its own X
- * (change hotfix-ux-wave8). The place is remembered on this device.
- */
-const POS_KEY = 'retroboard:chat-bubble'
-const bubblePos = ref<{ x: number; y: number } | null>(null)
-const boxEl = ref<HTMLElement | null>(null)
-let drag: { sx: number; sy: number; ox: number; oy: number; moved: boolean } | null = null
-let justDragged = false
-onMounted(() => { bubblePos.value = safeStorage.get<{ x: number; y: number } | null>(POS_KEY, null) })
-const clampTo = (v: number, max: number) => Math.min(Math.max(4, v), Math.max(4, max))
-const bubbleStyle = computed(() => (bubblePos.value ? { left: `${bubblePos.value.x}px`, top: `${bubblePos.value.y}px`, right: 'auto', bottom: 'auto' } : undefined))
-function dragStart(e: PointerEvent) {
-  const r = boxEl.value?.getBoundingClientRect()
-  if (!r) return
-  drag = { sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top, moved: false }
-  ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+const flip = () => {
+  layout.setChatSide(side.value === 'right' ? 'left' : 'right')
+  // The button follows the drawer: it rests on the edge the drawer opens on.
+  if (settings.s.chatDock === 'snap' && settings.s.chatPlace.mode === 'snap' && (settings.s.chatPlace.edge === 'left' || settings.s.chatPlace.edge === 'right')) settings.patch({ chatPlace: mirror(settings.s.chatPlace) })
 }
-function dragMove(e: PointerEvent) {
-  if (!drag) return
-  const dx = e.clientX - drag.sx
-  const dy = e.clientY - drag.sy
-  if (!drag.moved && Math.hypot(dx, dy) < 6) return
-  drag.moved = true
-  const r = boxEl.value!.getBoundingClientRect()
-  bubblePos.value = { x: clampTo(drag.ox + dx, window.innerWidth - r.width - 4), y: clampTo(drag.oy + dy, window.innerHeight - r.height - 4) }
-}
-function dragEnd() {
-  if (drag?.moved) { justDragged = true; setTimeout(() => { justDragged = false }, 0); safeStorage.set(POS_KEY, bubblePos.value) }
-  drag = null
-}
-const bubbleClick = () => { if (!justDragged) chat.show() }
-const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
 </script>
 
 <template>
@@ -182,20 +155,8 @@ const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
     </aside>
   </Transition>
 
-  <!-- Minimised: a bubble on the edge with the unread count and who is here; one tap brings the drawer back. -->
-  <Transition name="bubble">
-    <div v-if="!chat.open && chat.minimized" ref="boxEl" class="bubble-box" :data-side="side" :style="bubbleStyle">
-      <button
-        class="bubble" type="button" :aria-label="chat.unread ? t('chat.unread', { n: chat.unread }) : t('chat.title')" :title="t('chat.bubble.drag')" data-testid="chat-bubble"
-        @pointerdown="dragStart" @pointermove="dragMove" @pointerup="dragEnd" @pointercancel="dragEnd" @click="bubbleClick"
-      >
-        <Icon name="lucide:message-circle" />
-        <span v-if="chat.unread" class="badge" data-testid="chat-bubble-unread">{{ chat.unread }}</span>
-        <span class="stack" aria-hidden="true"><i v-for="(p, i) in people.slice(0, 3)" :key="i" :style="avatar(p)">{{ initial(p.name) }}</i></span>
-      </button>
-      <button class="bubble-x" type="button" :aria-label="t('chat.close')" :title="t('chat.close')" data-testid="chat-bubble-close" @click="chat.close()"><Icon name="lucide:x" /></button>
-    </div>
-  </Transition>
+  <!-- Minimised: a button that snaps to the screen edges with the unread count; one tap brings the drawer back (ChatBubble). -->
+  <ChatBubble />
 </template>
 
 <style scoped>
@@ -204,8 +165,8 @@ const flip = () => layout.setChatSide(side.value === 'right' ? 'left' : 'right')
   border: 1px solid var(--border); border-radius: calc(var(--r-card) + 4px); box-shadow: var(--shadow-2); overflow: hidden;
   background: var(--surface); /* opaque: the board must not show through (feedback-wave-4) */
 }
-.chat[data-side="right"], .bubble-box[data-side="right"] { right: calc(8px + env(safe-area-inset-right, 0px)); }
-.chat[data-side="left"], .bubble-box[data-side="left"] { left: calc(8px + env(safe-area-inset-left, 0px)); }
+.chat[data-side="right"] { right: calc(8px + env(safe-area-inset-right, 0px)); }
+.chat[data-side="left"] { left: calc(8px + env(safe-area-inset-left, 0px)); }
 header { display: flex; align-items: center; gap: .5rem; padding: .65rem .75rem .5rem; }
 h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); margin: 0; }
 .online { display: inline-flex; align-items: center; gap: .35rem; padding: .15rem .6rem; border-radius: 999px; background: var(--accent-soft); font-size: var(--fs-xs); font-weight: 700; }
@@ -251,14 +212,6 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .send:hover:not(:disabled) { transform: scale(1.08); }
 .send:disabled { opacity: .4; cursor: default; }
 
-.bubble-box { position: fixed; z-index: 45; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); touch-action: none; }
-.bubble-x { position: absolute; top: -8px; left: -8px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--text); font-size: var(--fs-xs); cursor: pointer; box-shadow: var(--shadow-1); }
-.bubble { position: relative; display: grid; touch-action: none; grid-auto-flow: column; align-items: center; gap: .5rem; min-height: 52px; padding: 0 .9rem; border-radius: 999px; border: 1px solid var(--border); background: var(--accent); color: var(--accent-ink); font-size: var(--fs-xl); cursor: pointer; box-shadow: var(--shadow-2); }
-.bubble .badge { position: absolute; top: -6px; right: -4px; min-width: 20px; padding: 0 .35rem; border-radius: 999px; background: var(--danger); color: var(--accent-ink); font-size: var(--fs-xs); font-weight: 800; text-align: center; }
-.stack { display: inline-flex; }
-.stack i { display: grid; place-items: center; width: 24px; height: 24px; margin-inline-start: -8px; border-radius: 50%; border: 2px solid var(--accent); font: 800 var(--fs-xs) var(--f-body, inherit); font-style: normal; color: #1b1b1b; }
-.stack i:first-child { margin-inline-start: 0; }
-
 /* Phones: a full-height sheet (the field stays above the keyboard through the visual viewport), compact header. */
 @media (max-width: 600px) {
   .chat { inset: 0; top: 0; bottom: auto; width: 100%; height: 100dvh; border-radius: 0; border: 0; }
@@ -274,9 +227,7 @@ h2 { display: flex; align-items: center; gap: .4rem; font-size: var(--fs-lg); ma
 .chat-enter-active, .chat-leave-active { transition: transform .38s var(--spring, cubic-bezier(.22, 1, .36, 1)), opacity .25s; }
 .chat[data-side="right"].chat-enter-from, .chat[data-side="right"].chat-leave-to { transform: translateX(110%); opacity: 0; }
 .chat[data-side="left"].chat-enter-from, .chat[data-side="left"].chat-leave-to { transform: translateX(-110%); opacity: 0; }
-.bubble-enter-active, .bubble-leave-active { transition: transform .3s var(--spring, cubic-bezier(.22, 1, .36, 1)), opacity .2s; }
-.bubble-enter-from, .bubble-leave-to { transform: scale(.4); opacity: 0; }
 .msg-enter-active { animation: msg-in .3s var(--spring, cubic-bezier(.22, 1, .36, 1)); }
 @keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(.97); } }
-@media (prefers-reduced-motion: reduce) { .chat-enter-active, .chat-leave-active, .bubble-enter-active, .bubble-leave-active { transition: none; } .msg-enter-active, .dots i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .chat-enter-active, .chat-leave-active { transition: none; } .msg-enter-active, .dots i { animation: none; } }
 </style>

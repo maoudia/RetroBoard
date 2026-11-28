@@ -7,6 +7,7 @@ import { LOCALES } from '~/i18n'
 import { DEFAULT_ZOOM, type Density, type ScreenClass, stepZoom, ZOOM_STEPS } from '~/utils/layout'
 import { askNotifyPermission, canNotify } from '~/utils/system-notify'
 import { buildSettingsFile, parseSettingsFile } from '~/utils/settings-file'
+import { NO_INSETS, type PlaceKey, convert, placeKey, placeOf } from '~/utils/chat-dock'
 const { t } = useT()
 
 const ui = useUiStore()
@@ -32,6 +33,16 @@ function saveIdentity() {
   board.updateIdentity(identity.identity)
 }
 const set = (patch: Parameters<typeof settings.patch>[0]) => settings.patch(patch)
+/** Chat button (change chat-floating-dock): the eight places as a 3x3 grid without its centre, and snap or free. */
+const chatKey = computed(() => placeKey(settings.s.chatPlace))
+const GRID: (PlaceKey | null)[] = ['top-left', 'top', 'top-right', 'left', null, 'right', 'bottom-left', 'bottom', 'bottom-right']
+function pickPlace(key: PlaceKey) {
+  const snap = placeOf(key)
+  set({ chatPlace: settings.s.chatDock === 'free' ? convert(snap, 'free', { w: window.innerWidth, h: window.innerHeight }, NO_INSETS) : snap })
+}
+function setDock(mode: 'snap' | 'free') {
+  set({ chatDock: mode, chatPlace: convert(settings.s.chatPlace, mode, { w: window.innerWidth, h: window.innerHeight }, NO_INSETS) })
+}
 // Layout is kept per screen class on this device (change device-layout-prefs).
 const layout = useLayoutStore()
 const density = computed(() => layout.density ?? settings.s.density)
@@ -167,6 +178,21 @@ async function wipe() {
       <ToggleSwitch v-if="advanced" plain :label="t('profile.phaseWarning')" :model-value="settings.s.phaseWarning" data-testid="set-phase-warning" @update:model-value="(on: boolean) => set({ phaseWarning: on })" />
       <ToggleSwitch v-if="advanced && canNotify()" plain :label="t('profile.systemNotify')" :hint="notifyDenied ? t('profile.systemNotify.denied') : t('profile.systemNotify.hint')" :model-value="settings.s.systemNotify" data-testid="set-system-notify" @update:model-value="toggleNotify" />
       <ToggleSwitch :model-value="settings.s.chatStatus" class="line-toggle" :label="t('profile.chatStatus')" :hint="t('profile.chatStatus.hint')" icon="lucide:message-circle" data-testid="set-chat-status" @update:model-value="(on: boolean) => set({ chatStatus: on })" />
+      <div class="line" data-testid="chat-button-setting">
+        <span><strong>{{ t('profile.chatButton') }}</strong><small class="muted">{{ t('profile.chatButton.hint') }}</small></span>
+        <span class="pick-seg touch-seg" role="group" :aria-label="t('profile.chatButton')">
+          <button v-for="m in (['snap', 'free'] as const)" :key="m" type="button" :class="{ on: settings.s.chatDock === m }" :aria-pressed="settings.s.chatDock === m" :data-testid="`chat-dock-${m}`" @click="setDock(m)">{{ t(`profile.chatButton.${m}` as never) }}</button>
+        </span>
+      </div>
+      <div class="line chat-places" data-testid="chat-places">
+        <div class="place-grid" role="radiogroup" :aria-label="t('profile.chatButton.places')">
+          <template v-for="(k, i) in GRID" :key="i">
+            <span v-if="!k" class="place-gap" aria-hidden="true" />
+            <button v-else type="button" class="place" role="radio" :aria-checked="chatKey === k" :aria-label="t(`chat.place.${k}` as never)" :title="t(`chat.place.${k}` as never)" :data-testid="`chat-place-${k}`" @click="pickPlace(k)"><span class="dotp" aria-hidden="true" /></button>
+          </template>
+        </div>
+        <button class="btn btn-sm" type="button" data-testid="chat-place-reset" @click="settings.resetChatPlace()"><Icon name="lucide:rotate-ccw" /> {{ t('profile.chatButton.reset') }}</button>
+      </div>
       <ToggleSwitch plain :label="t('profile.sound')" :model-value="settings.s.sound" data-testid="set-sound" @update:model-value="(on: boolean) => set({ sound: on })" />
     </section>
 
@@ -253,6 +279,14 @@ async function wipe() {
 </template>
 
 <style scoped>
+.touch-seg button { min-height: 44px; }
+.chat-places { justify-content: flex-start; align-items: flex-end; flex-wrap: wrap; }
+.place-grid { display: grid; grid-template-columns: repeat(3, 44px); grid-auto-rows: 44px; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface2); }
+.place { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--r-sm); background: transparent; cursor: pointer; }
+.place:hover { background: var(--accent-soft); }
+.place:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.dotp { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); }
+.place[aria-checked="true"] .dotp { border-color: var(--accent); background: var(--accent); }
 .intro { display: flex; gap: .5rem; align-items: center; font-size: var(--fs-sm); }
 .intro :deep(.iconify) { flex: none; }
 .grp { display: grid; grid-template-columns: minmax(0, 1fr); gap: .8rem; padding-top: .9rem; border-top: 1px solid var(--border); }

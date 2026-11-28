@@ -85,7 +85,7 @@ onBeforeUnmount(() => { observer?.disconnect(); content?.disconnect(); cancelAni
 </script>
 
 <template>
-  <header ref="toolbarEl" class="toolbar glass" :data-folded="ui.chromeHidden ? '' : undefined">
+  <header ref="toolbarEl" class="toolbar glass" data-avoid-chat :data-folded="ui.chromeHidden ? '' : undefined">
     <div class="brand">
       <BrandLogo />
       <button class="title" type="button" :title="t('toolbar.rename')" data-testid="board-title" @click="ui.open('options')">

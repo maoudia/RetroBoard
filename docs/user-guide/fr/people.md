@@ -5,3 +5,6 @@ L'animateur peut renommer un participant, masquer ses nouvelles notes ou le reti
 
 ## chat
 Le chat du board permet de se parler sans quitter la rétro. Comme le reste, il est chiffré et disparaît avec le board.
+
+## chat-button
+Réduit, le chat devient un bouton rond avec le nombre de messages non lus. Glisse-le : il se colle au bord de l'écran le plus proche (ou au coin le plus proche) et garde sa place sur cet appareil seulement ; il reste à l'écart de la barre d'outils, des boutons d'une note en cours d'écriture et du clavier. Sans glisser : appui long sur le bouton (ou touche menu contextuel, ou Maj+F10) puis **Déplacer le bouton du chat**, ensuite les flèches, Entrée pour le poser et Échap pour annuler. Dans ton profil, **Bouton du chat** propose huit places, une position libre au lieu de coller aux bords, et **Réinitialiser la position**. Quand le bouton est sur le bord gauche ou droit, le chat s'ouvre de ce côté.
