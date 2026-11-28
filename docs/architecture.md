@@ -284,8 +284,8 @@ Note: whether Slack incoming webhooks accept a browser `fetch` (CORS) must be ve
 | `agent-implement` | Issue labelled `agent:claude` or `agent:opencode` | Runs `anthropics/claude-code-action@v1` or `anomalyco/opencode/github@latest` with `/openspec-apply-change <change>` scoped to the task group in the issue, opens a PR |
 | `agent-review` | PR opened/updated | Claude code-review plugin posts inline comments; checks spec conformance |
 | `agent-mention` | `@claude`, `/opencode` in comments | Interactive help |
-| `agent-triage` | Nightly | Summarises failing nightly e2e, flaky tests, outdated deps; opens issues |
-| `agent-docs` | Weekly | Checks docs and specs drift against code, opens a PR |
+| `agent-triage` | Nightly (and manual) | Reads the open issues and pull requests, opens one summary issue; read-only tools plus `gh issue create`, skips without the agent secret |
+| `agent-docs` | Weekly (and manual) | Checks the docs and the user guide against the code, opens one summary issue; same tools and guard, never writes to the repository |
 
 Guardrails: `--max-turns`, job timeouts, concurrency 1 per issue, only maintainers can trigger, agents cannot change `.github/workflows` or secrets, required human review, merge queue. Credentials: `CLAUDE_CODE_OAUTH_TOKEN` (subscription) or `ANTHROPIC_API_KEY`. Sources: <https://code.claude.com/docs/en/github-actions>, <https://opencode.ai/docs/github/>.
 
