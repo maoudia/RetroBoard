@@ -45,4 +45,14 @@ describe('voteStats', () => {
     expect(s.spread).toBeNull()
     expect(s.perColumn.every((c) => c.share === 0)).toBe(true)
   })
+
+  it('up and down style: totals ups and downs, ties need the same ups, no budget', () => {
+    const ud = (id: string, votes: number, ups: number, downs: number): SnapshotNote => ({ ...note(id, 'c1', votes), ups, downs })
+    const input = { notes: [ud('a', 1, 2, 1), ud('b', 1, 1, 0), ud('c', -1, 0, 1)], groups: [], columns: [col('c1')], settings: { voteLimit: 5, voteStyle: 'updown' } } as never
+    const s = voteStats(input, 4)!
+    expect([s.totalUps, s.totalDowns, s.totalVotes]).toEqual([3, 2, 1])
+    expect(s.votesAvailable).toBeNull()
+    expect(s.top.map((t) => [t.id, t.tied])).toEqual([['a', false], ['b', false]])
+    expect(voteStats(snap([note('a', 'c1', 1)]))!.totalUps).toBeNull()
+  })
 })

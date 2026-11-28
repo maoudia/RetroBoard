@@ -155,7 +155,7 @@ export const PHASE_PRESETS: Record<PhaseKind, readonly CommandType[]> = {
   write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
   // note.addMany: drafts auto-published when Write ends land at the start of Group.
   group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move', 'note.edit', 'note.color', 'note.addMany'],
-  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
+  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.up', 'vote.down', 'vote.clear', 'vote.seal', 'vote.unseal'],
   rank: ['action.add'],
   actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
   close: ['roti.set'],
@@ -171,7 +171,7 @@ export const CAPABILITY_COMMANDS: Record<Exclude<Capability, 'freeze'>, readonly
   write: ['note.add', 'note.edit', 'note.delete', 'note.color'],
   publish: ['note.addMany'],
   group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move'],
-  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
+  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.up', 'vote.down', 'vote.clear', 'vote.seal', 'vote.unseal'],
   actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
 }
 

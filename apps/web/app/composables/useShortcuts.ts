@@ -96,8 +96,9 @@ export function useShortcuts() {
     },
     'drafts.publish': () => { if (drafts.count) publish(drafts.drafts.map((d) => d.id)) },
     'filter.open': () => { ui.filterOpen = true },
-    'vote.add': () => { const id = focusedNoteId(); if (id) board.commands.addVote('note', id) },
-    'vote.remove': () => { const id = focusedNoteId(); if (id) board.commands.removeVote('note', id) },
+    // Up and down style: v gives an up, Shift+v takes my choice back.
+    'vote.add': () => { const id = focusedNoteId(); if (!id) return; if (board.settings?.voteStyle === 'updown') board.commands.setChoice('note', id, 'up'); else board.commands.addVote('note', id) },
+    'vote.remove': () => { const id = focusedNoteId(); if (!id) return; if (board.settings?.voteStyle === 'updown') board.commands.setChoice('note', id, null); else board.commands.removeVote('note', id) },
     'note.zoom': () => { const id = focusedNoteId(); if (id) openZoom(id, focusedNote()?.closest<HTMLElement>('[data-testid^="cluster-inline-"]')?.dataset.sourceId ?? null) },
     'note.color': () => { const id = focusedNoteId(); if (id) ui.openPalette(id) },
     'presenter.toggle': () => { ui.presenter = !ui.presenter },

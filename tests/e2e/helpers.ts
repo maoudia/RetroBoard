@@ -11,7 +11,7 @@ export async function enterName(page: Page, name: string, show = true) {
   await page.getByTestId('name-save').click()
 }
 
-export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean; oneFacilitator?: boolean; passcode?: string; autoAgenda?: boolean } = {}) {
+export async function createBoard(page: Page, opts: { theme?: string; template?: string; name?: string; title?: string; keepShare?: boolean; oneFacilitator?: boolean; passcode?: string; autoAgenda?: boolean; voteStyle?: 'updown' } = {}) {
   await page.goto('/new')
   // Tests that replace the stored settings come back in simple mode (the default): the helper needs every option.
   const advanced = page.getByTestId('mode-advanced')
@@ -23,6 +23,7 @@ export async function createBoard(page: Page, opts: { theme?: string; template?:
     if ((await auto.count()) && (await auto.isChecked())) await auto.uncheck()
   }
   if (opts.title) await page.getByTestId('setup-title').fill(opts.title)
+  if (opts.voteStyle) await page.getByTestId(`setup-vote-style-${opts.voteStyle}`).click()
   await page.getByTestId(`theme-${opts.theme ?? 'studio'}`).click()
   await page.getByTestId('tab-all').click()
   await page.getByTestId(`template-${opts.template ?? 'halloween'}`).click()

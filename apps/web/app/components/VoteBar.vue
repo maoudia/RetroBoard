@@ -30,11 +30,14 @@ const revealing = computed(() => !!board.snapshot?.reveal && board.snapshot.reve
   <div class="votebar glass" data-testid="votebar">
     <div class="mid" aria-live="polite" :title="t('votebar.votes', { n: limit })">
       <!-- Your tickets: a full ticket is a vote you still have, an empty one is spent. Many votes: one ticket and the count. -->
+      <span v-if="board.settings?.voteStyle === 'updown'" data-testid="votes-updown"><Icon name="lucide:thumbs-up" class="tk" aria-hidden="true" /> <Icon name="lucide:thumbs-down" class="tk" aria-hidden="true" /> {{ t('votebar.updown') }}</span>
+      <template v-else>
       <span class="tickets" aria-hidden="true">
         <template v-if="limit <= 8"><Icon v-for="i in limit" :key="i" name="lucide:ticket" class="tk" :class="{ used: i > board.votesLeft }" /></template>
         <Icon v-else name="lucide:ticket" class="tk" />
       </span>
       <span data-testid="votes-left"><strong class="mono">{{ board.votesLeft }}</strong><span class="of mono">/{{ limit }}</span><span class="sr-only"> {{ t('votebar.left', { n: board.votesLeft, limit }) }}</span></span>
+      </template>
     </div>
     <span v-if="board.locked" class="pill lock" :title="t('votebar.locked')"><Icon name="lucide:lock" /><span class="sr-only">{{ t('votebar.locked') }}</span></span>
     <div class="right">

@@ -1,5 +1,6 @@
 import type { ColumnIcon } from './icons'
 import type { LIMITS } from './limits'
+import type { VoteStyle } from './types'
 
 /**
  * Board commands as the domain understands them (already validated and normalised).
@@ -38,6 +39,9 @@ export type Command =
   | { t: 'vote.toggle'; id: string }
   | { t: 'vote.add'; kind: VotableKind; id: string }
   | { t: 'vote.remove'; kind: VotableKind; id: string }
+  | { t: 'vote.up'; kind: VotableKind; id: string }
+  | { t: 'vote.down'; kind: VotableKind; id: string }
+  | { t: 'vote.clear'; kind: VotableKind; id: string }
   | { t: 'vote.seal'; sealed: string }
   | { t: 'vote.unseal'; sealed: string }
   | { t: 'vote.reveal'; counts: RevealCount[] }
@@ -50,10 +54,10 @@ export type Command =
   | { t: 'column.update'; id: string; title?: string; subtitle?: string; icon?: ColumnIcon; color?: number; votable?: boolean }
   | { t: 'column.delete'; id: string }
   | { t: 'column.move'; id: string; toIndex: number }
-  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean; /** Votable flag per template column, in order (overrides the format's defaults). */ votable?: boolean[]; /** A cloned board: its own columns replace the format's (change feedback-wave-7). */ columns?: CloneColumn[] }
+  | { t: 'board.init'; templateId: string; themeId: string; title?: string; locale?: Locale; openFacilitation?: boolean; announceArrivals?: boolean; voteStyle?: VoteStyle; /** Votable flag per template column, in order (overrides the format's defaults). */ votable?: boolean[]; /** A cloned board: its own columns replace the format's (change feedback-wave-7). */ columns?: CloneColumn[] }
   /** `wipe: true` is the older spelling of mode `wipe`; `migrate` keeps notes, clusters and votes (change board-type-migration). */
   | { t: 'template.apply'; templateId: string; wipe?: boolean; mode?: 'wipe' | 'migrate'; locale?: Locale }
-  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; sealedBallot?: boolean; ballotKey?: string; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; hideWritingOnReturn?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
+  | { t: 'settings.update'; title?: string; voteLimit?: number; maxVotesPerItem?: number; votable?: 'notes' | 'clusters' | 'both'; secretVoting?: boolean; voteStyle?: VoteStyle; sealedBallot?: boolean; ballotKey?: string; votingEnabled?: boolean; locked?: boolean; browserAgentsAllowed?: boolean; openFacilitation?: boolean; actionMode?: 'checkbox' | 'workflow'; themeId?: string; talkMode?: 'off' | 'ring' | 'popup'; talkBudgetSec?: number; talkSelfStart?: boolean; noteMaxLength?: number; announceArrivals?: boolean; hideWritingOnReturn?: boolean; noteSize?: 'small' | 'normal' | 'large'; noteText?: 'small' | 'normal' | 'large' }
   | { t: 'action.add'; text: string; owner: string; due?: string; sourceNote?: string }
   | { t: 'action.update'; id: string; text?: string; owner?: string; due?: string | null }
   | { t: 'action.status'; id: string; status: ActionStatusName }

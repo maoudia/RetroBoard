@@ -2,7 +2,7 @@
 import { DEFAULT_VOTE_LIMIT, LIMITS, DEFAULT_TEMPLATE_ID, getTemplate, localizeTemplate, type CloneColumn, type ImportedAction, type PhaseInput } from '@retroboard/domain'
 import { nextTitle } from '~/utils/next-title'
 
-export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; columns?: CloneColumn[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean; chain?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
+export interface SetupResult { votingEnabled?: boolean; voteLimit?: number; secretVoting?: boolean; voteStyle?: 'updown'; templateId: string; themeId: string; title: string; locale?: 'fr' | 'en'; passcode?: string; importActions?: ImportedAction[]; columns?: CloneColumn[]; agenda?: { phases: PhaseInput[]; rules: boolean; autoPublish: boolean; autoStart?: boolean; chain?: boolean }; facilitation?: 'everyone' | 'one'; announceArrivals?: boolean; votable?: boolean[] }
 
 const { t, locale } = useT()
 /** Simple keeps the title, an automatic password, the theme, the format and the timed agenda; facilitation, popups, voting, ambient effects and the custom passcode are advanced (changes simple-advanced-mode, simple-mode-ux-pass). */
@@ -34,6 +34,7 @@ watch(() => props.prefill, (p) => {
 /** Votes per person and sealed ballot (advanced): applied right after the board exists. */
 const voteLimit = ref<number>(DEFAULT_VOTE_LIMIT)
 const secretVoting = ref(false)
+const voteStyle = ref<'dots' | 'updown'>('dots')
 /** Voting on or off for the whole board: off removes the voting bar, the vote buttons and the vote phases. */
 const votingOn = ref(true)
 const passcode = ref('')
@@ -59,7 +60,7 @@ watch(() => agent.setupDraft, (draft) => {
 
 /** Creating without a passcode is an informed choice: the risks are stated first. */
 const confirmOpen = ref(false)
-const result = (): SetupResult => ({ templateId: templateId.value, themeId: props.themeId, title: title.value.trim() || t('setup.fallbackTitle'), locale: locale.value, facilitation: facilitation.value, announceArrivals: announceArrivals.value, ...(advanced.value && voteLimit.value !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit.value) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced.value && !votingOn.value ? { votingEnabled: false } : {}), ...(advanced.value && votingOn.value && secretVoting.value ? { secretVoting: true } : {}), ...(customVotable.value ? { votable: [...votable.value] } : {}), ...(props.withPasscode && passcode.value ? { passcode: passcode.value } : {}) })
+const result = (): SetupResult => ({ templateId: templateId.value, themeId: props.themeId, title: title.value.trim() || t('setup.fallbackTitle'), locale: locale.value, facilitation: facilitation.value, announceArrivals: announceArrivals.value, ...(advanced.value && voteLimit.value !== DEFAULT_VOTE_LIMIT ? { voteLimit: Math.min(LIMITS.maxVotes, Math.max(LIMITS.minVotes, Math.round(voteLimit.value) || DEFAULT_VOTE_LIMIT)) } : {}), ...(advanced.value && !votingOn.value ? { votingEnabled: false } : {}), ...(advanced.value && votingOn.value && secretVoting.value ? { secretVoting: true } : {}), ...(advanced.value && votingOn.value && voteStyle.value === 'updown' ? { voteStyle: 'updown' as const } : {}), ...(customVotable.value ? { votable: [...votable.value] } : {}), ...(props.withPasscode && passcode.value ? { passcode: passcode.value } : {}) })
 function onSubmit() {
   if (props.withPasscode && !passcode.value.trim()) { confirmOpen.value = true; return }
   emit('submit', result())
@@ -101,7 +102,13 @@ function onSubmit() {
         <legend class="lbl">{{ t('setup.voting') }}</legend>
         <ToggleSwitch v-model="votingOn" plain :label="t('setup.voting.enabled')" :hint="t('setup.voting.enabled.hint')" data-testid="setup-voting-enabled" />
         <template v-if="votingOn">
-        <label class="opt votes-per">
+        <div class="opt vote-style">
+          <span><strong>{{ t('setup.voteStyle') }}</strong></span>
+          <span class="pick-seg" role="group" :aria-label="t('setup.voteStyle')">
+            <button v-for="v in (['dots', 'updown'] as const)" :key="v" type="button" :class="{ on: voteStyle === v }" :aria-pressed="voteStyle === v" :data-testid="`setup-vote-style-${v}`" @click="voteStyle = v">{{ t(`options.voteStyle.${v}`) }}</button>
+          </span>
+        </div>
+        <label v-if="voteStyle === 'dots'" class="opt votes-per">
           <input v-model.number="voteLimit" class="field num" type="number" :min="LIMITS.minVotes" :max="LIMITS.maxVotes" inputmode="numeric" data-testid="setup-vote-limit" />
           <span><strong>{{ t('options.votesPer') }}</strong><small class="muted">{{ t('options.votesPer.hint') }}</small></span>
         </label>

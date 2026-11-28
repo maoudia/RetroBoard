@@ -3,7 +3,7 @@ import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { getTemplate, localizeTemplate } from '../catalogue/templates'
 import { KEY_RE } from '../access/keyring'
 import { LIMITS, NOTE_TEXT_MIN } from '../shared/limits'
-import { type BoardSettings, type BoardState, DISPLAY_SCALES, type ErrorCode } from '../shared/types'
+import { type BoardSettings, type BoardState, DISPLAY_SCALES, type ErrorCode, VOTE_STYLES } from '../shared/types'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
 import { columnsFromTemplate, mapColumns } from './board'
 import { emptyTalk } from './talk'
@@ -20,8 +20,20 @@ const withoutReveal = ({ sealedRevealed: _revealed, ...settings }: BoardSettings
 /** A new sealed-ballot round: the ballots and their reveal are gone, the mode and the key stay. */
 const freshRound = ({ sealed: _ballots, ...s }: BoardState): BoardState => ({ ...s, settings: withoutReveal(s.settings) })
 
+const withoutDowns = <T extends { downVoters?: string[] }>({ downVoters: _downs, ...rest }: T): Omit<T, 'downVoters'> => rest
+
 const hasVotes = (s: BoardState): boolean =>
-  !!s.sealed?.length || Object.values(s.notes).some((n) => n.voters.length > 0) || Object.values(s.groups).some((g) => g.voters.length > 0)
+  !!s.sealed?.length || Object.values(s.notes).some((n) => n.voters.length > 0 || !!n.downVoters?.length) || Object.values(s.groups).some((g) => g.voters.length > 0 || !!g.downVoters?.length)
+
+/** Vote style switch (change up-down-votes): fixed once a vote exists, `vote.reset` starts again. Dots is stored as absence. */
+function withVoteStyle(s: BoardState, style: BoardSettings['voteStyle'], settings: BoardSettings): BoardSettings | ErrorCode {
+  if (style === undefined) return settings
+  if (!VOTE_STYLES.includes(style)) return 'invalid'
+  if (style === (s.settings.voteStyle ?? 'dots')) return settings
+  if (hasVotes(s)) return 'not-empty'
+  const { voteStyle: _old, ...rest } = settings
+  return style === 'updown' ? { ...rest, voteStyle: 'updown' } : rest
+}
 
 /**
  * Sealed ballot switch and ballot key (change voting-v2-and-ranking). They change only while no vote exists, so a round
@@ -49,7 +61,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       columns: c.columns?.length
         ? c.columns.map((x) => ({ id: ctx.newId(), title: x.title, subtitle: x.subtitle ?? '', icon: x.icon ?? DEFAULT_COLUMN_ICON, ...(x.color === undefined ? {} : { color: x.color }), ...(x.votable === false ? { votable: false } : {}) }))
         : columnsFromTemplate(localizeTemplate(tpl, c.locale), ctx.newId, c.votable),
-      settings: { ...s.settings, initialized: true, templateId: tpl.id, themeId: c.themeId, title: c.title ?? s.settings.title, ...(c.locale ? { locale: c.locale } : {}), ...(c.openFacilitation !== undefined ? { openFacilitation: c.openFacilitation } : {}), ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}) },
+      settings: { ...s.settings, initialized: true, templateId: tpl.id, themeId: c.themeId, title: c.title ?? s.settings.title, ...(c.locale ? { locale: c.locale } : {}), ...(c.openFacilitation !== undefined ? { openFacilitation: c.openFacilitation } : {}), ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}), ...(c.voteStyle === 'updown' ? { voteStyle: 'updown' as const } : {}) },
     }, { meta: true, wipe: true })
   },
 
@@ -114,7 +126,11 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type
       ...(c.noteText !== undefined && DISPLAY_SCALES.includes(c.noteText) ? { noteText: c.noteText } : {}),
     }
-    const next = withSealedBallot(s, c, settings)
+    const styled = withVoteStyle(s, c.voteStyle, settings)
+    if (typeof styled === 'string') return fail(styled)
+    const next = withSealedBallot(s, c, styled)
+    // The two modes exclude each other: a sealed ballot counts dots only.
+    if (typeof next !== 'string' && next.sealedBallot && next.voteStyle === 'updown') return fail('invalid')
     return typeof next === 'string' ? fail(next) : done({ ...s, settings: next }, { meta: true })
   },
 
@@ -164,8 +180,8 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
   /** Clears every vote (notes and clusters) and reopens voting. */
   'vote.reset': (s) => done(freshRound({
     ...s,
-    notes: Object.fromEntries(Object.entries(s.notes).map(([id, n]) => [id, { ...n, voters: [] }])),
-    groups: Object.fromEntries(Object.entries(s.groups).map(([id, g]) => [id, { ...g, voters: [] }])),
+    notes: Object.fromEntries(Object.entries(s.notes).map(([id, n]) => [id, { ...withoutDowns(n), voters: [] }])),
+    groups: Object.fromEntries(Object.entries(s.groups).map(([id, g]) => [id, { ...withoutDowns(g), voters: [] }])),
     settings: { ...s.settings, votingClosed: false },
   }), { meta: true, wipe: true }),
 

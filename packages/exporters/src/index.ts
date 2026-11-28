@@ -2,9 +2,9 @@ import { buildColumnItems } from '@retroboard/application'
 import { countsHidden, type Snapshot } from '@retroboard/domain'
 
 /** Label provider, so exporters stay pure and language-agnostic. Keys are the `export.*` i18n keys. */
-export type ExportLabels = (key: 'export.noNote' | 'export.votes' | 'export.actions' | 'export.noAction'
+export type ExportLabels = (key: 'export.noNote' | 'export.votes' | 'export.score' | 'export.csv.ups' | 'export.csv.downs' | 'export.actions' | 'export.noAction'
   | 'export.csv.column' | 'export.csv.group' | 'export.csv.note' | 'export.csv.votes' | 'export.csv.author',
-params?: { n: number }) => string
+params?: { n: number; up?: number; down?: number }) => string
 
 export interface ExportMeta { date: Date; labels: ExportLabels }
 
@@ -19,12 +19,14 @@ export function toMarkdown(s: Snapshot, meta: ExportMeta): string {
     lines.push(`## ${col.title}`, '')
     const items = buildColumnItems(s, col.id, secret ? 'time' : 'votes')
     if (!items.length) lines.push(t('export.noNote'), '')
-    const votes = (n: number) => (secret ? '' : ` (${t('export.votes', { n })})`)
+    // Up and down style: the score with its ups and downs; dots: the count.
+    const votes = (n: number, x?: { ups?: number | null; downs?: number | null }) =>
+      secret ? '' : ` (${x?.ups == null ? t('export.votes', { n }) : t('export.score', { n, up: x.ups, down: x.downs ?? 0 })})`
     for (const it of items) {
       if (it.kind === 'note') {
-        lines.push(`- ${oneLine(it.note.text)}${votes(it.votes)}${it.note.author ? ` - ${it.note.author}` : ''}`)
+        lines.push(`- ${oneLine(it.note.text)}${votes(it.votes, it.note)}${it.note.author ? ` - ${it.note.author}` : ''}`)
       } else {
-        lines.push(`- **${oneLine(it.title)}**${votes(it.votes)}`)
+        lines.push(`- **${oneLine(it.title)}**${votes(it.votes, it.group)}`)
         for (const n of it.notes) lines.push(`  - ${oneLine(n.text)}${n.author ? ` - ${n.author}` : ''}`)
       }
     }
@@ -46,10 +48,11 @@ export function csvCell(v: string | number): string {
 export function toCsv(s: Snapshot, labels: ExportLabels): string {
   const col = new Map(s.columns.map((c) => [c.id, c.title]))
   const group = new Map(s.groups.map((g) => [g.id, g]))
-  const rows = [[labels('export.csv.column'), labels('export.csv.group'), labels('export.csv.note'), labels('export.csv.votes'), labels('export.csv.author')]]
+  const updown = s.settings.voteStyle === 'updown'
+  const rows = [[labels('export.csv.column'), labels('export.csv.group'), labels('export.csv.note'), labels('export.csv.votes'), ...(updown ? [labels('export.csv.ups'), labels('export.csv.downs')] : []), labels('export.csv.author')]]
   for (const n of s.notes) {
     const g = n.groupId ? group.get(n.groupId) : undefined
-    rows.push([col.get(n.columnId) ?? '', g ? (g.title ?? '') : '', n.text, n.votes === null ? '' : String(n.votes), n.author ?? ''])
+    rows.push([col.get(n.columnId) ?? '', g ? (g.title ?? '') : '', n.text, n.votes === null ? '' : String(n.votes), ...(updown ? [n.ups == null ? '' : String(n.ups), n.downs == null ? '' : String(n.downs)] : []), n.author ?? ''])
   }
   return rows.map((r) => r.map(csvCell).join(',')).join('\n') + '\n'
 }
@@ -57,7 +60,7 @@ export function toCsv(s: Snapshot, labels: ExportLabels): string {
 /** Board content without per-viewer fields (mine, voted). */
 export function toJson(s: Snapshot): string {
   const { settings, columns, notes, groups, actions } = s
-  return JSON.stringify({ settings, columns, notes: notes.map(({ mine: _m, voted: _v, ...n }) => n), groups, actions }, null, 2)
+  return JSON.stringify({ settings, columns, notes: notes.map(({ mine: _m, voted: _v, myChoice: _c, ...n }) => n), groups: groups.map(({ myChoice: _c, ...g }) => g), actions }, null, 2)
 }
 
 /** Jira's default workflow names, so the file imports as-is (Jira > Import issues from CSV). */

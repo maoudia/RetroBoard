@@ -10,7 +10,7 @@ const OLD: Record<PhaseKind, CommandType[]> = {
   review: ['action.status', 'action.update', 'action.toggle'],
   write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
   group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move', 'note.edit', 'note.color', 'note.addMany'],
-  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
+  vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.up', 'vote.down', 'vote.clear', 'vote.seal', 'vote.unseal'],
   rank: ['action.add'],
   actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
   close: ['roti.set'],
@@ -52,7 +52,7 @@ describe('phase policy', () => {
       write: ['note.add', 'note.edit', 'note.delete', 'note.color'],
       publish: ['note.addMany'],
       group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move'],
-      vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
+      vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.up', 'vote.down', 'vote.clear', 'vote.seal', 'vote.unseal'],
       actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
     })
   })
@@ -66,7 +66,7 @@ describe('phase policy', () => {
         expect(phaseAllows({ kind: 'checkin', policy: { [c]: true } }, 'roti.set'), c).toBe(false)
       }
     }
-    expect(Object.fromEntries(Object.entries(CAPABILITY_COMMANDS).map(([k, v]) => [k, v.length]))).toEqual({ write: 4, publish: 1, group: 8, vote: 5, actions: 5 })
+    expect(Object.fromEntries(Object.entries(CAPABILITY_COMMANDS).map(([k, v]) => [k, v.length]))).toEqual({ write: 4, publish: 1, group: 8, vote: 8, actions: 5 })
     expect(presetCapability('write', 'freeze')).toBe(false)
     expect(presetCapability('write', 'write')).toBe(true)
   })

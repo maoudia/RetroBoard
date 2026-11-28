@@ -1,6 +1,16 @@
 import type { VotableKind } from '../shared/commands'
 import type { BoardState, ErrorCode, SealedBallot } from '../shared/types'
 
+/** Up and down style (change up-down-votes)? Absent setting: dots, like boards created before. */
+export const isUpDown = (s: Pick<BoardState, 'settings'>): boolean => s.settings.voteStyle === 'updown'
+
+/** Ups and downs of one item, as client ids. */
+export const downsOf = (item: { downVoters?: readonly string[] }): readonly string[] => item.downVoters ?? []
+
+/** What a participant chose on an item in the up and down style. */
+export const choiceOf = (item: { voters: readonly string[]; downVoters?: readonly string[] }, cid: string): 'up' | 'down' | null =>
+  item.voters.includes(cid) ? 'up' : downsOf(item).includes(cid) ? 'down' : null
+
 /** The sealed ballots of the round, in log order (none before the first). */
 export const ballotsOf = (s: BoardState): readonly SealedBallot[] => s.sealed ?? []
 
@@ -48,4 +58,11 @@ export function clusterVoters(s: BoardState, groupId: string): string[] {
   if (!g) return []
   const members = Object.values(s.notes).filter((n) => n.groupId === groupId)
   return [...g.voters, ...members.flatMap((n) => n.voters)]
+}
+
+/** Cluster down votes: on the cluster plus on its notes (up and down style). */
+export function clusterDowners(s: BoardState, groupId: string): string[] {
+  const g = s.groups[groupId]
+  if (!g) return []
+  return [...downsOf(g), ...Object.values(s.notes).filter((n) => n.groupId === groupId).flatMap((n) => [...downsOf(n)])]
 }
