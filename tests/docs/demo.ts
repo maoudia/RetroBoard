@@ -62,6 +62,7 @@ export function demoRunner(page: Page, browser: Browser, locale: Locale) {
       await note(3).dragTo(note(2))
       await settle(page)
     } else if ('click' in op) await page.getByTestId(op.click).first().click()
+    else if ('zoomNote' in op) await noteByText(page, demo.notes[op.zoomNote]![1]).locator('[data-testid="note-text"]').dblclick()
     else if ('press' in op) await page.keyboard.press(op.press)
     else if ('fill' in op) await page.getByTestId(op.fill[0]).fill(text(op.fill[1], locale))
     else if ('viewport' in op) await page.setViewportSize({ width: op.viewport[0], height: op.viewport[1] })
