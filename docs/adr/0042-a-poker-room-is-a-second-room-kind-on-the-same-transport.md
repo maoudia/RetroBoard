@@ -127,3 +127,5 @@ Not verified, to be covered by the next groups: the WebRTC mesh path (the specs 
 * 3.3: automatic reveal is the opener's device. 4.1: a pasted backlog goes in batch events (at most 50 stories and 16 KiB each), because the fold ignores an author's events beyond 60 per 10 seconds. 5.2: emoji throws are live frames, never in the log, within 60 per 10 seconds per socket.
 
 Related: ADR-0017 and ADR-0024 (events travel peer to peer, relay as fallback), ADR-0021 (everyone facilitates by default; poker defaults to one moderator), ADR-0026 (one engine for solo and shared boards), ADR-0029 (compact links with board keys), ADR-0037 (snapshots), `docs/capacity.md`. The spec deltas of this decision are in `openspec/changes/scrum-poker/specs/`. Revisit if the voter cap makes rooms too small for real teams or if production measurements of relay duration differ from the model.
+
+Amended in part by ADR-0045 (proposed, 2026-11-21): a board may also fold the poker rounds of an estimation phase in its own ledger. The decision above (a poker room is a second room kind, estimation is its own bounded context, the relay is kind-agnostic) is unchanged.

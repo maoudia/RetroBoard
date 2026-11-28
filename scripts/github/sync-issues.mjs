@@ -184,6 +184,10 @@ const PLAN = {
   'jira-estimation-import': ['P15', 'A', ['scrum-poker']],
   // Owner feedback 2026-11-21 (live phone screenshot of the room): the design of the poker room, written first. No dependency: it redesigns the room that already ships.
   'poker-design-v2': ['P15', 'A', []],
+  // Owner review of the live poker 2026-11-21 and the sequence he fixed: finish the standalone poker first (poker-design-v2 group 6), then the deck studio, then the integration with RetroBoard, then the estimation phase of a board. Each depends on the one before it.
+  'poker-deck-studio': ['P15', 'A', ['poker-design-v2']],
+  'poker-in-retroboard': ['P15', 'A', ['poker-deck-studio']],
+  'board-estimation-phase': ['P15', 'A', ['poker-in-retroboard']],
 }
 const PHASES = {
   P0: 'P0 Foundations', P1: 'P1 Zero-storage core', P2: 'P2 Retro flow', P3: 'P3 UX',
@@ -290,6 +294,10 @@ const ROADMAP = {
   'jira-estimation-import': 'R4',
   // The design of the poker room sits with its epic; groups 1 and 2 (the phone room) can move earlier with GROUP_OVERRIDES if the owner asks.
   'poker-design-v2': 'R4',
+  // The follow-ups of the owner's review of 2026-11-21, in the order he fixed: the deck studio, the integration, the estimation phase of a board.
+  'poker-deck-studio': 'R4',
+  'poker-in-retroboard': 'R4',
+  'board-estimation-phase': 'R4',
 }
 // Priority (owner rule, 2026-10-29): bugs first, then what users see (design), then CI/CD quality, then the rest.
 // Bugs are standalone `bug` issues labelled priority:1-urgent; every change gets one of the other levels.
@@ -381,6 +389,10 @@ const PRIORITY = {
   'jira-estimation-import': 4,
   // What users see first: the design value level, ahead of the epic's own tasks within R4.
   'poker-design-v2': 2,
+  // The design value the owner sees first after the phone room: the cards and decks, then the product integration, then the board phase.
+  'poker-deck-studio': 2,
+  'poker-in-retroboard': 2,
+  'board-estimation-phase': 2,
 }
 // A task group can sit in another release or priority than its change (plan 2026-11-04): key `change:group number`.
 const GROUP_OVERRIDES = {
