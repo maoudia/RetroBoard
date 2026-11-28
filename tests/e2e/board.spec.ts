@@ -143,7 +143,8 @@ test.describe('columns', () => {
       await noteByText(page, 'Déplaçable').locator('[data-testid^="note-menu-"]').click()
       await page.getByRole('menuitem', { name: 'Continue' }).click()
     } else {
-      await noteByText(page, 'Déplaçable').dragTo(column(page, 2))
+      // Onto the column header: the writing zone at its foot opens the idea for editing instead (change note-edit-and-unpublish).
+      await noteByText(page, 'Déplaçable').dragTo(column(page, 2).locator('header').first())
     }
     await expect(column(page, 2).locator('article.note', { hasText: 'Déplaçable' })).toBeVisible()
     await expect(column(page, 0).locator('article.note')).toHaveCount(0)

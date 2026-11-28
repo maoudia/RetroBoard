@@ -66,7 +66,7 @@ test('the facilitator sets the note length; the counter warns near the limit and
   const note = page.locator('article.note').first()
   await note.locator('[data-testid^="note-menu-"]').click()
   await page.getByRole('menuitem', { name: /Modifier/i }).click()
-  await expect(note.getByTestId('note-counter')).toContainText('40 / 40')
+  await expect(col.getByTestId('note-counter')).toContainText('40 / 40')
 })
 
 test('draft-first: Add is the primary button on the right, Publish now the secondary one before it', async ({ page, isMobile }) => {
