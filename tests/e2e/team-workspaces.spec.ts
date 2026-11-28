@@ -159,19 +159,18 @@ test('a team travels by encrypted link and by .retroteam file, without any board
   await carol.close()
 })
 
-test('the team and project row comes first on /new, in simple and in advanced mode', async ({ page }) => {
+test('the team and project row comes first on /new in advanced mode and is left out of simple mode (change simple-mode-ux-pass)', async ({ page }) => {
   await page.goto('/new')
   await page.getByTestId('mode-simple').click()
   const above = (a: string, b: string) => page.evaluate(([x, y]) => {
     const ea = document.querySelector(`[data-testid="${x}"]`), eb = document.querySelector(`[data-testid="${y}"]`)
     return !!ea && !!eb && !!(ea.compareDocumentPosition(eb) & Node.DOCUMENT_POSITION_FOLLOWING)
   }, [a, b])
-  // Simple mode: the compact row, without the long explanation.
-  await expect(page.getByTestId('team-card')).toBeVisible()
-  await expect(page.getByTestId('team-intro')).toHaveCount(0)
-  expect(await above('team-card', 'setup-title')).toBe(true)
+  // Simple mode: the last team is reused silently, the row is not shown.
+  await expect(page.getByTestId('team-card')).toHaveCount(0)
   await axe(page)
   await page.getByTestId('mode-advanced').click()
+  await expect(page.getByTestId('team-card')).toBeVisible()
   await expect(page.getByTestId('team-intro')).toBeVisible()
   expect(await above('team-card', 'setup-title')).toBe(true)
 })

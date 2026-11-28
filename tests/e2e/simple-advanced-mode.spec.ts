@@ -77,6 +77,8 @@ test('landing: pasting a board link joins it, a wrong text says so (change join-
   await page.getByTestId('setup-title').fill('Join me')
   await page.getByTestId('tab-all').click()
   await page.getByTestId('template-halloween').click()
+  // The simple password is automatic and read-only: clearing it is an advanced choice (change simple-mode-ux-pass).
+  await page.getByTestId('mode-advanced').click()
   await page.getByTestId('setup-passcode').fill('')
   await page.getByTestId('setup-submit').click()
   await page.getByTestId('confirm').click()

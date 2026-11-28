@@ -12,7 +12,7 @@ const { push } = useToasts()
 const { locale } = useT()
 const { loadFromLiveBoard } = useLiveCarryOver()
 
-const fromTeam = computed<ImportedAction[]>(() => team.candidates(props.teamId, props.project).map((c) => ({ text: c.text, owner: c.owner, status: c.status as ImportedAction['status'], ...(c.due ? { due: c.due } : {}), from: c.from })))
+const fromTeam = computed<ImportedAction[]>(() => team.carryActions(props.teamId, props.project))
 const dates = computed(() => team.candidates(props.teamId, props.project).map((c) => new Date(c.at).toLocaleDateString(locale.value)))
 const candidates = ref<ImportedAction[]>([...fromTeam.value])
 const picked = ref<Set<number>>(new Set(candidates.value.map((_, i) => i)))
