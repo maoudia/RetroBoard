@@ -1,5 +1,5 @@
 import { agreementKeyPair, fromBase64Url, fromUtf8, openFrom, randomBytes, sealTo, toBase64Url, utf8 } from '@retroboard/crypto'
-import { commitKey, committedNumber, type JoinMsg, JOIN_TTL_MS, newJoinCode, normalizeJoinCode, safetyNumber } from './join-code'
+import { commitKey, committedNumber, type JoinMsg, JOIN_TTL_MS, newJoinCode, normalizeJoinCode } from './join-code'
 
 /**
  * The two sides of the join code (change short-links-and-join), free of Nuxt so they are unit tested:
@@ -13,16 +13,16 @@ export interface JoinChannel {
 export interface ChannelHandlers { onMessage(m: JoinMsg): void; onOpen?(): void; onClose?(): void }
 export type OpenChannel = (code: string, handlers: ChannelHandlers) => Promise<JoinChannel>
 
-/** `verified`: the key was committed before the holder's challenge; a request from an older joiner is not. */
-export interface Knock { n: string; name: string; pub: string; number: string; verified: boolean }
+/** A request whose key was committed before the holder's challenge (change join-code-drop-fallback: nothing else is listed). */
+export interface Knock { n: string; name: string; pub: string; number: string }
 /** `imitation`: two requests showed the same safety number, so both were refused (someone tried to pass for another person). */
 export interface HostState { code: string | null; expiresAt: number; knocks: Knock[]; connected: boolean; imitation: boolean }
 
 export const MAX_KNOCKS = 5
 export const JOINER_WAIT_MS = 90_000
-/** A joiner falls back to the plain knock when the holder does not answer its committed one (an older holder). */
+/** A joiner tells the person to update the app when the holder does not answer its committed knock within this time (an older holder). */
 export const COMMIT_WAIT_MS = 3_000
-export type JoinState = 'idle' | 'connecting' | 'waiting' | 'denied' | 'timeout' | 'failed'
+export type JoinState = 'idle' | 'connecting' | 'waiting' | 'outdated' | 'denied' | 'timeout' | 'failed'
 
 export interface HostDeps { openChannel: OpenChannel; newCode?: () => string; now?: () => number; ttlMs?: number }
 
@@ -92,19 +92,10 @@ export function createJoinHost(deps: HostDeps, state: HostState) {
           void (async () => {
             const [ok, number] = await Promise.all([commitKey(pub, m.n).then((x) => x === held.c), committedNumber(pub, held.h, m.n)])
             if (!pending.delete(m.n) || state.code !== c || !ok) return
-            addKnock({ n: m.n, name: held.name, pub: m.pub, number, verified: true })
+            addKnock({ n: m.n, name: held.name, pub: m.pub, number })
           })()
           return
         }
-        if (m.t !== 'knock' || state.knocks.length + pending.size + commits.size >= MAX_KNOCKS || pending.has(m.n) || state.knocks.some((k) => k.n === m.n)) return
-        const pub = fromBase64Url(m.pub)
-        if (!pub || pub.length !== 32) return
-        pending.add(m.n)
-        void safetyNumber(pub).then((number) => {
-          // The code may have been stopped meanwhile: its knocks are gone for good.
-          if (!pending.delete(m.n) || state.code !== c) return
-          addKnock({ n: m.n, name: m.name, pub: m.pub, number, verified: false })
-        })
       },
     })
     if (state.code !== c) { ch.close(); return }
@@ -132,7 +123,7 @@ export function createJoinHost(deps: HostDeps, state: HostState) {
 export interface JoinerState { state: JoinState; number: string }
 export interface JoinerDeps { openChannel: OpenChannel; origin: string; waitMs?: number }
 
-/** Joiner side: knocks with a one-time key and waits for the link, sealed to that key, or for a refusal. */
+/** Joiner side: knocks with a one-time commitment and waits for the link, sealed to that key, or for a refusal. */
 export function createJoiner(deps: JoinerDeps, ui: JoinerState) {
   const { openChannel, origin, waitMs = JOINER_WAIT_MS } = deps
   let cancel: (() => void) | null = null
@@ -150,12 +141,12 @@ export function createJoiner(deps: JoinerDeps, ui: JoinerState) {
     return await new Promise<string | null>((resolve) => {
       let done = false
       let ch: JoinChannel | null = null
-      let fallback: ReturnType<typeof setTimeout> | undefined
-      const finish = (link: string | null, next: JoinState) => { if (done) return; done = true; clearTimeout(timer); clearTimeout(fallback); ch?.close(); ui.state = next; resolve(link) }
+      let unanswered: ReturnType<typeof setTimeout> | undefined
+      const finish = (link: string | null, next: JoinState) => { if (done) return; done = true; clearTimeout(timer); clearTimeout(unanswered); ch?.close(); ui.state = next; resolve(link) }
       const pub = toBase64Url(me.publicKey)
       const name = displayName.slice(0, 40)
-      /** An older holder ignores the committed knock: knock the plain way, with the plain number. */
-      const knockPlain = () => { ch?.send({ t: 'knock', n, pub, name }); void safetyNumber(me.publicKey).then((number) => { if (!done) ui.number = number }) }
+      /** An older holder ignores the committed knock: say so, and keep listening in case the answer is only slow. */
+      const noAnswer = () => { if (!done && !ui.number) ui.state = 'outdated' }
       const timer = setTimeout(() => finish(null, 'timeout'), waitMs)
       cancel = () => finish(null, 'idle')
       void openChannel(code, {
@@ -164,7 +155,7 @@ export function createJoiner(deps: JoinerDeps, ui: JoinerState) {
           void commitKey(me.publicKey, n).then((c) => {
             if (done) return
             ch?.send({ t: 'knock2', n, c, name })
-            fallback = setTimeout(knockPlain, COMMIT_WAIT_MS)
+            unanswered = setTimeout(noAnswer, COMMIT_WAIT_MS)
           })
         },
         onClose: () => finish(null, 'failed'),
@@ -175,7 +166,8 @@ export function createJoiner(deps: JoinerDeps, ui: JoinerState) {
             // The holder answered: reveal the key, and show the number that depends on the holder's value.
             const h = fromBase64Url(m.h)
             if (!h || h.length !== 16 || ui.number) return
-            clearTimeout(fallback)
+            clearTimeout(unanswered)
+            ui.state = 'waiting'
             ch?.send({ t: 'reveal', n, pub })
             void committedNumber(me.publicKey, h, n).then((number) => { if (!done) ui.number = number })
             return

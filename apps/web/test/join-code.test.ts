@@ -1,6 +1,6 @@
 import { agreementKeyPair, fromBase64Url, openFrom, sealTo, toBase64Url, utf8, fromUtf8 } from '@retroboard/crypto'
 import { describe, expect, it } from 'vitest'
-import { joinRoomId, JOIN_ALPHABET, newJoinCode, normalizeJoinCode, openJoinMsg, safetyNumber, sealJoinMsg } from '../app/utils/join-code'
+import { joinRoomId, JOIN_ALPHABET, newJoinCode, normalizeJoinCode, openJoinMsg, sealJoinMsg } from '../app/utils/join-code'
 
 describe('join code', () => {
   it('makes codes without look-alike characters and reads them back loosely', () => {
@@ -23,21 +23,19 @@ describe('join code', () => {
 
   it('opens messages only with the right code and room', async () => {
     const room = await joinRoomId('RB-7KQ2M9')
-    const env = await sealJoinMsg('RB-7KQ2M9', room, { t: 'knock', n: 'n1', pub: 'abc', name: 'Bob' })
-    expect(await openJoinMsg('RB-7KQ2M9', env)).toEqual({ t: 'knock', n: 'n1', pub: 'abc', name: 'Bob' })
+    const env = await sealJoinMsg('RB-7KQ2M9', room, { t: 'knock2', n: 'n1', c: 'abc', name: 'Bob' })
+    expect(await openJoinMsg('RB-7KQ2M9', env)).toEqual({ t: 'knock2', n: 'n1', c: 'abc', name: 'Bob' })
     expect(await openJoinMsg('RB-7KQ2M8', env)).toBeNull()
     expect(await openJoinMsg('RB-7KQ2M9', { ...env, room: await joinRoomId('RB-AAAAAA') })).toBeNull()
   })
 
-  it('hands the link to the joiner alone, and a swapped key changes the safety number', async () => {
+  it('hands the link to the joiner alone', async () => {
     const joiner = await agreementKeyPair()
     const link = '/board#r=abc&k=secretkey'
     const sealed = await sealTo(joiner.publicKey, utf8(link), utf8('n1'))
     expect(fromUtf8((await openFrom(joiner, sealed, utf8('n1')))!)).toBe(link)
     const relay = await agreementKeyPair()
     expect(await openFrom(relay, sealed, utf8('n1'))).toBeNull()
-    expect(await safetyNumber(joiner.publicKey)).toMatch(/^\d{3} \d{3}$/)
-    expect(await safetyNumber(relay.publicKey)).not.toBe(await safetyNumber(joiner.publicKey))
     expect(fromBase64Url(toBase64Url(joiner.publicKey))).toEqual(joiner.publicKey)
   })
 })
