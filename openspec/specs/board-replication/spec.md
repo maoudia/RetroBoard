@@ -120,3 +120,10 @@ When the relay closes every connection, direct links between participants SHALL 
 #### Scenario: Deploy in the middle of a vote
 - **WHEN** the relay restarts while three participants hold direct links
 - **THEN** a vote cast during the restart reaches the two others without waiting for the relay
+
+### Requirement: Persistence is visible
+The system SHALL tell the person whether the browser agreed to keep local boards, and SHALL propose a board file when a board has no other holder and the browser may clear it.
+
+#### Scenario: Browser may clear storage
+- **WHEN** the browser refuses persistent storage
+- **THEN** the profile says that boards on this device may be cleared by the browser and links to the board file export
