@@ -19,6 +19,7 @@ export const minimal: ThemeDefinition = {
   fonts: { display: '"Inter Variable", system-ui, sans-serif', body: '"Inter Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 12, control: 10 },
   motion: { enter: 'pop', leave: 'fade', enterMs: 380, ease: 'cubic-bezier(.2,.8,.2,1)', ambient: 'none' },
+  celebration: { id: 'minimal', palette: ['text', 'accent'] },
   copy: {
     hero: 'Une rétro, un lien, zéro compte.',
     emptyColumn: 'Aucun post-it.',

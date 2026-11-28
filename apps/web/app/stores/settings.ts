@@ -32,6 +32,8 @@ export interface LocalSettings {
   /** Days the encrypted copy of a board stays in this browser; 0 = delete it when I leave the board. */
   /** Days a board copy is kept on this device; -1 keeps it for ever. */
   retentionDays: -1 | 1 | 7 | 30
+  /** A short themed animation when an idea reaches done (change done-celebration); on by default, shown in advanced mode only. */
+  celebrations: boolean
   /** Others see my pointer (on touch screens: only while I drag). */
   shareCursor: boolean
   /** I see the others' pointers. */
@@ -73,7 +75,7 @@ const KEY = 'retroboard:settings'
 
 export const AVATAR_HUES = [8, 32, 52, 140, 175, 210, 260, 320] as const
 export const DEFAULTS: LocalSettings = {
-  ambient: true, presentGroups: true, linkColumns: true, collapseButtons: false, motion: 'auto', density: 'comfortable', sound: false,
+  ambient: true, presentGroups: true, linkColumns: true, collapseButtons: false, motion: 'auto', density: 'comfortable', sound: false, celebrations: true,
   variant: 'theme', defaultTheme: null, avatarHue: 210, locale: 'auto', browserAgents: false,
   retentionDays: -1, shareCursor: true, showCursors: true, p2p: true, shortcuts: true, keyHints: true,
   phaseWarning: true, notifyPos: 'center', uiMode: 'simple', presenterHideMenus: true, stepperTime: 'elapsed', ringTime: 'remaining', systemNotify: false, chatSide: 'right', chatStatus: true, votedSort: 'votes', saveJoinedBoards: false, slackWebhook: '',

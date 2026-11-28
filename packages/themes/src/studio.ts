@@ -24,6 +24,7 @@ export const studio: ThemeDefinition = {
   },
   radius: { card: 16, control: 10 },
   motion: { enter: 'float', leave: 'fade', enterMs: 380, ease: 'cubic-bezier(.22,1,.36,1)', ambient: 'none' },
+  celebration: { id: 'studio', palette: ['accent', 'accent2', 'text'] },
   copy: {
     hero: 'Une rétrospective claire, en temps réel. Le lien suffit.',
     emptyColumn: 'Rien ici pour le moment.',

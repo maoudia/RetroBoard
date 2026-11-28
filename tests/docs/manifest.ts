@@ -109,6 +109,7 @@ export const CHAPTERS: readonly Chapter[] = [
     intro: t('Les décisions de la rétro deviennent des actions avec un responsable.', 'The decisions of the retro become actions with an owner.'),
     steps: [
       { id: 'drawer', caption: t('Ajoute une action, désigne un responsable et une échéance.', 'Add an action, give it an owner and a due date.'), ops: [{ press: 'Escape' }, { click: 'btn-actions' }], anchors: ['action-text', 'action-add'] },
+      { id: 'celebrate', caption: t('Quand une action passe à fait, le thème du board fête l’idée d’une courte animation; un réglage du profil (mode avancé) la coupe.', 'When an action reaches done, the board theme celebrates the idea with a short animation; a profile setting (advanced mode) turns it off.'), ops: [{ press: 'Escape' }, { click: 'btn-profile' }], anchors: ['set-celebrations'], shoot: 'set-celebrations-row' },
     ],
   },
   {

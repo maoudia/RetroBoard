@@ -8,9 +8,11 @@ export type AnnounceItem =
   /** `detail`: what opened and closed with the phase, appended as is. */
   | { kind: 'phase'; phase: string; detail?: string }
   | { kind: 'revealed' }
+  /** An idea reached done (change done-celebration): said once however many there are. */
+  | { kind: 'done' }
 
 /** Message keys; `a11y.newNotes` has `.one` and `.other` forms (see i18n plural rules). */
-export type AnnounceKey = 'a11y.newNotes' | 'a11y.phase' | 'a11y.revealed'
+export type AnnounceKey = 'a11y.newNotes' | 'a11y.phase' | 'a11y.revealed' | 'a11y.ideaDone'
 export type AnnounceSay = (key: AnnounceKey, params: Record<string, string | number>) => string
 
 /** How long events are collected before one merged message is spoken. */
@@ -26,6 +28,7 @@ export function summarizeAnnouncements(items: readonly AnnounceItem[], say: Anno
   const phase = [...items].reverse().find((i): i is Extract<AnnounceItem, { kind: 'phase' }> => i.kind === 'phase')
   if (phase) out.push(phase.detail ? `${say('a11y.phase', { phase: phase.phase })}. ${phase.detail}` : say('a11y.phase', { phase: phase.phase }))
   if (items.some((i) => i.kind === 'revealed')) out.push(say('a11y.revealed', {}))
+  if (items.some((i) => i.kind === 'done')) out.push(say('a11y.ideaDone', {}))
   const perColumn = new Map<string, number>()
   for (const i of items) if (i.kind === 'note') perColumn.set(i.column, (perColumn.get(i.column) ?? 0) + 1)
   for (const [column, n] of perColumn) out.push(say('a11y.newNotes', { n, column }))

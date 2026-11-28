@@ -2,6 +2,16 @@ export type AmbientKind = 'none' | 'bats' | 'snow' | 'matrix' | 'petals'
 export type EnterMotion = 'pop' | 'drop' | 'float' | 'glitch' | 'bloom'
 export type LeaveMotion = 'poof' | 'melt' | 'fade'
 
+/** One signature per theme for a finished idea (change done-celebration); the web app owns the rendering. */
+export const CELEBRATION_IDS = ['color', 'sticky', 'paper', 'corporate', 'minimal', 'slate', 'cyber', 'halloween', 'noel', 'sakura', 'studio'] as const
+export type CelebrationId = (typeof CELEBRATION_IDS)[number]
+
+export interface ThemeCelebration {
+  id: CelebrationId
+  /** Token names of the theme, resolved for the variant on screen: the effect only uses the theme's own colours. */
+  palette: readonly (keyof ThemeTokens)[]
+}
+
 export interface ThemeTokens {
   bg: string
   bg2: string
@@ -46,6 +56,7 @@ export interface ThemeDefinition {
   /** Corner radius scale, in px. */
   radius: { card: number; control: number }
   motion: ThemeMotion
+  celebration: ThemeCelebration
   copy: { hero: string; emptyColumn: string; privateHint: string }
   /** Lazily loads self hosted font files for this theme. */
   loadFonts: () => Promise<unknown>

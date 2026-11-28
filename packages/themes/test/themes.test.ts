@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, derivedPairs, getTheme, luminance, mix, ringColors, stickyColor, themeText, tokensFor } from '../src'
+import { CELEBRATION_IDS, CONTROL_CONTRAST, STICKY_COLORS, STICKY_INK, THEMES, contrast, controlColor, derivedPairs, getTheme, luminance, mix, ringColors, stickyColor, themeText, tokensFor } from '../src'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 
 describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
@@ -8,6 +8,17 @@ describe.each(THEMES.map((t) => [t.id, t] as const))('theme %s', (_id, t) => {
     for (const [k, v] of Object.entries(t.tokens)) expect(v, k).toMatch(/^#[0-9a-f]{6}$/i)
     for (const c of t.noteColors) expect(c).toMatch(/^#[0-9a-f]{6}$/i)
     expect(t.motion.enterMs).toBeGreaterThan(100)
+  })
+
+  it('names a known celebration with a palette made of its own tokens', () => {
+    expect(CELEBRATION_IDS).toContain(t.celebration.id)
+    expect(t.celebration.palette.length).toBeGreaterThan(0)
+    for (const k of t.celebration.palette) expect(Object.keys(t.tokens), k).toContain(k)
+  })
+
+  it.each(['light', 'dark'] as const)('keeps the celebration colours at 3:1 on the surface in the %s variant', (variant) => {
+    const k = tokensFor(t, variant)
+    for (const name of t.celebration.palette) expect(contrast(k[name], k.surface), `${name} on surface`).toBeGreaterThanOrEqual(3)
   })
 
   it.each(['light', 'dark'] as const)('has readable text in the %s variant (WCAG AA 4.5:1)', (variant) => {

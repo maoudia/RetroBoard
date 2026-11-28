@@ -19,6 +19,7 @@ export const sakura: ThemeDefinition = {
   fonts: { display: '"Zen Maru Gothic", system-ui, sans-serif', body: '"Quicksand Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 22, control: 14 },
   motion: { enter: 'bloom', leave: 'fade', enterMs: 680, ease: 'cubic-bezier(.25,1.2,.4,1)', ambient: 'petals' },
+  celebration: { id: 'sakura', palette: ['accent', 'accent2', 'text'] },
   copy: {
     hero: 'Respire. Partage. Le lien suffit, sans compte.',
     emptyColumn: 'Le jardin est calme.',
