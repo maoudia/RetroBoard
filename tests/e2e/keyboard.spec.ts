@@ -60,7 +60,7 @@ test('arrows move between notes and columns, Enter edits, v votes, c opens the p
   // The key handler may not be bound yet right after the focus moved: press again until the editor opens.
   await expect(async () => {
     await page.keyboard.press('Enter')
-    await expect(page.locator('article.note textarea')).toBeVisible({ timeout: 500 })
+    await expect(page.locator('[data-testid^="edit-bar-"]')).toBeVisible({ timeout: 500 })
   }).toPass({ timeout: 8000 })
   await page.keyboard.press('Escape')
 })

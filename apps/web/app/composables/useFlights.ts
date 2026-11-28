@@ -42,5 +42,33 @@ export function useFlights() {
     )
     flight.finished.then(() => stick(el), () => {})
   }
-  return { record, consume, fly }
+  /**
+   * Unpublish: a copy of the note flies into the draft stack of its column while the note leaves the board (reverse of the publish
+   * flight, change note-edit-and-unpublish). Under reduced motion there is no copy: the change is instant. The copy is inert and anonymous.
+   */
+  function flyOut(el: HTMLElement | null, target: Element | null) {
+    if (!el || !target || typeof el.animate !== 'function' || prefersReducedMotion()) return
+    const from = el.getBoundingClientRect()
+    const to = target.getBoundingClientRect()
+    const ghost = el.cloneNode(true) as HTMLElement
+    for (const n of [ghost, ...ghost.querySelectorAll<HTMLElement>('[id], [data-testid], [data-anchor], [data-source-id]')]) for (const a of ['id', 'data-testid', 'data-anchor', 'data-source-id']) n.removeAttribute(a)
+    ghost.setAttribute('aria-hidden', 'true')
+    ghost.setAttribute('inert', '')
+    ghost.dataset.flightGhost = ''
+    Object.assign(ghost.style, { position: 'fixed', left: `${from.left}px`, top: `${from.top}px`, width: `${from.width}px`, height: `${from.height}px`, margin: '0', zIndex: '80', pointerEvents: 'none', transform: 'none', transition: 'none' })
+    document.body.appendChild(ghost)
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2)
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2)
+    const scale = Math.min(1, Math.max(0.3, to.width / from.width))
+    const flight = ghost.animate(
+      [
+        { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 1, offset: 0 },
+        { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - 24}px) scale(1.04) rotate(-3deg)`, opacity: 1, offset: 0.45 },
+        { transform: `translate(${dx}px, ${dy}px) scale(${scale}) rotate(2deg)`, opacity: 0.2, offset: 1 },
+      ],
+      { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' },
+    )
+    flight.finished.then(() => ghost.remove(), () => ghost.remove())
+  }
+  return { record, consume, fly, flyOut }
 }

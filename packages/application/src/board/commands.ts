@@ -1,7 +1,7 @@
 import { type ActionStatusName, type Command, type PhaseKindName, type ErrorCode, type ImportedAction, LIMITS, type NewNote, type Snapshot, type TimerMinutes, type VotableKind } from '@retroboard/domain'
 import { err, ok, type Result } from '../result'
 import type { BoardChannel } from '../ports'
-import { createUndoStack, inverseOf, type UndoLabel } from './history'
+import { createUndoStack, type Inverse, inverseOf, type UndoLabel } from './history'
 import type { HistoryEntry } from './history-log'
 
 /** Errors a board use case can return before or instead of reaching the room. */
@@ -28,6 +28,7 @@ export interface ColumnInput { title: string; subtitle?: string; icon?: Extract<
 export function createBoardCommands(deps: BoardCommandDeps) {
   const send = (cmd: Command): BoardResult => (deps.channel()?.send(cmd) ? ok() : err('offline'))
   const locked = () => deps.view()?.settings.locked ?? false
+  const privileged = () => { const role = deps.view()?.access?.role; return role === 'facilitator' || role === 'co-facilitator' }
   const whenOpen = (cmd: Command): BoardResult => (locked() ? err('locked') : send(cmd))
   // Reversible actions of this participant, undone with compensating commands (change board-undo-rewind).
   const history = createUndoStack()
@@ -51,8 +52,11 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       }
       return ok()
     },
-    editNote: (id: string, text: string) => tracked({ t: 'note.edit', id, text }, true),
+    // A facilitator edits also on a locked board, as the domain allows (change edit-published-notes); everyone else follows the lock.
+    editNote: (id: string, text: string) => tracked({ t: 'note.edit', id, text }, !privileged()),
     deleteNote: (id: string) => tracked({ t: 'note.delete', id }, true),
+    /** Takes my idea (or, for a facilitator, anyone's) off the board; its author's device recovers it as a draft (change note-edit-and-unpublish). */
+    unpublishNote: (id: string) => tracked({ t: 'note.unpublish', id }, true),
     moveNote: (id: string, columnId: string) => tracked({ t: 'note.move', id, columnId }, true),
     recolorNote: (id: string, color: number) => tracked({ t: 'note.color', id, color }, false),
     recolorGroup: (id: string, color: number) => send({ t: 'group.recolor', id, color }),
@@ -92,6 +96,8 @@ export function createBoardCommands(deps: BoardCommandDeps) {
       changed()
       return { result: ok(), label: step.label }
     },
+    /** What the next undo would do, without doing it (the page uses it to also clear the draft an unpublish gave back). */
+    nextUndo: (): Inverse | null => history.peek() ?? null,
     canUndo: () => history.size > 0,
     canRedo: () => redoStack.size > 0,
     /** The last reversible actions of everyone, newest last (the history panel). */

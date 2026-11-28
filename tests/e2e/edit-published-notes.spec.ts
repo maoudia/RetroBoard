@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createBoard, join, noteByText, publishNote } from './helpers'
+import { columnId, createBoard, join, noteByText, publishNote } from './helpers'
 
 test('the facilitator edits a participant note; everyone sees the new text marked edited (change edit-published-notes)', async ({ page, browser }) => {
   await createBoard(page, { template: 'start-stop-continue', name: 'Alice', oneFacilitator: true })
@@ -14,7 +14,9 @@ test('the facilitator edits a participant note; everyone sees the new text marke
   await note.hover()
   await page.getByTestId(`note-menu-${id}`).click()
   await page.getByTestId(`edit-${id}`).click()
-  const editor = page.getByTestId(`note-${id}`).locator('textarea')
+  // The idea opens in the writing zone of its column; Enter saves (change note-edit-and-unpublish).
+  const editor = page.getByTestId(`draft-${await columnId(page, 0)}`)
+  await expect(editor).toHaveValue('Typo hree')
   await editor.fill('Typo here')
   await editor.press('Enter')
   await expect(noteByText(bob.page, 'Typo here')).toBeVisible()
@@ -27,5 +29,6 @@ test('the facilitator edits a participant note; everyone sees the new text marke
   await a.locator('.text').hover()
   await bob.page.getByTestId(`note-menu-${aid}`).click()
   await expect(bob.page.getByTestId(`edit-${aid}`)).toHaveCount(0)
+  await expect(bob.page.getByTestId(`unpublish-${aid}`)).toHaveCount(0)
   await bob.ctx.close()
 })

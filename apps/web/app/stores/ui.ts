@@ -115,6 +115,16 @@ export const useUiStore = defineStore('ui', () => {
   const paletteTarget = ref<{ kind: 'note' | 'group'; id: string } | null>(null)
   /** Note the keyboard asked to edit (Enter on a focused note). */
   const editNoteId = ref<string | null>(null)
+  /**
+   * A published idea open in the writing zone of a column (change note-edit-and-unpublish): the composer shows it in edit mode, the idea
+   * stays on the board until "Save". Local to this tab; the others only see a light "being edited" mark.
+   */
+  const composerEdit = ref<{ noteId: string; columnId: string } | null>(null)
+  function editInComposer(noteId: string, columnId: string) {
+    composerEdit.value = { noteId, columnId }
+    composeColumn.value = columnId
+  }
+  const stopComposerEdit = () => { composerEdit.value = null }
   /** Phones: toolbar, phase bar and voting bar folded away while reading the board (change mobile-board-space). */
   const chromeHidden = ref(false)
   /** A scroll the app makes itself (a new note brought into view) must not fold the phone menus until this time (change writing-zone-at-column-bottom). */
@@ -132,5 +142,5 @@ export const useUiStore = defineStore('ui', () => {
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupIds, lastGroupColumn, renameGroupId, openGroup, closeGroup, reconcileGroups, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
+  return { composerEdit, editInComposer, stopComposerEdit, composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupIds, lastGroupColumn, renameGroupId, openGroup, closeGroup, reconcileGroups, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
 })

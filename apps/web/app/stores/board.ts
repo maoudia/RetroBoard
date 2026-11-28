@@ -1,7 +1,7 @@
 import { isSolo } from '~/utils/solo'
 import { type ActionItem, allowedInPhase, countsHidden as hidesCounts, DEFAULT_NOTE_MAX_LENGTH, type CommandType, type ErrorCode, type KeyRing, PRIVILEGED_COMMANDS, roomWords, type Snapshot } from '@retroboard/domain'
 import type { BoardTransport, ConnectionStatus, Identity, TransportFactory } from '~/transport'
-import { type BoardNotice, buildColumnItems, createBoardCommands, phaseAvailability, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
+import { type BoardNotice, buildColumnItems, createBoardCommands, everyoneKnowsUnpublish, phaseAvailability, type RecoveredDraft, type OwnCursor, type OwnFocus, type SortMode } from '@retroboard/application'
 
 /**
  * View model of a board: holds the latest snapshot and exposes the board use cases.
@@ -95,6 +95,10 @@ export const useBoardStore = defineStore('board', () => {
   /** Phase cue for a command: open, closed (why, and when it opens) or open for me as facilitator. */
   const availability = (command: CommandType) => phaseAvailability(snapshot.value?.agenda ?? null, command, access.value.bypassesPhase)
   const allowed = (command: CommandType) => access.value.bypassesPhase || (access.value.canSteer && PRIVILEGED_COMMANDS.has(command)) || allowedInPhase(snapshot.value?.agenda ?? null, command)
+  /** Every person present announced `note.unpublish`: older clients would keep the idea on their board (rolling update, change note-edit-and-unpublish). */
+  const unpublishKnown = computed(() => everyoneKnowsUnpublish(snapshot.value?.peers ?? []))
+  /** My ideas an unpublish took off the board, from the signed log (memoised by the transport). */
+  const recovered = (): RecoveredDraft[] => transport?.recovered?.() ?? []
   const sendRole = (change: 'role.delegate' | 'role.revoke' | 'role.handover' | 'role.claim' | 'participant.hide' | 'participant.unhide' | 'participant.remove', key: string) => transport?.sendRole?.(change, key) ?? false
   const sendRename = (key: string, name: string) => transport?.sendRename?.(key, name) ?? false
   /** Facilitator: freezes who a move to a fresh link would address and returns how many can be sent the new link. */
@@ -155,7 +159,7 @@ export const useBoardStore = defineStore('board', () => {
 
   return {
     snapshot, status, lastError, lastNotice, roomId, skew, accessDenied, moved, replicaFailing, newerVersion, pokerRoom, localCopy, roomFull, roomCode, links, myKey,
-    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, redoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, beginMove, moveToFreshLink, allowed, availability,
+    connect, disconnect, updateIdentity, flush, startBoard, onSnapshot, commands, undoDepth, redoDepth, sendCursor, sendFocus, canUseBoardFile, exportBoardFile, importBoardFile, access, sendRole, sendRename, beginMove, moveToFreshLink, allowed, availability, unpublishKnown, recovered,
     settings, noteLimit, columns, hiddenColumns, peers, actions, timer, votesLeft, ready, locked, secretVoting, votingEnabled, votingClosed, countsHidden, noteCount, openActions, actionsBySource,
     itemsFor, noteById, groupById,
   }

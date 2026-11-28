@@ -30,6 +30,7 @@ export const CommandSchema = v.variant('t', [
   }),
   v.object({ t: v.literal('note.edit'), id: Id, text: Text }),
   v.object({ t: v.literal('note.delete'), id: Id }),
+  v.object({ t: v.literal('note.unpublish'), id: Id }),
   v.object({ t: v.literal('note.move'), id: Id, columnId: Id }),
   v.object({ t: v.literal('note.color'), id: Id, color: Color }),
   v.object({ t: v.literal('group.recolor'), id: Id, color: Color }),

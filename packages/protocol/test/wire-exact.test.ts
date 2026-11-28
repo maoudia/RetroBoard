@@ -46,6 +46,8 @@ describe('patterns are anchored at both ends', () => {
 
   it('ids, theme ids and speakers in commands', () => {
     anchored((id) => parseCommand({ t: 'note.delete', id }), 'note_1-A')
+    anchored((id) => parseCommand({ t: 'note.unpublish', id }), 'note_1-A')
+    expect(parseCommand({ t: 'note.unpublish', id: 'note_1', text: 'smuggled' })).toEqual({ t: 'note.unpublish', id: 'note_1' })
     anchored((themeId) => parseCommand({ t: 'board.init', templateId: 't', themeId }), 'studio-2')
     anchored((themeId) => parseCommand({ t: 'settings.update', themeId }), 'studio-2')
     anchored((speaker) => parseCommand({ t: 'talk.assign', speaker, label: null }), 'speaker_1-AB')
@@ -163,5 +165,14 @@ describe('the relay buffer and its pages, exactly', () => {
 
   it('makes no page out of nothing', () => {
     expect(chunk([])).toEqual([])
+  })
+})
+
+describe('focus frames of an idea being edited', () => {
+  const base = { t: 'focus', conn: 'c0000000001', column: null, note: 'note_1', typing: true }
+  it('accepts editing: true, and nothing else', () => {
+    expect(parseLive({ ...base, editing: true })).toMatchObject({ editing: true })
+    expect(parseLive(base)).not.toHaveProperty('editing')
+    expect(parseLive({ ...base, editing: false })).toBeNull()
   })
 })

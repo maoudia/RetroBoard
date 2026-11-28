@@ -35,7 +35,7 @@ export interface RewindPlan {
 
 interface Record extends HistoryEntry { before: BoardState }
 
-const KIND = { 'note.move': 'move', 'note.group': 'group', 'note.ungroup': 'ungroup', 'note.edit': 'edit', 'note.delete': 'delete', 'note.color': 'color', 'group.rename': 'rename' } as const satisfies Partial<globalThis.Record<Command['t'], UndoLabel>>
+const KIND = { 'note.move': 'move', 'note.group': 'group', 'note.ungroup': 'ungroup', 'note.edit': 'edit', 'note.delete': 'delete', 'note.unpublish': 'unpublish', 'note.color': 'color', 'group.rename': 'rename' } as const satisfies Partial<globalThis.Record<Command['t'], UndoLabel>>
 type ReversibleCommand = Extract<Command, { t: keyof typeof KIND }>
 const isReversible = (cmd: Command): cmd is ReversibleCommand => cmd.t in KIND
 
@@ -46,7 +46,7 @@ function subjectOf(cmd: ReversibleCommand, before: BoardState, after: BoardState
     // Stryker disable next-line StringLiteral: a rename that left no title on either side would have been a no-op
     return { text: g.title ?? before.groups[cmd.id]!.title ?? '', columnId: g.columnId }
   }
-  const n = (cmd.t === 'note.delete' ? before : after).notes[cmd.id]!
+  const n = (cmd.t === 'note.delete' || cmd.t === 'note.unpublish' ? before : after).notes[cmd.id]!
   return { text: n.text, columnId: n.columnId }
 }
 

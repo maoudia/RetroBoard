@@ -17,6 +17,7 @@ describe('every use case sends the matching protocol command', () => {
   const cases: [string, (c: ReturnType<typeof recorder>['commands']) => unknown, Command][] = [
     ['editNote', (c) => c.editNote('n1', 'text'), { t: 'note.edit', id: 'n1', text: 'text' }],
     ['deleteNote', (c) => c.deleteNote('n1'), { t: 'note.delete', id: 'n1' }],
+    ['unpublishNote', (c) => c.unpublishNote('n1'), { t: 'note.unpublish', id: 'n1' }],
     ['moveNote', (c) => c.moveNote('n1', 'c2'), { t: 'note.move', id: 'n1', columnId: 'c2' }],
     ['moveGroup', (c) => c.moveGroup('g1', 'c2'), { t: 'group.move', id: 'g1', columnId: 'c2' }],
     ['recolorNote', (c) => c.recolorNote('n1', 3), { t: 'note.color', id: 'n1', color: 3 }],

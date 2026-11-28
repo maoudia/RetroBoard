@@ -256,6 +256,8 @@ export interface Peer {
   conn?: string
   /** Avatar hue (0-359) the participant chose in the profile; display only, absent on older clients. */
   hue?: number
+  /** This client knows `note.unpublish` (change note-edit-and-unpublish); absent on older clients, which would keep the idea on their board. */
+  unpublish?: true
 }
 
 export interface Snapshot {

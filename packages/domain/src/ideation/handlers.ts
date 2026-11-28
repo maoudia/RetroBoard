@@ -1,15 +1,28 @@
 import { DEFAULT_COLUMN_ICON } from '../shared/icons'
 import { DEFAULT_NOTE_MAX_LENGTH, LIMITS, NOTE_COLOR_EXTENDED } from '../shared/limits'
 import { clean, done, fail, type HandlerMap, noteCount } from '../shared/outcome'
+import type { BoardState, NoteRecord, Outcome } from '../shared/types'
 import { makeNote, normalizeGroups } from './notes'
 
-type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.move' | 'note.color'
+type IdeationCommand = 'note.add' | 'note.addMany' | 'note.edit' | 'note.delete' | 'note.unpublish' | 'note.move' | 'note.color'
   | 'note.group' | 'note.ungroup' | 'group.rename' | 'group.recolor' | 'group.dissolve' | 'group.merge' | 'group.move'
   | 'column.add' | 'column.hide' | 'column.show' | 'column.update' | 'column.delete' | 'column.move'
 
 /** A peer that ignores the board's note length limit is refused by everyone. */
 const tooLong = (s: { settings: { noteMaxLength?: number } }, text: string) => text.length > (s.settings.noteMaxLength ?? DEFAULT_NOTE_MAX_LENGTH)
 const validColor = (n: number) => Number.isInteger(n) && n >= 0 && n < NOTE_COLOR_EXTENDED
+
+/** Takes a note off the board with its votes; a cluster left with fewer than two ideas dissolves. */
+function removeNote(s: BoardState, n: NoteRecord): Outcome {
+  const notes = { ...s.notes }
+  const groups = { ...s.groups }
+  Reflect.deleteProperty(notes, n.id)
+  const dirty = clean()
+  dirty.notes.push(n.id)
+  // Stryker disable next-line ConditionalExpression: normalizing a note's missing group does nothing, so the guard only spares the call
+  if (n.groupId) normalizeGroups([n.groupId], notes, groups, dirty)
+  return done({ ...s, notes, groups }, dirty)
+}
 
 /** Ideation context: notes, groups (clusters) and columns. */
 export const ideationHandlers: HandlerMap<IdeationCommand> = {
@@ -56,14 +69,22 @@ export const ideationHandlers: HandlerMap<IdeationCommand> = {
     if (!n) return fail('not-found')
     // The author, or a facilitator removing a single idea (change feedback-wave-7, confirmed in the UI).
     if (n.ownerCid !== a.cid && !a.moderator) return fail('forbidden')
-    const notes = { ...s.notes }
-    const groups = { ...s.groups }
-    Reflect.deleteProperty(notes, n.id)
-    const dirty = clean()
-    dirty.notes.push(n.id)
-    // Stryker disable next-line ConditionalExpression: normalizing a note's missing group does nothing, so the guard only spares the call
-    if (n.groupId) normalizeGroups([n.groupId], notes, groups, dirty)
-    return done({ ...s, notes, groups }, dirty)
+    return removeNote(s, n)
+  },
+
+  /**
+   * Folds like a delete; the type tells the author's device to recover the text as a draft (change note-edit-and-unpublish).
+   * Refusal order: frozen (the reducer, for every command), locked, not-found, forbidden, voting-closed.
+   */
+  'note.unpublish': (s, c, a) => {
+    if (s.settings.locked) return fail('locked')
+    const n = s.notes[c.id]
+    if (!n) return fail('not-found')
+    if (n.ownerCid !== a.cid && !a.moderator) return fail('forbidden')
+    // Results are not rewritten after the fact: a voted idea (or one in a voted cluster) stays once voting is closed.
+    const votes = n.voters.length + (n.groupId ? s.groups[n.groupId]!.voters.length : 0)
+    if (s.settings.votingClosed && votes > 0) return fail('voting-closed')
+    return removeNote(s, n)
   },
 
   'note.move': (s, c) => {

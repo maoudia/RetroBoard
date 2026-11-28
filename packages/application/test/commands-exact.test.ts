@@ -69,10 +69,30 @@ describe('use cases that send one command, exactly', () => {
   })
 })
 
+describe('editing on a locked board', () => {
+  it('works without any view, which is not locked', () => {
+    const { sent, commands } = rig(null)
+    expect(commands.editNote('n1', 'new')).toEqual({ ok: true })
+    expect(sent).toHaveLength(1)
+  })
+  it('lets a facilitator and a co-facilitator edit, and refuses a participant and a view without roles', () => {
+    for (const role of ['facilitator', 'co-facilitator'] as const) {
+      const { sent, commands } = rig(baseView({ settings: { locked: true }, access: { role } }))
+      expect(commands.editNote('n1', 'new')).toEqual({ ok: true })
+      expect(sent).toEqual([{ t: 'note.edit', id: 'n1', text: 'new' }])
+    }
+    for (const access of [{ role: 'participant' }, undefined]) {
+      const { sent, commands } = rig(baseView({ settings: { locked: true }, ...(access ? { access } : {}) }))
+      expect(commands.editNote('n1', 'new')).toEqual({ ok: false, error: 'locked' })
+      expect(sent).toEqual([])
+    }
+  })
+})
+
 describe('locked boards, exactly', () => {
   const locked = () => rig(baseView({ settings: { locked: true } }))
   it('refuses the writes that are guarded, and still lets colours and cluster titles through', () => {
-    const guarded: ((c: ReturnType<typeof rig>['commands']) => unknown)[] = [(c) => c.editNote('n1', 'x'), (c) => c.deleteNote('n1'), (c) => c.moveNote('n1', 'c2'), (c) => c.groupNotes('n1', 'n2'), (c) => c.ungroupNote('n1'), (c) => c.dissolveGroup('g1'), (c) => c.moveGroup('g1', 'c2'), (c) => c.mergeGroups('g1', 'g2')]
+    const guarded: ((c: ReturnType<typeof rig>['commands']) => unknown)[] = [(c) => c.editNote('n1', 'x'), (c) => c.deleteNote('n1'), (c) => c.unpublishNote('n1'), (c) => c.moveNote('n1', 'c2'), (c) => c.groupNotes('n1', 'n2'), (c) => c.ungroupNote('n1'), (c) => c.dissolveGroup('g1'), (c) => c.moveGroup('g1', 'c2'), (c) => c.mergeGroups('g1', 'g2')]
     for (const run of guarded) {
       const { sent, commands } = locked()
       expect(run(commands)).toEqual({ ok: false, error: 'locked' })

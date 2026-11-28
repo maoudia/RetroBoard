@@ -37,6 +37,8 @@ export interface FocusFrame {
   /** Note being edited or dragged. */
   readonly note: string | null
   readonly typing: boolean
+  /** `note` is a published idea its author or a facilitator is changing in the writing zone (change note-edit-and-unpublish): a light mark on it, never a board event. */
+  readonly editing?: true
 }
 
 export interface TimedCursor extends CursorFrame { readonly at: number }

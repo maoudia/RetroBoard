@@ -65,9 +65,11 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   function focusNow(): OwnFocus {
     const active = document.activeElement
     const typing = !!active && boardEl.value?.contains(active) === true && (active instanceof HTMLTextAreaElement || active instanceof HTMLInputElement)
-    const note = ui.dragNoteId ?? (typing ? anchorOf(active, 'note')?.dataset.anchor ?? null : null)
+    // A published idea open in a composer is shared as "being edited" (a mark, never a board event).
+    const editing = ui.composerEdit
+    const note = editing?.noteId ?? ui.dragNoteId ?? (typing ? anchorOf(active, 'note')?.dataset.anchor ?? null : null)
     const column = (typing ? anchorOf(active, 'column')?.dataset.anchor : null) ?? viewColumn
-    return { column: column ?? null, note, typing }
+    return { column: column ?? null, note, typing, ...(editing ? { editing: true as const } : {}) }
   }
   function sendFocus(force = false) {
     const f = focusNow()
@@ -116,6 +118,7 @@ export function useLiveShare(boardEl: Ref<HTMLElement | null>) {
   // Columns added or removed: observe the new set.
   watch(() => board.columns.length, () => nextTick(observeColumns))
   watch(() => ui.dragNoteId, () => sendFocus())
+  watch(() => ui.composerEdit?.noteId, () => sendFocus())
   // Turned off: the others drop my pointer right away.
   if (cursorsOn) watch(() => [settings.s.shareCursor, ui.laser] as const, ([on, laser]) => { if (!on && !laser) { pending = null; board.sendCursor({ anchor: null, x: 0, y: 0, drag: false }) } })
   // Peers that join later learn my focus within a few seconds.

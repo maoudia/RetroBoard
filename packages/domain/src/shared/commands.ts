@@ -22,6 +22,7 @@ export type Command =
   | { t: 'note.addMany'; items: NewNote[] }
   | { t: 'note.edit'; id: string; text: string }
   | { t: 'note.delete'; id: string }
+  | { t: 'note.unpublish'; id: string }
   | { t: 'note.move'; id: string; columnId: string }
   | { t: 'note.color'; id: string; color: number }
   | { t: 'note.group'; id: string; ontoId: string }

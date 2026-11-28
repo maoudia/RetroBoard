@@ -12,7 +12,7 @@
  * Outbound: build event -> preview fold (local rule check) -> sign -> seal -> publish.
  * Every peer runs the same fold, so all replicas converge without a server reducer.
  */
-import { EventLog, type HistoryEntry, historyOf, type LogBase, type MoveResult, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignedSnapshot, type SignerPort, signEvent, signSnapshot, type VerifierPort, verifyEvent, verifySnapshot } from '@retroboard/application'
+import { EventLog, type HistoryEntry, historyOf, type RecoveredDraft, recoveredDrafts, type LogBase, type MoveResult, type OwnCursor, type OwnFocus, type ReplicaStorePort, type RewindPlan, rewindPlan, type SignedEvent, type SignedSnapshot, type SignerPort, signEvent, signSnapshot, type VerifierPort, verifyEvent, verifySnapshot } from '@retroboard/application'
 import { deriveFileKey, fromBase64Url, fromUtf8, open, seal, toBase64Url, utf8 } from '@retroboard/crypto'
 import { buildSnapshot, canSteer, type Command, type ErrorCode, type EventBody, formatInvite, type IgnoreReason, isPrivileged, type KeyRing, type Peer, participantRing, type Role, roleOf, type RoleBody, signingRoom } from '@retroboard/domain'
 import { chunks, HybridClock, isFullMesh, seederOf, SeenSet } from '@retroboard/sync'
@@ -208,6 +208,17 @@ export class EncryptedRelayTransport implements BoardTransport {
 
   history(): HistoryEntry[] {
     return historyOf(signingRoom(this.ring), this.log.all(), undefined, this.log.base?.ledger)
+  }
+
+  /** My ideas an unpublish took off the board, read from the log; recomputed only when the log changed and holds an unpublish. */
+  private recoveredMemo: { size: number; value: RecoveredDraft[] } | null = null
+  recovered(): RecoveredDraft[] {
+    const size = this.log.size
+    if (this.recoveredMemo?.size === size) return this.recoveredMemo.value
+    const events = this.log.all()
+    const value = events.some((e) => e.body.t === 'cmd' && e.body.cmd.t === 'note.unpublish') ? recoveredDrafts(signingRoom(this.ring), events, this.actorKey, this.log.base?.ledger) : []
+    this.recoveredMemo = { size, value }
+    return value
   }
 
   rewindPlan(entryId: string): RewindPlan | null {
@@ -747,7 +758,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     const p: Presence = {
       t: 'presence', conn: this.conn, name: this.identity.name || null, showName: this.identity.showName, ...(this.identity.hue !== undefined ? { hue: this.identity.hue } : {}), key: this.deps.session.publicKey,
       ...(this.deps.facilitator ? { fkey: this.deps.facilitator.publicKey } : {}), ...(this.log.size > 0 ? { ready: true } : {}),
-      ...(this.deps.agreement ? { xkey: this.deps.agreement.publicKey } : {}),
+      ...(this.deps.agreement ? { xkey: this.deps.agreement.publicKey } : {}), unpublish: true,
     }
     await this.sendEph(p)
   }
@@ -800,7 +811,7 @@ export class EncryptedRelayTransport implements BoardTransport {
     const name = this.liveName(live.conn)
     if (name === undefined) return
     if (live.t === 'cursor') this.handlers.onCursor?.({ conn: live.conn, anchor: live.anchor, x: live.x, y: live.y, drag: live.drag, ...(live.laser ? { laser: true } : {}) }, name)
-    else this.handlers.onFocus?.({ conn: live.conn, column: live.column, note: live.note, typing: live.typing }, name)
+    else this.handlers.onFocus?.({ conn: live.conn, column: live.column, note: live.note, typing: live.typing, ...(live.editing ? { editing: true as const } : {}) }, name)
   }
 
   // ----- Mesh -----
@@ -1264,11 +1275,11 @@ export class EncryptedRelayTransport implements BoardTransport {
     const mine = this.deps.session.publicKey
     const myOwn = this.identity?.showName ? this.identity.name || null : null
     const list: Peer[] = this.conns.map((c) => {
-      if (c === this.conn) return { ...named(mine, myOwn), me: true, key: mine, role: this.myRole(), conn: c, ...(this.identity?.hue !== undefined ? { hue: this.identity.hue } : {}) }
+      if (c === this.conn) return { ...named(mine, myOwn), me: true, key: mine, role: this.myRole(), conn: c, unpublish: true, ...(this.identity?.hue !== undefined ? { hue: this.identity.hue } : {}) }
       const p = this.presence.get(c)
-      return { ...named(p?.key, p?.showName ? p.name : null), me: false, conn: c, ...(p?.hue !== undefined ? { hue: p.hue } : {}), ...describe(p?.key, p?.fkey) }
+      return { ...named(p?.key, p?.showName ? p.name : null), me: false, conn: c, ...(p?.hue !== undefined ? { hue: p.hue } : {}), ...(p?.unpublish ? { unpublish: true as const } : {}), ...describe(p?.key, p?.fkey) }
     })
-    if (!list.some((p) => p.me)) list.unshift({ ...named(mine, myOwn), me: true, key: mine, role: this.myRole() })
+    if (!list.some((p) => p.me)) list.unshift({ ...named(mine, myOwn), me: true, key: mine, role: this.myRole(), unpublish: true })
     return list.sort((x, y) => Number(y.me) - Number(x.me) || (x.name ?? '').localeCompare(y.name ?? ''))
   }
 

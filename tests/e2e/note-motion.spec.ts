@@ -98,21 +98,6 @@ test.describe('note motion', () => {
       expect(ran.map((a) => a.name)).not.toContain('note-stick')
     })
   }
-
-  test('a note being edited does not move', async ({ page }) => {
-    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
-    await publishNote(page, 0, 'Editing now')
-    const note = noteByText(page, 'Editing now')
-    const id = (await note.getAttribute('data-testid'))!.replace('note-', '')
-    await note.hover()
-    await page.getByTestId(`note-menu-${id}`).click()
-    await page.getByTestId(`edit-${id}`).click()
-    const editing = page.getByTestId(`note-${id}`)
-    await expect(editing.locator('textarea')).toBeVisible()
-    await page.mouse.move(0, 400)
-    await editing.hover()
-    expect(await editing.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('0')
-  })
 })
 
 /**

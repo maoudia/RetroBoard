@@ -73,7 +73,8 @@ test('touch screens: no floating pointers; who is editing shows on the note itse
   await bob.page.mouse.move(box.x + 10, box.y + 10, { steps: 4 })
   await target.locator('[data-testid^="note-menu-"]').click()
   await bob.page.getByRole('menuitem', { name: 'Modifier' }).click()
-  await expect(target.locator('textarea')).toBeFocused()
+  await expect(bob.page.locator('[data-testid^="edit-bar-"]')).toBeVisible()
+  await expect(bob.page.locator('[data-testid^="draft-"]:focus')).toBeVisible()
 
   const marker = page.getByTestId(`live-note-${id}`)
   await expect(marker).toBeVisible()

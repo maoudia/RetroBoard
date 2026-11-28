@@ -12,12 +12,10 @@ const fromHere = computed(() => board.actionsBySource.get(props.note.id)?.length
 const el = ref<HTMLElement | null>(null)
 const textEl = ref<HTMLElement | null>(null)
 const { clipped, open: readMore } = useNoteFit(textEl, () => props.note.text)
-const editing = ref(false)
-const draft = ref('')
 const over = ref(false)
 const { openZoom } = useNoteZoom()
 // Double tap or double click zooms the idea (change note-zoom-on-double-tap); a note in a cluster steps through its cluster.
-useNoteZoomGesture(el, { enabled: () => !editing.value, zoom: () => { openZoom(props.note.id, props.note.groupId ?? null) } })
+useNoteZoomGesture(el, { enabled: () => true, zoom: () => { openZoom(props.note.id, props.note.groupId ?? null) } })
 
 // Set before first render so the enter animation is replaced by the flight.
 const flightFrom = props.note.mine ? flights.consume(props.note.columnId, props.note.text) : null
@@ -28,23 +26,18 @@ function hashId(s: string) { let h = 0; for (let i = 0; i < s.length; i++) h = (
 onMounted(() => { if (flightFrom && el.value) { ui.quietScrollUntil = performance.now() + 250; el.value.scrollIntoView({ block: 'nearest', inline: 'nearest' }); flights.fly(el.value, flightFrom) } })
 
 
+// The keyboard shortcut (Enter on a focused note) opens the idea in the writing zone, like the "Edit" item of its menu.
+const rights = useNoteRights()
 watch(() => ui.editNoteId, (id) => {
   if (id !== props.note.id) return
   ui.editNoteId = null
-  if ((props.note.mine ? !board.locked : board.access.role !== 'participant') && !props.note.frozen && !editing.value) startEdit()
+  const r = rights.edit(props.note)
+  if (r.shown && !r.reason) ui.editInComposer(props.note.id, props.note.columnId)
 })
-const editor = ref<HTMLTextAreaElement | null>(null)
-// autofocus only works on page load: focus the editor when it appears.
-function startEdit() { draft.value = props.note.text; editing.value = true; void nextTick(() => editor.value?.focus()) }
-function saveEdit() {
-  const t = draft.value.trim()
-  if (t && t !== props.note.text) board.commands.editNote(props.note.id, t)
-  editing.value = false
-}
 
 // A long press with a finger lifts the note (change responsive-and-i18n-hardening, task 3.2); a mouse uses the native drag below.
 const touch = useTouchDrag(el, {
-  enabled: () => !editing.value && !board.locked && !props.note.frozen,
+  enabled: () => !board.locked && !props.note.frozen,
   begin: () => { ui.dragNoteId = props.note.id },
   end: () => { ui.dragNoteId = null; over.value = false },
 })
@@ -65,29 +58,21 @@ function onDrop() {
 <template>
   <article
     ref="el" tabindex="-1" class="note" :class="{ 'is-flying': !!flightFrom, over, mine: note.mine, frozen: note.frozen, pinned: !!note.pinned }" :data-testid="`note-${note.id}`" :data-source-id="note.id" :data-anchor="note.id" data-anchor-kind="note" data-drop :data-long="note.text.length > 110 ? '' : undefined"
-    :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!editing && !board.locked && !note.frozen"
+    :style="{ '--c': `var(--note-${note.color})`, '--tilt': tilt }" :draggable="!board.locked && !note.frozen"
     @dragstart="onDragStart" @dragend="ui.dragNoteId = null; over = false"
     @dragover.prevent="over = !!ui.dragNoteId && ui.dragNoteId !== note.id" @dragleave="over = false" @drop.prevent.stop="onDrop"
   >
-    <template v-if="!editing">
-      <div class="body">
-        <p ref="textEl" class="text" :class="{ open: readMore }" data-testid="note-text">{{ note.text }}</p>
-        <!-- Long text keeps a few lines and a way to the rest (change postit-visual-system, task 1.2); the whole text stays in the page for screen readers. -->
-        <button v-if="clipped" class="more" type="button" :aria-expanded="readMore" :data-testid="`note-more-${note.id}`" @click.stop="readMore = !readMore">{{ readMore ? t('note.readLess') : t('note.readMore') }}</button>
-      </div>
-    </template>
-    <div v-else class="edit">
-      <textarea ref="editor" v-model="draft" :maxlength="board.noteLimit" rows="3" @keydown.enter.exact.prevent="saveEdit" @keydown.esc="editing = false" />
-      <div class="edit-side">
-        <button class="mini-btn" type="button" :aria-label="t('note.save')" :data-testid="`note-save-${note.id}`" @click="saveEdit"><Icon name="lucide:check" /></button>
-        <button class="mini-btn cancel" type="button" :aria-label="t('note.cancel')" :data-testid="`note-cancel-${note.id}`" @click="editing = false"><Icon name="lucide:x" /></button>
-        <NoteCounter :value="draft.length" :max="board.noteLimit" />
-      </div>
+    <div class="body">
+      <p ref="textEl" class="text" :class="{ open: readMore }" data-testid="note-text">{{ note.text }}</p>
+      <!-- Long text keeps a few lines and a way to the rest (change postit-visual-system, task 1.2); the whole text stays in the page for screen readers. -->
+      <button v-if="clipped" class="more" type="button" :aria-expanded="readMore" :data-testid="`note-more-${note.id}`" @click.stop="readMore = !readMore">{{ readMore ? t('note.readLess') : t('note.readMore') }}</button>
     </div>
 
     <footer>
       <span v-if="note.author" class="by">{{ note.author }}</span>
       <small v-if="note.edited" class="edited" :data-testid="`edited-${note.id}`">{{ t('note.edited') }}</small>
+      <!-- Someone has this idea open in the writing zone: a light mark, not a board event (change note-edit-and-unpublish). -->
+      <small v-if="live.editingNote.has(note.id)" class="being-edited" role="status" :title="t('live.editing', { names: live.editingNote.get(note.id)!.map((p) => p.name || t('common.anonymous')).join(', ') })" :data-testid="`being-edited-${note.id}`"><Icon name="lucide:pencil" aria-hidden="true" /> {{ t('note.beingEdited') }}</small>
       <span class="grow" />
       <span v-if="note.pinned" class="fbadge pbadge" :data-testid="`pinned-${note.id}`"><Icon name="lucide:pin" aria-hidden="true" /> {{ t('note.pinned') }}</span>
       <span v-if="note.frozen" class="fbadge" :title="t('error.frozen')" :data-testid="`frozen-${note.id}`"><Icon name="lucide:snowflake" aria-hidden="true" /> {{ t('note.frozen') }}</span>
@@ -98,7 +83,7 @@ function onDrop() {
       <LiveMarkers :peers="live.onNote.get(note.id)" :testid="`live-note-${note.id}`" />
       <!-- Notes inside a votable cluster are voted through the cluster. -->
       <VoteControl v-if="note.votable && board.votingEnabled" :id="note.id" kind="note" :votes="note.votes" :my-votes="note.myVotes" :label="note.text" />
-      <NoteMenu :note="note" :in-group="inGroup" @edit="startEdit" />
+      <NoteMenu :note="note" :in-group="inGroup" />
     </footer>
   </article>
 </template>
@@ -118,7 +103,7 @@ function onDrop() {
 .note.over { outline-color: var(--accent); transform: scale(1.04); }
 /* Peel (change postit-visual-system, task 3.1): resting a mouse on a note lifts its top-right corner. The text does not move; reduced motion shows the corner at once. */
 .note::after { content: ''; position: absolute; top: 0; right: 0; width: 18px; height: 18px; pointer-events: none; background: linear-gradient(225deg, var(--bg) 50%, rgb(0 0 0 / .14) 50%); border-bottom-left-radius: 4px; opacity: 0; transform: scale(.3); transform-origin: top right; transition: opacity var(--dur-fast), transform var(--dur-base) var(--ease); }
-@media (hover: hover) { .note:hover:not(:has(.edit))::after { opacity: 1; transform: scale(1); } }
+@media (hover: hover) { .note:hover::after { opacity: 1; transform: scale(1); } }
 .body { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; min-width: 0; }
 .more { justify-self: start; min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: var(--fs-sm); font-weight: 700; text-decoration: underline; cursor: pointer; }
 .more:hover { text-decoration-thickness: 2px; }
@@ -140,14 +125,8 @@ footer > * { min-width: 0; }
 .vote.off { opacity: .45; cursor: not-allowed; }
 .thumb { display: inline-grid; }
 .plus { position: absolute; left: 50%; top: -4px; translate: -50% 0; font-weight: 800; pointer-events: none; animation: vote-float .8s ease-out forwards; }
-@media (hover: hover) {
-  .edit .cancel { opacity: 0; transition: opacity .15s; }
-  .edit:hover .cancel, .edit:focus-within .cancel { opacity: 1; }
-}
 .edited { font-size: var(--fs-xs); opacity: .75; font-style: italic; }
-.edit-side { display: grid; gap: .3rem; justify-items: end; }
-.edit { display: flex; gap: .3rem; align-items: start; }
-.edit textarea { width: 100%; resize: none; border: 1.5px solid color-mix(in oklab, var(--note-ink) 40%, transparent); border-radius: var(--r-xs); background: rgb(255 255 255 / .35); padding: .3rem .4rem; color: inherit; }
+.being-edited { display: inline-flex; align-items: center; gap: .2rem; font-size: var(--fs-xs); font-weight: 700; padding: .05rem .4rem; border-radius: 999px; border: 1.5px dashed color-mix(in oklab, var(--note-ink) 45%, transparent); }
 .note.frozen { background-image: linear-gradient(135deg, rgb(255 255 255 / .35), rgb(255 255 255 / 0) 60%); cursor: default; }
 .note.pinned { outline: 2px solid var(--accent); outline-offset: 1px; }
 .pbadge { background: var(--accent); color: var(--accent-ink); }

@@ -31,7 +31,7 @@ export const useLiveStore = defineStore('live', () => {
   function setFocus(f: FocusFrame, name: string | null) {
     const next = new Map(focus.value)
     const prev = next.get(f.conn)
-    if (!prev || prev.column !== f.column || prev.note !== f.note || prev.typing !== f.typing) active.set(f.conn, Date.now())
+    if (!prev || prev.column !== f.column || prev.note !== f.note || prev.typing !== f.typing || prev.editing !== f.editing) active.set(f.conn, Date.now())
     next.set(f.conn, { ...f, name, color: peerColor(f.conn), at: Date.now() })
     focus.value = next
   }
@@ -53,6 +53,12 @@ export const useLiveStore = defineStore('live', () => {
     for (const f of focus.value.values()) if (f.note && now.value - f.at < CURSOR_STALE_MS * 6) map.set(f.note, [...(map.get(f.note) ?? []), f])
     return map
   })
+  /** Who is changing a published idea in the writing zone: the light "being edited" mark of the note. */
+  const editingNote = computed(() => {
+    const map = new Map<string, LiveFocus[]>()
+    for (const f of focus.value.values()) if (f.note && f.editing && now.value - f.at < CURSOR_STALE_MS * 6) map.set(f.note, [...(map.get(f.note) ?? []), f])
+    return map
+  })
   /** Who is in a column (viewing it on a phone, or typing in it). */
   const inColumn = computed(() => {
     const map = new Map<string, LiveFocus[]>()
@@ -69,5 +75,5 @@ export const useLiveStore = defineStore('live', () => {
     return { status: at === undefined && !f?.typing ? 'online' : presenceStatus(f, at ?? now.value, now.value), column: f?.typing ? f.column : null }
   }
 
-  return { cursors, focus, now, visible, status, onNote, inColumn, setCursor, setFocus, drop, reset }
+  return { cursors, focus, now, visible, status, onNote, editingNote, inColumn, setCursor, setFocus, drop, reset }
 })

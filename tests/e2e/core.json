@@ -31,7 +31,8 @@
     "sync-shield",
     "poker",
     "poker-themes",
-    "note-zoom"
+    "note-zoom",
+    "note-edit-unpublish"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",
@@ -40,6 +41,7 @@
     "with the flag off the other presence stays",
     "participants menu: shows who is typing",
     "the lead's pointer carries a crown",
-    "a late joiner opens a long board from the facilitator snapshot"
+    "a late joiner opens a long board from the facilitator snapshot",
+    "being edited mark"
   ]
 }

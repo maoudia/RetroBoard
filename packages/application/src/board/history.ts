@@ -1,7 +1,7 @@
 import type { Command, Snapshot } from '@retroboard/domain'
 
 /** What an undo step is called, for the toast and the tests. */
-export type UndoLabel = 'group' | 'ungroup' | 'move' | 'edit' | 'color' | 'delete' | 'rename'
+export type UndoLabel = 'group' | 'ungroup' | 'move' | 'edit' | 'color' | 'delete' | 'unpublish' | 'rename'
 
 /** The commands that put the board back as it was before one of my own actions. */
 export interface Inverse { label: UndoLabel; commands: Command[]; /** The action itself, replayed by redo. */ redo?: Command[] }
@@ -13,8 +13,8 @@ export interface Inverse { label: UndoLabel; commands: Command[]; /** The action
  */
 export function inverseOf(cmd: Command, view: Snapshot | null): Inverse | null {
   const inv = inverseOfInner(cmd, view)
-  // A deleted idea comes back as a new one (new id), so there is nothing to replay for a redo.
-  return inv ? (cmd.t === 'note.delete' ? inv : { ...inv, redo: [cmd] }) : null
+  // A deleted or unpublished idea comes back as a new one (new id), so there is nothing to replay for a redo.
+  return inv ? (cmd.t === 'note.delete' || cmd.t === 'note.unpublish' ? inv : { ...inv, redo: [cmd] }) : null
 }
 
 function inverseOfInner(cmd: Command, view: Snapshot | null): Inverse | null {
@@ -51,6 +51,11 @@ function inverseOfInner(cmd: Command, view: Snapshot | null): Inverse | null {
       // My idea comes back as a new idea with its text, colour and column. Its votes and its cluster are gone for good, as a delete means.
       const n = note(cmd.id)
       return n && n.mine ? { label: 'delete', commands: [{ t: 'note.add', columnId: n.columnId, text: n.text, color: n.color }] } : null
+    }
+    case 'note.unpublish': {
+      // Like a delete, and the draft that came back to the stack leaves it (the page does that when this undo runs).
+      const n = note(cmd.id)
+      return n && n.mine ? { label: 'unpublish', commands: [{ t: 'note.add', columnId: n.columnId, text: n.text, color: n.color }] } : null
     }
     case 'group.rename': {
       const g = view.groups.find((x) => x.id === cmd.id)

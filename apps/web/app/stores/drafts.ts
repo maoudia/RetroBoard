@@ -1,3 +1,4 @@
+import { type RecoveredDraft, stackWithRecovered, unhandledDrafts } from '@retroboard/application'
 import { NOTE_COLOR_COUNT } from '@retroboard/domain'
 import { createLocalSealer } from '~/adapters/device-key'
 import { createSealedStorage } from '~/adapters/sealed-storage'
@@ -18,6 +19,9 @@ export const useDraftsStore = defineStore('drafts', () => {
   const drafts = ref<Draft[]>([])
   const key = () => `retroboard:drafts:${room.value}`
   const composeKey = () => `retroboard:compose:${room.value}`
+  const recoveredKey = () => `retroboard:recovered:${room.value}`
+  /** Ids of the unpublish events already given back as drafts: a replay, a second tab or a late join never adds one twice. */
+  const handled = ref<string[]>([])
   /** Text being typed in each column composer: survives switching fields and reloads, never leaves this browser. */
   const composing = ref<Record<string, string>>({})
   const compose = (columnId: string) => composing.value[columnId] ?? ''
@@ -33,14 +37,16 @@ export const useDraftsStore = defineStore('drafts', () => {
     room.value = roomId
     drafts.value = []
     composing.value = {}
+    handled.value = []
     return (loading = read(roomId))
   }
   async function read(roomId: string) {
-    const [stored, typed] = await Promise.all([storage.read<Draft[]>(`retroboard:drafts:${roomId}`, []), storage.read<Record<string, string>>(`retroboard:compose:${roomId}`, {})])
+    const [stored, typed, seen] = await Promise.all([storage.read<Draft[]>(`retroboard:drafts:${roomId}`, []), storage.read<Record<string, string>>(`retroboard:compose:${roomId}`, {}), storage.read<string[]>(`retroboard:recovered:${roomId}`, [])])
     if (room.value !== roomId) return
     const known = new Set(drafts.value.map((d) => d.id))
     drafts.value = [...stored.filter((d) => !known.has(d.id)), ...drafts.value]
     composing.value = { ...typed, ...composing.value }
+    handled.value = [...new Set([...seen, ...handled.value])]
   }
   function persist() { if (room.value) write(key(), () => drafts.value) }
 
@@ -58,11 +64,34 @@ export const useDraftsStore = defineStore('drafts', () => {
     drafts.value = [...drafts.value, ...items.map((i) => ({ id: randomId(6), ...i }))]
     persist()
   }
+  /**
+   * Gives back the ideas an unpublish took off the board (change note-edit-and-unpublish): each lands at the top of the stack of
+   * its column, once per event id. Waits for the stored drafts and ids, so a replay never resurrects what was published or dismissed.
+   */
+  async function recover(all: readonly RecoveredDraft[]): Promise<RecoveredDraft[]> {
+    if (!all.length) return []
+    const at = room.value
+    await loading
+    if (room.value !== at) return []
+    const fresh = unhandledDrafts(all, new Set(handled.value))
+    if (!fresh.length) return []
+    drafts.value = stackWithRecovered(drafts.value, fresh)
+    handled.value = [...handled.value, ...fresh.map((d) => d.eventId)]
+    persist()
+    write(recoveredKey(), () => handled.value)
+    return fresh
+  }
   /** Forgets every local draft and typed text of the current room (board destroyed). */
   function clear() {
     drafts.value = []
     composing.value = {}
-    if (room.value) { const k = [key(), composeKey()]; writes = writes.then(() => loading).then(() => k.forEach(storage.remove)) }
+    handled.value = []
+    if (room.value) { const k = [key(), composeKey(), recoveredKey()]; writes = writes.then(() => loading).then(() => k.forEach(storage.remove)) }
+  }
+  /** The top-most draft of a column with this text: the one an unpublish gave back, when that unpublish is undone. */
+  function discard(columnId: string, text: string) {
+    const d = drafts.value.find((x) => x.columnId === columnId && x.text === text)
+    if (d) remove(d.id)
   }
   function remove(id: string) { drafts.value = drafts.value.filter((d) => d.id !== id); persist() }
   function removeMany(ids: string[]) { const s = new Set(ids); drafts.value = drafts.value.filter((d) => !s.has(d.id)); persist() }
@@ -79,5 +108,5 @@ export const useDraftsStore = defineStore('drafts', () => {
   const forColumn = (columnId: string) => drafts.value.filter((d) => d.columnId === columnId)
   const count = computed(() => drafts.value.length)
 
-  return { drafts, composing, compose, setCompose, clear, copyTo, load, add, restore, remove, removeMany, prune, forColumn, count }
+  return { drafts, handled, composing, recover, discard, compose, setCompose, clear, copyTo, load, add, restore, remove, removeMany, prune, forColumn, count }
 })

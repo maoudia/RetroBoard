@@ -27,7 +27,23 @@ function unfold() {
 }
 const identity = useIdentityStore()
 const { publish } = usePublish()
-const text = computed({ get: () => drafts.compose(props.column.id), set: (v: string) => drafts.setCompose(props.column.id, v) })
+const draftText = computed({ get: () => drafts.compose(props.column.id), set: (v: string) => drafts.setCompose(props.column.id, v) })
+/**
+ * Edit mode (change note-edit-and-unpublish): a published idea of this column is open in the composer. Its text and colour are held
+ * apart from the draft being typed, which waits untouched; the idea stays on the board until "Save".
+ */
+const noteRights = useNoteRights()
+const announcer = useLiveAnnouncer()
+const toasts = useToasts()
+const editing = computed(() => (ui.composerEdit?.columnId === props.column.id ? board.noteById(ui.composerEdit.noteId) ?? null : null))
+const editText = ref('')
+const editColour = ref(0)
+const editRefusal = computed(() => (editing.value ? noteRights.edit(editing.value).reason : null))
+const text = computed({
+  get: () => (editing.value ? editText.value : draftText.value),
+  set: (v: string) => { if (editing.value) editText.value = v; else draftText.value = v },
+})
+const drop = useWritingDrop(() => props.column.id)
 /** Drag the grip under the writing field to set its height (mouse, touch, keyboard); a preset clears it (change board-layout-v2). */
 const fieldEl = ref<HTMLTextAreaElement | null>(null)
 const dragH = ref<number | null>(null)
@@ -88,7 +104,8 @@ function setSignature(named: boolean) {
 }
 /** Colour of the next notes: the column default until the author picks another swatch (kept for the following notes). */
 const picked = ref<number | null>(null)
-const colour = computed(() => picked.value ?? props.colorIndex)
+const colour = computed(() => (editing.value ? editColour.value : picked.value ?? props.colorIndex))
+function pickColour(i: number) { if (editing.value) editColour.value = i; else picked.value = i }
 const colorsOpen = ref(false)
 /** Adding keeps the field focused: on a phone the keyboard stays open so several notes can be stacked in a row. */
 function add() {
@@ -129,6 +146,12 @@ function publishNow() {
 /** Enter: draft. Shift+Enter: new line. Ctrl/Cmd+Enter: publish now. Escape: clear. */
 function onKey(e: KeyboardEvent) {
   if (e.isComposing) return
+  if (editing.value) {
+    // Edit mode: Enter or Ctrl/Cmd+Enter saves, Shift+Enter adds a line, Escape cancels.
+    if (e.key === 'Enter' && !e.shiftKey && (e.ctrlKey || e.metaKey || !coarse.value)) { e.preventDefault(); saveEdit() }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelEdit() }
+    return
+  }
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault()
     publishNow()
@@ -144,6 +167,46 @@ function onKey(e: KeyboardEvent) {
     else (e.target as HTMLElement).blur()
   }
 }
+
+/** Opening an idea here loads its text and colour; the zone unfolds, the field takes the focus and the screen reader is told. */
+watch(() => (ui.composerEdit?.columnId === props.column.id ? ui.composerEdit.noteId : null), async (id) => {
+  const n = id ? board.noteById(id) : undefined
+  if (!id || !n) return
+  editText.value = n.text
+  editColour.value = n.color
+  if (folded.value) unfold()
+  announcer.polite(t('note.edit.opened', { text: n.text.length > 60 ? `${n.text.slice(0, 60)}...` : n.text }))
+  await nextTick()
+  fieldEl.value?.focus({ preventScroll: true })
+  fieldEl.value?.setSelectionRange(editText.value.length, editText.value.length)
+}, { immediate: true, flush: 'post' })
+/** The idea vanished while it was open (deleted, sent back by someone): nothing left to save. */
+watch(() => ui.composerEdit?.columnId === props.column.id && !editing.value, (gone) => {
+  if (!gone) return
+  ui.stopComposerEdit()
+  if (sheeted.value) ui.closeCompose()
+  toasts.push(t('note.edit.gone'), 'warn')
+})
+/** On a phone, closing the sheet (backdrop, close button) gives the edit up. */
+watch(sheeted, (on) => { if (!on && phone.value && editing.value) ui.stopComposerEdit() })
+function endEdit(message: 'note.edit.saved' | 'note.edit.cancelled') {
+  ui.stopComposerEdit()
+  if (sheeted.value) ui.closeCompose()
+  announcer.polite(t(message))
+}
+function saveEdit() {
+  const n = editing.value
+  const next = editText.value.trim()
+  if (!n || !next) return
+  if (editRefusal.value) { toasts.push(noteRights.reasonText(editRefusal.value)!, 'warn'); return }
+  const sent = next === n.text ? { ok: true as const } : board.commands.editNote(n.id, next)
+  if (!sent.ok) { toasts.push(t(sent.error === 'locked' ? 'error.locked' : 'publish.offline'), 'warn'); return }
+  if (editColour.value !== n.color) board.commands.recolorNote(n.id, editColour.value)
+  endEdit('note.edit.saved')
+}
+function cancelEdit() { endEdit('note.edit.cancelled') }
+/** Nothing to save: empty, or the same as it is. */
+const editUnchanged = computed(() => !editing.value || (editText.value.trim() === editing.value.text && editColour.value === editing.value.color))
 
 /** The phone sheet sits above the on-screen keyboard: the visual viewport tells how much of the screen the keyboard takes. */
 const inset = ref(0)
@@ -176,7 +239,15 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
        with one chip per column and the column keeps the drafts tray (change publishing-ux-redesign). -->
   <div class="priv-wrap" :data-folded="folded ? '' : undefined">
     <div class="priv-clip" :inert="folded">
-  <section v-show="!phone || mine.length" class="priv" :data-area="ui.writeSizeOf(column.id)" :aria-label="t('private.section', { title: column.title })">
+  <section
+    v-show="!phone || mine.length || editing || drop.canEdit.value" class="priv" :class="{ 'drop-ready': drop.canEdit.value, 'drop-over': drop.overZone.value }" :data-area="ui.writeSizeOf(column.id)" :aria-label="t('private.section', { title: column.title })"
+    data-drop :data-testid="`writing-zone-${column.id}`" v-bind="drop.zone"
+  >
+    <!-- An idea dragged over the zone says what a drop does: edit it here, or (on the draft stack) send it back to drafts. -->
+    <p v-if="drop.canEdit.value" class="drop-hint" :data-testid="`drop-edit-${column.id}`" aria-hidden="true"><Icon name="lucide:pencil" /> {{ t('note.edit.here') }}</p>
+    <div
+      v-if="drop.canUnpublish.value" class="stack-drop" :class="{ over: drop.overStack.value }" data-drop :data-testid="`drop-stack-${column.id}`" v-bind="drop.stack"
+    ><Icon name="lucide:undo-2" /> {{ t('note.unpublish.here') }}</div>
     <header>
       <span class="title" :title="t('private.hint')"><Icon name="lucide:eye-off" /><span v-if="phone">{{ t('private.tray') }}</span><span class="sr-only">{{ t('private.title') }}. {{ t('private.hint') }}</span></span>
       <GatedHint compact :availability="gate" what="gated.write" :testid="`gated-${column.id}`" />
@@ -192,7 +263,7 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
     </header>
 
     <!-- The drafts tray: notes held in hand, tilted, each with its "draft" ribbon, until they are published. It stacks above the field so the field keeps its place at the foot of the column (change writing-zone-at-column-bottom). -->
-    <ul v-if="mine.length" class="drafts" :aria-label="t('private.tray')" data-testid="drafts-tray">
+    <ul v-if="mine.length" class="drafts" :aria-label="t('private.tray')" data-testid="drafts-tray" :data-drafts-of="column.id">
       <li v-for="d in mine" :key="d.id" :data-draft-id="d.id" class="draft" :style="{ '--c': `var(--note-${d.color})` }">
         <span class="ribbon">{{ t('private.ribbon') }}</span>
         <p>{{ d.text }}</p>
@@ -216,15 +287,19 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
       </div>
       <button class="mini-btn" type="button" :aria-label="t('common.close')" :title="t('common.close')" data-testid="compose-close" @click="ui.closeCompose()"><Icon name="lucide:x" /></button>
     </div>
-    <label class="composer" :class="{ gated: closed }" :style="{ '--c': `var(--note-${colour})` }">
+    <label class="composer" :class="{ gated: closed && !editing, editing: !!editing }" :style="{ '--c': `var(--note-${colour})` }">
       <span class="sr-only">{{ t('private.newIn', { title: column.title }) }}</span>
       <textarea
-        ref="fieldEl" v-model="text" :maxlength="board.noteLimit" rows="2" :disabled="board.locked || closed" :data-testid="`draft-${column.id}`"
+        ref="fieldEl" v-model="text" :maxlength="board.noteLimit" rows="2" :disabled="editing ? !!editRefusal : board.locked || closed" :data-testid="`draft-${column.id}`"
         :aria-describedby="gate.closedBy ? `gated-${column.id}` : undefined"
         :placeholder="board.locked ? t('private.locked') : turnOff ? t('turn.locked') : closed ? t('gated.write.placeholder') : coarse ? t('private.placeholderTouch') : t('private.placeholder')"
         :style="fieldH ? { minHeight: `${fieldH}px`, height: `${fieldH}px` } : undefined" @keydown="onKey"
       />
-      <small class="hint-row"><span class="hint" :data-testid="`only-you-${column.id}`">{{ t('private.hint') }}</span><NoteCounter :value="text.length" :max="board.noteLimit" /></small>
+      <small class="hint-row">
+        <span v-if="editing" class="hint edit-bar" :data-testid="`edit-bar-${column.id}`"><Icon name="lucide:pencil" /> {{ t('note.edit.bar') }}</span>
+        <span v-else class="hint" :data-testid="`only-you-${column.id}`">{{ t('private.hint') }}</span>
+        <NoteCounter :value="text.length" :max="board.noteLimit" />
+      </small>
       <span
         class="grow-grip" role="separator" aria-orientation="horizontal" tabindex="0" :aria-label="t('private.grow')" :aria-valuenow="Math.round(fieldH ?? fieldEl?.getBoundingClientRect().height ?? 52)"
         :aria-valuemin="MIN_WRITE_PX" :aria-valuemax="MAX_WRITE_PX" :data-testid="`grow-grip-${column.id}`" @pointerdown.prevent="startGrow" @dblclick="resetSize" @keydown="growKey"
@@ -233,11 +308,11 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
     <div v-if="colorsOpen" class="swatches" role="group" :aria-label="t('note.color')" :data-testid="`compose-colors-${column.id}`">
       <button
         v-for="i in NOTE_COLOR_COUNT" :key="i" type="button" class="sw" :class="{ on: colour === i - 1 }" :style="{ background: `var(--note-${i - 1})` }"
-        :aria-label="t('note.colorN', { n: i })" :aria-pressed="colour === i - 1" :data-testid="`compose-color-${column.id}-${i - 1}`" @click="picked = i - 1"
+        :aria-label="t('note.colorN', { n: i })" :aria-pressed="colour === i - 1" :data-testid="`compose-color-${column.id}-${i - 1}`" @click="pickColour(i - 1)"
       />
     </div>
     <div class="compose-actions">
-      <span class="sig-group" role="group" :aria-label="t('private.signature')" :data-testid="`signature-${column.id}`" :data-signed="signed">
+      <span v-if="!editing" class="sig-group" role="group" :aria-label="t('private.signature')" :data-testid="`signature-${column.id}`" :data-signed="signed">
         <button
           class="sig" type="button" :class="{ on: signed }" :aria-pressed="signed" :aria-label="identity.name.trim() ? t('private.signedAs', { name: identity.name }) : t('private.signedNoName')" :title="signed ? t('private.signedHint') : t('private.anonymousHint')"
           :data-testid="`signature-named-${column.id}`" @click="setSignature(true)"
@@ -253,10 +328,16 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
         </template>
         <p class="help-text">{{ t('private.keys') }}</p>
       </Dropdown>
+      <template v-if="editing">
+        <button class="btn btn-sm act act-cancel" type="button" :title="t('note.edit.cancel')" :data-testid="`edit-cancel-${column.id}`" @pointerdown.prevent @mousedown.prevent @click="cancelEdit"><Icon name="lucide:x" /><span class="sr-only">{{ t('note.edit.cancel') }}</span></button>
+        <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('note.edit.save')" :disabled="!!editRefusal || !editText.trim() || editUnchanged" :data-testid="`edit-save-${column.id}`" @pointerdown.prevent @mousedown.prevent @click="saveEdit"><Icon name="lucide:check" /><span class="sr-only">{{ t('note.edit.save') }}</span></button>
+      </template>
+      <template v-else>
       <button class="btn btn-sm act act-publish" type="button" :title="t('private.publishNow')" :disabled="board.locked || closed || (!text.trim() && !mine.length)" :data-testid="`compose-publish-${column.id}`" @pointerdown.prevent @mousedown.prevent @pointerup="tapUp($event, publishNow)" @click="tapClick(publishNow)"><Icon name="lucide:send" /><span class="sr-only">{{ t('private.publishNow') }}</span></button>
       <button class="btn btn-sm btn-primary act act-add" type="button" :title="t('private.add')" :disabled="board.locked || closed || !text.trim()" :data-testid="`compose-add-${column.id}`" @pointerdown.prevent @mousedown.prevent @pointerup="tapUp($event, add)" @click="tapClick(add)"><Icon name="lucide:plus" /><span class="sr-only">{{ t('private.add') }}</span></button>
+      </template>
     </div>
-    <p v-if="similar" class="similar" role="status" :data-testid="`similar-${column.id}`">
+    <p v-if="similar && !editing" class="similar" role="status" :data-testid="`similar-${column.id}`">
       <Icon name="lucide:copy-check" /> {{ t('private.similar') }}
       <button class="link" type="button" @click="showSimilar(similar.id)">« {{ similar.text }} »</button>
     </p>
@@ -273,7 +354,7 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
 </template>
 
 <style scoped>
-.priv { display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); }
+.priv { position: relative; display: grid; gap: .6rem; padding: .75rem; border-top: 1px dashed var(--border); background: color-mix(in oklab, var(--bg) 50%, var(--surface)); }
 /* Privacy mark on the left, then everything else pushed to the right with the chevron last (smoother than a centred icon). */
 header { display: flex; align-items: center; gap: .35rem; min-height: 30px; }
 header > .title { margin-inline-end: auto; }
@@ -355,11 +436,20 @@ header > .title { margin-inline-end: auto; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(24px, 1fr)); gap: 5px; padding: 0 .2rem; }
 .sw { aspect-ratio: 1; min-width: 24px; min-height: 24px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }
 .sw.on { border-color: var(--text); }
+/* Drop targets (change note-edit-and-unpublish): the zone says "Edit here" while an idea is dragged, the stack strip says "Back to my drafts". Reduced motion keeps the labels and drops the transitions. */
+.drop-hint { margin: 0; display: inline-flex; align-items: center; gap: .35rem; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.priv.drop-ready { outline: 2px dashed color-mix(in oklab, var(--accent) 55%, transparent); outline-offset: -2px; }
+.priv.drop-over { outline: 2px solid var(--accent); background: var(--accent-soft); }
+.stack-drop { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 44px; padding: .4rem .6rem; border: 2px dashed var(--accent); border-radius: var(--r-sm); color: var(--accent); font-size: var(--fs-sm); font-weight: 700; transition: background .15s, transform .15s; }
+.stack-drop.over { background: var(--accent); color: var(--accent-ink); transform: scale(1.02); }
+.edit-bar { display: inline-flex; align-items: center; gap: .3rem; font-weight: 700; }
+.act-cancel { border-color: var(--control, var(--border)); background: transparent; color: var(--text); }
+.composer.editing { box-shadow: 0 0 0 2px var(--accent), var(--shadow-1); }
 .composer.gated { background: var(--gated-bg); color: var(--muted); box-shadow: none; transform: none; border: 1.5px dashed var(--gated-line); }
 .composer.gated textarea::placeholder { color: var(--muted); }
 .composer:focus-within { box-shadow: 0 0 0 3px var(--accent), var(--shadow-1); }
 </style>
 
 <style scoped>
-@media (prefers-reduced-motion: reduce) { .priv-wrap, .priv-wrap[data-folded] .priv-clip { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .priv-wrap, .priv-wrap[data-folded] .priv-clip, .stack-drop, .stack-drop.over { transition: none; transform: none; } }
 </style>

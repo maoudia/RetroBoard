@@ -28,6 +28,8 @@ export function useLiveAnnouncer() {
     politeText, assertiveText,
     /** Queues an event; one merged message is spoken when the window closes. */
     collect(item: AnnounceItem) { pending.push(item); timer ??= setTimeout(flush, ANNOUNCE_WINDOW_MS) },
+    /** One sentence for screen readers right now (a drag and drop, a menu action done), without waiting for the merge window. */
+    polite(text: string) { speak(politeText, text) },
     /** Interrupting message: the end of a timer. */
     assertive(text: string) { speak(assertiveText, text) },
   }

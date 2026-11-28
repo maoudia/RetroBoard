@@ -1,5 +1,6 @@
 import type { Command, CursorFrame, ErrorCode, FocusFrame, KeyRing, Snapshot } from '@retroboard/domain'
 import type { HistoryEntry, RewindPlan } from '../board/history-log'
+import type { RecoveredDraft } from '../board/recovered-drafts'
 
 /**
  * `waiting`: connected, but nobody holds this board yet. Nothing is created in its place.
@@ -91,6 +92,8 @@ export interface BoardChannel {
   history?(): HistoryEntry[]
   /** Encrypted boards: the commands that restore the board as it was before a history entry, or null for an unknown entry. */
   rewindPlan?(entryId: string): RewindPlan | null
+  /** Encrypted boards: my ideas an unpublish took off the board, to give back as drafts (change note-edit-and-unpublish). */
+  recovered?(): RecoveredDraft[]
   /** Live presence, best effort: dropped when offline. */
   sendCursor?(cursor: OwnCursor): void
   sendFocus?(focus: OwnFocus): void

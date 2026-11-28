@@ -27,21 +27,21 @@ test('mouse: draft actions appear on hover; dismiss deletes, validate publishes'
   await expect(drafts).toHaveCount(0)
 })
 
-test('mouse: a note being edited shows validate and dismiss; dismiss keeps the old text', async ({ page }) => {
+test('mouse: a note being edited in the writing zone shows save and cancel; cancel keeps the old text', async ({ page }) => {
   await createBoard(page)
   await publishNote(page, 0, 'Texte initial')
   const note = page.locator('article.note').first()
+  const zone = page.locator('section[data-testid^="column-"]').first()
   await note.locator('[data-testid^="note-menu-"]').click()
   await page.getByRole('menuitem', { name: 'Modifier' }).click()
-  await note.locator('textarea').fill('Texte changé')
-  await note.hover()
-  await note.locator('[data-testid^="note-cancel-"]').click()
+  await zone.locator('textarea').fill('Texte changé')
+  await zone.locator('[data-testid^="edit-cancel-"]').click()
   await expect(noteByText(page, 'Texte initial')).toBeVisible()
 
   await note.locator('[data-testid^="note-menu-"]').click()
   await page.getByRole('menuitem', { name: 'Modifier' }).click()
-  await note.locator('textarea').fill('Texte validé')
-  await note.locator('[data-testid^="note-save-"]').click()
+  await zone.locator('textarea').fill('Texte validé')
+  await zone.locator('[data-testid^="edit-save-"]').click()
   await expect(noteByText(page, 'Texte validé')).toBeVisible()
 })
 

@@ -77,6 +77,33 @@ describe('historyOf', () => {
   })
 })
 
+describe('unpublish in the history', () => {
+  it('is listed as "unpublish" with the idea\'s text and column, whoever sent it back', () => {
+    const l = started()
+    const mine = l.add({ t: 'note.unpublish', id: l.ids.one })
+    const others = l.add({ t: 'note.unpublish', id: l.ids.two }, BOB, 'Bob')
+    const entries = historyOf(roomId, l.events)
+    expect(entries.map((e) => [e.id, e.kind, e.text, e.columnId])).toEqual([[mine, 'unpublish', 'one', l.col[0]]])
+    expect(others).toBeDefined()
+  })
+
+  it('is listed with the text of the idea as it was before, and rewind brings it back as a new one', () => {
+    const l = started()
+    const entry = l.add({ t: 'note.unpublish', id: l.ids.one })
+    const plan = rewindPlan(roomId, l.events, entry)!
+    expect(plan.commands).toEqual([{ t: 'note.add', columnId: l.col[0], text: 'one', color: expect.any(Number) }])
+    expect(plan.skipped).toBe(0)
+  })
+
+  it('lists a facilitator unpublishing a participant\'s idea', () => {
+    const l = started()
+    l.add({ t: 'note.add', columnId: l.col[0]!, text: 'bob' }, BOB, 'Bob', false)
+    const id = Object.values(l.board().notes).find((n) => n.text === 'bob')!.id
+    const entry = l.add({ t: 'note.unpublish', id })
+    expect(historyOf(roomId, l.events).at(-1)).toMatchObject({ id: entry, kind: 'unpublish', text: 'bob', by: 'Alice' })
+  })
+})
+
 describe('rewindPlan', () => {
   it('is null for an unknown entry', () => {
     expect(rewindPlan(roomId, started().events, 'nope')).toBeNull()

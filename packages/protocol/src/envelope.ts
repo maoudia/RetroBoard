@@ -203,6 +203,8 @@ export const PresenceSchema = v.object({
   ready: v.optional(v.boolean()),
   /** X25519 public key of this session (sealed hand-offs of a move to a fresh link are addressed to it). A hint only. */
   xkey: v.optional(Key),
+  /** This client knows `note.unpublish`: the menu offers it only when everyone present announces it (rolling update). A hint only. */
+  unpublish: v.optional(v.literal(true)),
 })
 export type Presence = v.InferOutput<typeof PresenceSchema>
 
@@ -228,6 +230,8 @@ export const FocusSchema = v.object({
   column: v.nullable(AnchorId),
   note: v.nullable(AnchorId),
   typing: v.boolean(),
+  /** `note` is being edited in a composer (a mark for the others, never a board event). */
+  editing: v.optional(v.literal(true)),
 })
 export type Focus = v.InferOutput<typeof FocusSchema>
 

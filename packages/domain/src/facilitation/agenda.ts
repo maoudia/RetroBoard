@@ -147,7 +147,7 @@ const PHASE_COMMANDS: Record<PhaseKind, readonly CommandType[]> = {
   // Stryker disable next-line ArrayDeclaration: an array holding something that is no command allows nothing, like the empty one
   checkin: [],
   review: ['action.status', 'action.update', 'action.toggle'],
-  write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.color'],
+  write: ['note.add', 'note.addMany', 'note.edit', 'note.delete', 'note.unpublish', 'note.color'],
   // note.addMany: drafts auto-published when Write ends land at the start of Group.
   group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move', 'note.edit', 'note.color', 'note.addMany'],
   vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],

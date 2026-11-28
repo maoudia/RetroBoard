@@ -3,10 +3,16 @@ import type { SnapshotNote } from '@retroboard/domain'
 const { t } = useT()
 
 const props = defineProps<{ note: SnapshotNote; inGroup?: boolean }>()
-const emit = defineEmits<{ edit: [] }>()
-const moderator = computed(() => useBoardStore().access.role !== 'participant')
 const board = useBoardStore()
 const ui = useUiStore()
+const rights = useNoteRights()
+const unpublish = useUnpublish()
+const editRight = computed(() => rights.edit(props.note))
+const unpublishRight = computed(() => rights.unpublish(props.note))
+/** "Edit" opens the idea in the writing zone of its column, where it is changed and saved. */
+function openEdit() {
+  ui.editInComposer(props.note.id, props.note.columnId)
+}
 /** Keyboard and touch alternative to dragging a note onto another idea (WCAG 2.5.7). */
 const targets = computed(() => board.itemsFor(props.note.columnId, 'time').flatMap((i) => {
   if (i.kind === 'note') return i.note.id === props.note.id ? [] : [{ key: i.note.id, onto: i.note.id, label: i.note.text }]
@@ -105,11 +111,15 @@ const others = computed(() => board.columns.filter((c) => c.id !== props.note.co
           <Icon :name="`lucide:${c.icon}`" /> {{ c.title }}
         </button>
       </template>
-      <template v-if="(note.mine || moderator) && !note.frozen">
+      <template v-if="editRight.shown">
         <div class="dd-sep" />
-        <!-- The author edits their note; facilitators edit any note (change edit-published-notes). -->
-        <button class="dd-item" type="button" role="menuitem" :data-testid="`edit-${note.id}`" @click="emit('edit'); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
-        <button class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="askDelete(); close()">
+        <!-- The author edits their idea in the writing zone; facilitators edit any idea (changes edit-published-notes and note-edit-and-unpublish). Disabled, with the reason as tooltip, when the board would refuse. -->
+        <button class="dd-item" type="button" role="menuitem" :disabled="!!editRight.reason" :title="rights.reasonText(editRight.reason)" :data-testid="`edit-${note.id}`" @click="openEdit(); close()"><Icon name="lucide:pencil" /> {{ t('note.edit') }}</button>
+        <button
+          v-if="unpublishRight.shown" class="dd-item" type="button" role="menuitem" :disabled="!!unpublishRight.reason" :title="rights.reasonText(unpublishRight.reason)" :data-testid="`unpublish-${note.id}`"
+          @click="unpublish.request(note.id); close()"
+        ><Icon name="lucide:undo-2" /> {{ t(note.mine ? 'note.unpublish' : 'note.unpublish.others') }}</button>
+        <button v-if="!note.frozen" class="dd-item danger" type="button" role="menuitem" :data-testid="`delete-${note.id}`" @click="askDelete(); close()">
           <Icon name="lucide:trash" /> {{ t('note.delete') }}
         </button>
       </template>

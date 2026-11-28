@@ -339,6 +339,7 @@ function onSwipeEnd(e: TouchEvent) {
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
 const phaseEnd = usePhaseEnd()
 useBoardAnnouncements()
+useRecoveredDrafts()
 useDoneCelebration()
 useShortcuts()
 /** Ctrl/Cmd+Z takes back my latest group, move, edit or colour change (change board-undo-rewind); fields keep their own undo. */
@@ -507,6 +508,7 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <LazyPhaseEndPopup v-if="phaseEnd.ended.value" :key="phaseEnd.ended.value.id" :ended="phaseEnd.ended.value" @close="phaseEnd.dismiss" />
       <ConfirmDialog v-model:open="takeoverOpen" confirm-icon="lucide:key-round" :title="t('roles.takeover.title')" :message="t('roles.takeover.msg', { name: leadName })" :confirm-label="t('roles.takeover.ok')" @confirm="takeOver" />
       <TemplateDialog />
+      <UnpublishConfirm />
       <ConfirmDialog :open="ui.dialog === 'toClose'" confirm-icon="lucide:flag" :title="t('agenda.toClose.title')" :message="t('agenda.toClose.msg')" :confirm-label="t('agenda.toClose.ok')" @update:open="(v: boolean) => { if (!v && ui.dialog === 'toClose') ui.close() }" @confirm="board.commands.goToClosing()" />
       <ColumnEditorDialog />
       <LazyPaletteDialog v-if="ui.paletteTarget" />
