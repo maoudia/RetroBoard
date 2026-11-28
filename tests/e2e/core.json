@@ -30,7 +30,8 @@
     "onedrive-worker-csp",
     "sync-shield",
     "poker",
-    "poker-themes"
+    "poker-themes",
+    "note-zoom"
   ],
   "needsWebRTC": [
     "board events travel peer to peer",
