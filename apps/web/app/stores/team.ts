@@ -57,6 +57,8 @@ export const useTeamStore = defineStore('team', () => {
   const rememberOwner = (name: string) => commit(rememberOwnerIn(ws.value, name))
   const projects = (teamId: string) => projectsOf(ws.value, teamId)
   const candidates = (teamId: string, project?: string | null): CarryCandidate[] => carryOver(ws.value, teamId, project)
+  /** The open actions of the team's previous boards, shaped for a new board (change simple-mode-ux-pass: the one-tap offer). */
+  const carryActions = (teamId: string, project?: string | null): ImportedAction[] => candidates(teamId, project).map((c) => ({ text: c.text, owner: c.owner, status: c.status as ImportedAction['status'], ...(c.due ? { due: c.due } : {}), from: c.from }))
   const defaultsOf = (teamId: string): TeamDefaults | undefined => ws.value.teams.find((x) => x.id === teamId)?.defaults
   const remember = (teamId: string, defaults: TeamDefaults) => commit(setDefaults(ws.value, teamId, defaults))
   const suggestTitle = (teamId: string) => nextTitle(ws.value, teamId)
@@ -75,5 +77,5 @@ export const useTeamStore = defineStore('team', () => {
   /** Applies a change to the workspace (used by the lazy team-sharing components, so their code stays out of the entry). */
   function update(fn: (w: Workspace) => Workspace) { view.value = ''; commit(fn(ws.value)) }
   function clear() { commit({ ...EMPTY_WORKSPACE }) }
-  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, suggestTitle, defaultsOf, remember, update, saveActions, clear }
+  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, carryActions, suggestTitle, defaultsOf, remember, update, saveActions, clear }
 })

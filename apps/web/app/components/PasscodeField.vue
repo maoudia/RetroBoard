@@ -40,7 +40,16 @@ watch(style, generate)
 </script>
 
 <template>
-  <section class="pass" data-testid="passcode-block" :aria-label="t('setup.passcode')">
+  <!-- Simple mode: the password is made for the person; she only reads it and copies it (change simple-mode-ux-pass). -->
+  <section v-if="!advanced" class="pass" data-testid="passcode-block" :aria-label="t('setup.passcode.auto')">
+    <label class="lbl" for="setup-passcode">{{ t('setup.passcode.auto') }}</label>
+    <div class="row">
+      <input id="setup-passcode" :value="model" class="field mono" type="text" readonly spellcheck="false" aria-describedby="pass-hint" data-testid="setup-passcode" />
+      <button class="mini-btn" type="button" :disabled="!model" :aria-label="t('setup.passcode.copy')" :title="t('setup.passcode.copy')" data-testid="passcode-copy" @click="copy"><Icon name="lucide:copy" /></button>
+    </div>
+    <p id="pass-hint" class="muted small">{{ t('setup.passcode.auto.hint') }}</p>
+  </section>
+  <section v-else class="pass" data-testid="passcode-block" :aria-label="t('setup.passcode')">
     <label class="lbl" for="setup-passcode">{{ t('setup.passcode') }}</label>
     <div class="row">
       <input
@@ -58,7 +67,7 @@ watch(style, generate)
       <span v-else>{{ t('setup.passcode.off') }}</span>
     </p>
 
-    <details v-if="advanced" class="gen" data-testid="passcode-generator">
+    <details class="gen" data-testid="passcode-generator">
       <summary>{{ t('setup.passcode.generator') }}</summary>
       <div class="pick-seg" role="group" :aria-label="t('setup.passcode.style')">
         <button v-for="s in (['readable', 'random', 'passphrase'] as const)" :key="s" type="button" :class="{ on: style === s }" :aria-pressed="style === s" :data-testid="`passcode-style-${s}`" @click="style = s">{{ t(`setup.passcode.style.${s}`) }}</button>

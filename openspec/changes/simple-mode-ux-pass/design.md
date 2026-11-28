@@ -152,6 +152,10 @@ French is the source and is the longest: every new label and hint is checked at 
 
 Everything is local and personal: no event, no protocol field, nothing the relay can see. The password line shows the generated secret to its owner only, as today.
 
+## Supersedes
+
+The simple creation page no longer shows the team and project row that `creation-team-first` placed above the form in both modes (C12, C13): simple reuses the last team silently, and the row stays first in advanced mode.
+
 ## Risks
 
 - A facilitator in simple mode cannot find a setting she needs: mitigated by the escape hatch on every surface and by search once in advanced.

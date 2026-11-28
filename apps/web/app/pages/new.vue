@@ -43,6 +43,11 @@ const teamChoice = ref(team.current?.id ?? NEW_TEAM)
 const newTeamName = ref('')
 const project = ref('')
 const projectName = computed(() => project.value.trim() || null)
+/** Simple mode: one tap brings the open actions of the team's previous boards (change simple-mode-ux-pass). */
+const bring = ref(false)
+const offered = computed(() => cloned.value ? [] : team.carryActions(teamChoice.value, projectName.value))
+watch([bring, offered], ([on, found]) => { if (!advanced.value && !cloned.value) carry.value = on ? [...found] : [] })
+watch(advanced, (on) => { if (on) bring.value = false })
 /** A team starts its next board like its last one: format and series title go to the form, theme and agenda here (change team-workspaces). */
 /** `?format=<id>` (the "Start this format" link of a format page, change public-launch) wins over the team's default format. */
 const linkedFormat = computed(() => { const f = String(route.query.format ?? ''); return getTemplate(f) ? f : null })
@@ -118,9 +123,9 @@ async function create({ passcode, ...form }: SetupResult) {
         <h2>{{ t('new.resume.title') }}</h2>
         <RecentBoards :limit="3" testid="new-resume-list" />
       </section>
-      <section class="card panel team" :class="{ compact: !advanced }" data-testid="team-card">
+      <section v-if="advanced" class="card panel team" data-testid="team-card">
         <h2 class="h2"><Icon name="lucide:users-round" /> {{ t('team.title') }}</h2>
-        <p v-if="advanced" class="muted" data-testid="team-intro">{{ t('team.intro') }}</p>
+        <p class="muted" data-testid="team-intro">{{ t('team.intro') }}</p>
         <div class="team-row">
           <label class="team-f">
             <span>{{ t('team.team') }}</span>
@@ -141,10 +146,17 @@ async function create({ passcode, ...form }: SetupResult) {
         </div>
       </section>
       <section class="card panel">
-        <ToggleSwitch v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
-        <ToggleSwitch plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
+        <ToggleSwitch v-if="advanced || soloMode" v-model="soloMode" plain row-class="solo-line" row-testid="new-solo-line" :label="t('new.soloMode')" :hint="t('new.soloMode.hint')" data-testid="new-solo-switch" />
+        <ToggleSwitch v-if="advanced" plain row-class="solo-line" row-testid="new-presenter-line" :label="t('new.presenterMenus')" :hint="t('new.presenterMenus.hint')" :model-value="settings.s.presenterHideMenus" data-testid="new-presenter-switch" @update:model-value="(on: boolean) => settings.patch({ presenterHideMenus: on })" />
         <p v-if="cloned" class="clone-banner" role="status" data-testid="clone-banner"><Icon name="lucide:copy" /> {{ t(cloned.kind === 'actions' ? 'clone.banner.actions' : 'clone.banner') }}</p>
-        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :prefill="prefill" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create" />
+        <BoardSetupForm :clone-title="cloned?.title" :with-passcode="!soloMode" :theme-id="theme.themeId" :prefill="prefill" :submit-label="t('new.submit')" @update:theme-id="theme.use($event, false)" @update:minutes="onMinutes" @submit="create">
+          <template v-if="!advanced" #after-format>
+            <div class="simple-extras" data-testid="setup-simple-extras">
+              <ToggleSwitch plain row-class="tile line" :label="t('agenda.use')" :hint="t('agenda.use.simple.hint')" :model-value="agenda.enabled" data-testid="agenda-enabled" @update:model-value="(on: boolean) => agenda = { ...agenda, enabled: on }" />
+              <ToggleSwitch v-if="offered.length" v-model="bring" plain row-class="tile line" :label="t('carry.offer', { n: offered.length })" :hint="t('carry.offer.hint')" data-testid="carry-offer" />
+            </div>
+          </template>
+        </BoardSetupForm>
       </section>
       <section v-if="advanced" class="card panel">
         <AgendaEditor :model-value="agenda" @update:model-value="onAgenda" />
@@ -173,6 +185,7 @@ h1 { font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -.03em; }
 .team.compact { gap: .4rem; }
 .team-row { display: flex; flex-wrap: wrap; gap: .75rem; }
 .team-f { display: grid; gap: .25rem; flex: 1 1 14rem; font-weight: 600; }
+.simple-extras { display: grid; gap: .8rem; }
 .solo-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
 .solo-line span { display: grid; gap: .15rem; }
 .lede { max-width: 56ch; font-size: var(--fs-lg); color: var(--muted); }
