@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { harness } from '@retroboard/testkit'
-import { allowedInPhase, type CommandType, normalizePolicy, PRIVILEGED_COMMANDS, PHASE_KINDS, PHASE_PRESETS, phaseAllows, type PhaseKind, presetCapability } from '../src'
+import { allowedInPhase, CAPABILITIES, CAPABILITY_COMMANDS, type CommandType, normalizePolicy, PRIVILEGED_COMMANDS, PHASE_KINDS, PHASE_PRESETS, phaseAllows, type PhaseKind, presetCapability } from '../src'
 
 const COMMANDS: CommandType[] = [...new Set([...Object.values(PHASE_PRESETS).flat(), 'chat.post', 'timer.start', 'note.group', 'vote.add', 'action.add'])] as CommandType[]
 
@@ -47,6 +47,20 @@ describe('phase policy', () => {
     expect(phaseAllows({ kind: 'rank', policy: { vote: true } }, 'vote.add')).toBe(true)
   })
 
+  it('every capability governs exactly its own commands, on and off', () => {
+    for (const c of CAPABILITIES) {
+      if (c === 'freeze') continue
+      for (const command of CAPABILITY_COMMANDS[c]) {
+        expect(phaseAllows({ kind: 'checkin', policy: { [c]: true } }, command), `${c} on ${command}`).toBe(true)
+        expect(phaseAllows({ kind: 'actions', policy: { [c]: false } }, command), `${c} off ${command}`).toBe(false)
+        expect(phaseAllows({ kind: 'checkin', policy: { [c]: true } }, 'roti.set'), c).toBe(false)
+      }
+    }
+    expect(Object.fromEntries(Object.entries(CAPABILITY_COMMANDS).map(([k, v]) => [k, v.length]))).toEqual({ write: 4, publish: 1, group: 8, vote: 5, actions: 5 })
+    expect(presetCapability('write', 'freeze')).toBe(false)
+    expect(presetCapability('write', 'write')).toBe(true)
+  })
+
   it('freeze closes everything governed, for any kind', () => {
     for (const kind of PHASE_KINDS) for (const command of COMMANDS) expect(phaseAllows({ kind, policy: { freeze: true } }, command)).toBe(false)
   })
@@ -86,6 +100,15 @@ describe('command agenda.policy', () => {
     expect(h.run({ t: 'agenda.policy', phase: ids[0]!, policy: { write: true } })).toMatchObject({ ok: true })
     expect(h.run({ t: 'agenda.policy', phase: 'nope1234', policy: { vote: true } })).toEqual({ ok: false, error: 'not-found' })
     expect(harness().run({ t: 'agenda.policy', phase: 'nope1234', policy: { vote: true } })).toEqual({ ok: false, error: 'not-found' })
+  })
+
+  it('says whether the fold changed anything: a change is a meta write, a repeat is clean', () => {
+    const { h, ids } = setup()
+    const changed = h.run({ t: 'agenda.policy', phase: ids[1]!, policy: { write: true } })
+    expect(changed.ok && changed.dirty).toEqual({ meta: true, notes: [], groups: [], actions: [], wipe: false })
+    const again = h.run({ t: 'agenda.policy', phase: ids[1]!, policy: { write: true } })
+    expect(again.ok && again.dirty).toEqual({ meta: false, notes: [], groups: [], actions: [], wipe: false })
+    expect(h.state.agenda!.phases[1]!.policy).toEqual({ write: true })
   })
 
   it('applies to the running phase at once, and a phase change keeps each phase policy', () => {
