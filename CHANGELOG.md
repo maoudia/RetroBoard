@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.75.0](https://github.com/maoudia/RetroBoard/compare/v1.74.0...v1.75.0) (2026-11-28)
+
+
+### Features
+
+* **web:** phone and TV layouts of the note zoom, guide step and archive (note-zoom-on-double-tap 3.2, 4.1) ([d02524a](https://github.com/maoudia/RetroBoard/commit/d02524afb3d3f8d17be31cc21048e8cc3c23617d))
+* **web:** settings catalogue and a simple creation page (simple-mode-ux-pass 1.1-2.2) ([5361d94](https://github.com/maoudia/RetroBoard/commit/5361d941d19b7c0013857474cedcc34b96fc8036))
+
 ## [1.74.0](https://github.com/maoudia/RetroBoard/compare/v1.73.0...v1.74.0) (2026-11-28)
 
 
