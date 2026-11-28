@@ -14,6 +14,7 @@ const { t } = useT()
  */
 const ui = useUiStore()
 const board = useBoardStore()
+const team = useTeamStore()
 const { $ports } = useNuxtApp()
 const { push } = useToasts()
 const open = computed({ get: () => ui.dialog === 'export', set: (v) => { if (!v && ui.dialog === 'export') ui.close() } })
@@ -33,7 +34,7 @@ const dest = ref<Dest>('files')
 watch(advanced, (a) => { if (!a) dest.value = 'files' })
 const actionsOnly = ref(false)
 const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'retro')
-const report = computed(() => (open.value && board.snapshot ? buildReport(board.snapshot, new Date()) : null))
+const report = computed(() => (open.value && board.snapshot ? buildReport(board.snapshot, new Date(), team.trendsFor(board.roomId ?? '', board.snapshot)) : null))
 const o = computed(() => ({ actionsOnly: actionsOnly.value }))
 
 /** What the selected destination produces, for the preview and the buttons. */
