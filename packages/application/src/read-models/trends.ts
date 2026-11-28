@@ -27,6 +27,7 @@ export interface Trends {
 
 export interface CurrentRetro { boardId: string; stats: RetroStats; actions: readonly Pick<SavedAction, 'text' | 'owner' | 'status'>[] }
 
+// Stryker disable next-line MethodExpression: upper- and lower-casing both fold the same texts together
 const norm = (s: string) => s.trim().toLowerCase()
 const actionKey = (a: Pick<SavedAction, 'text' | 'owner'>) => `${norm(a.text)}|${norm(a.owner)}`
 
