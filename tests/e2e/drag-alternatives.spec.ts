@@ -92,7 +92,9 @@ test.describe('operable without dragging (WCAG 2.5.7)', () => {
     const scan = await axe(page).include('[data-testid="group-panel"]').analyze()
     expect(scan.violations).toEqual([])
     await page.locator('[data-testid^="move-group-to-"]').first().click()
-    await expect(page.getByTestId('group-panel')).toHaveCount(0)
+    // The panel follows its group to the new column (change group-colors-menu-and-scope).
+    await expect(column(page, 1).getByTestId('group-panel')).toBeVisible()
+    await expect(column(page, 0).getByTestId('group-panel')).toHaveCount(0)
     await expect(column(page, 0).locator('.cluster')).toHaveCount(0)
     await expect(column(page, 1).locator('.cluster')).toHaveCount(1)
   })

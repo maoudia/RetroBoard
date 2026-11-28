@@ -180,6 +180,8 @@ function syncActive() {
 }
 const tabsEl = ref<HTMLElement | null>(null)
 const isPhone = computed(() => layoutStore.cls === 'phone')
+/** The open group covers its column: the write button would sit over its last actions. Another column's open group does not hide it. */
+const activeHasOpenGroup = computed(() => { const c = visibleCols.value[activeCol.value]; return !!c && !!ui.openGroupIds[c.id] })
 const fabEl = ref<HTMLElement | null>(null)
 function openCompose() {
   const col = visibleCols.value[activeCol.value] ?? visibleCols.value[0]
@@ -372,8 +374,8 @@ watch(() => [board.settings?.title, board.settings?.initialized] as const, ([tit
 // Drafts of a deleted column have nowhere to live.
 watch(() => board.columns.map((c) => c.id).join(), () => { if (board.columns.length) drafts.prune(board.columns.map((c) => c.id)) })
 
-// Closing a group that vanished (dissolved by someone else).
-watch(() => board.snapshot?.groups, (g) => { if (ui.openGroupId && !g?.some((x) => x.id === ui.openGroupId)) ui.openGroupId = null })
+// Per column: a group that vanished (dissolved, merged away) closes, a moved one stays open in its new column.
+watch(() => board.snapshot?.groups, (g) => ui.reconcileGroups(g ?? []))
 
 watch(() => board.lastError, (e) => { if (e) push(errorLabel(e.code), 'warn') })
 
@@ -475,16 +477,17 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
       <!-- Phones: the columns as a tab bar in the thumb zone, one tab per column; the board scrolls and snaps to the tapped column (change responsive-and-i18n-hardening). -->
       <nav v-if="board.ready && visibleCols.length > 1" ref="tabsEl" class="col-tabs" :aria-label="t('board.dots')" data-reserve-bottom="tabs" data-testid="col-tabs">
         <button
-          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="tab" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title })"
+          v-for="(c, i) in visibleCols" :key="c.id" type="button" class="tab" :class="{ on: i === activeCol }" :aria-label="t('board.dot', { n: i + 1, total: visibleCols.length, title: c.title }) + (ui.openGroupIds[c.id] ? ` ${t('board.tabGroupOpen')}` : '')"
           :aria-current="i === activeCol ? 'true' : undefined" :data-testid="`col-tab-${i}`" @click="goCol(i)"
         >
           <Icon :name="`lucide:${c.icon}`" class="tab-ico" aria-hidden="true" />
+          <span v-if="ui.openGroupIds[c.id]" class="tab-dot" aria-hidden="true" :data-testid="`col-tab-open-${i}`" />
           <span class="tab-name" aria-hidden="true">{{ c.title }}</span>
         </button>
       </nav>
       <!-- Phones: one thumb-sized button writes an idea; the composer opens as a bottom sheet on the column in view, chips pick another (change publishing-ux-redesign). -->
       <button
-        v-if="board.ready && isPhone && !ui.presenter && !layoutStore.writingHidden && ui.composeColumn === null" ref="fabEl" class="compose-fab" :class="{ 'above-tabs': visibleCols.length > 1 }" type="button"
+        v-if="board.ready && isPhone && !ui.presenter && !layoutStore.writingHidden && ui.composeColumn === null && !activeHasOpenGroup" ref="fabEl" class="compose-fab" :class="{ 'above-tabs': visibleCols.length > 1 }" type="button"
         :aria-label="t('compose.open')" :title="t('compose.open')" data-testid="compose-open" @click="openCompose"
       >
         <Icon name="lucide:pencil" /><span class="fab-label" aria-hidden="true">{{ t('compose.open') }}</span>
@@ -543,10 +546,11 @@ const offline = computed(() => board.status === 'reconnecting' || board.status =
   .tab.on { color: var(--accent); }
   .tab.on::before { background: var(--accent); }
   .tab-ico { font-size: var(--fs-xl); }
+  /* A group is open in this column (change group-colors-menu-and-scope): swiping back finds it. */
+  .tab-dot { position: absolute; top: var(--sp-2); inset-inline-end: calc(50% - 1.4rem); width: 9px; height: 9px; border-radius: var(--r-pill); background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
   .tab-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* The write button floats at the right of the thumb zone, just above the tab bar (or the foot of the screen with a single column). */
   .page > .compose-fab { position: fixed; z-index: 20; right: var(--sp-3); bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 56px; padding: 0 var(--sp-4); border: 0; border-radius: var(--r-pill); background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 700; box-shadow: var(--shadow-2); cursor: pointer; }
-  .page:has([data-testid="group-panel"]) > .compose-fab { display: none; } /* the open group covers the column: its last actions must not sit under the button */
   .page > .compose-fab.above-tabs { bottom: calc(56px + var(--sp-3) + env(safe-area-inset-bottom)); }
 }
 .add-col { flex: 0 0 200px; align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 120px; border: 2px dashed var(--border); border-radius: var(--r-card); background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }

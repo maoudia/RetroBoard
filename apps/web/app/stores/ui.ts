@@ -1,6 +1,7 @@
 import { EMPTY_FILTER, type NoteFilter } from '@retroboard/application'
 import { safeStorage } from '~/utils/storage'
 import { legacySizes } from '~/utils/layout'
+import { closeIn, type OpenGroups, openIn, reconcile } from '~/utils/open-groups'
 export type ColumnSize = 'narrow' | 'normal' | 'wide' | 'full'
 export type WriteSize = 'small' | 'normal' | 'large'
 export const WRITE_SIZES: readonly WriteSize[] = ['small', 'normal', 'large']
@@ -56,7 +57,26 @@ export const useUiStore = defineStore('ui', () => {
   const autoGrouped = ref<Record<string, string[]>>({})
   /** Cluster being dragged (drop on another cluster to merge). */
   const dragGroupId = ref<string | null>(null)
-  const openGroupId = ref<string | null>(null)
+  /** One open group per column (change group-colors-menu-and-scope): column id to group id, this participant's view only. */
+  const openGroupIds = ref<OpenGroups>({})
+  /** Column of the group opened last: Escape closes it when no panel has focus. */
+  const lastGroupColumn = ref<string | null>(null)
+  /** Group whose panel opens with the title focused (Rename in the group menu). */
+  const renameGroupId = ref<string | null>(null)
+  function openGroup(columnId: string, groupId: string, opts: { rename?: boolean } = {}) {
+    openGroupIds.value = openIn(openGroupIds.value, columnId, groupId)
+    lastGroupColumn.value = columnId
+    renameGroupId.value = opts.rename ? groupId : null
+  }
+  function closeGroup(columnId: string) {
+    openGroupIds.value = closeIn(openGroupIds.value, columnId)
+    if (lastGroupColumn.value === columnId) lastGroupColumn.value = Object.keys(openGroupIds.value).at(-1) ?? null
+  }
+  /** A group dissolved, merged away or reset closes; a moved one follows to its new column. */
+  function reconcileGroups(groups: readonly { id: string; columnId: string }[]) {
+    openGroupIds.value = reconcile(openGroupIds.value, groups)
+    if (lastGroupColumn.value && !(lastGroupColumn.value in openGroupIds.value)) lastGroupColumn.value = Object.keys(openGroupIds.value).at(-1) ?? null
+  }
   /** Column being edited in the column dialog; null with dialog='column' means "add". */
   const editingColumnId = ref<string | null>(null)
   const dragNoteId = ref<string | null>(null)
@@ -112,5 +132,5 @@ export const useUiStore = defineStore('ui', () => {
   const openCompose = (columnId: string) => { composeColumn.value = columnId }
   const closeCompose = () => { composeColumn.value = null }
 
-  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupId, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
+  return { composeColumn, openCompose, closeCompose, chromeHidden, quietScrollUntil, dialog, takeoverAsked, moving, reviewDone, presenter, spotlightNoteId, zoomNoteId, zoomGroupId, focusColumn, focusStyle, laser, walkIndex, filter, filterOpen, resetFilter, openGroupIds, lastGroupColumn, renameGroupId, openGroup, closeGroup, reconcileGroups, editingColumnId, dragNoteId, open, close, editColumn, paletteTarget, openPalette, actionFrom, openActionFrom, focusSource, openActionsFor, editNoteId, expandedColumns, toggleExpanded, autoGrouped, columnSizes, columnWidths, setColumnWidth, loadColumnSizes: loadColumnSizesAndWrite, setColumnSize, writeSize, setWriteSize, writeHeight, setWriteHeight, writeSizeOf, writeHeightOf, setColumnWriteSize, setColumnWriteHeight, setAllWriteSize, dragGroupId }
 })

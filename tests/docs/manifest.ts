@@ -83,6 +83,7 @@ export const CHAPTERS: readonly Chapter[] = [
     steps: [
       { id: 'board', caption: t('Chaque colonne a son champ de saisie en haut, les brouillons restent sur ton appareil.', 'Each column has its own field at the top, drafts stay on your device.'), ops: [{ press: 'Escape' }], anchors: ['board'] },
       { id: 'zoom', caption: t('Un double clic ou un double toucher sur une idée l’agrandit sur ton appareil, les flèches passent à l’idée voisine et Échap referme.', 'A double click or double tap on an idea enlarges it on your device, the arrows move to the next idea and Escape closes it.'), ops: [{ press: 'Escape' }, { zoomNote: 1 }], anchors: ['note-text'] },
+      { id: 'group-panel', caption: t('Les trois points d’un groupe donnent les mêmes actions rapides qu’un post-it (couleur, renommer, déplacer, fusionner, dissoudre) ; un groupe s’ouvre dans sa colonne et chaque colonne garde le sien.', 'The three dots on a group give the same quick actions as a note (colour, rename, move, merge, dissolve); a group opens inside its column and each column keeps its own.'), ops: [{ press: 'Escape' }, { click: 'gmenu-menu-*' }, { click: 'gmenu-open-*' }], anchors: ['group-panel'], shoot: 'group-panel' },
     ],
   },
   {
@@ -90,7 +91,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: t('Le déroulé et le minuteur', 'The agenda and the timer'),
     intro: t('Le déroulé découpe la rétro en phases chronométrées.', 'The agenda splits the retro into timed phases.'),
     steps: [
-      { id: 'ring', caption: t('L’anneau montre la phase en cours et le temps restant.', 'The ring shows the running phase and the time left.'), ops: [{ press: 'Escape' }], anchors: ['agenda-ring'], shoot: 'agenda-ring' },
+      { id: 'ring', caption: t('L’anneau montre la phase en cours et le temps restant.', 'The ring shows the running phase and the time left.'), ops: [{ click: 'group-close' }], anchors: ['agenda-ring'], shoot: 'agenda-ring' },
       { id: 'panel', caption: t('Le panneau du déroulé permet de démarrer, passer à la phase suivante ou rallonger.', 'The agenda panel starts, skips to the next phase or extends.'), ops: [{ click: 'agenda-ring' }], anchors: ['agenda-panel'] },
     ],
   },
