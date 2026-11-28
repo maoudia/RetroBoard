@@ -78,3 +78,45 @@ A button that shows a text label SHALL NOT use the fixed-size icon-only class (`
 #### Scenario: Audit
 - **WHEN** the design-token test scans the components
 - **THEN** it fails on a `.mini-btn` that contains visible text
+
+### Requirement: The chat dock leaves the agenda strip visible
+On screens wider than a phone, the floating chat dock SHALL start below the agenda strip so that the phase progress line stays fully visible.
+
+#### Scenario: Chat open on a laptop
+- **WHEN** the chat is open at 1440 by 900 px
+- **THEN** the agenda strip is not covered by the dock
+
+### Requirement: Long strings stay inside their container
+In a language 40 % longer than French, and with the layout mirrored, segmented choices and rows of the Options and Profile dialogs SHALL stay inside the dialog at 360 px, and the phase line SHALL end in an ellipsis rather than be cut.
+
+#### Scenario: Options dialog in the pseudo-locale on a phone
+- **WHEN** the Options dialog opens at 360 px in the pseudo-locale
+- **THEN** no control extends beyond the dialog body
+
+### Requirement: Dialogs are readable on TV
+On a TV or projector screen class, dialogs SHALL be shown at 1.5 times their size and SHALL still fit inside the viewport.
+
+#### Scenario: Profile on a 2400 px screen
+- **WHEN** the profile dialog opens at 2400 by 1200 px
+- **THEN** it is 1.5 times larger than on a laptop and its box lies inside the viewport
+
+### Requirement: A gated control stays readable in dark themes
+The disabled, phase-gated vote control of a note SHALL draw its icon with the theme text colour so that it stays visible on the gated background in every theme variant.
+
+#### Scenario: Locked vote in a dark theme
+- **WHEN** a note shows the locked vote control in a dark theme
+- **THEN** the lock icon is visible against its background
+
+### Requirement: Landing join controls share one style
+The buttons of the landing join form, including the scanner button, SHALL use the same ghost button style.
+
+#### Scenario: Scanner button
+- **WHEN** the browser supports scanning and the landing page is shown
+- **THEN** the "Scan a QR code" button looks like the "Join" button (borderless, accent text, rounded)
+
+### Requirement: Touch targets are 44 px
+On a touch screen (coarse pointer) every button-like control SHALL answer to taps over an area of at least 44 by 44 CSS px, without its visible size or the layout changing.
+
+#### Scenario: A small column button on a phone
+- **WHEN** a participant taps 6 px outside the visible edge of a 30 px column button on a touch screen
+- **THEN** the button receives the tap
