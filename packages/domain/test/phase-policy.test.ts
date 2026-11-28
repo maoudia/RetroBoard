@@ -47,6 +47,16 @@ describe('phase policy', () => {
     expect(phaseAllows({ kind: 'rank', policy: { vote: true } }, 'vote.add')).toBe(true)
   })
 
+  it('every capability governs exactly these commands (spelled out, so a changed name is caught)', () => {
+    expect(CAPABILITY_COMMANDS).toEqual({
+      write: ['note.add', 'note.edit', 'note.delete', 'note.color'],
+      publish: ['note.addMany'],
+      group: ['note.group', 'note.ungroup', 'note.move', 'group.rename', 'group.recolor', 'group.dissolve', 'group.merge', 'group.move'],
+      vote: ['vote.add', 'vote.remove', 'vote.toggle', 'vote.seal', 'vote.unseal'],
+      actions: ['action.add', 'action.update', 'action.status', 'action.toggle', 'action.delete'],
+    })
+  })
+
   it('every capability governs exactly its own commands, on and off', () => {
     for (const c of CAPABILITIES) {
       if (c === 'freeze') continue
