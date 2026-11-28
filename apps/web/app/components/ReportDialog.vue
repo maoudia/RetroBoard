@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { buildReport } from '@retroboard/application'
+import { trendsFor } from '~/utils/trends'
 import { toEncryptedReportHtml, toReportHtml } from '@retroboard/exporters'
 import { td } from '~/i18n'
 import type { StagedFile } from '~/utils/file-preview'
@@ -11,7 +12,7 @@ const { $ports } = useNuxtApp()
 const open = computed({ get: () => ui.dialog === 'report', set: (v) => { if (!v && ui.dialog === 'report') ui.close() } })
 
 /** Computed on this device from the board; nothing is sent anywhere. */
-const report = computed(() => (open.value || printing.value) && board.snapshot ? buildReport(board.snapshot, new Date(), team.trendsFor(board.roomId ?? '', board.snapshot)) : null)
+const report = computed(() => (open.value || printing.value) && board.snapshot ? buildReport(board.snapshot, new Date(), trendsFor(team.ws, board.roomId ?? '', board.snapshot)) : null)
 const slug = computed(() => (board.settings?.title ?? 'retro').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'retro')
 
 const passphrase = ref('')

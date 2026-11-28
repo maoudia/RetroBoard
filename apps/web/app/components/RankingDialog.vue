@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildInsights, buildRanking, type Insight, podium, type RankedItem, voteStats } from '@retroboard/application'
 import { errorLabel } from '~/utils/labels'
+import { trendsFor } from '~/utils/trends'
 const { t } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
@@ -17,7 +18,7 @@ const pct = (n: number) => Math.round(n * 100)
 const insights = computed(() => (board.snapshot && ranking.value ? buildInsights(board.snapshot, board.snapshot.peers.length) : null))
 const insightText = (i: Insight) => t(`insight.${i.id}` as never, { ...i.n, column: i.columnId ? columnTitle(i.columnId) : '' })
 /** This retro against the team's previous ones (change results-trends), from the history saved on this device. */
-const trends = computed(() => (board.snapshot && ranking.value ? team.trendsFor(board.roomId ?? '', board.snapshot) : null))
+const trends = computed(() => (board.snapshot && ranking.value ? trendsFor(team.ws, board.roomId ?? '', board.snapshot) : null))
 const trendText = computed(() => (trends.value?.lines ?? []).map((l) => ({ key: l.key, text: t(l.key as never, l.params as never) })))
 const energyRows = computed(() => (insights.value?.notesPerColumn ?? []).map((c) => ({ id: c.columnId, label: columnTitle(c.columnId), value: String(c.notes), ratio: c.share })))
 const wordRows = computed(() => {
