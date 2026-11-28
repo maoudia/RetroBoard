@@ -1,0 +1,47 @@
+/*
+ * Celebration of a finished idea (change done-celebration). One class per theme, built by `playCelebration` in utils/fx.ts.
+ * Colours come from --cele-1..3 (the theme's own tokens, set by the engine), durations from --dur-cele and --dur-cele-static.
+ * The overlay never takes a pointer event or the focus; under reduced motion the engine shows the static check mark only.
+ */
+.cele { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; pointer-events: none; overflow: visible; --cele-1: var(--accent); --cele-2: var(--accent2); --cele-3: var(--text); }
+.cele > * { grid-area: 1 / 1; }
+.cele-svg { width: 3rem; height: 3rem; fill: none; stroke: var(--cele-1); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.cele-svg path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: cele-draw var(--dur-cele) ease-out both; }
+.cele-neon { font-size: var(--fs-3xl); font-weight: 800; line-height: 1; color: var(--cele-1); }
+
+/* sticky: a check stamp that sticks, then peels away */
+.cele-disc { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--cele-1); color: var(--surface); font-size: var(--fs-2xl); font-weight: 800; animation: cele-stamp var(--dur-cele) var(--ease) both; }
+/* paper: an ink stamp that lands with a small bounce */
+.cele-ink { padding: 0 .6rem; border: 3px solid var(--cele-1); border-radius: var(--r-xs); color: var(--cele-1); font-size: var(--fs-lg); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; background: color-mix(in srgb, var(--surface) 70%, transparent); animation: cele-ink var(--dur-cele) var(--ease) both; }
+/* corporate and slate: a mark that draws itself (corporate is quiet, slate is chalk) */
+.cele-slate .cele-svg { stroke: var(--cele-1); stroke-width: 3; stroke-dasharray: 4 3; }
+.cele-slate .cele-svg path { stroke-dasharray: 100; }
+.cele-corporate .cele-svg { stroke: var(--cele-1); }
+/* minimal: a single line strikes through */
+.cele-line { align-self: center; justify-self: stretch; height: 2px; margin: 0 .5rem; background: var(--cele-1); transform-origin: left center; animation: cele-strike var(--dur-cele) ease-in-out both; }
+/* cyber: a scan line and a neon check with a short glitch */
+.cele-scan { align-self: start; justify-self: stretch; height: 2px; background: var(--cele-2); box-shadow: 0 0 .5rem var(--cele-2); animation: cele-scan var(--dur-cele) linear both; }
+.cele-cyber .cele-neon { text-shadow: 0 0 .5rem var(--cele-1); animation: cele-glitch var(--dur-cele) steps(1, end) both; }
+/* halloween: a small ghost floats up */
+.cele-halloween .cele-svg { width: 2.6rem; height: 2.6rem; stroke: var(--cele-1); stroke-width: 3; animation: cele-float var(--dur-cele) ease-out both; }
+.cele-halloween .cele-svg path { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+/* studio: a spotlight sweeps across the idea */
+.cele-beam { align-self: stretch; justify-self: stretch; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--cele-1) 45%, transparent) 50%, transparent 70%); animation: cele-sweep var(--dur-cele) ease-in-out both; }
+.cele-studio .cele-neon { animation: cele-fade var(--dur-cele) ease-out both; }
+/* static check mark: reduced motion */
+.cele-static { animation: cele-fade var(--dur-cele-static) linear both; }
+.cele-static .cele-neon { color: var(--cele-1); }
+
+@keyframes cele-draw { 0% { stroke-dashoffset: 100; opacity: 1; } 55% { stroke-dashoffset: 0; opacity: 1; } 85% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes cele-stamp { 0% { opacity: 0; transform: scale(2) rotate(-24deg); } 22% { opacity: 1; transform: scale(1) rotate(-6deg); } 65% { opacity: 1; transform: scale(1) rotate(-6deg); } 100% { opacity: 0; transform: translate(45%, -55%) rotate(28deg) scale(.9); } }
+@keyframes cele-ink { 0% { opacity: 0; transform: scale(2.2) rotate(-14deg); } 25% { opacity: 1; transform: scale(.92) rotate(-8deg); } 38% { transform: scale(1.04) rotate(-8deg); } 48%, 75% { opacity: 1; transform: scale(1) rotate(-8deg); } 100% { opacity: 0; transform: scale(1) rotate(-8deg); } }
+@keyframes cele-strike { 0% { opacity: 1; transform: scaleX(0); } 45% { opacity: 1; transform: scaleX(1); } 80% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1); } }
+@keyframes cele-scan { 0% { opacity: 1; transform: translateY(0); } 70% { opacity: 1; transform: translateY(2.8rem); } 100% { opacity: 0; transform: translateY(3rem); } }
+@keyframes cele-glitch { 0% { opacity: 0; } 20% { opacity: 1; transform: translateX(0); } 28% { transform: translateX(-4px); } 34% { transform: translateX(3px); } 40%, 75% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; } }
+@keyframes cele-float { 0% { opacity: 0; transform: translateY(40%); } 25% { opacity: 1; } 70% { opacity: 1; transform: translateY(-30%) translateX(4px); } 100% { opacity: 0; transform: translateY(-70%) translateX(-4px); } }
+@keyframes cele-sweep { 0% { opacity: 0; transform: translateX(-100%); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(100%); } }
+@keyframes cele-fade { 0% { opacity: 0; } 12% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; } }
+
+/* A device that asks for less motion never sees the moving versions; the engine shows the static check mark. */
+@media (prefers-reduced-motion: reduce) { .cele:not(.cele-static) { display: none; } }
+[data-motion="reduced"] .cele:not(.cele-static) { display: none; }

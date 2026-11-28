@@ -19,6 +19,7 @@ export const halloween: ThemeDefinition = {
   fonts: { display: '"Pirata One", Georgia, serif', body: '"Alegreya Sans", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 10, control: 8 },
   motion: { enter: 'drop', leave: 'poof', enterMs: 640, ease: 'cubic-bezier(.34,1.56,.64,1)', ambient: 'bats' },
+  celebration: { id: 'halloween', palette: ['accent', 'accent2', 'text'] },
   copy: {
     hero: 'Le lien du board sert d\'invitation. Aucun compte, aucun fantôme à identifier.',
     emptyColumn: 'Rien ne rôde ici... pour l\'instant.',

@@ -43,7 +43,7 @@ export default defineNuxtConfig({
   routeRules: { '/**': { ssr: false }, '/': { ssr: true }, '/formats/**': { ssr: true }, '/en/formats/**': { ssr: true }, '/whats-new': { ssr: true }, '/en/whats-new': { ssr: true } },
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', '@nuxt/icon', '@nuxt/eslint'],
-  css: ['~/assets/css/base.css', '~/assets/css/motion.css'],
+  css: ['~/assets/css/base.css', '~/assets/css/motion.css', '~/assets/css/celebration.css'],
   app: {
     head: {
       htmlAttrs: { lang: 'fr' },

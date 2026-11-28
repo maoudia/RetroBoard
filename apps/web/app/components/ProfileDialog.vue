@@ -143,6 +143,7 @@ async function wipe() {
           <button type="button" :aria-label="t('profile.zoom.in')" :title="t('profile.zoom.in')" :disabled="layout.zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1]!" data-testid="zoom-in" @click="setZoom(stepZoom(layout.zoom, 1))"><Icon name="lucide:plus" /></button>
         </span>
       </div>
+      <ToggleSwitch v-if="advanced" plain :label="t('profile.celebrations')" :hint="t('profile.celebrations.hint')" :model-value="settings.s.celebrations" row-testid="set-celebrations-row" data-testid="set-celebrations" @update:model-value="(on: boolean) => set({ celebrations: on })" />
       <ToggleSwitch v-if="advanced" plain :label="t('profile.shortcuts')" :hint="t('profile.shortcuts.hint')" :model-value="settings.s.shortcuts" data-testid="set-shortcuts" @update:model-value="(on: boolean) => set({ shortcuts: on })" />
       <ToggleSwitch v-if="advanced" plain :label="t('profile.keyHints')" :hint="t('profile.keyHints.hint')" :model-value="settings.s.keyHints" :disabled="!settings.s.shortcuts" data-testid="set-key-hints" @update:model-value="(on: boolean) => set({ keyHints: on })" />
       <div v-if="advanced" class="line">
