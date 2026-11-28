@@ -53,6 +53,7 @@ export function buildTrends(ws: Workspace, teamId: string, current: CurrentRetro
   for (const a of current.actions) status.set(actionKey(a), a.status)
   const actionsDone = last.actions.length ? { done: last.actions.filter((a) => status.get(actionKey(a)) === 'done').length, total: last.actions.length, from: last.title } : null
 
+  // Stryker disable next-line ArrayDeclaration: a placeholder word in the empty case could only match a keyword of the same text
   const before = new Set(compared.flatMap((r) => r.stats?.keywords ?? []).map(norm))
   const recurring = current.stats.keywords.filter((w) => before.has(norm(w))).slice(0, MAX_RECURRING)
 

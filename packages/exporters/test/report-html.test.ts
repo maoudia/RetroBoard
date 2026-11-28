@@ -51,7 +51,7 @@ describe('report as a standalone HTML file', () => {
     expect(html).toContain('<h2>trends.title</h2>')
     expect(html).toContain('<li>trends.participation.up(6,4)</li>')
     expect(html).toContain('<li>trends.actions(1,2,&lt;S41&gt;)</li>')
-    expect(html).toContain('<li>trends.recurring(deploy)</li>')
+    expect(html).toContain('<li>trends.recurring(deploy)</li>\n</ul>')
     expect(toReportHtml(board(), t)).not.toContain('trends.title')
   })
 
