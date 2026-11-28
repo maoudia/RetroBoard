@@ -21,8 +21,7 @@ const MAX_MINUTES = 600
 
 /** A shared policy keeps only boolean capabilities that differ from the preset; anything else is dropped. */
 function policyOf(kind: PhaseInput['kind'], v: unknown): PhasePolicy | undefined {
-  if (typeof v !== 'object' || v === null) return undefined
-  const o = v as Record<string, unknown>
+  const o = (v ?? {}) as Record<string, unknown>
   const raw: PhasePolicy = {}
   for (const c of CAPABILITIES) if (typeof o[c] === 'boolean') raw[c] = o[c]
   return normalizePolicy(kind, raw)

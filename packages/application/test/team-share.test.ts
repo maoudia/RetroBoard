@@ -56,6 +56,7 @@ describe('team share', () => {
     expect(parse({ vote: true, write: false, freeze: false, group: 'yes', nope: true })).toEqual({ kind: 'rank', minutes: 3, policy: { vote: true } })
     expect(parse({ freeze: false })).toEqual({ kind: 'rank', minutes: 3 })
     expect(parse('x')).toEqual({ kind: 'rank', minutes: 3 })
+    expect(parse(null)).toEqual({ kind: 'rank', minutes: 3 })
   })
 
   it('joining adds the team and makes it the next one; joining again updates it and keeps the local boards', () => {
