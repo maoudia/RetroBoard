@@ -14,7 +14,9 @@ const settings = useSettingsStore()
 /** Phones write in a bottom sheet (change publishing-ux-redesign): the column keeps only the drafts tray, the folding of the writing area does not apply. */
 const phone = computed(() => layout.cls === 'phone')
 const sheeted = computed(() => phone.value && ui.composeColumn === props.column.id)
-const folded = computed(() => !phone.value && (layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id)))
+/** Folded by the agenda going back before Write (change phase-transition-guidance), on every screen size; one banner shows it. */
+const { hidden: phaseHidden } = useWritingHidden()
+const folded = computed(() => phaseHidden.value || !phone.value && (layout.writingHidden || layout.columnWriteHidden(board.roomId ?? '', props.column.id)))
 /** Columns locked together (the columns icon): the double chevron folds and unfolds every column at once (change feedback-wave-7). */
 function fold() {
   if (settings.s.linkColumns) layout.setWritingHidden(true)
@@ -174,7 +176,7 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
   <!-- The writing area folds with a vertical slide: for every column (toolbar) or for this one (its own button);
        one handle brings it back (changes board-layout-v2 and ux-irritants-wave-2). On a phone the composer is a bottom sheet
        with one chip per column and the column keeps the drafts tray (change publishing-ux-redesign). -->
-  <div class="priv-wrap" :data-folded="folded ? '' : undefined">
+  <div class="priv-wrap" :data-folded="folded ? '' : undefined" data-writing-area>
     <div class="priv-clip" :inert="folded">
   <section v-show="!phone || mine.length" class="priv" :data-area="ui.writeSizeOf(column.id)" :aria-label="t('private.section', { title: column.title })">
     <header>
@@ -266,7 +268,7 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
 
   </section>
     </div>
-    <button v-if="folded" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
+    <button v-if="folded && !phaseHidden" class="priv-handle" type="button" :data-testid="`write-handle-${column.id}`" @click="unfold">
       <Icon name="lucide:chevrons-up" /><span class="sr-only">{{ t('private.open') }}</span><span v-if="mine.length" class="n">{{ mine.length }}</span>
     </button>
   </div>

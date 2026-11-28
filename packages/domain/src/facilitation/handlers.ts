@@ -108,6 +108,7 @@ export const facilitationHandlers: HandlerMap<FacilitationCommand> = {
       talkSelfStart: c.talkSelfStart ?? s.settings.talkSelfStart,
       noteMaxLength: c.noteMaxLength ?? s.settings.noteMaxLength,
       ...(c.announceArrivals !== undefined ? { announceArrivals: c.announceArrivals } : {}),
+      ...(c.hideWritingOnReturn !== undefined ? { hideWritingOnReturn: c.hideWritingOnReturn } : {}),
       // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type
       ...(c.noteSize !== undefined && DISPLAY_SCALES.includes(c.noteSize) ? { noteSize: c.noteSize } : {}),
       // Stryker disable next-line ConditionalExpression: includes(undefined) is already false, the guard only narrows the type

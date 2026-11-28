@@ -93,6 +93,7 @@ export const CHAPTERS: readonly Chapter[] = [
     steps: [
       { id: 'ring', caption: t('L’anneau montre la phase en cours et le temps restant.', 'The ring shows the running phase and the time left.'), ops: [{ click: 'group-close' }], anchors: ['agenda-ring'], shoot: 'agenda-ring' },
       { id: 'panel', caption: t('Le panneau du déroulé permet de démarrer, passer à la phase suivante ou rallonger.', 'The agenda panel starts, skips to the next phase or extends.'), ops: [{ click: 'agenda-ring' }], anchors: ['agenda-panel'] },
+      { id: 'empty-review', caption: t('Sans action à revoir, une carte propose de passer à l’écriture ; revenir en arrière replie les zones d’écriture.', 'With no action to review, a card offers to start writing; going back folds the writing areas.'), ops: [{ press: 'Escape' }, { click: 'agenda-ring' }, { click: 'agenda-start' }, { press: 'Escape' }, { click: 'agenda-ring' }, { click: 'agenda-next' }, { press: 'Escape' }], anchors: ['review-nudge'], shoot: 'review-nudge' },
     ],
   },
   {

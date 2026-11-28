@@ -28,6 +28,8 @@ export function useLiveAnnouncer() {
     politeText, assertiveText,
     /** Queues an event; one merged message is spoken when the window closes. */
     collect(item: AnnounceItem) { pending.push(item); timer ??= setTimeout(flush, ANNOUNCE_WINDOW_MS) },
+    /** One polite message now (a view change that is not an event of the room). */
+    polite(text: string) { speak(politeText, text) },
     /** Interrupting message: the end of a timer. */
     assertive(text: string) { speak(assertiveText, text) },
   }
