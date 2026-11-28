@@ -1,7 +1,7 @@
-import type { ActionItem, ImportedAction, Snapshot } from '@retroboard/domain'
+import type { ActionItem, ImportedAction } from '@retroboard/domain'
 import {
-  addTeam, assignBoard, buildTrends, switchTeam, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
-  rememberOwner as rememberOwnerIn, retroStatsOf, saveRetro, setDefaults, type Team, type TeamDefaults, type Trends, type Workspace,
+  addTeam, assignBoard, switchTeam, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
+  rememberOwner as rememberOwnerIn, saveRetro, setDefaults, type RetroStats, type Team, type TeamDefaults, type Workspace,
 } from '@retroboard/application'
 import { randomId, safeStorage } from '~/utils/storage'
 
@@ -64,25 +64,19 @@ export const useTeamStore = defineStore('team', () => {
   const suggestTitle = (teamId: string) => nextTitle(ws.value, teamId)
 
   /** "Save actions for next time": the board's actions with their final statuses, under the board's team. */
-  function saveActions(boardId: string, title: string, actions: readonly ActionItem[], snapshot?: Snapshot | null) {
+  function saveActions(boardId: string, title: string, actions: readonly ActionItem[], stats?: RetroStats) {
     const known = ws.value.boards[boardId]
     const team = known ? known.teamId : ensureTeam().id
     let next = saveRetro(ws.value, {
       boardId, teamId: team, project: known?.project ?? null, title, at: Date.now(),
-      ...(snapshot ? { stats: retroStatsOf(snapshot) } : {}),
+      ...(stats ? { stats } : {}),
       actions: actions.map((a) => ({ text: a.text, owner: a.owner, status: a.status, ...(a.due ? { due: a.due } : {}) })),
     })
     for (const a of actions) next = rememberOwnerIn(next, a.owner)
     commit(next)
   }
-  /** This retro against the previous ones of its team (change results-trends); null when there is nothing to compare with. */
-  function trendsFor(boardId: string, snapshot: Snapshot): Trends | null {
-    const teamId = ws.value.boards[boardId]?.teamId ?? current.value?.id
-    if (!teamId) return null
-    return buildTrends(ws.value, teamId, { boardId, stats: retroStatsOf(snapshot), actions: snapshot.actions })
-  }
   /** Applies a change to the workspace (used by the lazy team-sharing components, so their code stays out of the entry). */
   function update(fn: (w: Workspace) => Workspace) { view.value = ''; commit(fn(ws.value)) }
   function clear() { commit({ ...EMPTY_WORKSPACE }) }
-  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, carryActions, suggestTitle, defaultsOf, remember, update, saveActions, trendsFor, clear }
+  return { ws, teams, current, view, switchTo, owners, ensureTeam, create, assign, rememberOwner, projects, candidates, carryActions, suggestTitle, defaultsOf, remember, update, saveActions, clear }
 })
