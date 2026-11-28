@@ -62,7 +62,8 @@ const dir = process.argv[2] ?? 'apps/web/.output/public'
 // poker pages): the dialog that every page shares gets the guide of the page and the feedback links, and the entry carries only the lazy wrapper of that
 // component (about 0.1 kB; the component, the guide link and the feedback links are a lazy chunk). The poker bar reuses the toolbar's mark, its light or dark
 // button (which reads the variant from the root, so that the theme store does not move into the entry) and the avatar.
-const BUDGET = { entryKb: 56.6, totalKb: 500 }
+// 2026-11-28: entry raised from 56.6 to 56.8 kB (56.7 measured) for the fr/en strings of the simple creation page (change simple-mode-ux-pass, groups 1 and 2).
+const BUDGET = { entryKb: 56.8, totalKb: 500 }
 const OPT_IN = [/initializeWebModelContext/]
 // A small chunk is opt-in only by an exact marker (the size guard below protects the big ones from a stray match). 2026-11-19, user-drive-storage:
 // the chunks that load only once a person connects a sync target are opt-in like the WebMCP polyfill, so they are reported and not counted: the
