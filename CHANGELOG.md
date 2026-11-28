@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.74.0](https://github.com/maoudia/RetroBoard/compare/v1.73.0...v1.74.0) (2026-11-28)
+
+
+### Features
+
+* **web:** all-columns link on by default and opt-in collapse buttons ([1141dfb](https://github.com/maoudia/RetroBoard/commit/1141dfbb144f0cc70e8f885c135d3017671f2a79))
+* **web:** zoom on a note with a double tap, the z key and the note menu (note-zoom-on-double-tap 1.1, 2.1, 3.1) ([527bc75](https://github.com/maoudia/RetroBoard/commit/527bc75d1a71453d1f03eea2e598ac137277ec18))
+
 ## [1.73.0](https://github.com/maoudia/RetroBoard/compare/v1.72.0...v1.73.0) (2026-11-27)
 
 
