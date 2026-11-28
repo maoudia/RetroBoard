@@ -159,3 +159,7 @@ artifacts are unaffected.
 One aggregated report per main commit, the front page of https://maoudia.github.io/RetroBoard/ (`/allure/` redirects to it; change `allure-report-aggregation`, Allure 3, Apache-2.0). Coverage is at `/coverage/` and the Stryker report at `/mutation/`.
 Locally: `ALLURE_RESULTS_DIR=allure-results/unit pnpm exec vitest run`, then `pnpm exec allure generate allure-results/unit --clean` and open `reports/allure/index.html`.
 History is the `history.jsonl` file the previous run published next to the report; the `pages` job downloads it before generating and publishes the updated file. Nothing is stored outside GitHub Pages.
+
+## Launch readiness
+
+`pnpm launch:check` (change `public-launch`, `scripts/launch/readiness.mjs`, gates in `scripts/launch/gates.json`) measures the R2 gate of `docs/roadmap.md` in one run: the nightly streak (`pnpm nightly:streak`, needs `gh`), Lighthouse on the landing on mobile (median of 3 runs, performance at least 95; needs `pnpm dev:worker`, about 10 minutes), axe on the public pages (the `a11y`, `format-pages` and `whats-new` specs), the `brand-identity` and `landing-v2-and-product-video` changes archived, and the guide link on the landing. It prints one line per gate, exits non-zero when one is red and writes `docs/launch/readiness.md`. `--skip=lighthouse,axe` leaves gates out; a skipped or unmeasured gate is red, never a pass. `pnpm launch:media:check` (in `pnpm verify`) keeps the launch pictures and video current.

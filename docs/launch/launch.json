@@ -1,0 +1,40 @@
+{
+  "themes": [
+    "studio",
+    "corporate",
+    "slate",
+    "paper",
+    "minimal",
+    "halloween",
+    "noel",
+    "cyber",
+    "sakura"
+  ],
+  "variants": [
+    "light",
+    "dark"
+  ],
+  "sources": "eacbbfb983672cff",
+  "files": {
+    "board-corporate-dark.png": "efb553c3552a3ada3819f4fca48b578ea29f4c9dfa01dc57f8d3aecbba1e59aa",
+    "board-corporate-light.png": "965555b32dbc83f8c8de1f506cbc5aed06c8945aabe07f906d1e492268660a8e",
+    "board-cyber-dark.png": "d63cc449375be9d3f0a44844dcd3890d96345a0d1cbc7b839652a52916585dae",
+    "board-cyber-light.png": "2fe92675684d019aa7408411fa7352805fd647718ae968a8195b657186395d44",
+    "board-halloween-dark.png": "e2495e4a6f61237dd441b0fe7a8725bfc266be02c800c0509f64a1da084fa473",
+    "board-halloween-light.png": "78dd6d39206f67138767ebcc7c13e2af2abdec982271b41dc342dcc075c82178",
+    "board-minimal-dark.png": "09bb7d3e96523ea0705ca58ba8e2dfb2f2d26357bc391c3991604d182b1e61a8",
+    "board-minimal-light.png": "8d0f435c668309caa43bb037f3db2ac26902b407a0760ee729ba1a44469e4518",
+    "board-noel-dark.png": "736109b52bd22d63c07eda7c84c6d88f363d8113044d3bae37e9d367a37e830d",
+    "board-noel-light.png": "47f102a170c633a938937421d331bdafd8999e53c65ca1ebd0efec49e72c9c97",
+    "board-paper-dark.png": "555e43d84736dc3326cb5d42224f2be3db5a86470a21242631276eea0995c934",
+    "board-paper-light.png": "759631ce7fc2afbef68cfbc0434bb497ab4aec340881a1ab83d7506c5ac22293",
+    "board-sakura-dark.png": "c78c246a14471ef4710fe80d5fed887f12be48201a44b3bc8308efb38e6af429",
+    "board-sakura-light.png": "49523956fd303a3ae35474b891c4e8c872b522aaba16137be70909c6b8abb960",
+    "board-slate-dark.png": "88e6cb5f70cad863eed22a9d55473757e1d55d103ee34404e7934a6ddf9c288a",
+    "board-slate-light.png": "beea2da5802f0167050dcd7389edf247210bb03715c9d72794a3575f8af9429d",
+    "board-studio-dark.png": "c1c3f88972ef81cf473b70a1a9c161e09ac16c0832dbe0cab26161027f8713eb",
+    "board-studio-light.png": "c45f4d3a1ad13d4db57060f10dcb51fb52b36651de40212e2b0e5af203a4b572",
+    "walkthrough-30s.vtt": "8f7d92ad4465cf3303069dd5e5df9d63155c1124d34c55f38747d31cbfb244a4",
+    "walkthrough-30s.webm": "b3a2cce15d94c6b428793a63fbeae9aab3f6a2a2faa973b4e4dc45b6b1cc9089"
+  }
+}

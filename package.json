@@ -21,7 +21,7 @@
     "e2e:core": "node scripts/e2e-core.mjs",
     "e2e:rest": "node scripts/e2e-rest.mjs",
     "e2e:cursors": "node scripts/e2e-cursors.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm dup && pnpm knip && pnpm adr:check && pnpm wip && pnpm quarantine && pnpm docs:check && pnpm test && openspec validate --all --strict",
+    "verify": "pnpm lint && pnpm typecheck && pnpm arch && pnpm dup && pnpm knip && pnpm adr:check && pnpm wip && pnpm quarantine && pnpm docs:check && pnpm launch:media:check && pnpm test && openspec validate --all --strict",
     "spec": "openspec",
     "postinstall": "pnpm --filter @retroboard/web prepare && node scripts/commits/install-hooks.mjs",
     "dup": "jscpd",
@@ -47,6 +47,9 @@
     "docs:check": "node scripts/docs/check.mjs",
     "docs:video": "node scripts/docs/video.mjs",
     "docs:voice": "node scripts/docs/voiceover.mjs",
+    "launch:media": "node scripts/launch/media.mjs",
+    "launch:check": "node scripts/launch/readiness.mjs",
+    "launch:media:check": "node scripts/launch/check.mjs",
     "video:record": "node scripts/video/record-walkthrough.mjs"
   },
   "devDependencies": {
