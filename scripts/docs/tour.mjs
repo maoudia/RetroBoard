@@ -11,11 +11,11 @@ import { join } from 'node:path'
 const SHOTS = process.env.GUIDE_SHOTS ?? '.guide-tmp/shots'
 const OUT = process.env.GUIDE_OUT ?? 'apps/web/public/guide/img'
 
-/** The command that turns one PNG into a lossy WebP (quality 72, no metadata): cwebp when present, else ffmpeg with libwebp. */
+/** The command that turns one PNG into a lossy WebP (quality 64, no metadata): cwebp when present, else ffmpeg with libwebp. */
 export function webpCommand(tool, input, output) {
   return tool === 'cwebp'
-    ? ['cwebp', ['-quiet', '-q', '72', '-m', '6', '-metadata', 'none', input, '-o', output]]
-    : ['ffmpeg', ['-y', '-loglevel', 'error', '-i', input, '-c:v', 'libwebp', '-quality', '72', '-compression_level', '6', '-map_metadata', '-1', output]]
+    ? ['cwebp', ['-quiet', '-q', '64', '-m', '6', '-metadata', 'none', input, '-o', output]]
+    : ['ffmpeg', ['-y', '-loglevel', 'error', '-i', input, '-c:v', 'libwebp', '-quality', '64', '-compression_level', '6', '-map_metadata', '-1', output]]
 }
 
 /** Which converter is installed ('cwebp', 'ffmpeg' with libwebp, or null). */

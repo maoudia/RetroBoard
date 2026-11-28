@@ -1,7 +1,7 @@
 import type { ActionItem, ImportedAction } from '@retroboard/domain'
 import {
   addTeam, assignBoard, switchTeam, type CarryCandidate, carryOver, currentTeam, EMPTY_WORKSPACE, nextTitle, projectsOf,
-  rememberOwner as rememberOwnerIn, saveRetro, setDefaults, type Team, type TeamDefaults, type Workspace,
+  rememberOwner as rememberOwnerIn, saveRetro, setDefaults, type RetroStats, type Team, type TeamDefaults, type Workspace,
 } from '@retroboard/application'
 import { randomId, safeStorage } from '~/utils/storage'
 
@@ -64,11 +64,12 @@ export const useTeamStore = defineStore('team', () => {
   const suggestTitle = (teamId: string) => nextTitle(ws.value, teamId)
 
   /** "Save actions for next time": the board's actions with their final statuses, under the board's team. */
-  function saveActions(boardId: string, title: string, actions: readonly ActionItem[]) {
+  function saveActions(boardId: string, title: string, actions: readonly ActionItem[], stats?: RetroStats) {
     const known = ws.value.boards[boardId]
     const team = known ? known.teamId : ensureTeam().id
     let next = saveRetro(ws.value, {
       boardId, teamId: team, project: known?.project ?? null, title, at: Date.now(),
+      ...(stats ? { stats } : {}),
       actions: actions.map((a) => ({ text: a.text, owner: a.owner, status: a.status, ...(a.due ? { due: a.due } : {}) })),
     })
     for (const a of actions) next = rememberOwnerIn(next, a.owner)

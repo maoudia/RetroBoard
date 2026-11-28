@@ -94,6 +94,12 @@ export function toReportHtml(r: Report, t: ReportLabels): string {
     for (const i of r.insights) out.push(`<li>${e(t(`insight.${i.id}`, { ...i.n, column: r.columns.find((c) => c.id === i.columnId)?.title ?? '' }))}</li>`)
     out.push('</ul>')
   }
+  const trendSentences = r.trends?.lines ?? []
+  if (trendSentences.length) {
+    out.push(`<h2>${e(t('trends.title'))}</h2><ul>`)
+    for (const l of trendSentences) out.push(`<li>${e(t(l.key, l.params))}</li>`)
+    out.push('</ul>')
+  }
   if (r.talk) {
     out.push(`<h2>${e(t('report.talk'))}</h2><ul>`)
     for (const s of r.talk) out.push(`<li>${e(s.label ?? t('report.anonymous'))}: ${Math.round(s.share * 100)} % <span class="v">(${minutes(s.ms)})</span></li>`)

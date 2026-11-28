@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { buildInsights, buildRanking, type Insight, podium, type RankedItem, voteStats } from '@retroboard/application'
 import { errorLabel } from '~/utils/labels'
+import { trendsFor } from '~/utils/trends'
 const { t } = useT()
 const ui = useUiStore()
 const board = useBoardStore()
 const { push } = useToasts()
+const team = useTeamStore()
 const open = computed({ get: () => ui.dialog === 'ranking', set: (v) => { if (!v && ui.dialog === 'ranking') ui.close() } })
 
 const ranking = computed(() => (board.snapshot ? buildRanking(board.snapshot) : null))
@@ -15,6 +17,9 @@ const stats = computed(() => (board.snapshot && ranking.value ? voteStats(board.
 const pct = (n: number) => Math.round(n * 100)
 const insights = computed(() => (board.snapshot && ranking.value ? buildInsights(board.snapshot, board.snapshot.peers.length) : null))
 const insightText = (i: Insight) => t(`insight.${i.id}` as never, { ...i.n, column: i.columnId ? columnTitle(i.columnId) : '' })
+/** This retro against the team's previous ones (change results-trends), from the history saved on this device. */
+const trends = computed(() => (board.snapshot && ranking.value ? trendsFor(team.ws, board.roomId ?? '', board.snapshot) : null))
+const trendText = computed(() => (trends.value?.lines ?? []).map((l) => ({ key: l.key, text: t(l.key as never, l.params as never) })))
 const energyRows = computed(() => (insights.value?.notesPerColumn ?? []).map((c) => ({ id: c.columnId, label: columnTitle(c.columnId), value: String(c.notes), ratio: c.share })))
 const wordRows = computed(() => {
   const k = insights.value?.keywords ?? []
@@ -91,6 +96,13 @@ function toAction(item: RankedItem) {
             <p class="muted small">{{ t('insight.words.note') }}</p>
           </div>
         </div>
+      </section>
+
+      <section v-if="trendText.length" class="insights" data-testid="trends">
+        <h3 class="list-h">{{ t('trends.title') }}</h3>
+        <ul class="sentences">
+          <li v-for="l in trendText" :key="l.key" :data-testid="`trend-${l.key.slice(7)}`"><Icon name="lucide:trending-up" /> {{ l.text }}</li>
+        </ul>
       </section>
 
       <h3 class="list-h">{{ t('ranking.all') }}</h3>

@@ -40,11 +40,6 @@ function digits(h: Uint8Array): string {
   return `${d.slice(0, 3)} ${d.slice(3)}`
 }
 
-/** Six digits from the joiner's one-time public key, read aloud on both screens (older joiners, no commitment). */
-export async function safetyNumber(publicKey: Uint8Array): Promise<string> {
-  return digits(await sha256(publicKey))
-}
-
 const concatBytes = (...parts: Uint8Array[]): Uint8Array => {
   const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0))
   let at = 0
@@ -67,7 +62,6 @@ export async function committedNumber(publicKey: Uint8Array, challenge: Uint8Arr
 }
 
 export type JoinMsg =
-  | { t: 'knock'; n: string; pub: string; name: string }
   /** Committed knock: `c` is `commitKey(pub, n)`; the key follows in `reveal` once the holder answered with a `challenge`. */
   | { t: 'knock2'; n: string; c: string; name: string }
   | { t: 'challenge'; n: string; h: string }
@@ -90,7 +84,6 @@ export async function openJoinMsg(code: string, env: Envelope): Promise<JoinMsg 
   try {
     const m = JSON.parse(fromUtf8(pt)) as Record<string, unknown>
     if (!isStr(m.n, 40)) return null
-    if (m.t === 'knock' && isStr(m.pub, 64) && isStr(m.name, 40)) return { t: 'knock', n: m.n, pub: m.pub, name: m.name }
     if (m.t === 'knock2' && isStr(m.c, 64) && isStr(m.name, 40)) return { t: 'knock2', n: m.n, c: m.c, name: m.name }
     if (m.t === 'challenge' && isStr(m.h, 64)) return { t: 'challenge', n: m.n, h: m.h }
     if (m.t === 'reveal' && isStr(m.pub, 64)) return { t: 'reveal', n: m.n, pub: m.pub }

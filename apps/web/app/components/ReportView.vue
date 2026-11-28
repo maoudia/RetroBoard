@@ -4,7 +4,8 @@ import { td } from '~/i18n'
 const { t } = useT()
 
 /** The retro report on screen (and on paper): same content as the HTML file export. */
-defineProps<{ report: Report }>()
+const props = defineProps<{ report: Report }>()
+const trendText = computed(() => (props.report.trends?.lines ?? []).map((l) => ({ key: l.key, text: t(l.key as never, l.params as never) })))
 const minutes = (ms: number) => `${Math.round(ms / 60_000)} min`
 </script>
 
@@ -74,6 +75,13 @@ const minutes = (ms: number) => `${Math.round(ms / 60_000)} min`
         {{ t('report.carried', { n: report.carried.total }) }}
         {{ Object.entries(report.carried.byStatus).map(([s, n]) => `${td(`actions.status.${s}`)}: ${n}`).join(', ') }}
       </p>
+    </section>
+
+    <section v-if="trendText.length" data-testid="report-trends">
+      <h3>{{ t('trends.title') }}</h3>
+      <ul>
+        <li v-for="l in trendText" :key="l.key">{{ l.text }}</li>
+      </ul>
     </section>
 
     <section v-if="report.agenda">

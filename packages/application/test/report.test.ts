@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildSnapshot, MIN } from '@retroboard/domain'
 import { alice, bob, harness } from '@retroboard/testkit'
-import { buildReport } from '../src'
+import { buildReport, type Trends } from '../src'
 
 function retro() {
   const h = harness()
@@ -54,6 +54,17 @@ describe('retro report', () => {
     expect(r.votesHidden).toBe(true)
     expect(r.metrics.votes).toBeNull()
     expect(r.podium).toEqual([])
+  })
+
+  it('carries the trends of the team when there are some, and none while the votes are hidden (change results-trends)', () => {
+    const trends: Trends = { previous: 1, participation: null, actionsDone: null, recurring: ['deploy'], lines: [{ key: 'trends.recurring', params: { words: 'deploy' } }] }
+    const snap = (h: ReturnType<typeof retro>) => buildSnapshot(h.state, { cid: alice.cid }, [], h.now)
+    expect(buildReport(snap(retro()), new Date(), trends).trends).toBe(trends)
+    expect('trends' in buildReport(snap(retro()), new Date())).toBe(false)
+    expect('trends' in buildReport(snap(retro()), new Date(), null)).toBe(false)
+    const hidden = retro()
+    hidden.run({ t: 'settings.update', secretVoting: true })
+    expect('trends' in buildReport(snap(hidden), new Date(), trends)).toBe(false)
   })
 
   it('lists planned and actual phase durations', () => {

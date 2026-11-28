@@ -7,6 +7,7 @@ import { type ActionItem, type ActionStatus, type PhaseKind, type Snapshot, type
 import { type ColumnItem, buildColumnItems } from './column-items'
 import { buildRanking, podium, type RankedItem } from './ranking'
 import { buildInsights, type Insight } from './insights'
+import type { Trends } from './trends'
 
 export interface ReportColumn { id: string; title: string; items: ColumnItem[]; ideas: number; /** Hidden by the facilitator when the report is made (change column-visibility). */ hidden?: boolean }
 
@@ -39,12 +40,14 @@ export interface Report {
   roti: { counts: number[]; total: number; average: number } | null
   /** Plain-language observations on the votes (change results-insights); empty while counts are hidden. */
   insights: Insight[]
+  /** Against the team's previous retros (change results-trends); absent when there is no history to compare with. */
+  trends?: Trends
 }
 
 const sumVotes = (notes: readonly SnapshotNote[], s: Pick<Snapshot, 'groups'>): number =>
   notes.reduce((n, x) => n + (x.votes ?? 0), 0) + s.groups.reduce((n, g) => n + Math.max(0, (g.votes ?? 0) - notes.filter((x) => x.groupId === g.id).reduce((m, x) => m + (x.votes ?? 0), 0)), 0)
 
-export function buildReport(s: Snapshot, date: Date): Report {
+export function buildReport(s: Snapshot, date: Date, trends?: Trends | null): Report {
   const ranking = buildRanking(s)
   const votesHidden = ranking === null
   const byAuthor = new Map<string | null, number>()
@@ -78,6 +81,7 @@ export function buildReport(s: Snapshot, date: Date): Report {
     agenda: s.agenda ? s.agenda.phases.map((p) => ({ kind: p.kind, plannedMs: p.plannedMs, actualMs: p.actualMs ?? null })) : null,
     talk: (() => { const shares = talkShares(s.talk, s.now); return shares.length ? shares : null })(),
     insights: buildInsights(s, Math.max(s.peers.length, named.size, 1))?.list ?? [],
+    ...(trends && !votesHidden ? { trends } : {}),
     roti: s.roti && s.roti.total > 0 && s.roti.average !== null ? { counts: s.roti.counts, total: s.roti.total, average: s.roti.average } : null,
   }
 }

@@ -185,3 +185,10 @@ An idea (a note or a cluster) SHALL show a vote count and a vote control, SHALL 
 #### Scenario: Secret voting
 - **WHEN** voting is secret or sealed
 - **THEN** no count is shown or ranked for an idea in a non-votable column and the hidden-count rules are unchanged
+
+### Requirement: Results trends
+The results page SHALL compare participation, actions done and recurring topics with the previous retros of the same team, computed in the browser from the team history.
+
+#### Scenario: Participation up
+- **WHEN** the team's previous retro had four voters and this one has six
+- **THEN** the results page shows that participation went up against the previous retro

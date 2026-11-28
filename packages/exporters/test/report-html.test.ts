@@ -45,6 +45,16 @@ describe('report as a standalone HTML file', () => {
     expect(html).toContain('<td>agenda.phase.write</td><td>5 min</td><td>6 min</td>')
   })
 
+  it('carries the trends against the previous retros of the team, escaped, and nothing without history (change results-trends)', () => {
+    const r: Report = { ...board(), trends: { previous: 1, participation: { current: 6, before: 4, change: 'up' }, actionsDone: { done: 1, total: 2, from: '<S41>' }, recurring: ['deploy'], lines: [{ key: 'trends.participation.up', params: { current: 6, before: 4 } }, { key: 'trends.actions', params: { done: 1, total: 2, from: '<S41>' } }, { key: 'trends.recurring', params: { words: 'deploy' } }] } }
+    const html = toReportHtml(r, t)
+    expect(html).toContain('<h2>trends.title</h2>')
+    expect(html).toContain('<li>trends.participation.up(6,4)</li>')
+    expect(html).toContain('<li>trends.actions(1,2,&lt;S41&gt;)</li>')
+    expect(html).toContain('<li>trends.recurring(deploy)</li>\n</ul>')
+    expect(toReportHtml(board(), t)).not.toContain('trends.title')
+  })
+
   it('says when votes are hidden instead of showing counts', () => {
     const r = { ...board(), votesHidden: true, podium: [] }
     const html = toReportHtml(r, t)
