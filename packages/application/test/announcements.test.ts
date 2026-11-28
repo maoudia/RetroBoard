@@ -31,6 +31,10 @@ describe('summarizeAnnouncements', () => {
     const items = [{ kind: 'note' as const, column: 'Start' }, { kind: 'phase' as const, phase: 'Vote' }]
     expect(summarizeAnnouncements(items, say).map((m) => m.split(':')[0])).toEqual(['a11y.phase', 'a11y.newNotes'])
   })
+
+  it('says an idea done once, however many reached it', () => {
+    expect(summarizeAnnouncements([{ kind: 'done' }, { kind: 'done' }, { kind: 'done' }], say)).toEqual(['a11y.ideaDone:{}'])
+  })
 })
 
 describe('newIds', () => {

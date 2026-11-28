@@ -19,6 +19,7 @@ export const cyber: ThemeDefinition = {
   fonts: { display: '"Space Grotesk Variable", system-ui, sans-serif', body: '"Space Grotesk Variable", system-ui, sans-serif', mono: '"JetBrains Mono", ui-monospace, monospace' },
   radius: { card: 14, control: 10 },
   motion: { enter: 'glitch', leave: 'fade', enterMs: 460, ease: 'cubic-bezier(.2,.9,.3,1)', ambient: 'matrix' },
+  celebration: { id: 'cyber', palette: ['accent', 'accent2', 'success'] },
   copy: {
     hero: 'Une rétro en temps réel. Pas de compte: le lien est la clé.',
     emptyColumn: 'Aucune donnée. Pour l\'instant.',

@@ -19,6 +19,7 @@ export const corporate: ThemeDefinition = {
   fonts: { display: '"Inter Variable", system-ui, sans-serif', body: '"Inter Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 12, control: 8 },
   motion: { enter: 'pop', leave: 'fade', enterMs: 320, ease: 'cubic-bezier(.2,.8,.2,1)', ambient: 'none' },
+  celebration: { id: 'corporate', palette: ['accent', 'success'] },
   copy: {
     hero: 'Une rétrospective structurée, en temps réel. Le lien suffit, sans compte.',
     emptyColumn: 'Aucun post-it pour le moment.',

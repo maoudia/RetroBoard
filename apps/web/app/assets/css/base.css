@@ -15,7 +15,7 @@
   --sp-1: .25rem; --sp-2: .5rem; --sp-3: .75rem; --sp-4: 1rem; --sp-5: 1.5rem; --sp-6: 2rem;
   /* List panels (history, activity, participants): one width, padding and row gap, one row anatomy (.panel-row). */
   --panel-w: min(92vw, 22rem); --panel-pad: var(--sp-2) var(--sp-3); --row-gap: var(--sp-2);
-  --dur-fast: .15s; --dur-base: .25s; --dur-slow: .4s;
+  --dur-fast: .15s; --dur-base: .25s; --dur-slow: .4s; --dur-cele: 1.2s; --dur-cele-static: .6s;
   --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
   --glass: color-mix(in oklab, var(--surface) 72%, transparent);
   --shadow-1: 0 1px 2px rgb(0 0 0 / .18), 0 4px 14px rgb(0 0 0 / .14);

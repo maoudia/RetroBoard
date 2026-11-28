@@ -19,6 +19,7 @@ export const slate: ThemeDefinition = {
   fonts: { display: '"Inter Variable", system-ui, sans-serif', body: '"Inter Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 12, control: 8 },
   motion: { enter: 'pop', leave: 'fade', enterMs: 340, ease: 'cubic-bezier(.2,.8,.2,1)', ambient: 'none' },
+  celebration: { id: 'slate', palette: ['text', 'accent2'] },
   copy: {
     hero: 'Une rétro sans bruit. Un lien, zéro compte.',
     emptyColumn: 'Rien à signaler.',

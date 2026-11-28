@@ -337,6 +337,7 @@ function onSwipeEnd(e: TouchEvent) {
 function onBeforeUnload(e: BeforeUnloadEvent) { if (drafts.count > 0) e.preventDefault() }
 const phaseEnd = usePhaseEnd()
 useBoardAnnouncements()
+useDoneCelebration()
 useShortcuts()
 /** Ctrl/Cmd+Z takes back my latest group, move, edit or colour change (change board-undo-rewind); fields keep their own undo. */
 const runUndo = useUndo()

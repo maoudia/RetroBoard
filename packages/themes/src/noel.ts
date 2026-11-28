@@ -19,6 +19,7 @@ export const noel: ThemeDefinition = {
   fonts: { display: '"Mountains of Christmas", Georgia, serif', body: '"Nunito Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 18, control: 12 },
   motion: { enter: 'float', leave: 'melt', enterMs: 720, ease: 'cubic-bezier(.22,1,.36,1)', ambient: 'snow' },
+  celebration: { id: 'noel', palette: ['text', 'accent', 'accent2'] },
   copy: {
     hero: 'Un board de rétro au coin du feu. Le lien suffit, personne n\'a besoin de compte.',
     emptyColumn: 'Pas un cadeau sous le sapin.',

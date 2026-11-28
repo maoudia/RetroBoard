@@ -29,6 +29,7 @@ export function getTheme(id: string | null | undefined): ThemeDefinition {
 }
 
 export type * from './types'
+export { CELEBRATION_IDS } from './types'
 export { CONTROL_CONTRAST, contrast, controlColor, derivedPairs, type DerivedPair, luminance, mix, ringColors, type RingColors } from './color'
 export { BREAKPOINTS, SCREEN_IDS, type ScreenId, TYPE_SCALE, screenOf, screenTokens } from './screens'
 export { STICKY_COLORS, STICKY_INK, stickyColor, type StickyColor } from './sticky'

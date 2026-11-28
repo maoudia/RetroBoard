@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { VOTED_SORTS, type VotedIdea, type VotedSort, votedIdeas } from '@retroboard/application'
 import { type ActionItem, type ActionStatus, isOpenAction, LIMITS } from '@retroboard/domain'
-import { confetti } from '~/utils/fx'
 const { t } = useT()
 
 const ui = useUiStore()
 const board = useBoardStore()
-const theme = useThemeStore()
 const identity = useIdentityStore()
 const team = useTeamStore()
 const { push } = useToasts()
@@ -61,18 +59,9 @@ function add() {
   due.value = ''
   source.value = null
 }
-function celebrate(e: Event) {
-  const r = (e.target as HTMLElement).getBoundingClientRect()
-  confetti(r.left + r.width / 2, r.top + r.height / 2, theme.theme.noteColors, 36)
-}
-function toggle(a: ActionItem, done: boolean, e: Event) {
-  board.commands.setActionDone(a.id, done)
-  if (done) celebrate(e)
-}
-function setStatus(a: ActionItem, status: ActionStatus, e: Event) {
-  board.commands.setActionStatus(a.id, status)
-  if (status === 'done') celebrate(e)
-}
+// The celebration is driven by the board state, not by this click (change done-celebration): see useDoneCelebration.
+function toggle(a: ActionItem, done: boolean) { board.commands.setActionDone(a.id, done) }
+function setStatus(a: ActionItem, status: ActionStatus) { board.commands.setActionStatus(a.id, status) }
 function saveForNextTime() {
   team.saveActions(board.roomId ?? '', board.settings?.title ?? '', board.actions)
   push(t('actions.saved', { n: board.actions.filter(isOpenAction).length }), 'ok')
@@ -137,11 +126,11 @@ const statusLabel = (s: ActionStatus) => t(`actions.status.${s}`)
           <li v-for="a in section.items" :key="a.id" :class="[`s-${a.status}`, { done: a.status === 'done' || a.status === 'dropped', hl: !!ui.focusSource && a.sourceNote === ui.focusSource }]" :data-testid="`action-${a.id}`" :data-status="a.status">
             <input
               v-if="!workflow" type="checkbox" :checked="a.done" :aria-label="t('actions.done', { text: a.text })"
-              @change="toggle(a, ($event.target as HTMLInputElement).checked, $event)"
+              @change="toggle(a, ($event.target as HTMLInputElement).checked)"
             />
             <select
               v-else class="field status" :value="a.status" :aria-label="t('actions.statusOf', { text: a.text })" data-testid="action-status"
-              @change="setStatus(a, ($event.target as HTMLSelectElement).value as ActionStatus, $event)"
+              @change="setStatus(a, ($event.target as HTMLSelectElement).value as ActionStatus)"
             >
               <option v-for="s in STATUSES" :key="s" :value="s">{{ statusLabel(s) }}</option>
             </select>

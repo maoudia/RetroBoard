@@ -19,6 +19,7 @@ export const paper: ThemeDefinition = {
   fonts: { display: '"Fraunces Variable", Georgia, serif', body: '"Inter Variable", system-ui, sans-serif', mono: 'ui-monospace, monospace' },
   radius: { card: 6, control: 6 },
   motion: { enter: 'float', leave: 'fade', enterMs: 560, ease: 'cubic-bezier(.22,1,.36,1)', ambient: 'none' },
+  celebration: { id: 'paper', palette: ['accent', 'text'] },
   copy: {
     hero: 'Prendre le temps de relire le sprint. Un lien suffit.',
     emptyColumn: 'La page est blanche.',
