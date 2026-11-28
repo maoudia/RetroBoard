@@ -103,6 +103,7 @@ export const CHAPTERS: readonly Chapter[] = [
     steps: [
       { id: 'participants', caption: t('La liste des participants indique qui est connecté et son rôle.', 'The participant list shows who is online and their role.'), ops: [{ press: 'Escape' }, { click: 'btn-participants' }], anchors: ['btn-participants'] },
       { id: 'chat', caption: t('Le chat du board est chiffré comme le reste.', 'The board chat is encrypted like everything else.'), ops: [{ press: 'Escape' }, { click: 'btn-chat' }], anchors: ['chat-panel', 'chat-input'] },
+      { id: 'chat-button', caption: t('Réduit, le chat devient un bouton qui se colle au bord de l’écran le plus proche et reste hors du chemin.', 'Minimised, the chat becomes a button that snaps to the nearest screen edge and stays out of the way.'), ops: [{ click: 'chat-minimize' }], anchors: ['chat-bubble'] },
     ],
   },
   {

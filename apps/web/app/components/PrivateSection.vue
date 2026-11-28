@@ -238,7 +238,7 @@ const chips = computed(() => board.columns.filter((c) => !c.hidden))
         :aria-label="t('note.colorN', { n: i })" :aria-pressed="colour === i - 1" :data-testid="`compose-color-${column.id}-${i - 1}`" @click="picked = i - 1"
       />
     </div>
-    <div class="compose-actions">
+    <div class="compose-actions" data-avoid-chat>
       <span class="sig-group" role="group" :aria-label="t('private.signature')" :data-testid="`signature-${column.id}`" :data-signed="signed">
         <button
           class="sig" type="button" :class="{ on: signed }" :aria-pressed="signed" :aria-label="identity.name.trim() ? t('private.signedAs', { name: identity.name }) : t('private.signedNoName')" :title="signed ? t('private.signedHint') : t('private.anonymousHint')"

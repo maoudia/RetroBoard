@@ -5,3 +5,6 @@ The facilitator can rename a participant, hide their new notes, or remove them. 
 
 ## chat
 The board chat lets people talk without leaving the retro. Like everything else it is encrypted and disappears with the board.
+
+## chat-button
+Minimise the chat and it becomes a round button with the unread count. Drag it and it slides to the nearest edge of the screen (or the nearest corner) and remembers its place on this device only; it keeps clear of the toolbar, the buttons of a note you are writing and the keyboard. Without dragging: long-press the button (or press the context-menu key or Shift+F10) and choose **Move chat button**, then use the arrow keys, Enter to drop and Escape to cancel. In your profile, **Chat button** offers eight places to pick from, a free position instead of snapping to the edges, and **Reset position**. When the button is on the left or right edge, the chat opens on that side.
