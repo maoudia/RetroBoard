@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
-import { demoRunner, FIXED_TIME, maskLocalOrigin } from './demo'
+import { byTestId, demoRunner, FIXED_TIME, maskLocalOrigin } from './demo'
 import { CHAPTERS, imageName } from './manifest'
 
 /**
@@ -30,9 +30,9 @@ for (const locale of ['fr', 'en'] as const) {
           for (const step of chapter.steps) {
             for (const op of step.ops) await demo.run(op)
             await maskLocalOrigin(page)
-            for (const a of step.anchors) await expect(page.getByTestId(a).first(), `${chapter.id}/${step.id}: anchor ${a}`).toBeVisible()
+            for (const a of step.anchors) await expect(byTestId(page, a).first(), `${chapter.id}/${step.id}: anchor ${a}`).toBeVisible()
             const file = join(dir, imageName(chapter, step).replace(/\.webp$/, '.png'))
-            if (step.shoot) await page.getByTestId(step.shoot).first().screenshot({ path: file, animations: 'disabled' })
+            if (step.shoot) await byTestId(page, step.shoot).first().screenshot({ path: file, animations: 'disabled' })
             else await page.screenshot({ path: file, animations: 'disabled' })
           }
         }

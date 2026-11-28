@@ -40,6 +40,9 @@ export async function maskLocalOrigin(page: Page) {
   })
 }
 
+/** A test id of the manifest; a trailing * stands for an id made at run time (a group, a note, a column). */
+export const byTestId = (page: Page, id: string) => (id.endsWith('*') ? page.locator(`[data-testid^="${id.slice(0, -1)}"]`) : page.getByTestId(id))
+
 /** Plays manifest ops on a page: `run(op)` for each op of a step, `close()` at the end (the second participant). */
 export function demoRunner(page: Page, browser: Browser, locale: Locale) {
   const demo = DEMO[locale]
@@ -61,7 +64,7 @@ export function demoRunner(page: Page, browser: Browser, locale: Locale) {
       await note(0).locator('[data-testid^="vote-"]').first().click()
       await note(3).dragTo(note(2))
       await settle(page)
-    } else if ('click' in op) await (op.click.endsWith('*') ? page.locator(`[data-testid^="${op.click.slice(0, -1)}"]`) : page.getByTestId(op.click)).first().click() // a trailing * stands for an id made at run time (a group)
+    } else if ('click' in op) await byTestId(page, op.click).first().click()
     else if ('zoomNote' in op) await noteByText(page, demo.notes[op.zoomNote]![1]).locator('[data-testid="note-text"]').dblclick()
     else if ('press' in op) await page.keyboard.press(op.press)
     else if ('fill' in op) await page.getByTestId(op.fill[0]).fill(text(op.fill[1], locale))
@@ -79,7 +82,7 @@ export const holdMs = (caption: string): number => Math.min(6500, Math.max(2500,
 export async function highlight(page: Page, anchor: string) {
   await page.evaluate((id) => {
     document.getElementById('guide-highlight')?.remove()
-    const target = document.querySelector<HTMLElement>(`[data-testid="${id}"]`)
+    const target = document.querySelector<HTMLElement>(id.endsWith('*') ? `[data-testid^="${id.slice(0, -1)}"]` : `[data-testid="${id}"]`)
     if (!target) return
     const r = target.getBoundingClientRect()
     const big = r.width * r.height > innerWidth * innerHeight * 0.6

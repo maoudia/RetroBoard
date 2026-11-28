@@ -1,7 +1,7 @@
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
-import { clearHighlight, demoRunner, FIXED_TIME, highlight, holdMs, maskLocalOrigin } from './demo'
+import { byTestId, clearHighlight, demoRunner, FIXED_TIME, highlight, holdMs, maskLocalOrigin } from './demo'
 import { CHAPTERS } from './manifest'
 
 /**
@@ -36,7 +36,7 @@ for (const locale of ['fr', 'en'] as const) {
         await clearHighlight(page).catch(() => undefined)
         for (const op of step.ops) await demo.run(op)
         await maskLocalOrigin(page)
-        for (const a of step.anchors) await expect(page.getByTestId(a).first(), `${chapter.id}/${step.id}: anchor ${a}`).toBeVisible()
+        for (const a of step.anchors) await expect(byTestId(page, a).first(), `${chapter.id}/${step.id}: anchor ${a}`).toBeVisible()
         await highlight(page, step.shoot ?? step.anchors[0]!)
         const start = Date.now() - t0
         await page.waitForTimeout(holdMs(step.caption[locale]))
