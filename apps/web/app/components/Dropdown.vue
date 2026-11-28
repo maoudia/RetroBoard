@@ -105,7 +105,13 @@ const onDown = (e: Event) => {
   }
   if (!panel.value?.contains(n) && !trigger.value?.contains(n)) close()
 }
-const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+let focusBack = false
+const onKey = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape') return
+  // Escape from the keyboard gives focus back to the menu button.
+  focusBack = true
+  close()
+}
 
 watch(open, async (v) => {
   await nextTick()
@@ -126,6 +132,7 @@ watch(open, async (v) => {
   } else {
     if (p.matches(':popover-open')) p.hidePopover()
     cleanup()
+    if (focusBack) { focusBack = false; const b = trigger.value?.querySelector<HTMLElement>('button'); requestAnimationFrame(() => b?.focus({ preventScroll: true })) }
   }
 })
 function cleanup() {

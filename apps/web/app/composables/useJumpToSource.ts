@@ -20,7 +20,8 @@ export function useJumpToSource() {
   async function jump(id: string) {
     const note = board.snapshot?.notes.find((n) => n.id === id)
     ui.close()
-    if (note?.groupId) ui.openGroupId = note.groupId
+    const group = note?.groupId ? board.snapshot?.groups.find((g) => g.id === note.groupId) : undefined
+    if (note?.groupId) ui.openGroup(group?.columnId ?? note.columnId, note.groupId) // in its own column, the other columns keep theirs
     await nextTick()
     await new Promise((r) => setTimeout(r, 60))
     const el = document.querySelector<HTMLElement>(`[data-source-id="${CSS.escape(id)}"]`)

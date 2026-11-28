@@ -75,7 +75,7 @@ const { over, bind } = useColumnDrop(() => props.column.id)
 
 const items = computed(() => filterItems(board.itemsFor(props.column.id, board.countsHidden && sort.value === 'votes' ? 'time' : sort.value), ui.filter))
 const noteCount = computed(() => board.snapshot?.notes.filter((n) => n.columnId === props.column.id).length ?? 0)
-const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupId) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
+const openGroup = computed(() => items.value.find((i) => i.kind === 'group' && i.group.id === ui.openGroupIds[props.column.id]) as Extract<(typeof items.value)[number], { kind: 'group' }> | undefined)
 const colorIndex = computed(() => props.column.color ?? props.index % 8)
 const hasClusters = computed(() => items.value.some((i) => i.kind === 'group'))
 const appSettings = useSettingsStore()
@@ -148,7 +148,7 @@ const expanded = computed(() => (ui.presenter && appSettings.s.presentGroups ? !
          Presenter mode is shown to the room: my private drafts stay off screen. -->
     <PrivateSection v-show="!ui.presenter" :column="column" :color-index="colorIndex" />
 
-    <LazyGroupPanel v-if="openGroup" :item="openGroup" />
+    <LazyGroupPanel v-if="openGroup" :key="openGroup.group.id" :item="openGroup" />
     <span
       class="col-grip" role="separator" aria-orientation="vertical" tabindex="0" :aria-label="t('column.resize', { title: column.title })"
       :aria-valuenow="Math.round(customW ?? colEl?.getBoundingClientRect().width ?? 340)" aria-valuemin="200" aria-valuemax="1400" :data-testid="`col-grip-${column.id}`"

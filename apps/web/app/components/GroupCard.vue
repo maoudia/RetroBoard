@@ -34,7 +34,7 @@ function onDragStart(e: DragEvent) {
   e.dataTransfer?.setData('text/plain', props.item.group.id)
   if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
 }
-const open = () => { cancelPeek(); ui.openGroupId = props.item.group.id }
+const open = () => { cancelPeek(); ui.openGroup(props.item.group.columnId, props.item.group.id) }
 
 // Peek (change cluster-reveal-motion): resting a mouse or pen on the stack for 300 ms lists its notes.
 // Touch never peeks (a tap opens the cluster); keyboard users open it with Enter.
@@ -70,7 +70,7 @@ onBeforeUnmount(cancelPeek)
 // A long press with a finger lifts the cluster (change responsive-and-i18n-hardening, task 3.2); a mouse uses the native drag.
 // A double tap or double click on the stack zooms its first idea and steps through the cluster (change note-zoom-on-double-tap); the first tap still opens the cluster, nothing waits.
 const { openZoom } = useNoteZoom()
-useNoteZoomGesture(stackEl, { follow: true, enabled: () => !props.expanded && !ui.dragGroupId, zoom: () => { if (openZoom(top.value.id, props.item.group.id)) { cancelPeek(); ui.openGroupId = null } } })
+useNoteZoomGesture(stackEl, { follow: true, enabled: () => !props.expanded && !ui.dragGroupId, zoom: () => { if (openZoom(top.value.id, props.item.group.id)) { cancelPeek(); ui.closeGroup(props.item.group.columnId) } } })
 const touch = useTouchDrag(stackEl, {
   enabled: () => !props.expanded && !board.locked,
   begin: () => { cancelPeek(); ui.dragGroupId = props.item.group.id },
@@ -113,6 +113,7 @@ const touch = useTouchDrag(stackEl, {
       </span>
     </span>
   </button>
+  <LazyGroupMenu v-if="!expanded" :item="item" />
   <Teleport to="body">
     <!-- Pointer-only preview: keyboard and screen reader users open the cluster itself. -->
     <ul v-if="peekAt" class="peek" aria-hidden="true" :style="{ left: `${peekAt.left}px`, top: `${peekAt.top}px`, width: `${peekAt.width}px` }" :data-testid="`peek-${item.group.id}`">
@@ -160,7 +161,7 @@ const touch = useTouchDrag(stackEl, {
   border-radius: calc(var(--r-card) / 3 + 2px); box-shadow: var(--shadow-1);
 }
 .fold { position: absolute; top: 0; right: 0; width: 26px; height: 26px; border-top-right-radius: calc(var(--r-card) / 3 + 2px); background: linear-gradient(225deg, var(--bg) 0 50%, color-mix(in oklab, var(--c) 70%, #000) 50%); }
-.text { overflow-wrap: anywhere; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; padding-right: 14px; }
+.text { overflow-wrap: anywhere; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; padding-right: 34px; }
 .meta { display: flex; flex-wrap: wrap; gap: .25rem; justify-content: space-between; align-items: center; font-size: var(--fs-xs); font-weight: 800; }
 .count, .votes { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 999px; background: color-mix(in oklab, var(--note-ink) 12%, transparent); }
 .pin { background: var(--accent); color: var(--accent-ink); }

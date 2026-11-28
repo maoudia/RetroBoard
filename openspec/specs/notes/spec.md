@@ -175,11 +175,23 @@ The palette SHALL offer an advanced mode with more colours that all come from cu
 - **THEN** she sees extra shades and harmonies of the theme colours, and no free colour picker
 
 ### Requirement: Cluster colour
-A participant SHALL be able to recolour a whole cluster at once from the cluster panel (one command), which recolours every note of the cluster except the frozen ones.
+A participant SHALL be able to recolour a whole cluster at once from the group menu on the stack and from the cluster panel, with the same quick swatches and the same full palette (including the extended shades) as a note, in one command, which recolours every note of the cluster except the frozen ones.
 
 #### Scenario: Recolour a cluster
 - **WHEN** Alice picks blue for the cluster "Deploys"
 - **THEN** every note of the cluster turns blue for everyone
+
+#### Scenario: Extended shades for a cluster
+- **WHEN** Alice opens the palette for a cluster and chooses more shades
+- **THEN** she sees the same 24 theme shades as for a note, and choosing one recolours the notes of the cluster
+
+#### Scenario: Cluster already in an extended shade
+- **WHEN** Alice opens the palette of a cluster whose notes are in an extended shade
+- **THEN** the palette opens with more shades shown and the current shade checked
+
+#### Scenario: Frozen notes keep their colour
+- **WHEN** a cluster contains a frozen note and Alice recolours the cluster
+- **THEN** the frozen note keeps its colour and the other notes change
 
 ### Requirement: Compact composer
 The composer SHALL show the character counter only from 80% of the note length, SHALL keep its hint to one short line with the keyboard tips in a help popover, and SHALL offer the signature as two named toggles (my name, anonymous).

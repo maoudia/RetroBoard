@@ -9,7 +9,8 @@ const ui = useUiStore()
 const title = ref(props.item.group.title ?? '')
 watch(() => props.item.group.title, (t) => { title.value = t ?? '' })
 
-const closeNow = () => { ui.openGroupId = null }
+const acts = useGroupActions(() => props.item)
+const closeNow = () => ui.closeGroup(props.item.group.columnId)
 
 // Spring open and close (change cluster-reveal-motion): the panel grows out of the stack and shrinks back
 // into it (FLIP with the Web Animations API, under 400 ms). Reduced motion: no animation at all.
@@ -32,43 +33,50 @@ function flip(toStack: boolean): Animation | null {
   )
 }
 let closing = false
+/** Closing the panel by hand (button, scrim, Escape) hands focus back to its stack. */
+function backToStack() { void nextTick(() => document.querySelector<HTMLElement>(`[data-source-id="${CSS.escape(props.item.group.id)}"]`)?.focus({ preventScroll: true })) }
 function close() {
   if (closing) return
+  const done = () => { closeNow(); backToStack() }
   const a = flip(true)
-  if (!a) return closeNow()
+  if (!a) return done()
   closing = true
-  a.onfinish = closeNow
-  a.oncancel = closeNow
+  a.onfinish = done
+  a.oncancel = done
 }
-onMounted(() => { flip(false) })
+const titleEl = ref<HTMLInputElement | null>(null)
+onMounted(() => {
+  flip(false)
+  // Only the panel just opened takes focus; Rename from the group menu goes straight to the title.
+  if (ui.renameGroupId === props.item.group.id) { ui.renameGroupId = null; titleEl.value?.focus({ preventScroll: true }); titleEl.value?.select() }
+  else panelEl.value?.focus({ preventScroll: true })
+})
 function saveTitle() {
   if (title.value.trim() !== (props.item.group.title ?? '')) board.commands.renameGroup(props.item.group.id, title.value)
 }
 /** Title ideas from the cluster's notes (computed locally). */
 const suggestions = computed(() => suggestClusterTitles(props.item.notes.map((n) => n.text)).filter((s) => s !== (props.item.group.title ?? '')))
 function useSuggestion(s: string) { title.value = s; board.commands.renameGroup(props.item.group.id, s) }
-/** Touch-friendly alternative to dropping a cluster on another: other clusters of the same column. */
-const others = computed(() => board.itemsFor(props.item.group.columnId, 'time').filter((i) => i.kind === 'group' && i.group.id !== props.item.group.id) as Extract<ColumnItem, { kind: 'group' }>[])
-function mergeInto(target: string) { board.commands.mergeGroups(props.item.group.id, target); ui.openGroupId = target }
-/** Keyboard and touch alternative to dragging the cluster to another column (WCAG 2.5.7). */
-const otherColumns = computed(() => board.columns.filter((c) => c.id !== props.item.group.columnId))
-function moveTo(columnId: string) { board.commands.moveGroup(props.item.group.id, columnId); closeNow() }
-const gate = computed(() => board.availability('action.add'))
-function toAction() { const id = props.item.group.id; const text = props.item.title; closeNow(); ui.openActionFrom({ sourceId: id, text, owner: '' }) }
-function dissolve() { board.commands.dissolveGroup(props.item.group.id); closeNow() }
-const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !ui.dialog) close() } // a dialog opened from the panel (the palette) takes its own Escape
+/** Escape closes the panel that has focus, else the one opened last; a menu or a dialog opened from here takes its own Escape. */
+const onKey = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || ui.dialog) return
+  const active = document.activeElement
+  if (active?.closest('[role="menu"], .dd-panel, [role="dialog"]:not([data-testid="group-panel"])')) return
+  const owner = active?.closest('[data-testid="group-panel"]')
+  if (owner ? owner === panelEl.value : ui.lastGroupColumn === props.item.group.columnId) close()
+}
 onMounted(() => document.addEventListener('keydown', onKey))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 </script>
 
 <template>
   <div class="scrim" @click.self="close">
-    <section ref="panelEl" class="panel" role="dialog" :aria-label="t('group.panel')" data-testid="group-panel">
+    <section ref="panelEl" class="panel" role="dialog" tabindex="-1" :aria-label="t('group.panel')" data-testid="group-panel">
       <header>
         <Icon name="lucide:layers" class="gi" />
         <label class="sr-only" for="gtitle">{{ t('group.titleLabel') }}</label>
         <input
-          id="gtitle" v-model="title" class="gtitle" :maxlength="LIMITS.groupTitle" :placeholder="item.notes[0]?.text" data-testid="group-title"
+          id="gtitle" ref="titleEl" v-model="title" class="gtitle" :maxlength="LIMITS.groupTitle" :placeholder="item.notes[0]?.text" data-testid="group-title"
           @blur="saveTitle" @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
         />
         <span v-if="!board.countsHidden" class="pill mono"><Icon name="lucide:thumbs-up" /> {{ item.votes }}</span>
@@ -82,40 +90,39 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         <NoteCard v-for="n in item.notes" :key="n.id" :note="n" in-group />
       </TransitionGroup>
       <footer>
-        <details v-if="others.length" class="merge">
+        <details v-if="acts.has('mergeInto')" class="merge">
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-merge"><Icon name="lucide:combine" /> {{ t('cluster.mergeInto') }}</summary>
           <div class="merge-list" role="group" :aria-label="t('cluster.mergeInto')">
-            <button v-for="o in others" :key="o.group.id" class="dd-item" type="button" :data-testid="`merge-into-${o.group.id}`" @click="mergeInto(o.group.id)">{{ o.title }} ({{ o.notes.length }})</button>
+            <button v-for="o in acts.mergeTargets.value" :key="o.group.id" class="dd-item" type="button" :data-testid="`merge-into-${o.group.id}`" @click="acts.mergeInto(o.group.id)">{{ o.title }} ({{ o.notes.length }})</button>
           </div>
         </details>
-        <details v-if="otherColumns.length && !board.locked" class="merge">
+        <details v-if="acts.has('moveTo')" class="merge">
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-move"><Icon name="lucide:arrow-right-left" /> {{ t('cluster.moveTo') }}</summary>
           <div class="merge-list" role="group" :aria-label="t('cluster.moveTo')">
-            <button v-for="c in otherColumns" :key="c.id" class="dd-item" type="button" :data-testid="`move-group-to-${c.id}`" @click="moveTo(c.id)"><Icon :name="`lucide:${c.icon}`" /> {{ c.title }}</button>
+            <button v-for="c in acts.otherColumns.value" :key="c.id" class="dd-item" type="button" :data-testid="`move-group-to-${c.id}`" @click="acts.moveTo(c.id)"><Icon :name="`lucide:${c.icon}`" /> {{ c.title }}</button>
           </div>
         </details>
-        <details v-if="!board.locked && !item.group.frozen" class="merge">
+        <details v-if="acts.has('recolor')" class="merge">
           <summary class="btn btn-sm btn-ghost" data-testid="cluster-recolor"><Icon name="lucide:palette" /> {{ t('cluster.recolor') }}</summary>
-          <ColorPicker
-            :current="null" swatch-testid="cluster-color" more-testid="cluster-palette"
-            @pick="board.commands.recolorGroup(item.group.id, $event)" @more="ui.openPalette(item.group.id, 'group')"
-          />
+          <ColorPicker :current="null" swatch-testid="cluster-color" more-testid="cluster-palette" @pick="acts.recolor($event)" @more="acts.morePalette()" />
         </details>
-        <button class="btn btn-sm btn-ghost" type="button" :disabled="!gate.allowed" data-testid="group-create-action" @click="toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>
-        <button v-if="board.access.canSteer" class="btn btn-sm btn-ghost" type="button" data-testid="group-pin" @click="board.commands[item.group.pinned ? 'unpin' : 'pin'](item.group.id)">
+        <button v-if="acts.has('toAction')" class="btn btn-sm btn-ghost" type="button" :disabled="!!acts.actionTitle.value" data-testid="group-create-action" @click="acts.toAction"><Icon name="lucide:list-checks" /> {{ t('note.toAction') }}</button>
+        <button v-if="acts.has('pin')" class="btn btn-sm btn-ghost" type="button" data-testid="group-pin" @click="acts.togglePin">
           <Icon :name="item.group.pinned ? 'lucide:pin-off' : 'lucide:pin'" /> {{ item.group.pinned ? t('note.unpin') : t('note.pin') }}
         </button>
-        <button v-if="board.access.canSteer" class="btn btn-sm btn-ghost" type="button" data-testid="group-freeze" @click="board.commands[item.group.frozen ? 'unfreeze' : 'freeze'](item.group.id)">
+        <button v-if="acts.has('freeze')" class="btn btn-sm btn-ghost" type="button" data-testid="group-freeze" @click="acts.toggleFreeze">
           <Icon :name="item.group.frozen ? 'lucide:flame' : 'lucide:snowflake'" /> {{ item.group.frozen ? t('note.unfreeze') : t('note.freeze') }}
         </button>
-        <button class="btn btn-sm btn-ghost" type="button" :disabled="item.group.frozen" :title="item.group.frozen ? t('error.frozen') : undefined" data-testid="group-dissolve" @click="dissolve"><Icon name="lucide:ungroup" /> {{ t('group.dissolve') }}</button>
+        <button v-if="acts.has('dissolve')" class="btn btn-sm btn-ghost" type="button" :disabled="item.group.frozen" :title="item.group.frozen ? t('error.frozen') : undefined" data-testid="group-dissolve" @click="acts.dissolve"><Icon name="lucide:ungroup" /> {{ t('group.dissolve') }}</button>
       </footer>
+      <ConfirmDialog v-model:open="acts.dissolveAsk.value" danger :title="t('group.dissolve.title')" :message="t('group.dissolve.voted')" :confirm-label="t('group.dissolve')" confirm-icon="lucide:ungroup" @confirm="acts.doDissolve" />
     </section>
   </div>
 </template>
 
 <style scoped>
 .scrim { position: absolute; inset: 0; z-index: 20; display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; padding: .6rem; background: color-mix(in oklab, var(--bg) 62%, transparent); backdrop-filter: blur(2px); border-radius: inherit; animation: fade-in .2s; }
+.panel:focus { outline: none; }
 .panel { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: .8rem; padding: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-2); max-height: 100%; min-width: 0; overflow-x: hidden; overflow-y: auto; container-type: inline-size; }
 header { display: flex; align-items: center; gap: .5rem; }
 .gi { color: var(--accent); font-size: var(--fs-xl); flex: none; }

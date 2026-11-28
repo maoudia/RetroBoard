@@ -61,7 +61,7 @@ export function demoRunner(page: Page, browser: Browser, locale: Locale) {
       await note(0).locator('[data-testid^="vote-"]').first().click()
       await note(3).dragTo(note(2))
       await settle(page)
-    } else if ('click' in op) await page.getByTestId(op.click).first().click()
+    } else if ('click' in op) await (op.click.endsWith('*') ? page.locator(`[data-testid^="${op.click.slice(0, -1)}"]`) : page.getByTestId(op.click)).first().click() // a trailing * stands for an id made at run time (a group)
     else if ('zoomNote' in op) await noteByText(page, demo.notes[op.zoomNote]![1]).locator('[data-testid="note-text"]').dblclick()
     else if ('press' in op) await page.keyboard.press(op.press)
     else if ('fill' in op) await page.getByTestId(op.fill[0]).fill(text(op.fill[1], locale))
