@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.77.0](https://github.com/maoudia/RetroBoard/compare/v1.76.0...v1.77.0) (2026-11-28)
+
+
+### Features
+
+* **web:** chat button snaps to the screen edges, remembers its place and moves without dragging (chat-floating-dock) ([efe2e5c](https://github.com/maoudia/RetroBoard/commit/efe2e5cdad56fec9d732ba2c6ba74e077413f4b0))
+
 ## [1.76.0](https://github.com/maoudia/RetroBoard/compare/v1.75.0...v1.76.0) (2026-11-28)
 
 
