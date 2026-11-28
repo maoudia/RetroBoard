@@ -2,8 +2,8 @@
 
 ## 1. Attention model
 
-- [ ] 1.1 Categories table, `AttentionEvent` and the pure `attentionFor` policy (focus rule, do-not-disturb, grouping, rate limit, privacy level) in packages/application with the attention state reducer; verify unit tests with fixtures (each category, burst, dnd, default privacy text, no idea text at the default level)
-- [ ] 1.2 Derive attention events from the existing activity, talk, chat and action read models and the timer end; verify unit tests that a phase change, voting open, your turn, an assigned action, a chat reply and a new idea in my column produce the expected category
+- [x] 1.1 Categories table, `AttentionEvent` and the pure `attentionFor` policy (focus rule, do-not-disturb, grouping, rate limit, privacy level) in packages/application with the attention state reducer; verify unit tests with fixtures (each category, burst, dnd, default privacy text, no idea text at the default level)
+- [x] 1.2 Derive attention events from the existing activity, talk, chat and action read models and the timer end; verify unit tests that a phase change, voting open, your turn, an assigned action, a chat reply and a new idea in my column produce the expected category
 
 ## 2. Tab surfaces
 
