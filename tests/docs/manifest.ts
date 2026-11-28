@@ -14,6 +14,7 @@ export type Op =
   | { readonly goto: string | Text }
   | { readonly demoBoard: true }
   | { readonly click: string }
+  | { readonly zoomNote: number }
   | { readonly press: string }
   | { readonly fill: readonly [anchor: string, value: string | Text] }
   | { readonly viewport: readonly [width: number, height: number] }
@@ -81,6 +82,7 @@ export const CHAPTERS: readonly Chapter[] = [
     intro: t('Les idées restent privées tant que tu ne les publies pas.', 'Ideas stay private until you publish them.'),
     steps: [
       { id: 'board', caption: t('Chaque colonne a son champ de saisie en haut, les brouillons restent sur ton appareil.', 'Each column has its own field at the top, drafts stay on your device.'), ops: [{ press: 'Escape' }], anchors: ['board'] },
+      { id: 'zoom', caption: t('Un double clic ou un double toucher sur une idée l’agrandit sur ton appareil, les flèches passent à l’idée voisine et Échap referme.', 'A double click or double tap on an idea enlarges it on your device, the arrows move to the next idea and Escape closes it.'), ops: [{ press: 'Escape' }, { zoomNote: 1 }], anchors: ['note-text'] },
     ],
   },
   {
@@ -88,7 +90,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: t('Le déroulé et le minuteur', 'The agenda and the timer'),
     intro: t('Le déroulé découpe la rétro en phases chronométrées.', 'The agenda splits the retro into timed phases.'),
     steps: [
-      { id: 'ring', caption: t('L’anneau montre la phase en cours et le temps restant.', 'The ring shows the running phase and the time left.'), ops: [], anchors: ['agenda-ring'], shoot: 'agenda-ring' },
+      { id: 'ring', caption: t('L’anneau montre la phase en cours et le temps restant.', 'The ring shows the running phase and the time left.'), ops: [{ press: 'Escape' }], anchors: ['agenda-ring'], shoot: 'agenda-ring' },
       { id: 'panel', caption: t('Le panneau du déroulé permet de démarrer, passer à la phase suivante ou rallonger.', 'The agenda panel starts, skips to the next phase or extends.'), ops: [{ click: 'agenda-ring' }], anchors: ['agenda-panel'] },
     ],
   },

@@ -135,5 +135,18 @@ footer { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 /* Short fade and scale on opening; none under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .zoom .card { animation: zoom-in var(--dur-base, .2s) var(--ease, ease-out); } }
+/* Phone (under 600 px): full-width card, the controls in a bottom bar with 44 px touch targets. */
+@media (max-width: 599px) {
+  div.spot.spot.zoom { padding: 0; place-items: stretch; }
+  .zoom .card { width: 100%; max-height: 100dvh; height: 100dvh; border-radius: 0; grid-template-rows: auto 1fr auto; padding-bottom: 0; }
+  .zoom footer { position: sticky; bottom: 0; justify-content: space-between; padding: .6rem 0 max(.6rem, env(safe-area-inset-bottom)); }
+  .zoom footer .btn { min-height: 44px; min-width: 44px; justify-content: center; }
+}
+/* TV (2560 px and up): the card and the text stop growing. */
+@media (min-width: 2560px) {
+  .card { width: 90rem; }
+  .text[data-size='xl'] { font-size: clamp(5rem, 3vw, 6rem); }
+  .text[data-size='l'] { font-size: clamp(3.4rem, 2.2vw, 4.4rem); }
+}
 @keyframes zoom-in { from { opacity: 0; transform: scale(.96); } }
 </style>

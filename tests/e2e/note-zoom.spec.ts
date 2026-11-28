@@ -58,3 +58,31 @@ test.describe('note zoom', () => {
     await expect(page.getByTestId('zoom')).toHaveCount(0)
   })
 })
+
+// Phone and TV layouts (task 3.2).
+test.describe('note zoom layouts', () => {
+  test('360 px: full-width card with a bottom bar of 44 px targets', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 })
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'Phone idea')
+    await noteByText(page, 'Phone idea').locator('[data-testid="note-menu-trigger"], [data-testid^="note-menu-"]').first().click()
+    await page.locator('[data-testid^="zoom-"]').first().click()
+    const card = page.getByTestId('zoom-text').locator('xpath=..')
+    // Layout size, not the box: the opening animation scales the card for a moment.
+    expect(await card.evaluate((el) => parseFloat(getComputedStyle(el).width))).toBeGreaterThanOrEqual(359)
+    await expect.poll(async () => (await page.getByTestId('zoom-close').boundingBox())!.height).toBeGreaterThanOrEqual(43.5)
+    const close = (await page.getByTestId('zoom-close').boundingBox())!
+    expect(close.y + close.height).toBeGreaterThan(740 - 120)
+  })
+
+  test('2560 px: the card and the text stop growing', async ({ page }) => {
+    await page.setViewportSize({ width: 2560, height: 1440 })
+    await createBoard(page, { template: 'start-stop-continue', name: 'Alice' })
+    await publishNote(page, 0, 'TV')
+    await noteByText(page, 'TV').locator('[data-testid="note-text"]').dblclick()
+    const card = page.getByTestId('zoom-text').locator('xpath=..')
+    expect(await card.evaluate((el) => parseFloat(getComputedStyle(el).width))).toBeLessThanOrEqual(1440)
+    const px = await page.getByTestId('zoom-text').evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
+    expect(px).toBeLessThanOrEqual(96)
+  })
+})
